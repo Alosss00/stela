@@ -9,7 +9,7 @@ function ensureSuperadminAccount($db) {
     $isActive = 1;
     $email = 'superadmin@mining.local';
     $role = 'superadmin';
-
+ 
     // Ensure 'superadmin' is in the role ENUM
     @$db->query("ALTER TABLE users MODIFY COLUMN role ENUM('admin','ktt','user','department_user','superadmin') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'user'");
 
