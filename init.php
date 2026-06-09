@@ -10,7 +10,7 @@
 if (basename($_SERVER['PHP_SELF']) === 'init.php') {
     die('Direct access not permitted');
 }
-
+ 
 // Define root path - the base directory of the application
 define('ROOT_PATH', __DIR__);
 
