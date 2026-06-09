@@ -522,7 +522,7 @@ require_once '../../includes/header.php';
                 <div>
                     <strong data-lang="important-statement-letter">Important - Statement Letter:</strong>
                     <p style="margin-bottom: 8px;" data-lang="wet-signature-pdf-instruction">The statement letter must be signed with wet signature (original) and scanned in PDF format</p>
-                    <a href="https://drive.google.com/drive/folders/1z_LkU7C0bgz5VnVKyZBmmbP8mUuZGr06?usp=sharing" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
+                    <a href="https://drive.google.com/drive/folders/176NPnFCvAnzp2Mb9vrA2RC5OMA45Hga1?usp=sharing" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
                         <i class="fas fa-download"></i> <span data-lang="download-statement-letter-template">Download Statement Letter Template</span>
                     </a>
                 </div>
