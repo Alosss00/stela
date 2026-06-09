@@ -5,9 +5,9 @@
 
 // Konfigurasi Database
 define('DB_HOST', '127.0.0.1');
-define('DB_USER', 'root');
-define('DB_PASS', '');
-define('DB_NAME', 'mining_appointment');
+define('DB_USER', 'u136581265_MineTokaSTELA');
+define('DB_PASS', 'Hse_Stela01');
+define('DB_NAME', 'u136581265_MineTokaSTELA');
 
 // Konfigurasi Aplikasi
 define('SITE_NAME', 'Expertise Appointment Letter System');
