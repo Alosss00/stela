@@ -449,7 +449,7 @@ require_once '../../includes/header.php';
                 <?php if ($employee['cv_file']): ?>
                 <div class="info-item">
                     <label data-lang="cv-file">CV:</label>
-                    <a href="../../assets/<?php echo $employee['cv_file']; ?>" target="_blank" class="btn btn-sm btn-info">
+                    <a href="/<?php echo $employee['cv_file']; ?>" target="_blank" class="btn btn-sm btn-info">
                         <i class="fas fa-file-pdf"></i> <span data-lang="view-cv">Lihat CV</span>
                     </a>
                 </div>
@@ -458,7 +458,7 @@ require_once '../../includes/header.php';
                 <?php if (!empty($employee['statement_file'])): ?>
                 <div class="info-item">
                     <label data-lang="ktt-statement-letter">Statement Letter:</label>
-                    <a href="../../assets/<?php echo $employee['statement_file']; ?>" target="_blank" class="btn btn-sm btn-primary">
+                    <a href="/<?php echo $employee['statement_file']; ?>" target="_blank" class="btn btn-sm btn-primary">
                         <i class="fas fa-signature"></i> <span data-lang="ktt-view-statement">View Statement Letter</span>
                     </a>
                 </div>
@@ -526,7 +526,7 @@ require_once '../../includes/header.php';
                             <?php if ($cert['document_file']): ?>
                             <div class="info-item">
                                 <label data-lang="document">Document:</label>
-                                <a href="../../assets/<?php echo $cert['document_file']; ?>" target="_blank" class="btn btn-sm btn-info">
+                                <a href="/<?php echo $cert['document_file']; ?>" target="_blank" class="btn btn-sm btn-info">
                                     <i class="fas fa-file-pdf"></i> <span data-lang="ktt-view-certificate">View Certificate</span>
                                 </a>
                             </div>
