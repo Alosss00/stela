@@ -1,0 +1,29 @@
+# Ignore uploaded files
+assets/uploads/*
+!assets/uploads/.gitkeep
+
+# Ignore configuration with sensitive data
+# includes/config.php
+
+# Ignore logs
+*.log
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore IDE files
+.vscode/
+.idea/
+*.sublime-*
+
+# Ignore temporary files
+*.tmp
+*.swp
+*~
+
+# Ignore vendor (if using Composer)
+vendor/
+
+# Ignore node_modules (if using npm)
+node_modules/

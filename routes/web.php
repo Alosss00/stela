@@ -1,0 +1,9 @@
+{
+    "name": "mining/appointment",
+    "type": "project",
+    "require": {
+        "mpdf/mpdf": "^8.2",
+        "ext-gd": "*",
+        "ext-mbstring": "*"
+    }
+}

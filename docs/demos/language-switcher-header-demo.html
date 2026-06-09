@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Switcher - Header Demo</title>
+    <link rel="stylesheet" href="css/language-switcher.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f8f9fa;
+        }
+
+        /* Simulated Topbar - Same as in style.css */
+        .topbar {
+            background: #37474F;
+            padding: 16px 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .topbar-left h2 {
+            margin: 0;
+            font-size: 20px;
+            color: white;
+            font-weight: 600;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+        }
+
+        .topbar-right .date {
+            color: rgba(255, 255, 255, 0.95);
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .content-area {
+            padding: 30px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .demo-card {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #37474F;
+            margin-bottom: 15px;
+        }
+
+        .info-box {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD400;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .demo-button {
+            padding: 10px 20px;
+            background: #FF8C00;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .demo-button:hover {
+            background: #FFC300;
+            transform: translateY(-2px);
+        }
+
+        ul {
+            line-height: 2;
+            margin: 20px 0;
+        }
+
+        .highlight {
+            background: #FFF9E6;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-weight: 600;
+            color: #FF8C00;
+        }
+    </style>
+</head>
+<body>
+    <!-- Simulated Topbar Header -->
+    <div class="topbar">
+        <div class="topbar-left">
+            <h2>Dashboard</h2>
+        </div>
+        <div class="topbar-right">
+            <span class="date" data-lang="current-date"><?php echo date('d F Y'); ?> 25 March 2026</span>
+            <button id="languageToggle" class="language-toggle-btn" type="button">
+                <span class="flag-icon">🇬🇧</span> EN
+            </button>
+        </div>
+    </div>
+
+    <!-- Content Area -->
+    <div class="content-area">
+        <div class="demo-card">
+            <h1>🌐 Language Switcher - <span data-lang="welcome-user">Welcome</span> Demo</h1>
+
+            <div class="info-box">
+                ℹ️ <strong>Info:</strong> Tombol language switcher sekarang berada di <span class="highlight">header topbar</span>, di sebelah kanan tanggal!
+                <br>
+                ℹ️ <strong>Info:</strong> The language switcher button is now in the <span class="highlight">header topbar</span>, to the right of the date!
+            </div>
+
+            <p><strong data-lang="manage-appointments">Manage and monitor all appointment letters easily</strong></p>
+        </div>
+
+        <div class="demo-card">
+            <h2>📋 <span data-lang="request">Request</span> & <span data-lang="assign-letter">Assign Letter</span></h2>
+
+            <ul>
+                <li><span data-lang="dashboard">Dashboard</span> - Dashboard menu</li>
+                <li><span data-lang="employees">Employees</span> - Employees menu</li>
+                <li><span data-lang="appointments">Appointments</span> - Appointments menu</li>
+                <li><span data-lang="reports">Reports</span> - Reports menu</li>
+                <li><span data-lang="certifications">Certifications</span> - Certifications menu</li>
+                <li><span data-lang="settings">Settings</span> - Settings menu</li>
+            </ul>
+        </div>
+
+        <div class="demo-card">
+            <h2>📊 <span data-lang="employee-verification">Employee Verification</span></h2>
+
+            <div class="demo-buttons">
+                <button class="demo-button" data-lang="needs-review-admin">Needs Review Admin</button>
+                <button class="demo-button" data-lang="accept">Accept</button>
+                <button class="demo-button" data-lang="pending">Pending</button>
+                <button class="demo-button" data-lang="verified">Verified</button>
+                <button class="demo-button" data-lang="rejected">Rejected</button>
+            </div>
+        </div>
+
+        <div class="demo-card">
+            <h2>🎯 <span data-lang="actions">Actions</span></h2>
+
+            <div class="demo-buttons">
+                <button class="demo-button" data-lang="add">Add</button>
+                <button class="demo-button" data-lang="edit">Edit</button>
+                <button class="demo-button" data-lang="delete">Delete</button>
+                <button class="demo-button" data-lang="save">Save</button>
+                <button class="demo-button" data-lang="cancel">Cancel</button>
+                <button class="demo-button" data-lang="view-detail">View Detail</button>
+                <button class="demo-button" data-lang="approve">Approve</button>
+                <button class="demo-button" data-lang="reject">Reject</button>
+            </div>
+        </div>
+
+        <div class="demo-card">
+            <h2>⚙️ Manual Control</h2>
+            <p>Test functions manually:</p>
+
+            <div class="demo-buttons">
+                <button class="demo-button" onclick="changeLanguage('en')">
+                    🇬🇧 Force English
+                </button>
+                <button class="demo-button" onclick="changeLanguage('id')">
+                    🇮🇩 Force Indonesian
+                </button>
+                <button class="demo-button" onclick="toggleLanguage()">
+                    🔄 Toggle Language
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Language Switcher Script -->
+    <script src="js/language-switcher.js"></script>
+</body>
+</html>

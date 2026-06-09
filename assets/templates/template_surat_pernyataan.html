@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template Surat Pernyataan</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+        
+        body {
+            font-family: "Times New Roman", Times, serif;
+            font-size: 12pt;
+            line-height: 1.6;
+            margin: 0;
+            padding: 20px;
+            max-width: 21cm;
+            margin: auto;
+        }
+        
+        .container {
+            padding: 40px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .title {
+            font-weight: bold;
+            font-size: 14pt;
+            text-decoration: underline;
+            margin-bottom: 5px;
+        }
+        
+        .content {
+            text-align: justify;
+            margin-bottom: 20px;
+        }
+        
+        .identity-table {
+            margin-left: 30px;
+            margin-bottom: 20px;
+        }
+        
+        .identity-table td {
+            padding: 3px 0;
+        }
+        
+        .identity-table td:first-child {
+            width: 150px;
+        }
+        
+        .identity-table td:nth-child(2) {
+            width: 20px;
+        }
+        
+        .statement-item {
+            margin-bottom: 15px;
+            padding-left: 30px;
+            text-indent: -30px;
+        }
+        
+        .signature-section {
+            margin-top: 50px;
+            margin-left: 60%;
+        }
+        
+        .signature-box {
+            margin-top: 80px;
+            margin-bottom: 5px;
+            border-bottom: 1px solid #000;
+            width: 200px;
+        }
+        
+        .note {
+            margin-top: 40px;
+            padding: 15px;
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 5px;
+            font-size: 10pt;
+        }
+        
+        .placeholder {
+            color: #0066cc;
+            font-weight: bold;
+            background-color: #e7f3ff;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 20px;
+            background-color: #667eea;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        .print-button:hover {
+            background-color: #5568d3;
+        }
+        
+        @media print {
+            body {
+                padding: 0;
+            }
+            
+            .print-button, .note {
+                display: none;
+            }
+            
+            .placeholder {
+                background-color: transparent;
+                border-bottom: 1px solid #000;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="print-button" onclick="window.print()">🖨️ Print / Save as PDF</button>
+    
+    <div class="container">
+        <div class="header">
+            <div class="title">SURAT PERNYATAAN</div>
+            <div>KESESUAIAN KOMPETENSI DAN SERTIFIKASI</div>
+        </div>
+
+        <div class="content">
+            <p>Yang bertanda tangan di bawah ini:</p>
+            
+            <table class="identity-table">
+                <tr>
+                    <td>Nama</td>
+                    <td>:</td>
+                    <td><span class="placeholder">[Nama Lengkap]</span></td>
+                </tr>
+                <tr>
+                    <td>Jabatan</td>
+                    <td>:</td>
+                    <td><span class="placeholder">[Jabatan]</span></td>
+                </tr>
+                <tr>
+                    <td>Perusahaan</td>
+                    <td>:</td>
+                    <td><span class="placeholder">[Nama Perusahaan]</span></td>
+                </tr>
+                <tr>
+                    <td>ID BADGE</td>
+                    <td>:</td>
+                    <td><span class="placeholder">[ID BADGE]</span></td>
+                </tr>
+            </table>
+
+            <p>Dengan ini menyatakan bahwa:</p>
+
+            <div class="statement-item">
+                1. Semua data yang saya berikan dalam formulir pengajuan tenaga kerja adalah benar dan dapat dipertanggungjawabkan.
+            </div>
+
+            <div class="statement-item">
+                2. Sertifikat kompetensi yang saya lampirkan adalah asli dan masih berlaku sesuai dengan masa berlaku yang tertera.
+            </div>
+
+            <div class="statement-item">
+                3. Saya memiliki kompetensi yang sesuai dengan jabatan yang diajukan dan bersedia melaksanakan tugas dengan sebaik-baiknya.
+            </div>
+
+            <div class="statement-item">
+                4. Saya bersedia mematuhi seluruh peraturan dan ketentuan yang berlaku di lingkungan kerja.
+            </div>
+
+            <div class="statement-item">
+                5. Apabila dikemudian hari terbukti ada data yang tidak benar atau pemalsuan dokumen, saya bersedia menerima sanksi sesuai dengan ketentuan yang berlaku.
+            </div>
+
+            <p style="margin-top: 20px;">
+                Demikian surat pernyataan ini saya buat dengan sebenar-benarnya untuk dapat dipergunakan sebagaimana mestinya.
+            </p>
+        </div>
+
+        <div class="signature-section">
+            <p><span class="placeholder">[Kota]</span>, <span class="placeholder">[Tanggal]</span></p>
+            <p>Yang Membuat Pernyataan,</p>
+            <div class="signature-box"></div>
+            <p><strong><span class="placeholder">[Nama Lengkap]</span></strong></p>
+        </div>
+
+        <div class="note">
+            <strong>📌 CATATAN PENTING:</strong><br><br>
+            1. Ganti semua teks berwarna biru dengan data yang sesuai.<br>
+            2. Klik tombol "Print / Save as PDF" di pojok kanan atas.<br>
+            3. Pilih "Save as PDF" atau "Microsoft Print to PDF" sebagai printer.<br>
+            4. Cetak PDF tersebut, tanda tangani dengan <strong>tanda tangan basah (asli)</strong> di atas materai 10.000.<br>
+            5. Scan hasil yang sudah ditandatangani dalam format PDF.<br>
+            6. Upload file PDF hasil scan ke sistem.
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,311 @@
+/* Language Switcher Button Styles */
+
+/* For Login Page - Fixed Position */
+.login-page .language-switcher {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+/* Login Page Dropdown Styling */
+.login-page .login-lang-dropdown {
+    margin-left: 0;
+}
+
+.login-page .login-lang-dropdown .language-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 10px 18px;
+    background: rgba(255, 255, 255, 0.95);
+    border: 2px solid #FF8C00;
+    border-radius: 25px;
+    color: #FF8C00;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.2);
+}
+
+.login-page .login-lang-dropdown .language-toggle-btn .lang-text {
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.login-page .login-lang-dropdown .language-toggle-btn:hover {
+    background: #FF8C00;
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(255, 140, 0, 0.35);
+}
+
+.login-page .login-lang-dropdown .language-toggle-btn:hover i {
+    color: white;
+}
+
+.login-page .login-lang-dropdown .language-toggle-btn i {
+    color: #FF8C00;
+    transition: color 0.3s ease;
+}
+
+.login-page .login-lang-dropdown .language-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    background: white;
+    border: 2px solid #FF8C00;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(255, 140, 0, 0.2);
+    min-width: 100px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 1000;
+    overflow: hidden;
+}
+
+.login-page .login-lang-dropdown .language-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.login-page .login-lang-dropdown .language-dropdown-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 12px 20px;
+    color: #37474F;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.login-page .login-lang-dropdown .language-dropdown-menu .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.login-page .login-lang-dropdown .language-dropdown-menu .dropdown-item:hover {
+    background: #FFF3E0;
+    color: #FF8C00;
+}
+
+.login-page .login-lang-dropdown .language-dropdown-menu .dropdown-item.active {
+    background: #FF8C00;
+    color: white;
+}
+
+/* For Other Pages - In Topbar Header - Dropdown Style */
+.language-dropdown {
+    position: relative;
+    margin-left: 15px;
+}
+
+.language-toggle-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: #f8fafc;
+    border: 1px solid #dbe3f1;
+    border-radius: 6px;
+    color: #1e3a8a;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.06);
+}
+
+.language-toggle-btn .lang-text {
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.language-toggle-btn:hover {
+    background: #eef2ff;
+    border-color: #1e3a8a;
+}
+
+.language-toggle-btn:active {
+    transform: scale(0.98);
+}
+
+.language-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 5px);
+    right: 0;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+    min-width: 80px;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+    z-index: 1000;
+}
+
+.language-dropdown-menu.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.language-dropdown-menu .dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 20px;
+    color: #37474F;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background 0.2s ease;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.language-dropdown-menu .dropdown-item:last-child {
+    border-bottom: none;
+}
+
+.language-dropdown-menu .dropdown-item:hover {
+    background: #f3f4f6;
+}
+
+.language-dropdown-menu .dropdown-item.active {
+    background: #e8f0fe;
+    color: #1e3a8a;
+    font-weight: 600;
+}
+
+.language-dropdown-menu .dropdown-item .flag-icon {
+    font-size: 16px;
+}
+
+.flag-icon {
+    font-size: 16px;
+    line-height: 1;
+}
+
+/* Make topbar-right flex to align items properly */
+.topbar-right {
+    display: flex;
+    align-items: center;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .login-page .language-switcher {
+        top: 15px;
+        right: 15px;
+    }
+
+    .login-page .login-lang-dropdown .language-toggle-btn {
+        padding: 8px 14px;
+        font-size: 13px;
+        gap: 6px;
+    }
+
+    .login-page .login-lang-dropdown .language-toggle-btn .lang-text {
+        font-size: 13px;
+    }
+
+    .login-page .login-lang-dropdown .language-dropdown-menu {
+        min-width: 90px;
+    }
+
+    .login-page .login-lang-dropdown .language-dropdown-menu .dropdown-item {
+        padding: 10px 16px;
+        font-size: 13px;
+    }
+
+    .language-dropdown {
+        margin-left: 10px;
+    }
+
+    .language-toggle-btn {
+        padding: 5px 10px;
+        font-size: 11px;
+        gap: 4px;
+    }
+
+    .language-dropdown-menu {
+        min-width: 120px;
+    }
+
+    .language-dropdown-menu .dropdown-item {
+        padding: 8px 12px;
+        font-size: 12px;
+    }
+
+    .flag-icon {
+        font-size: 14px;
+    }
+}
+
+@media (max-width: 480px) {
+    .login-page .language-switcher {
+        top: 12px;
+        right: 12px;
+    }
+
+    .login-page .login-lang-dropdown .language-toggle-btn {
+        padding: 6px 12px;
+        font-size: 12px;
+        gap: 5px;
+    }
+
+    .login-page .login-lang-dropdown .language-toggle-btn .lang-text {
+        font-size: 12px;
+    }
+
+    .login-page .login-lang-dropdown .language-dropdown-menu {
+        min-width: 80px;
+    }
+
+    .login-page .login-lang-dropdown .language-dropdown-menu .dropdown-item {
+        padding: 8px 14px;
+        font-size: 12px;
+    }
+
+    .language-dropdown {
+        margin-left: 8px;
+    }
+
+    .language-toggle-btn {
+        padding: 4px 8px;
+        font-size: 10px;
+    }
+
+    .flag-icon {
+        font-size: 13px;
+    }
+
+    /* Show only flag icon on very small screens */
+    .topbar-right .date {
+        font-size: 12px;
+    }
+}
+
+/* Animation untuk smooth transition */
+[data-lang] {
+    transition: opacity 0.2s ease;
+}
+
+/* Ensure dropdown stays above other elements */
+.language-dropdown {
+    z-index: 100;
+}
+
+.language-dropdown-menu {
+    z-index: 1000;
+}
+
+

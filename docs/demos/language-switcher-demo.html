@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Switcher Demo</title>
+    <link rel="stylesheet" href="css/language-switcher.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            padding: 60px 20px 20px;
+            max-width: 800px;
+            margin: 0 auto;
+            background: #f8f9fa;
+        }
+
+        .demo-section {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            color: #FF8C00;
+            margin-bottom: 10px;
+        }
+
+        h2 {
+            color: #333;
+            margin-top: 30px;
+            margin-bottom: 15px;
+        }
+
+        .demo-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin: 20px 0;
+        }
+
+        .demo-button {
+            padding: 10px 20px;
+            background: #FF8C00;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .demo-button:hover {
+            background: #FFC300;
+            transform: translateY(-2px);
+        }
+
+        .info-box {
+            background: #FFF9E6;
+            border-left: 4px solid #FFD400;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+
+        .code-box {
+            background: #f4f4f4;
+            padding: 15px;
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            margin: 15px 0;
+        }
+
+        ul {
+            line-height: 1.8;
+        }
+
+        .current-lang {
+            display: inline-block;
+            padding: 5px 12px;
+            background: #4CAF50;
+            color: white;
+            border-radius: 15px;
+            font-size: 14px;
+            margin-left: 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Language Switcher Button -->
+    <div class="language-switcher">
+        <button id="languageToggle" type="button">
+            <span class="flag-icon">🇬🇧</span> EN
+        </button>
+    </div>
+
+    <div class="demo-section">
+        <h1><i class="fas fa-language"></i> <span data-lang="welcome">Welcome to</span> Language Switcher Demo</h1>
+        <p data-lang="login-subtitle">Login below to get started.</p>
+
+        <div class="info-box">
+            <strong>ℹ️ Info:</strong>
+            <span data-lang="language">Bahasa</span>:
+            <span id="currentLangDisplay" class="current-lang">ID</span>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>📝 <span data-lang="employees">Karyawan</span></h2>
+
+        <div class="demo-buttons">
+            <button class="demo-button" data-lang="add">Tambah</button>
+            <button class="demo-button" data-lang="edit">Ubah</button>
+            <button class="demo-button" data-lang="delete">Hapus</button>
+            <button class="demo-button" data-lang="save">Simpan</button>
+            <button class="demo-button" data-lang="cancel">Batal</button>
+        </div>
+
+        <ul>
+            <li><strong data-lang="dashboard">Dasbor</strong> - Dashboard menu</li>
+            <li><strong data-lang="employees">Karyawan</strong> - Employees menu</li>
+            <li><strong data-lang="appointments">Penunjukan</strong> - Appointments menu</li>
+            <li><strong data-lang="reports">Laporan</strong> - Reports menu</li>
+            <li><strong data-lang="certifications">Sertifikasi</strong> - Certifications menu</li>
+        </ul>
+    </div>
+
+    <div class="demo-section">
+        <h2>🧪 <span data-lang="search">Cari</span> & <span data-lang="filter">Filter</span></h2>
+
+        <input type="text"
+               placeholder="Cari..."
+               data-lang="search"
+               style="width:100%; padding:12px; border:1px solid #ddd; border-radius:6px;">
+    </div>
+
+    <div class="demo-section">
+        <h2>🎯 Manual Control / Kontrol Manual</h2>
+        <p>Anda juga bisa mengontrol bahasa secara programmatic:</p>
+
+        <div class="demo-buttons">
+            <button class="demo-button" onclick="changeLanguage('en')">
+                🇬🇧 Force English
+            </button>
+            <button class="demo-button" onclick="changeLanguage('id')">
+                🇮🇩 Force Indonesian
+            </button>
+            <button class="demo-button" onclick="toggleLanguage()">
+                🔄 Toggle Language
+            </button>
+        </div>
+
+        <div class="code-box">
+            changeLanguage('en');  // Switch to English<br>
+            changeLanguage('id');  // Switch to Indonesian<br>
+            toggleLanguage();      // Toggle current language<br>
+            getCurrentLanguage();  // Get current language
+        </div>
+    </div>
+
+    <!-- Language Switcher Script -->
+    <script src="js/language-switcher.js"></script>
+
+    <script>
+        // Update current language display in real-time
+        setInterval(() => {
+            const display = document.getElementById('currentLangDisplay');
+            if (display) {
+                const lang = getCurrentLanguage();
+                display.textContent = lang.toUpperCase();
+            }
+        }, 100);
+    </script>
+</body>
+</html>
