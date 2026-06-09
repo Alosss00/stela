@@ -2,6 +2,8 @@
 assets/uploads/*
 !assets/uploads/.gitkeep
 
+#password
+.env
 # Ignore configuration with sensitive data
 # includes/config.php
 
