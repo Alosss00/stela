@@ -457,7 +457,7 @@ require_once '../../includes/header.php';
                 <div>
                     <strong>Important - Statement Letter:</strong>
                     <p style="margin-bottom: 8px;">The statement letter must be signed with an <strong>original signature (wet signature)</strong> by the person concerned, then scanned in PDF format.</p>
-                    <a href="https://drive.google.com/drive/folders/1z_LkU7C0bgz5VnVKyZBmmbP8mUuZGr06?usp=sharing" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
+                    <a href="https://drive.google.com/drive/folders/176NPnFCvAnzp2Mb9vrA2RC5OMA45Hga1?usp=sharing" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
                         <i class="fas fa-download"></i> Download Statement Letter Template
                     </a>
                 </div>
