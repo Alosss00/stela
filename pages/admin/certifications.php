@@ -17,9 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     VALUES ('$cert_name')";
 
             if ($db->query($sql)) {
-                $message = stela_t('certification-added');
+                $message = 'certification-added';
             } else {
-                $error = stela_t('failed-add-certification');
+                $error = 'failed-add-certification';
             }
         } elseif ($_POST['action'] == 'edit') {
             $id = intval($_POST['id']);
@@ -30,9 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     WHERE id = $id";
 
             if ($db->query($sql)) {
-                $message = stela_t('certification-updated');
+                $message = 'certification-updated';
             } else {
-                $error = stela_t('failed-update-certification');
+                $error = 'failed-update-certification';
             }
         }
     }
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
     if ($db->query("UPDATE certifications SET is_active = 0 WHERE id = $id")) {
-        $message = stela_t('certification-deleted');
+        $message = 'certification-deleted';
     }
 }
 
