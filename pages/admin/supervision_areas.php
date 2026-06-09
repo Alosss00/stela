@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Check if area name already exists (except current record)
                 $check = $db->query("SELECT id FROM supervision_areas WHERE area_name = '$area_name' AND id != $id");
                 if ($check && $check->num_rows > 0) {
-                    $error = 'area-name-already-exists';
+                    $error = 'Area Name Already Exists';
                 } else {
                     $sql = "UPDATE supervision_areas 
                             SET area_name = '$area_name', 
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             WHERE id = $id";
                     
                     if ($db->query($sql)) {
-                        $message = 'supervision-area-updated';
+                        $message = 'Supervision Area Updated';
                     } else {
                         $error = 'Failed to update supervision area';
                     }
