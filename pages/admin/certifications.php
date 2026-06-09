@@ -17,9 +17,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     VALUES ('$cert_name')";
 
             if ($db->query($sql)) {
-                $message = 'certification-added';
+                $message = 'Certification Added';
             } else {
-                $error = 'failed-add-certification';
+                $error = 'Failed to Add Certification';
             }
         } elseif ($_POST['action'] == 'edit') {
             $id = intval($_POST['id']);
@@ -30,9 +30,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     WHERE id = $id";
 
             if ($db->query($sql)) {
-                $message = 'certification-updated';
+                $message = 'Certification Updated';
             } else {
-                $error = 'failed-update-certification';
+                $error = 'Failed to Update Certification';
             }
         }
     }
@@ -42,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
     if ($db->query("UPDATE certifications SET is_active = 0 WHERE id = $id")) {
-        $message = 'certification-deleted';
+        $message = 'Certification Deleted';
     }
 }
 
