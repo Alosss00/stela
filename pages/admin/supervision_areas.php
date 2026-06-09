@@ -23,20 +23,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $description = !empty($_POST['description']) ? $db->escapeString(trim($_POST['description'])) : null;
             
             if (empty($area_name)) {
-                $error = stela_t('area-name-required');
+                $error = 'area-name-required';
             } else {
                 // Check if area name already exists
                 $check = $db->query("SELECT id FROM supervision_areas WHERE area_name = '$area_name'");
                 if ($check && $check->num_rows > 0) {
-                    $error = stela_t('area-name-already-exists');
+                    $error = 'area-name-already-exists';
                 } else {
                     $sql = "INSERT INTO supervision_areas (area_name, area_code, description, is_active) 
                             VALUES ('$area_name', " . ($area_code ? "'$area_code'" : "NULL") . ", " . ($description ? "'$description'" : "NULL") . ", 1)";
                     
                     if ($db->query($sql)) {
-                        $message = stela_t('supervision-area-added');
+                        $message = 'Supervision Area Added';
                     } else {
-                        $error = stela_t('failed-add-supervision-area');
+                        $error = 'Failed to add supervision area';
                     }
                 }
             }
@@ -50,12 +50,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $description = !empty($_POST['description']) ? $db->escapeString(trim($_POST['description'])) : null;
             
             if (empty($area_name)) {
-                $error = stela_t('area-name-required');
+                $error = 'Area Name Required';
             } else {
                 // Check if area name already exists (except current record)
                 $check = $db->query("SELECT id FROM supervision_areas WHERE area_name = '$area_name' AND id != $id");
                 if ($check && $check->num_rows > 0) {
-                    $error = stela_t('area-name-already-exists');
+                    $error = 'area-name-already-exists';
                 } else {
                     $sql = "UPDATE supervision_areas 
                             SET area_name = '$area_name', 
@@ -64,9 +64,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             WHERE id = $id";
                     
                     if ($db->query($sql)) {
-                        $message = stela_t('supervision-area-updated');
+                        $message = 'supervision-area-updated';
                     } else {
-                        $error = stela_t('failed-update-supervision-area');
+                        $error = 'Failed to update supervision area';
                     }
                 }
             }
@@ -81,9 +81,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $sql = "UPDATE supervision_areas SET is_active = $new_status WHERE id = $id";
             
             if ($db->query($sql)) {
-                $message = stela_t('status-updated');
+                $message = 'Status Updated';
             } else {
-                $error = stela_t('failed-update-status');
+                $error = 'Failed to update status';
             }
         }
         
@@ -108,9 +108,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $sql = "DELETE FROM supervision_areas WHERE id = $id";
                     
                     if ($db->query($sql)) {
-                        $message = stela_t('supervision-area-deleted');
+                        $message = 'Supervision Area Deleted';
                     } else {
-                        $error = stela_t('failed-delete-supervision-area');
+                        $error = 'Failed to delete supervision area';
                     }
                 }
             }
