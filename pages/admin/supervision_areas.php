@@ -13,6 +13,14 @@ $error = '';
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // 1. Validasi Anti-CSRF
+    // Pastikan session sudah dimulai (session_start() di awal file)
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        // Menghentikan eksekusi jika token tidak valid
+        http_response_code(403);
+        die('Akses ditolak: Token CSRF tidak valid.');
+    }
+
     if (isset($_POST['action'])) {
         $action = $_POST['action'];
         
@@ -25,7 +33,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (empty($area_name)) {
                 $error = 'area-name-required';
             } else {
-                // Check if area name already exists
                 $check = $db->query("SELECT id FROM supervision_areas WHERE area_name = '$area_name'");
                 if ($check && $check->num_rows > 0) {
                     $error = 'area-name-already-exists';
@@ -52,7 +59,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (empty($area_name)) {
                 $error = 'Area Name Required';
             } else {
-                // Check if area name already exists (except current record)
                 $check = $db->query("SELECT id FROM supervision_areas WHERE area_name = '$area_name' AND id != $id");
                 if ($check && $check->num_rows > 0) {
                     $error = 'Area Name Already Exists';
@@ -91,7 +97,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         elseif ($action == 'delete') {
             $id = intval($_POST['id']);
             
-            // Check if area is being used in employees table
             $check_usage = $db->query("
                 SELECT COUNT(*) as count 
                 FROM employees 
@@ -278,7 +283,9 @@ require_once '../../includes/header.php';
             <h3><i class="fas fa-plus-circle"></i> <span data-lang="add-new-supervision-area">Add New Supervision Area</span></h3>
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
-        <form method="POST" action="">
+            <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+            
             <input type="hidden" name="action" value="add">
             <div class="modal-body">
                 <div class="form-group-modal">
@@ -313,7 +320,9 @@ require_once '../../includes/header.php';
             <h3><i class="fas fa-edit"></i> <span data-lang="edit-supervision-area">Edit Supervision Area</span></h3>
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
-        <form method="POST" action="">
+            <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+            
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id" id="edit_id">
             <div class="modal-body">
