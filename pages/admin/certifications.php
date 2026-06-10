@@ -9,6 +9,12 @@ $error = '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Validasi token Anti-CSRF secara global untuk setiap request POST
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        http_response_code(403); // Set status HTTP ke 403 Forbidden
+        die('CSRF token mismatch');
+    }
+
     if (isset($_POST['action'])) {
         if ($_POST['action'] == 'add') {
             $cert_name = $db->escapeString($_POST['cert_name']);
@@ -159,7 +165,9 @@ require_once '../../includes/header.php';
             <h3><i class="fas fa-plus-circle"></i> <span data-lang="add-new-certification">Add New Certification</span></h3>
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
-        <form method="POST" action="">
+            <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+            
             <input type="hidden" name="action" value="add">
             <div class="modal-body">
                 <div class="form-group">
@@ -186,7 +194,9 @@ require_once '../../includes/header.php';
             <h3><i class="fas fa-edit"></i> <span data-lang="edit-certification">Edit Certification</span></h3>
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
-        <form method="POST" action="">
+            <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+            
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id" id="edit_id">
             <div class="modal-body">
