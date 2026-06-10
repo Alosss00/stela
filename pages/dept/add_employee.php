@@ -106,7 +106,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $upload_path = $upload_dir . $new_filename;
                 
                 if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                    $cv_file = 'uploads/cv/' . $new_filename;
+                    $cv_file = 'assets/uploads/cv/' . $new_filename;
                 } else {
                     $error = 'Failed to upload CV file.';
                 }
