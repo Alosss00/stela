@@ -308,7 +308,7 @@ require_once '../../includes/header.php';
             </div>
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
-<form method="POST" action="">
+            <form method="POST" action="">
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
             
             <input type="hidden" name="action" value="add">
