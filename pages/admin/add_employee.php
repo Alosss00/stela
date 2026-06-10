@@ -88,7 +88,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($check && $check->num_rows > 0) {
             $error = 'ID BADGE is already in use!';
         } else {
-            // Handle CV upload
+           // Handle CV upload
             $cv_file = '';
             $file_size = $_FILES['cv_file']['size'];
             $max_size = 5 * 1024 * 1024; // 5MB
@@ -96,22 +96,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             // Validate by extension (more reliable)
             $allowed_cv_extensions = ['pdf'];
-
+            
             if (!in_array($file_extension, $allowed_cv_extensions)) {
                 $error = 'File type not allowed! Only PDF.';
             } elseif ($file_size > $max_size) {
                 $error = 'File size too large! Maximum 5MB.';
             } else {
-                $upload_dir = '../../assets/uploads/cv/';
+                // PERBAIKAN 1: Gunakan Absolute Path berbasis Document Root
+                // rtrim digunakan untuk mencegah double slash (//) pada path
+                $base_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/'); 
+                
+                // Pastikan folder assets berada tepat di dalam public_html
+                $upload_dir = $base_dir . '/assets/uploads/cv/'; 
+                
                 if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
+                    // PERBAIKAN 2: Gunakan 0755 alih-alih 0777
+                    mkdir($upload_dir, 0755, true); 
                 }
                 
                 $new_filename = 'cv_' . $employee_code . '_' . time() . '.' . $file_extension;
                 $upload_path = $upload_dir . $new_filename;
                 
                 if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                    $cv_file = 'assets/uploads/cv/' . $new_filename;
+                    // Path ini yang disimpan ke database, sudah benar tidak perlu diubah
+                    $cv_file = 'assets/uploads/cv/' . $new_filename; 
                 } else {
                     $error = 'Failed to upload CV file.';
                 }
