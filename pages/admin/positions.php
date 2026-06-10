@@ -9,6 +9,9 @@ $db = new Database();
 $message = '';
 $error = '';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // Check if competencies table exists - MOVED TO TOP
 $competencies_table_exists = false;
 $check_table = $db->query("SHOW TABLES LIKE 'competencies'");
@@ -25,6 +28,10 @@ if ($check_sub_table && $check_sub_table->num_rows > 0) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // CSRF token validation
+    if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
+        die('CSRF token mismatch');
+    }
     if (isset($_POST['action'])) {
         if ($_POST['action'] == 'add') {
             $position_type = $db->escapeString($_POST['position_type']);
@@ -301,7 +308,9 @@ require_once '../../includes/header.php';
             </div>
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
-        <form method="POST" action="">
+<form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+            
             <input type="hidden" name="action" value="add">
             <div class="modal-body modal-body-enhanced">
                 <div class="form-group-enhanced">
@@ -328,7 +337,6 @@ require_once '../../includes/header.php';
                     </div>
                 </div>
                 
-                <!-- Sub Competency Section - Only for Tenaga Teknis -->
                 <div id="sub_competency_section" style="display: none;">
                     <hr style="margin: 20px 0; border: none; border-top: 2px solid #e8eaed;">
                     <div style="margin-bottom: 15px;">
