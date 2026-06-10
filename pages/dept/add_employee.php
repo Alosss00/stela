@@ -52,7 +52,21 @@ if ($competencies_table_exists) {
 $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_name");
 
 // Handle form submission
+// Pastikan session sudah berjalan di bagian atas file
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // ==========================================
+    // IMPLEMENTASI VALIDASI ANTI-CSRF
+    // ==========================================
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        // Hentikan eksekusi jika token tidak valid (mencegah serangan CSRF)
+        die('Aksi tidak diizinkan: Validasi token keamanan gagal.');
+    }
+    // ==========================================
+
     $employee_code = $db->escapeString(trim($_POST['employee_code']));
     $full_name = $db->escapeString(trim($_POST['full_name']));
     $position = $db->escapeString(trim($_POST['position']));
@@ -254,6 +268,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
+?>
 
 require_once '../../includes/header.php';
 ?>
@@ -290,8 +305,21 @@ require_once '../../includes/header.php';
     </div>
     <?php endif; ?>
     
+<?php
+// Pastikan session sudah berjalan (letakkan di paling atas file jika belum ada)
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token Anti-CSRF jika belum ada di session saat ini
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
+
     <form method="POST" action="" enctype="multipart/form-data" class="form-container">
-        <!-- Section 1: Data Identitas & Kompetensi -->
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-id-card"></i> <span data-lang="identity-competency-data">Identity & Competency Data</span></h3>
@@ -429,7 +457,6 @@ require_once '../../includes/header.php';
                 </div>
             </div>
 
-            <!-- File Upload Section -->
             <div class="form-row">
                 <div class="form-group col-lg-6">
                     <label for="cv_file" data-lang="upload-cv">Upload CV <span class="text-danger">*</span></label>
@@ -464,7 +491,6 @@ require_once '../../includes/header.php';
             </div>
         </div>
         
-        <!-- Section 2: Sertifikasi -->
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-certificate"></i> <span data-lang="certification-competency">Certification/Competency</span></h3>
@@ -476,8 +502,7 @@ require_once '../../includes/header.php';
                     <div class="cert-item-header">
                         <h5><i class="fas fa-file-certificate"></i> <span data-lang="certification-number-1">Certification #1</span></h5>
                         <div class="cert-header-actions">
-                            <!-- Remove button will appear for additional certifications -->
-                        </div>
+                            </div>
                     </div>
                     
                     <div class="form-row">
@@ -573,7 +598,6 @@ require_once '../../includes/header.php';
             </button>
         </div>
 
-        <!-- Info Alert -->
         <div class="alert alert-info-custom">
             <i class="fas fa-lightbulb"></i>
             <div>
@@ -582,7 +606,6 @@ require_once '../../includes/header.php';
             </div>
         </div>
         
-        <!-- Form Actions -->
         <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-lg">
                 <i class="fas fa-save"></i> <span data-lang="save-submit-verification">Save & Submit for Verification</span>
