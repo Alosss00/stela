@@ -335,8 +335,21 @@ require_once '../../includes/header.php';
     </div>
     <?php endif; ?>
     
+ <?php
+// Pastikan session sudah berjalan sebelum output apapun
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Buat token CSRF jika belum ada di session saat ini
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+?>
+
     <form method="POST" action="" enctype="multipart/form-data" class="form-container">
-        <!-- Section 1: Identity & Competency Data -->
+        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
+
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-id-card"></i> <span data-lang="identity-competency-data">Identity & Competency Data</span></h3>
@@ -360,7 +373,6 @@ require_once '../../includes/header.php';
                 </div>
             </div>
             
-            <!-- Department disembunyikan, nilai default diatur otomatis -->
             <input type="hidden" id="department" name="department" value="General">
             
             <div class="form-row">
@@ -397,7 +409,7 @@ require_once '../../includes/header.php';
                     <select class="form-control" id="supervision_area" name="supervision_area">
                         <option value="" data-lang="select-supervision-area">-- Select Supervision Area --</option>
                         <?php
-                        if ($supervision_areas && $supervision_areas->num_rows > 0) {
+                        if (isset($supervision_areas) && $supervision_areas->num_rows > 0) {
                             $supervision_areas->data_seek(0);
                             while ($area = $supervision_areas->fetch_assoc()):
                                 $selected = (isset($_POST['supervision_area']) && $_POST['supervision_area'] == $area['area_name']) ? 'selected' : '';
@@ -469,13 +481,12 @@ require_once '../../includes/header.php';
                         <?php endif; ?>
                     </label>
                     <input type="text" class="form-control" id="contractor_company" name="contractor_company"
-                           value="<?php echo htmlspecialchars(!empty($current_department) ? $current_department : $company_name); ?>"
+                           value="<?php echo htmlspecialchars(!empty($current_department) ? $current_department : (isset($company_name) ? $company_name : '')); ?>"
                            required readonly>
                     <small class="form-hint" data-lang="auto-filled-from-account">Automatically filled from your account</small>
                 </div>
             </div>
             
-            <!-- File Upload Section -->
             <div class="form-row">
                 <div class="form-group col-lg-6">
                     <label for="cv_file" data-lang="upload-cv">Upload CV<span class="text-danger">*</span></label>
@@ -510,7 +521,6 @@ require_once '../../includes/header.php';
             </div>
         </div>
         
-        <!-- Section 2: Sertifikasi -->
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-certificate"></i> <span data-lang="certification-competency">Certification/Competency</span></h3>
@@ -522,8 +532,7 @@ require_once '../../includes/header.php';
                     <div class="cert-item-header">
                         <h5><i class="fas fa-file-certificate"></i> <span data-lang="certification-number-1">Certification #1</span></h5>
                         <div class="cert-header-actions">
-                            <!-- Remove button will appear for additional certifications -->
-                        </div>
+                            </div>
                     </div>
                     
                     <div class="form-row">
@@ -532,7 +541,7 @@ require_once '../../includes/header.php';
                             <select name="certification_ids[]" class="form-control cert-name-select" required onchange="updateIssuer(this)">
                                 <option value="" data-lang="select-certification">-- Select Certification --</option>
                                 <?php
-                                if ($certifications && $certifications->num_rows > 0) {
+                                if (isset($certifications) && $certifications->num_rows > 0) {
                                     $certifications->data_seek(0);
                                     while ($cert = $certifications->fetch_assoc()):
                                     ?>
@@ -621,7 +630,6 @@ require_once '../../includes/header.php';
             </button>
         </div>
 
-        <!-- Info Alert -->
         <div class="alert alert-info-custom">
             <i class="fas fa-lightbulb"></i>
             <div>
@@ -630,7 +638,6 @@ require_once '../../includes/header.php';
             </div>
         </div>
         
-        <!-- Form Actions -->
         <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-lg">
                 <i class="fas fa-save"></i> <span data-lang="save-submit-verification">Save & Submit for Verification</span>
