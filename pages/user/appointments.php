@@ -11,6 +11,10 @@ require_once '../../includes/header.php';
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 
+// Pastikan session sudah aktif di bagian paling atas file
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // Filter
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
@@ -22,58 +26,66 @@ if ($status_filter != 'all') {
 
 // Handle resubmit to KTT action
 if (isset($_GET['action']) && $_GET['action'] == 'resubmit_to_ktt' && isset($_GET['id'])) {
-    $appointment_id = intval($_GET['id']);
-
-    // Verify this appointment belongs to user's company and is resubmittable
-    $verify_result = $db->query("
-        SELECT a.id, e.verification_status, e.resubmit_count
-        FROM appointments a
-        JOIN employees e ON a.employee_id = e.id
-        WHERE a.id = $appointment_id
-        AND a.status = 'pending'
-        AND a.admin_approval_action = 'send_to_user'
-        AND e.verification_status = 'verified'
-        AND e.resubmit_count > 0
-        AND e.contractor_company = '" . $db->escapeString($company_name) . "'
-    ");
-
-    if ($verify_result && $verify_result->num_rows > 0) {
-        // Get which KTT needs to review (from requires flags)
-        $appt_details = $db->query("
-            SELECT requires_ktt_msm_review, requires_ktt_ttn_review
-            FROM appointments
-            WHERE id = $appointment_id
-        ")->fetch_assoc();
-
-        // Prepare KTT status reset based on which KTT needs to review
-        $ktt_status_reset = "";
-        if ($appt_details['requires_ktt_msm_review'] == 1) {
-            $ktt_status_reset = ", ktt_msm_status = 'pending', ktt1_approved_by = NULL, ktt1_approved_date = NULL";
-        }
-        if ($appt_details['requires_ktt_ttn_review'] == 1) {
-            $ktt_status_reset .= ", ktt_ttn_status = 'pending', ktt2_approved_by = NULL, ktt2_approved_date = NULL";
-        }
-
-        // Reset admin_approval_action to NULL so appointment becomes visible to KTT
-        // Also reset the rejecting KTT's status back to 'pending'
-        // Keep status='pending' and keep requires_ktt flags as admin already set them
-        $update_sql = "UPDATE appointments SET
-                      admin_approval_action = NULL,
-                      admin_approval_notes = NULL,
-                      admin_approved_by = NULL,
-                      admin_approved_date = NULL
-                      $ktt_status_reset
-                      WHERE id = $appointment_id";
-
-        if ($db->query($update_sql)) {
-            $success_message = "Appointment letter has been resubmitted to KTT for review.";
-            header("Location: appointments.php?success=resubmit");
-            exit();
-        } else {
-            $error_message = "Failed to resubmit appointment letter!";
-        }
+    
+    // --- 1. VALIDASI TOKEN ANTI-CSRF ---
+    if (!isset($_GET['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['SESSION_base_csrf_token_jangan_lupa_diganti_jika_beda' ?? 'csrf_token'], $_GET['csrf_token'])) {
+        
+        $error_message = "Akses ditolak: Token keamanan tidak valid atau telah kedaluwarsa.";
+        
     } else {
-        $error_message = "Invalid appointment or not eligible for resubmit!";
+        
+        // --- 2. LOGIKA UTAMA (Hanya berjalan jika token valid) ---
+        $appointment_id = intval($_GET['id']);
+
+        // Verify this appointment belongs to user's company and is resubmittable
+        $verify_result = $db->query("
+            SELECT a.id, e.verification_status, e.resubmit_count
+            FROM appointments a
+            JOIN employees e ON a.employee_id = e.id
+            WHERE a.id = $appointment_id
+            AND a.status = 'pending'
+            AND a.admin_approval_action = 'send_to_user'
+            AND e.verification_status = 'verified'
+            AND e.resubmit_count > 0
+            AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+        ");
+
+        if ($verify_result && $verify_result->num_rows > 0) {
+            // Get which KTT needs to review (from requires flags)
+            $appt_details = $db->query("
+                SELECT requires_ktt_msm_review, requires_ktt_ttn_review
+                FROM appointments
+                WHERE id = $appointment_id
+            ")->fetch_assoc();
+
+            // Prepare KTT status reset based on which KTT needs to review
+            $ktt_status_reset = "";
+            if ($appt_details['requires_ktt_msm_review'] == 1) {
+                $ktt_status_reset = ", ktt_msm_status = 'pending', ktt1_approved_by = NULL, ktt1_approved_date = NULL";
+            }
+            if ($appt_details['requires_ktt_ttn_review'] == 1) {
+                $ktt_status_reset .= ", ktt_ttn_status = 'pending', ktt2_approved_by = NULL, ktt2_approved_date = NULL";
+            }
+
+            // Reset admin_approval_action to NULL so appointment becomes visible to KTT
+            $update_sql = "UPDATE appointments SET
+                          admin_approval_action = NULL,
+                          admin_approval_notes = NULL,
+                          admin_approved_by = NULL,
+                          admin_approved_date = NULL
+                          $ktt_status_reset
+                          WHERE id = $appointment_id";
+
+            if ($db->query($update_sql)) {
+                $success_message = "Appointment letter has been resubmitted to KTT for review.";
+                header("Location: appointments.php?success=resubmit");
+                exit();
+            } else {
+                $error_message = "Failed to resubmit appointment letter!";
+            }
+        } else {
+            $error_message = "Invalid appointment or not eligible for resubmit!";
+        }
     }
 }
 
