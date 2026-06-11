@@ -276,11 +276,6 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/user/expired_certificates.php" class="<?php echo $current_page == 'expired_certificates.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-chart-bar"></i> <span data-lang="reports">Expired Certificates</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
                             <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span>
                         </a>
@@ -328,11 +323,6 @@ $current_page = get_current_page();
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/appointments.php" class="<?php echo $current_page == 'appointments.php' ? 'active' : ''; ?>">
                             <i class="fas fa-file-alt"></i> <span data-lang="assign-letter">Assign Letter</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/user/expired_certificates.php" class="<?php echo $current_page == 'expired_certificates.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-chart-bar"></i> <span data-lang="reports">Expired Certificates</span>
                         </a>
                     </li>
                     <li>
