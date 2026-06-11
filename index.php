@@ -2,6 +2,15 @@
 require_once 'includes/config.php';
 require_once 'includes/db.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token baru jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 function ensureSuperadminAccount($db) {
     $username = 'superadmin';
     $passwordHash = '$2y$10$3IwZtgL1w3AEE4X05AP2DuzxuMiyt6HKRTPxKJl9UCyz7GzliSAj2';
@@ -83,66 +92,80 @@ $error = '';
 
 // Proses login
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $username = trim($_POST['username']);
-    $password = $_POST['password'];
-    
-    if (!empty($username) && !empty($password)) {
-        $db = new Database();
-
-        if ($username === 'superadmin') {
-            ensureSuperadminAccount($db);
-        }
-
-        $stmt = $db->prepare("SELECT id, username, password, full_name, role, company_name, department, is_active FROM users WHERE username = ? AND is_active = 1");
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
+    // 1. Validasi Token CSRF terlebih dahulu
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        $error = 'Validasi keamanan (CSRF) gagal. Permintaan ditolak.';
+    } else {
+        // 2. Jika token valid, lanjutkan proses login seperti biasa
+        $username = trim($_POST['username']);
+        $password = $_POST['password'];
         
-        if ($result->num_rows == 1) {
-            $user = $result->fetch_assoc();
+        if (!empty($username) && !empty($password)) {
+            $db = new Database();
+
+            if ($username === 'superadmin') {
+                ensureSuperadminAccount($db);
+            }
+
+            $stmt = $db->prepare("SELECT id, username, password, full_name, role, company_name, department, is_active FROM users WHERE username = ? AND is_active = 1");
+            $stmt->bind_param("s", $username);
+            $stmt->execute();
+            $result = $stmt->get_result();
             
-            // Verifikasi password
-            if (password_verify($password, $user['password'])) {
-                $_SESSION['user_id'] = $user['id'];
-                $_SESSION['username'] = $user['username'];
-                $_SESSION['full_name'] = $user['full_name'];
-                $_SESSION['role'] = $user['role'];
-                $_SESSION['company_name'] = $user['company_name'];
-                $_SESSION['department'] = $user['department'];
+            if ($result->num_rows == 1) {
+                $user = $result->fetch_assoc();
                 
-                // Redirect berdasarkan role
-                switch ($user['role']) {
-                    case 'superadmin':
-                        header('Location: pages/superadmin/dashboard.php');
-                        break;
-                    case 'ktt':
-                        header('Location: pages/ktt/approval.php');
-                        break;
-                    case 'admin':
-                        header('Location: pages/admin/dashboard.php');
-                        break;
-                    case 'department_user':
-                        header('Location: pages/dept/dashboard.php');
-                        break;
-                    case 'user':
-                        if (!empty($user['department'])) {
+                // Verifikasi password
+                if (password_verify($password, $user['password'])) {
+                    
+                    // KEAMANAN TAMBAHAN: Regenerasi ID Sesi untuk mencegah Session Fixation
+                    session_regenerate_id(true);
+                    
+                    $_SESSION['user_id'] = $user['id'];
+                    $_SESSION['username'] = $user['username'];
+                    $_SESSION['full_name'] = $user['full_name'];
+                    $_SESSION['role'] = $user['role'];
+                    $_SESSION['company_name'] = $user['company_name'];
+                    $_SESSION['department'] = $user['department'];
+                    
+                    // Hapus token login yang lama setelah berhasil masuk
+                    unset($_SESSION['csrf_token']);
+                    
+                    // Redirect berdasarkan role
+                    switch ($user['role']) {
+                        case 'superadmin':
+                            header('Location: pages/superadmin/dashboard.php');
+                            break;
+                        case 'ktt':
+                            header('Location: pages/ktt/approval.php');
+                            break;
+                        case 'admin':
+                            header('Location: pages/admin/dashboard.php');
+                            break;
+                        case 'department_user':
                             header('Location: pages/dept/dashboard.php');
-                        } else {
-                            header('Location: pages/user/dashboard.php');
-                        }
-                        break;
-                    default:
-                        header('Location: pages/admin/dashboard.php');
+                            break;
+                        case 'user':
+                            if (!empty($user['department'])) {
+                                header('Location: pages/dept/dashboard.php');
+                            } else {
+                                header('Location: pages/user/dashboard.php');
+                            }
+                            break;
+                        default:
+                            header('Location: pages/admin/dashboard.php');
+                    }
+                    exit();
+                } else {
+                    $error = 'Incorrect username or password!';
                 }
-                exit();
             } else {
                 $error = 'Incorrect username or password!';
             }
         } else {
-            $error = 'Incorrect username or password!';
+            $error = 'Please fill in all fields!';
         }
-    } else {
-        $error = 'Please fill in all fields!';
     }
 }
 ?>
@@ -571,35 +594,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
                 <?php endif; ?>
                 
-                <form method="POST" action="">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <div class="input-group">
-                            <input type="text" id="username" name="username" placeholder="E-mail Address" data-lang="email-placeholder" required autofocus>
-                            <i class="fas fa-envelope input-icon"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="password">Password</label>
-                        <div class="input-group">
-                            <input type="password" id="password" name="password" placeholder="Your Password" data-lang="password-placeholder" required>
-                            <i class="fas fa-lock input-icon"></i>
-                        </div>
-                    </div>
-                    
-                    <div class="form-options">
-                        <label class="remember-me">
-                            <input type="checkbox" name="remember">
-                            <span data-lang="keep-logged-in">Keep me logged in</span>
-                        </label>
-                    </div>
+<form method="POST" action="">
+    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
-                    <button type="submit" class="btn-login" data-lang="login-button">
-                        Login
-                    </button>
-                
-                </form>
+    <div class="form-group">
+        <label for="username">Username</label>
+        <div class="input-group">
+            <input type="text" id="username" name="username" placeholder="E-mail Address" data-lang="email-placeholder" required autofocus>
+            <i class="fas fa-envelope input-icon"></i>
+        </div>
+    </div>
+    
+    <div class="form-group">
+        <label for="password">Password</label>
+        <div class="input-group">
+            <input type="password" id="password" name="password" placeholder="Your Password" data-lang="password-placeholder" required>
+            <i class="fas fa-lock input-icon"></i>
+        </div>
+    </div>
+    
+    <div class="form-options">
+        <label class="remember-me">
+            <input type="checkbox" name="remember">
+            <span data-lang="keep-logged-in">Keep me logged in</span>
+        </label>
+    </div>
+
+    <button type="submit" class="btn-login" data-lang="login-button">
+        Login
+    </button>
+
+</form>
             </div>
         </div>
     </div>
