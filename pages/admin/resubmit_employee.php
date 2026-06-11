@@ -25,6 +25,12 @@ if ($check_sub_table && $check_sub_table->num_rows > 0) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // 1. Validasi Token Anti-CSRF
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        http_response_code(403);
+        die('Keamanan: Token CSRF tidak valid atau tidak ditemukan.');
+    }
+
     if (isset($_POST['action'])) {
         if ($_POST['action'] == 'add') {
             $position_type = $db->escapeString($_POST['position_type']);
@@ -301,7 +307,9 @@ require_once '../../includes/header.php';
             </div>
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
-        <form method="POST" action="">
+            <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+            
             <input type="hidden" name="action" value="add">
             <div class="modal-body modal-body-enhanced">
                 <div class="form-group-enhanced">
@@ -328,7 +336,6 @@ require_once '../../includes/header.php';
                     </div>
                 </div>
                 
-                <!-- Sub Competency Section - Only for Tenaga Teknis -->
                 <div id="sub_competency_section" style="display: none;">
                     <hr style="margin: 20px 0; border: none; border-top: 2px solid #e8eaed;">
                     <div style="margin-bottom: 15px;">
@@ -380,6 +387,8 @@ require_once '../../includes/header.php';
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+            
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id" id="edit_id">
             <div class="modal-body modal-body-enhanced">
@@ -407,7 +416,6 @@ require_once '../../includes/header.php';
                     </div>
                 </div>
                 
-                <!-- Sub Competency Section for Edit - Only for Tenaga Teknis -->
                 <div id="edit_sub_competency_section" style="display: none;">
                     <hr style="margin: 20px 0; border: none; border-top: 2px solid #e8eaed;">
                     <div style="margin-bottom: 15px;">
@@ -419,8 +427,7 @@ require_once '../../includes/header.php';
                     </div>
                     
                     <div id="edit_sub_competency_container">
-                        <!-- Will be populated by JavaScript -->
-                    </div>
+                        </div>
                     
                     <button type="button" class="btn btn-secondary btn-add-sub" onclick="addEditSubCompetencyField()" style="margin-top: 10px; padding: 8px 16px; font-size: 13px;">
                         <i class="fas fa-plus"></i> <span data-lang="add-another-level">Add Another Level</span>
