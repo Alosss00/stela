@@ -88,81 +88,83 @@ require_once '../../includes/header.php';
         </div>
         <div class="card-body">
             <form method="POST" action="" class="password-form">
-                <input type="hidden" name="change_password" value="1">
+    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
-                <div class="form-group">
-                    <label for="current_password">
-                        <i class="fas fa-lock"></i> Current Password
-                        <span class="required">*</span>
-                    </label>
-                    <input type="password"
-                           id="current_password"
-                           name="current_password"
-                           class="form-control"
-                           required
-                           placeholder="Enter current password" data-lang-placeholder="enter-current-password">
-                </div>
+    <input type="hidden" name="change_password" value="1">
 
-                <div class="form-group">
-                    <label for="new_password">
-                        <i class="fas fa-key"></i> New Password
-                        <span class="required">*</span>
-                    </label>
-                    <input type="password"
-                           id="new_password"
-                           name="new_password"
-                           class="form-control"
-                           required
-                           minlength="6"
-                           placeholder="Enter new password (min. 6 characters)" data-lang-placeholder="enter-new-password-min-6">
-                    <small class="form-text">Minimum 6 characters. Use combination of letters, numbers, and symbols for better security.</small>
-                </div>
+    <div class="form-group">
+        <label for="current_password">
+            <i class="fas fa-lock"></i> Current Password
+            <span class="required">*</span>
+        </label>
+        <input type="password"
+               id="current_password"
+               name="current_password"
+               class="form-control"
+               required
+               placeholder="Enter current password" data-lang-placeholder="enter-current-password">
+    </div>
 
-                <div class="form-group">
-                    <label for="confirm_password">
-                        <i class="fas fa-check-circle"></i> Confirm New Password
-                        <span class="required">*</span>
-                    </label>
-                    <input type="password"
-                           id="confirm_password"
-                           name="confirm_password"
-                           class="form-control"
-                           required
-                           minlength="6"
-                           placeholder="Repeat new password" data-lang-placeholder="repeat-new-password">
-                </div>
-                
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    <div>
-                        <strong>Security Tips:</strong>
-                        <ul>
-                            <li>Use at least 6 characters</li>
-                            <li>Combine uppercase letters, lowercase letters, numbers, and symbols</li>
-                            <li>Don't use easily guessable passwords</li>
-                            <li>Don't use personal information such as date of birth</li>
-                            <li>Change your password regularly for account security</li>
-                        </ul>
-                    </div>
-                </div>
+    <div class="form-group">
+        <label for="new_password">
+            <i class="fas fa-key"></i> New Password
+            <span class="required">*</span>
+        </label>
+        <input type="password"
+               id="new_password"
+               name="new_password"
+               class="form-control"
+               required
+               minlength="6"
+               placeholder="Enter new password (min. 6 characters)" data-lang-placeholder="enter-new-password-min-6">
+        <small class="form-text">Minimum 6 characters. Use combination of letters, numbers, and symbols for better security.</small>
+    </div>
 
-                <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-save"></i> Change Password
-                    </button>
-                    <a href="<?php
-                        if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'ktt') {
-                            echo 'dashboard.php';
-                        } elseif ($_SESSION['role'] == 'user' && !hasDepartment()) {
-                            echo '../user/dashboard.php';
-                        } else {
-                            echo '../dept/dashboard.php';
-                        }
-                    ?>" class="btn btn-secondary">
-                        <i class="fas fa-arrow-left"></i> Back
-                    </a>
-                </div>
-            </form>
+    <div class="form-group">
+        <label for="confirm_password">
+            <i class="fas fa-check-circle"></i> Confirm New Password
+            <span class="required">*</span>
+        </label>
+        <input type="password"
+               id="confirm_password"
+               name="confirm_password"
+               class="form-control"
+               required
+               minlength="6"
+               placeholder="Repeat new password" data-lang-placeholder="repeat-new-password">
+    </div>
+    
+    <div class="alert alert-info">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>Security Tips:</strong>
+            <ul>
+                <li>Use at least 6 characters</li>
+                <li>Combine uppercase letters, lowercase letters, numbers, and symbols</li>
+                <li>Don't use easily guessable passwords</li>
+                <li>Don't use personal information such as date of birth</li>
+                <li>Change your password regularly for account security</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> Change Password
+        </button>
+        <a href="<?php
+            if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'ktt') {
+                echo 'dashboard.php';
+            } elseif ($_SESSION['role'] == 'user' && !hasDepartment()) {
+                echo '../user/dashboard.php';
+            } else {
+                echo '../dept/dashboard.php';
+            }
+        ?>" class="btn btn-secondary">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+</form>
         </div>
     </div>
 </div>
