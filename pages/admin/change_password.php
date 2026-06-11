@@ -12,40 +12,47 @@ $error = '';
 
 // Handle password change
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
-    $current_password = $_POST['current_password'] ?? '';
-    $new_password = $_POST['new_password'] ?? '';
-    $confirm_password = $_POST['confirm_password'] ?? '';
-    
-    // Validate inputs
-    if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
-        $error = stela_t('all-fields-required');
-    } elseif ($new_password !== $confirm_password) {
-        $error = stela_t('password-confirmation-not-match');
-    } elseif (strlen($new_password) < 6) {
-        $error = stela_t('new-password-min-6-chars');
+    // 1. Validasi Token CSRF terlebih dahulu
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        // Menggunakan stela_t untuk translasi error CSRF jika tersedia
+        $error = function_exists('stela_t') ? stela_t('csrf-validation-failed') : 'Security validation failed. Request denied.';
     } else {
-        // Verify current password
-        $user_id = $_SESSION['user_id'];
-        $user = $db->query("SELECT password FROM users WHERE id = $user_id")->fetch_assoc();
+        // 2. Jika token lolos validasi, jalankan logika ganti password Anda
+        $current_password = $_POST['current_password'] ?? '';
+        $new_password = $_POST['new_password'] ?? '';
+        $confirm_password = $_POST['confirm_password'] ?? '';
         
-        if (!$user || !password_verify($current_password, $user['password'])) {
-            $error = stela_t('current-password-incorrect');
+        // Validate inputs
+        if (empty($current_password) || empty($new_password) || empty($confirm_password)) {
+            $error = stela_t('all-fields-required');
+        } elseif ($new_password !== $confirm_password) {
+            $error = stela_t('password-confirmation-not-match');
+        } elseif (strlen($new_password) < 6) {
+            $error = stela_t('new-password-min-6-chars');
         } else {
-            // Update password
-            $new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
-            $update_sql = "UPDATE users SET password = '$new_password_hash' WHERE id = $user_id";
-
-            if ($db->query($update_sql)) {
-                $message = stela_t('password-changed');
-                // Clear form
-                $_POST = array();
+            // Verify current password
+            $user_id = $_SESSION['user_id'];
+            $user = $db->query("SELECT password FROM users WHERE id = $user_id")->fetch_assoc();
+            
+            if (!$user || !password_verify($current_password, $user['password'])) {
+                $error = stela_t('current-password-incorrect');
             } else {
-                $error = stela_t('failed-change-password');
+                // Update password
+                $new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
+                $update_sql = "UPDATE users SET password = '$new_password_hash' WHERE id = $user_id";
+
+                if ($db->query($update_sql)) {
+                    $message = stela_t('password-changed');
+                    // Clear form
+                    $_POST = array();
+                } else {
+                    $error = stela_t('failed-change-password');
+                }
             }
         }
     }
 }
-
 require_once '../../includes/header.php';
 ?>
 
