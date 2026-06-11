@@ -6,6 +6,20 @@ require_once '../../includes/db.php';
 // Only USER role can access this page
 checkPageAccess(['user']);
 
+// Pastikan session sudah aktif
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Buat CSRF token jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Generate token jika belum tersedia di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 $current_department = $_SESSION['department'] ?? '';
@@ -135,355 +149,306 @@ $existing_certifications = $db->query("
 ");
 
 // Handle form submission for re-submit
+// PASTIKAN session_start() sudah dipanggil di bagian paling atas file PHP Anda!
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $full_name = $db->escapeString(trim($_POST['full_name']));
-    $position = $db->escapeString(trim($_POST['position']));
-    $department = $db->escapeString(trim($_POST['department']));
-    $competency_type = $db->escapeString(trim($_POST['competency_type']));
-    $competency_name = !empty($_POST['competency_name']) ? $db->escapeString(trim($_POST['competency_name'])) : ($employee['competency_name'] ?? '');
-    $supervision_area = !empty($_POST['supervision_area']) ? $db->escapeString(trim($_POST['supervision_area'])) : '';
-    $ruang_lingkup = $db->escapeString(trim($_POST['ruang_lingkup']));
-    $sub_competency = !empty($_POST['sub_competency']) ? $db->escapeString(trim($_POST['sub_competency'])) : ($employee['sub_competency'] ?? '');
-    $allowed_sub_competencies = ['Juru Las', 'Juru Ledak'];
-    $requires_sub_competency = ($competency_type === 'tenaga_teknis' && in_array($competency_name, $allowed_sub_competencies, true));
-    $contractor_company = $db->escapeString(trim($_POST['contractor_company']));
-
-    // Validate required fields
-    if (empty($full_name) || empty($position) || empty($department) || empty($competency_type) || empty($ruang_lingkup) || empty($contractor_company)) {
-        $error = 'All fields are required!';
-    } elseif ($competency_type == 'pengawas_operasional' && empty($supervision_area)) {
-        $error = 'Supervision Area is required for Operational Supervisor!';
-    } elseif (in_array($competency_type, ['pengawas_teknis', 'tenaga_teknis']) && empty($competency_name)) {
-        $error = 'Competency is required for Technical Supervisor and Technical Personnel types!';
-    } elseif ($requires_sub_competency && empty($sub_competency)) {
-        $error = 'Sub Competency is required for this competency!';
+    
+    // --- LALU KAN VALIDASI ANTI-CSRF ---
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $error = 'Token keamanan (CSRF) tidak valid atau telah kedaluwarsa. Silakan muat ulang halaman.';
     } else {
-        // Handle CV upload (optional for re-submit, keep old if not provided)
-        $cv_file = $employee['cv_file'];
-        if (isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] == 0) {
-            $file_size = $_FILES['cv_file']['size'];
-            $max_size = 5 * 1024 * 1024; // 5MB
-            $file_extension = strtolower(pathinfo($_FILES['cv_file']['name'], PATHINFO_EXTENSION));
-            $allowed_cv_extensions = ['pdf'];
-            if (!in_array($file_extension, $allowed_cv_extensions)) {
-                $error = 'File type not allowed! Only PDF.';
-            } elseif ($file_size > $max_size) {
-                $error = 'File size too large! Maximum 5MB.';
-            } else {
-                $upload_dir = '../../assets/uploads/cv/';
-                if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
-                }
-                
-                $new_filename = 'cv_' . $employee['employee_code'] . '_' . time() . '.' . $file_extension;
-                $upload_path = $upload_dir . $new_filename;
-                
-                if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                    // Delete old CV file
-                    if ($cv_file && file_exists('assets/' . $cv_file)) {
-                        @unlink('assets/' . $cv_file);
-                    }
-                    $cv_file = 'uploads/cv/' . $new_filename;
+        // --- KODE ASLI ANDA JIKA CSRF VALID ---
+        $full_name = $db->escapeString(trim($_POST['full_name']));
+        $position = $db->escapeString(trim($_POST['position']));
+        $department = $db->escapeString(trim($_POST['department']));
+        $competency_type = $db->escapeString(trim($_POST['competency_type']));
+        $competency_name = !empty($_POST['competency_name']) ? $db->escapeString(trim($_POST['competency_name'])) : ($employee['competency_name'] ?? '');
+        $supervision_area = !empty($_POST['supervision_area']) ? $db->escapeString(trim($_POST['supervision_area'])) : '';
+        $ruang_lingkup = $db->escapeString(trim($_POST['ruang_lingkup']));
+        $sub_competency = !empty($_POST['sub_competency']) ? $db->escapeString(trim($_POST['sub_competency'])) : ($employee['sub_competency'] ?? '');
+        $allowed_sub_competencies = ['Juru Las', 'Juru Ledak'];
+        $requires_sub_competency = ($competency_type === 'tenaga_teknis' && in_array($competency_name, $allowed_sub_competencies, true));
+        $contractor_company = $db->escapeString(trim($_POST['contractor_company']));
+
+        // Validate required fields
+        if (empty($full_name) || empty($position) || empty($department) || empty($competency_type) || empty($ruang_lingkup) || empty($contractor_company)) {
+            $error = 'All fields are required!';
+        } elseif ($competency_type == 'pengawas_operasional' && empty($supervision_area)) {
+            $error = 'Supervision Area is required for Operational Supervisor!';
+        } elseif (in_array($competency_type, ['pengawas_teknis', 'tenaga_teknis']) && empty($competency_name)) {
+            $error = 'Competency is required for Technical Supervisor and Technical Personnel types!';
+        } elseif ($requires_sub_competency && empty($sub_competency)) {
+            $error = 'Sub Competency is required for this competency!';
+        } else {
+            // Handle CV upload (optional for re-submit, keep old if not provided)
+            $cv_file = $employee['cv_file'];
+            if (isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] == 0) {
+                $file_size = $_FILES['cv_file']['size'];
+                $max_size = 5 * 1024 * 1024; // 5MB
+                $file_extension = strtolower(pathinfo($_FILES['cv_file']['name'], PATHINFO_EXTENSION));
+                $allowed_cv_extensions = ['pdf'];
+                if (!in_array($file_extension, $allowed_cv_extensions)) {
+                    $error = 'File type not allowed! Only PDF.';
+                } elseif ($file_size > $max_size) {
+                    $error = 'File size too large! Maximum 5MB.';
                 } else {
-                    $error = 'Failed to upload CV file.';
+                    $upload_dir = '../../assets/uploads/cv/';
+                    if (!file_exists($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
+                    
+                    $new_filename = 'cv_' . $employee['employee_code'] . '_' . time() . '.' . $file_extension;
+                    $upload_path = $upload_dir . $new_filename;
+                    
+                    if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
+                        // Delete old CV file
+                        if ($cv_file && file_exists('assets/' . $cv_file)) {
+                            @unlink('assets/' . $cv_file);
+                        }
+                        $cv_file = 'uploads/cv/' . $new_filename;
+                    } else {
+                        $error = 'Failed to upload CV file.';
+                    }
                 }
             }
-        }
 
-        // Handle Statement Letter upload (optional for re-submit)
-        $statement_file = $employee['statement_file'];
-        if (isset($_FILES['statement_file']) && $_FILES['statement_file']['error'] == 0) {
-            $stmt_file_size = $_FILES['statement_file']['size'];
-            $stmt_max_size = 5 * 1024 * 1024; // 5MB
-            $stmt_file_extension = strtolower(pathinfo($_FILES['statement_file']['name'], PATHINFO_EXTENSION));
+            // Handle Statement Letter upload (optional for re-submit)
+            $statement_file = $employee['statement_file'];
+            if (isset($_FILES['statement_file']) && $_FILES['statement_file']['error'] == 0) {
+                $stmt_file_size = $_FILES['statement_file']['size'];
+                $stmt_max_size = 5 * 1024 * 1024; // 5MB
+                $stmt_file_extension = strtolower(pathinfo($_FILES['statement_file']['name'], PATHINFO_EXTENSION));
 
-            if ($stmt_file_extension !== 'pdf') {
-                $error = 'Statement Letter must be in PDF format!';
-            } elseif ($stmt_file_size > $stmt_max_size) {
-                $error = 'Statement Letter file size too large! Maximum 5MB.';
-            } else {
-                $stmt_upload_dir = '../../assets/uploads/statements/';
-                if (!file_exists($stmt_upload_dir)) {
-                    mkdir($stmt_upload_dir, 0777, true);
-                }
-                
-                $stmt_new_filename = 'statement_' . $employee['employee_code'] . '_' . time() . '.pdf';
-                $stmt_upload_path = $stmt_upload_dir . $stmt_new_filename;
-                
-                if (move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
-                    // Delete old statement file
-                    if ($statement_file && file_exists('assets/' . $statement_file)) {
-                        @unlink('assets/' . $statement_file);
-                    }
-                    $statement_file = 'uploads/statements/' . $stmt_new_filename;
+                if ($stmt_file_extension !== 'pdf') {
+                    $error = 'Statement Letter must be in PDF format!';
+                } elseif ($stmt_file_size > $stmt_max_size) {
+                    $error = 'Statement Letter file size too large! Maximum 5MB.';
                 } else {
-                    $error = 'Failed to upload Statement Letter file.';
+                    $stmt_upload_dir = '../../assets/uploads/statements/';
+                    if (!file_exists($stmt_upload_dir)) {
+                        mkdir($stmt_upload_dir, 0777, true);
+                    }
+                    
+                    $stmt_new_filename = 'statement_' . $employee['employee_code'] . '_' . time() . '.pdf';
+                    $stmt_upload_path = $stmt_upload_dir . $stmt_new_filename;
+                    
+                    if (move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
+                        // Delete old statement file
+                        if ($statement_file && file_exists('assets/' . $statement_file)) {
+                            @unlink('assets/' . $statement_file);
+                        }
+                        $statement_file = 'uploads/statements/' . $stmt_new_filename;
+                    } else {
+                        $error = 'Failed to upload Statement Letter file.';
+                    }
                 }
-            }
-        }
-        
-        // Only proceed with update if no errors
-        if (!$error) {
-            // Cek struktur tabel employees terlebih dahulu
-            $columns_result = $db->query("SHOW COLUMNS FROM employees");
-            $available_columns = [];
-            while ($col = $columns_result->fetch_assoc()) {
-                $available_columns[] = $col['Field'];
             }
             
-            // Build UPDATE query
-            $update_fields = [
-                "full_name = '$full_name'",
-                "position = '$position'",
-                "department = '$department'",
-                "competency_type = '$competency_type'",
-                "contractor_company = '$contractor_company'",
-                "ruang_lingkup = '$ruang_lingkup'",
-                "cv_file = '$cv_file'",
-                "verification_status = 'pending'",
-                "verified_by = NULL",
-                "verified_date = NULL",
-                "verification_notes = NULL"
-            ];
-
-            // Add optional fields
-            if (in_array('competency_name', $available_columns)) {
-                $update_fields[] = "competency_name = '$competency_name'";
-            }
-
-            if (in_array('supervision_area', $available_columns)) {
-                $update_fields[] = "supervision_area = '$supervision_area'";
-            }
-
-            if (in_array('sub_competency', $available_columns)) {
-                $update_fields[] = "sub_competency = '$sub_competency'";
-            }
-
-            if (in_array('statement_file', $available_columns)) {
-                $update_fields[] = "statement_file = '$statement_file'";
-            }
-
-            // Add resubmit_count increment with NULL handling
-            if (in_array('resubmit_count', $available_columns)) {
-                $update_fields[] = "resubmit_count = COALESCE(resubmit_count, 0) + 1";
-            }
-
-            // Add resubmit_date
-            if (in_array('resubmit_date', $available_columns)) {
-                $update_fields[] = "resubmit_date = NOW()";
-            }
-
-            $sql = "UPDATE employees SET " . implode(', ', $update_fields) . " WHERE id = $employee_id";
-
-            // Debug logging for resubmit_count
-            error_log("User Resubmit - Employee ID: $employee_id, SQL: $sql");
-
-            if ($db->query($sql)) {
-                // Update appointment status back to pending for admin re-review
-                if (!empty($employee['appointment_id'])) {
-                    $appointment_id = intval($employee['appointment_id']);
-                    $update_appointment_sql = "UPDATE appointments SET 
-                        status = 'pending',
-                        admin_approval_action = NULL,
-                        admin_approval_notes = NULL
-                        WHERE id = $appointment_id";
-                    $db->query($update_appointment_sql);
+            // Only proceed with update if no errors
+            if (!$error) {
+                // Cek struktur tabel employees terlebih dahulu
+                $columns_result = $db->query("SHOW COLUMNS FROM employees");
+                $available_columns = [];
+                while ($col = $columns_result->fetch_assoc()) {
+                    $available_columns[] = $col['Field'];
                 }
                 
-                // Handle certification updates/additions
-                $upload_dir = '../../assets/uploads/certifications/';
-                if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
-                }
-                
-                $cert_ids = $_POST['certification_ids'] ?? [];
-                $cert_numbers = $_POST['cert_numbers'] ?? [];
-                $cert_issuers = $_POST['cert_issuers'] ?? [];
-                $issue_dates = $_POST['issue_dates'] ?? [];
-                $expiry_dates = $_POST['expiry_dates'] ?? [];
-                $expiry_reasons = $_POST['expiry_reasons'] ?? [];
-                $existing_cert_ids = $_POST['existing_cert_ids'] ?? [];
-                
-                // Proses setiap sertifikat (dengan atau tanpa file baru)
-                foreach ($cert_ids as $key => $cert_id) {
-                    if (empty($cert_id)) continue;
-                    
-                    $cert_id = intval($cert_id);
-                    $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
-                    $cert_issuer = $db->escapeString($cert_issuers[$key] ?? '');
-                    $issue_date = $db->escapeString($issue_dates[$key] ?? '');
-                    $expiry_date = $db->escapeString($expiry_dates[$key] ?? '');
-                    $reason = $db->escapeString($expiry_reasons[$key] ?? '');
-                    $existing_id = isset($existing_cert_ids[$key]) ? intval($existing_cert_ids[$key]) : 0;
-                    
-                    // Check if expired
-                    $today = date('Y-m-d');
-                    $status = ($expiry_date && $expiry_date < $today) ? 'expired' : 'pending';
-                    
-                    // Check if new file uploaded for this certification
-                    $cert_path = null;
-                    if (isset($_FILES['certifications']['tmp_name'][$key]) &&
-                        $_FILES['certifications']['error'][$key] == 0 &&
-                        !empty($_FILES['certifications']['tmp_name'][$key])) {
+                // Build UPDATE query
+                $update_fields = [
+                    "full_name = '$full_name'",
+                    "position = '$position'",
+                    "department = '$department'",
+                    "competency_type = '$competency_type'",
+                    "contractor_company = '$contractor_company'",
+                    "ruang_lingkup = '$ruang_lingkup'",
+                    "cv_file = '$cv_file'",
+                    "verification_status = 'pending'",
+                    "verified_by = NULL",
+                    "verified_date = NULL",
+                    "verification_notes = NULL"
+                ];
 
-                        $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
-
-                        // Validate certification file type - only PDF allowed
-                        if ($file_ext !== 'pdf') {
-                            $error = 'Certificate file must be in PDF format!';
-                            break;
-                        }
-
-                        $cert_file = $employee['employee_code'] . '_cert_' . $key . '_' . time() . '.' . $file_ext;
-                        
-                        if (move_uploaded_file($_FILES['certifications']['tmp_name'][$key], $upload_dir . $cert_file)) {
-                            $cert_path = 'uploads/certifications/' . $cert_file;
-                        }
-                    }
-                    
-                    if ($existing_id > 0) {
-                        // Update existing certification
-                        $update_parts = [
-                            "certification_id = $cert_id",
-                            "cert_number = '$cert_number'",
-                            "cert_issuer = '$cert_issuer'",
-                            "issue_date = '$issue_date'",
-                            "expiry_date = '$expiry_date'",
-                            "status = '$status'",
-                            "verification_status = 'pending'",
-                            "verified_by = NULL",
-                            "verified_date = NULL",
-                            "expiry_reason = '$reason'"
-                        ];
-                        
-                        // Only update file if new file was uploaded
-                        if ($cert_path) {
-                            $update_parts[] = "document_file = '$cert_path'";
-                        }
-                        
-                        $sql_cert = "UPDATE employee_certifications SET " . implode(', ', $update_parts) . 
-                                    " WHERE id = $existing_id AND employee_id = $employee_id";
-                    } else {
-                        // Insert new certification (file required for new certs)
-                        if ($cert_path) {
-                            $sql_cert = "INSERT INTO employee_certifications 
-                                        (employee_id, certification_id, cert_number, cert_issuer, issue_date, expiry_date, 
-                                         document_file, status, verification_status, expiry_reason) 
-                                        VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
-                                                '$cert_path', '$status', 'pending', '$reason')";
-                        }
-                    }
-                    
-                    if (isset($sql_cert) && !$db->query($sql_cert)) {
-                        error_log("Error updating/inserting certification: " . $db->getConnection()->error);
-                    }
+                // Add optional fields
+                if (in_array('competency_name', $available_columns)) {
+                    $update_fields[] = "competency_name = '$competency_name'";
                 }
 
-                // REMOVED: Auto-verify feature
-                // All data (both NEW REQUEST and RESUBMIT) now go through manual verification by admin
-                // This ensures consistent quality control for all submissions
+                if (in_array('supervision_area', $available_columns)) {
+                    $update_fields[] = "supervision_area = '$supervision_area'";
+                }
 
-                // Employee and certifications will remain in 'pending' status
-                // Admin must manually verify in the Request page before creating appointment letter
+                if (in_array('sub_competency', $available_columns)) {
+                    $update_fields[] = "sub_competency = '$sub_competency'";
+                }
 
-                error_log("RESUBMIT DEBUG - Employee ID: $employee_id");
-                error_log("RESUBMIT DEBUG - Resubmit Count: " . ($employee['resubmit_count'] ?? 0));
-                error_log("RESUBMIT DEBUG - Status: PENDING (awaiting admin verification)");
+                if (in_array('statement_file', $available_columns)) {
+                    $update_fields[] = "statement_file = '$statement_file'";
+                }
 
-                // Check if appointment exists (for updating expiry date and status)
-                $existing_appointment = $db->query("
-                    SELECT id, appointment_number,
-                           requires_ktt_msm_review, requires_ktt_ttn_review
-                    FROM appointments
-                    WHERE employee_id = $employee_id
-                    ORDER BY id DESC
-                    LIMIT 1
-                ")->fetch_assoc();
+                if (in_array('resubmit_count', $available_columns)) {
+                    $update_fields[] = "resubmit_count = COALESCE(resubmit_count, 0) + 1";
+                }
 
-                if ($existing_appointment) {
-                    // Update appointment expiry date
-                    $appointment_id = $existing_appointment['id'];
-                    $is_ktt_resubmit = ($existing_appointment['requires_ktt_msm_review'] == 1 ||
-                                       $existing_appointment['requires_ktt_ttn_review'] == 1);
+                if (in_array('resubmit_date', $available_columns)) {
+                    $update_fields[] = "resubmit_date = NOW()";
+                }
 
-                    // Get expiry date from certifications (can be pending since admin will verify)
-                    $cert_expiry = $db->query("
-                        SELECT MIN(expiry_date) as earliest_expiry
-                        FROM employee_certifications
-                        WHERE employee_id = $employee_id
-                        AND expiry_date IS NOT NULL
+                $sql = "UPDATE employees SET " . implode(', ', $update_fields) . " WHERE id = $employee_id";
+
+                error_log("User Resubmit - Employee ID: $employee_id, SQL: $sql");
+
+                if ($db->query($sql)) {
+                    if (!empty($employee['appointment_id'])) {
+                        $appointment_id = intval($employee['appointment_id']);
+                        $update_appointment_sql = "UPDATE appointments SET 
+                            status = 'pending',
+                            admin_approval_action = NULL,
+                            admin_approval_notes = NULL
+                            WHERE id = $appointment_id";
+                        $db->query($update_appointment_sql);
+                    }
+                    
+                    $upload_dir = '../../assets/uploads/certifications/';
+                    if (!file_exists($upload_dir)) {
+                        mkdir($upload_dir, 0777, true);
+                    }
+                    
+                    $cert_ids = $_POST['certification_ids'] ?? [];
+                    $cert_numbers = $_POST['cert_numbers'] ?? [];
+                    $cert_issuers = $_POST['cert_issuers'] ?? [];
+                    $issue_dates = $_POST['issue_dates'] ?? [];
+                    $expiry_dates = $_POST['expiry_dates'] ?? [];
+                    $expiry_reasons = $_POST['expiry_reasons'] ?? [];
+                    $existing_cert_ids = $_POST['existing_cert_ids'] ?? [];
+                    
+                    foreach ($cert_ids as $key => $cert_id) {
+                        if (empty($cert_id)) continue;
+                        
+                        $cert_id = intval($cert_id);
+                        $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
+                        $cert_issuer = $db->escapeString($cert_issuers[$key] ?? '');
+                        $issue_date = $db->escapeString($issue_dates[$key] ?? '');
+                        $expiry_date = $db->escapeString($expiry_dates[$key] ?? '');
+                        $reason = $db->escapeString($expiry_reasons[$key] ?? '');
+                        $existing_id = isset($existing_cert_ids[$key]) ? intval($existing_cert_ids[$key]) : 0;
+                        
+                        $today = date('Y-m-d');
+                        $status = ($expiry_date && $expiry_date < $today) ? 'expired' : 'pending';
+                        
+                        $cert_path = null;
+                        if (isset($_FILES['certifications']['tmp_name'][$key]) &&
+                            $_FILES['certifications']['error'][$key] == 0 &&
+                            !empty($_FILES['certifications']['tmp_name'][$key])) {
+
+                            $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
+
+                            if ($file_ext !== 'pdf') {
+                                $error = 'Certificate file must be in PDF format!';
+                                break;
+                            }
+
+                            $cert_file = $employee['employee_code'] . '_cert_' . $key . '_' . time() . '.' . $file_ext;
+                            
+                            if (move_uploaded_file($_FILES['certifications']['tmp_name'][$key], $upload_dir . $cert_file)) {
+                                $cert_path = 'uploads/certifications/' . $cert_file;
+                            }
+                        }
+                        
+                        if ($existing_id > 0) {
+                            $update_parts = [
+                                "certification_id = $cert_id",
+                                "cert_number = '$cert_number'",
+                                "cert_issuer = '$cert_issuer'",
+                                "issue_date = '$issue_date'",
+                                "expiry_date = '$expiry_date'",
+                                "status = '$status'",
+                                "verification_status = 'pending'",
+                                "verified_by = NULL",
+                                "verified_date = NULL",
+                                "expiry_reason = '$reason'"
+                            ];
+                            
+                            if ($cert_path) {
+                                $update_parts[] = "document_file = '$cert_path'";
+                            }
+                            
+                            $sql_cert = "UPDATE employee_certifications SET " . implode(', ', $update_parts) . 
+                                        " WHERE id = $existing_id AND employee_id = $employee_id";
+                        } else {
+                            if ($cert_path) {
+                                $sql_cert = "INSERT INTO employee_certifications 
+                                            (employee_id, certification_id, cert_number, cert_issuer, issue_date, expiry_date, 
+                                             document_file, status, verification_status, expiry_reason) 
+                                            VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
+                                                    '$cert_path', '$status', 'pending', '$reason')";
+                            }
+                        }
+                        
+                        if (isset($sql_cert) && !$db->query($sql_cert)) {
+                            error_log("Error updating/inserting certification: " . $db->getConnection()->error);
+                        }
+                    }
+
+                    $existing_appointment = $db->query("
+                        SELECT id, appointment_number, requires_ktt_msm_review, requires_ktt_ttn_review
+                        FROM appointments WHERE employee_id = $employee_id ORDER BY id DESC LIMIT 1
                     ")->fetch_assoc();
 
-                    $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
+                    if ($existing_appointment) {
+                        $appointment_id = $existing_appointment['id'];
+                        $is_ktt_resubmit = ($existing_appointment['requires_ktt_msm_review'] == 1 || $existing_appointment['requires_ktt_ttn_review'] == 1);
 
-                    // Update appointment with new data
-                    $update_parts = [];
-                    if ($expiry_date) {
-                        $update_parts[] = "expiry_date = '$expiry_date'";
-                    } else {
-                        $update_parts[] = "expiry_date = NULL";
-                    }
+                        $cert_expiry = $db->query("
+                            SELECT MIN(expiry_date) as earliest_expiry FROM employee_certifications
+                            WHERE employee_id = $employee_id AND expiry_date IS NOT NULL
+                        ")->fetch_assoc();
 
-                    // Keep status as 'draft' - will remain draft until admin verifies employee data
-                    $update_parts[] = "status = 'draft'";
-                    $update_parts[] = "updated_at = NOW()";
+                        $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
 
-                    // Reset KTT statuses to 'pending' for resubmit cases
-                    if ($is_ktt_resubmit) {
-                        if ($existing_appointment['requires_ktt_msm_review'] == 1) {
-                            $update_parts[] = "ktt_msm_status = 'pending'";
+                        $update_parts = [];
+                        $update_parts[] = $expiry_date ? "expiry_date = '$expiry_date'" : "expiry_date = NULL";
+                        $update_parts[] = "status = 'draft'";
+                        $update_parts[] = "updated_at = NOW()";
+
+                        if ($is_ktt_resubmit) {
+                            if ($existing_appointment['requires_ktt_msm_review'] == 1) {
+                                $update_parts[] = "ktt_msm_status = 'pending'";
+                            }
+                            if ($existing_appointment['requires_ktt_ttn_review'] == 1) {
+                                $update_parts[] = "ktt_ttn_status = 'pending'";
+                            }
                         }
-                        if ($existing_appointment['requires_ktt_ttn_review'] == 1) {
-                            $update_parts[] = "ktt_ttn_status = 'pending'";
+
+                        $update_sql = "UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $appointment_id";
+
+                        if ($db->query($update_sql)) {
+                            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $appointment_id");
                         }
-                    }
-
-                    // Build and execute update query
-                    $update_sql = "UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $appointment_id";
-
-                    // Debug logging
-                    error_log("RESUBMIT DEBUG - Appointment ID: $appointment_id");
-                    error_log("RESUBMIT DEBUG - Is KTT Resubmit: " . ($is_ktt_resubmit ? 'YES' : 'NO'));
-                    error_log("RESUBMIT DEBUG - Update SQL: $update_sql");
-
-                    if ($db->query($update_sql)) {
-                        error_log("RESUBMIT DEBUG - Appointment Update SUCCESS");
-
-                        // Delete old KTT approvals to allow fresh review
-                        $deleted = $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $appointment_id");
-                        error_log("RESUBMIT DEBUG - Deleted old KTT approvals: " . ($deleted ? 'SUCCESS' : 'FAILED'));
-
-                        // Verify the update
-                        $verify = $db->query("SELECT status, ktt_msm_status, ktt_ttn_status FROM appointments WHERE id = $appointment_id")->fetch_assoc();
-                        error_log("RESUBMIT DEBUG - After Update - Status: {$verify['status']}, MSM: {$verify['ktt_msm_status']}, TTN: {$verify['ktt_ttn_status']}");
+                        $message = 'Data correction successfully uploaded! Data is now in the Request page awaiting Admin verification.';
                     } else {
-                        error_log("RESUBMIT DEBUG - Appointment Update FAILED: " . $db->getConnection()->error);
+                        $message = 'Data correction successfully uploaded! Data will appear in Request page for Admin verification.';
                     }
 
-                    $message = 'Data correction successfully uploaded! Data is now in the Request page awaiting Admin verification.';
+                    require_once '../../includes/notifications.php';
+                    try {
+                        set_time_limit(60);
+                        $notificationService = new NotificationService();
+                        $notificationService->notifyNewEmployeeAdded($employee_id, $company_name);
+                    } catch (Exception $e) {
+                        error_log("Notification error: " . $e->getMessage());
+                    }
+
+                    header("refresh:3;url=employees.php");
                 } else {
-                    // No appointment found
-                    $message = 'Data correction successfully uploaded! Data will appear in Request page for Admin verification.';
+                    $error = 'Failed to upload employee correction!';
+                    error_log("Error uploading employee correction: " . $db->getConnection()->error);
                 }
-
-                // Send notification to admin about resubmission - with timeout protection
-                require_once '../../includes/notifications.php';
-                try {
-                    set_time_limit(60); // Allow extra time for email sending
-                    $notificationService = new NotificationService();
-                    $notificationService->notifyNewEmployeeAdded($employee_id, $company_name);
-                } catch (Exception $e) {
-                    error_log("Notification error: " . $e->getMessage());
-                }
-
-                // Redirect to user employees page after 3 seconds
-                header("refresh:3;url=employees.php");
-            } else {
-                $error = 'Failed to upload employee correction!';
-                error_log("Error uploading employee correction: " . $db->getConnection()->error);
             }
         }
-    }
+    } // --- AKHIR BLOK ELSE CSRF VALID ---
 }
 
 require_once '../../includes/header.php';
@@ -579,6 +544,9 @@ require_once '../../includes/header.php';
     <?php endif; ?>
     
     <form method="POST" action="" enctype="multipart/form-data" class="form-container">
+        <!-- Tambahan Anti-CSRF Token -->
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+
         <!-- Section 1: Identity & Competency Data -->
         <div class="form-section">
             <div class="section-header">
