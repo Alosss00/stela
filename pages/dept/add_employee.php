@@ -52,21 +52,7 @@ if ($competencies_table_exists) {
 $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_name");
 
 // Handle form submission
-// Pastikan session sudah berjalan di bagian atas file
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    // ==========================================
-    // IMPLEMENTASI VALIDASI ANTI-CSRF
-    // ==========================================
-    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-        // Hentikan eksekusi jika token tidak valid (mencegah serangan CSRF)
-        die('Aksi tidak diizinkan: Validasi token keamanan gagal.');
-    }
-    // ==========================================
-
     $employee_code = $db->escapeString(trim($_POST['employee_code']));
     $full_name = $db->escapeString(trim($_POST['full_name']));
     $position = $db->escapeString(trim($_POST['position']));
@@ -104,28 +90,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $max_size = 5 * 1024 * 1024; // 5MB
             $file_extension = strtolower(pathinfo($_FILES['cv_file']['name'], PATHINFO_EXTENSION));
             
-            $allowed_cv_extensions = ['pdf', 'doc', 'docx'];
+            // Validate by extension (more reliable)
+            $allowed_cv_extensions = ['pdf'];
             
             if (!in_array($file_extension, $allowed_cv_extensions)) {
-                $error = 'File type not allowed! Only PDF, DOC, or DOCX.';
+                $error = 'File type not allowed! Only PDF.';
             } elseif ($file_size > $max_size) {
                 $error = 'File size too large! Maximum 5MB.';
             } else {
-                $upload_dir = '../../assets/uploads/cv/';
+                // PERBAIKAN 1: Gunakan Absolute Path berbasis Document Root
+                // rtrim digunakan untuk mencegah double slash (//) pada path
+                $base_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/'); 
+                
+                // Pastikan folder assets berada tepat di dalam public_html
+                $upload_dir = $base_dir . '/assets/uploads/cv/'; 
+                
                 if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
+                    // PERBAIKAN 2: Gunakan 0755 alih-alih 0777
+                    mkdir($upload_dir, 0755, true); 
                 }
                 
                 $new_filename = 'cv_' . $employee_code . '_' . time() . '.' . $file_extension;
                 $upload_path = $upload_dir . $new_filename;
                 
                 if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                    $cv_file = 'assets/uploads/cv/' . $new_filename;
+                    // Path ini yang disimpan ke database, sudah benar tidak perlu diubah
+                    $cv_file = 'uploads/cv/' . $new_filename; 
                 } else {
                     $error = 'Failed to upload CV file.';
                 }
             }
-            
             // Handle Statement upload (required)
             $statement_file = '';
             if (!$error) {
@@ -268,7 +262,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 }
-?>
 
 require_once '../../includes/header.php';
 ?>
@@ -305,21 +298,8 @@ require_once '../../includes/header.php';
     </div>
     <?php endif; ?>
     
-<?php
-// Pastikan session sudah berjalan (letakkan di paling atas file jika belum ada)
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Generate token Anti-CSRF jika belum ada di session saat ini
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-?>
-
     <form method="POST" action="" enctype="multipart/form-data" class="form-container">
-        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
-
+        <!-- Section 1: Data Identitas & Kompetensi -->
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-id-card"></i> <span data-lang="identity-competency-data">Identity & Competency Data</span></h3>
@@ -457,6 +437,7 @@ if (empty($_SESSION['csrf_token'])) {
                 </div>
             </div>
 
+            <!-- File Upload Section -->
             <div class="form-row">
                 <div class="form-group col-lg-6">
                     <label for="cv_file" data-lang="upload-cv">Upload CV <span class="text-danger">*</span></label>
@@ -491,6 +472,7 @@ if (empty($_SESSION['csrf_token'])) {
             </div>
         </div>
         
+        <!-- Section 2: Sertifikasi -->
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-certificate"></i> <span data-lang="certification-competency">Certification/Competency</span></h3>
@@ -502,7 +484,8 @@ if (empty($_SESSION['csrf_token'])) {
                     <div class="cert-item-header">
                         <h5><i class="fas fa-file-certificate"></i> <span data-lang="certification-number-1">Certification #1</span></h5>
                         <div class="cert-header-actions">
-                            </div>
+                            <!-- Remove button will appear for additional certifications -->
+                        </div>
                     </div>
                     
                     <div class="form-row">
@@ -598,6 +581,7 @@ if (empty($_SESSION['csrf_token'])) {
             </button>
         </div>
 
+        <!-- Info Alert -->
         <div class="alert alert-info-custom">
             <i class="fas fa-lightbulb"></i>
             <div>
@@ -606,6 +590,7 @@ if (empty($_SESSION['csrf_token'])) {
             </div>
         </div>
         
+        <!-- Form Actions -->
         <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-lg">
                 <i class="fas fa-save"></i> <span data-lang="save-submit-verification">Save & Submit for Verification</span>
