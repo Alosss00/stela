@@ -32,6 +32,13 @@ if ($competencies_table_exists) {
 
 // Handle form submission to add data
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // --- IMPLEMENTASI ANTI-CSRF ---
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        http_response_code(403);
+        die('Akses Ditolak: Token CSRF tidak valid atau kedaluwarsa. Silakan muat ulang halaman.');
+    }
+    // ------------------------------
+
     if (isset($_POST['action']) && $_POST['action'] == 'add') {
         $employee_code = $db->escapeString($_POST['employee_code']);
         $full_name = $db->escapeString($_POST['full_name']);
@@ -120,8 +127,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                 }
             }
-            
-
             
             // Cek struktur tabel employees terlebih dahulu
             $columns_result = $db->query("SHOW COLUMNS FROM employees");
@@ -586,7 +591,8 @@ $companies = $db->query("
             <h3><i class="fas fa-plus-circle"></i> <span data-lang="add-contractor-workforce">Add Contractor Workforce Data</span></h3>
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
-        <form method="POST" action="" enctype="multipart/form-data">
+            <form method="POST" action="" enctype="multipart/form-data">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
             <input type="hidden" name="action" value="add">
             <div class="modal-body">
                 <h4 class="section-title-modal" data-lang="identity-competency-data">Identity & Competency Data</h4>
@@ -607,7 +613,6 @@ $companies = $db->query("
                     <input type="text" name="position" class="form-control-modal" required placeholder="Example: Rigger, HSE Superintendent" data-lang="example-position" value="<?php echo isset($_POST['position']) ? htmlspecialchars($_POST['position']) : ''; ?>">
                 </div>
 
-                <!-- Department disembunyikan, nilai default diatur otomatis -->
                 <input type="hidden" name="department" value="General">
 
                 <div class="form-group-modal full-width">
@@ -700,13 +705,11 @@ $companies = $db->query("
                     <select name="contractor_company" class="form-control-modal" id="contractorCompanyEmp" required>
                         <option value="">-- Select Company --</option>
 
-                            <!-- Internal Companies -->
                             <optgroup label="INTERNAL COMPANIES">
                                 <option value="PT Meares Soputan Mining" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Meares Soputan Mining') ? 'selected' : ''; ?>>PT Meares Soputan Mining</option>
                                 <option value="PT Tambang Tondano Nusajaya" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tambang Tondano Nusajaya') ? 'selected' : ''; ?>>PT Tambang Tondano Nusajaya</option>
                             </optgroup>
 
-                            <!-- Contractor Companies/External -->
                             <optgroup label="CONTRACTOR COMPANIES (EXTERNAL)">
                                 <option value="G4S Security Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'G4S Security Services') ? 'selected' : ''; ?>>G4S Security Services</option>
                                 <option value="PT Part Sentra Indomandiri" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Part Sentra Indomandiri') ? 'selected' : ''; ?>>PT Part Sentra Indomandiri</option>
@@ -724,7 +727,7 @@ $companies = $db->query("
                                 <option value="PT Intertek Utama Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Intertek Utama Services') ? 'selected' : ''; ?>>PT Intertek Utama Services</option>
                                 <option value="PT Macmahon Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Macmahon Indonesia') ? 'selected' : ''; ?>>PT Macmahon Indonesia</option>
                                 <option value="PT Manado Karya Angrah" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Manado Karya Angrah') ? 'selected' : ''; ?>>PT Manado Karya Angrah</option>
-                                <option value="PT Samudera Mulai Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Samudera Mulai Abadi') ? 'selected' : ''; ?>>PT Samudera Mulai Abadi</option>
+                                <option value="PT Samudera Mulia Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Samudera Mulia Abadi') ? 'selected' : ''; ?>>PT Samudera Mulia Abadi</option>
                             </optgroup>
                     </select>
                 </div>
@@ -757,8 +760,7 @@ $companies = $db->query("
                         <div class="cert-item-header">
                             <h5><i class="fas fa-file-certificate"></i> Certification #1</h5>
                             <div class="cert-header-actions">
-                                <!-- Remove button will appear for additional certifications -->
-                            </div>
+                                </div>
                         </div>
 
                         <div class="form-row-modal">
