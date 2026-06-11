@@ -15,161 +15,169 @@ $error = '';
 
 // Handle admin decision
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['action'])) {
-        $id = intval($_POST['id']);
-        $admin_action = $db->escapeString($_POST['admin_action']); // 'send_to_user' or 'send_to_ktt'
-        
-        // Get notes from textarea (using JavaScript to sync before submit)
-        $admin_notes = '';
-        if (isset($_POST['admin_notes']) && !empty($_POST['admin_notes'])) {
-            $admin_notes = $db->escapeString($_POST['admin_notes']);
-        } else {
-            // Fallback: try to get from the textarea by ID
-            $admin_notes = $db->escapeString($_POST['admin_notes_value'] ?? 'No notes');
-        }
-        $current_admin_id = $_SESSION['user_id'];
-        
-        if ($admin_action == 'send_to_user') {
-            // Get appointment details to determine which KTT rejected
-            $appointment = $db->query("
-                SELECT employee_id, last_rejected_by_ktt, ktt_msm_status, ktt_ttn_status
-                FROM appointments WHERE id = $id
-            ")->fetch_assoc();
-
-            // Set flags for which KTT needs to review after resubmit
-            $requires_ktt_msm = ($appointment['last_rejected_by_ktt'] == 'msm') ? 1 : 0;
-            $requires_ktt_ttn = ($appointment['last_rejected_by_ktt'] == 'ttn') ? 1 : 0;
-
-            // Get KTT rejection notes
-            $ktt_rejection = $db->query("
-                SELECT approval_notes
-                FROM ktt_approvals
-                WHERE appointment_id = $id AND action = 'reject'
-                ORDER BY approval_date DESC LIMIT 1
-            ")->fetch_assoc();
-            $rejection_notes = isset($ktt_rejection['approval_notes']) ? $ktt_rejection['approval_notes'] : '';
-
-            // Combine rejection notes for user
-            $combined_notes = "Rejection from KTT: " . $rejection_notes . "\n\nAdmin Notes: " . $admin_notes;
-
-            // Send back to user to fix data
-            $update_sql = "UPDATE appointments SET
-                          status = 'rejected',
-                          admin_approved_by = $current_admin_id,
-                          admin_approved_date = NOW(),
-                          admin_approval_action = 'send_to_user',
-                          admin_approval_notes = '$admin_notes',
-                          requires_ktt_msm_review = $requires_ktt_msm,
-                          requires_ktt_ttn_review = $requires_ktt_ttn,
-                          resubmit_reason = '{$db->escapeString($combined_notes)}',
-                          resubmit_count = COALESCE(resubmit_count, 0) + 1
-                          WHERE id = $id AND status = 'rejected_by_ktt'";
-
-            if ($db->query($update_sql)) {
-                if ($appointment) {
-                    $db->query("UPDATE employees SET
-                               verification_status = 'rejected',
-                               verification_notes = '{$db->escapeString($combined_notes)}',
-                               verified_by = NULL,
-                               verified_date = NULL
-                               WHERE id = {$appointment['employee_id']}");
-                }
-
-                $message = stela_t('letter-returned-user-correction');
-                // Notify user/dept of the final rejection (KTT rejected + admin also rejected)
-                try {
-                    require_once '../../includes/notifications.php';
-                    set_time_limit(60);
-                    $notifService = new NotificationService();
-                    $notifService->notifyAdminFinalRejectionToUserDept($id, $admin_notes);
-                } catch (Exception $e) {
-                    error_log("Notification error (admin final rejection): " . $e->getMessage());
-                }
+    // 1. Ambil token dari POST dan jalankan validasi CSRF
+    $csrf_token = $_POST['csrf_token'] ?? '';
+    if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        // Menggunakan fungsi translasi aplikasi Anda jika ada, atau fallback ke string biasa
+        $error = function_exists('stela_t') ? stela_t('csrf-validation-failed') : 'Security validation failed. Request denied.';
+    } else {
+        // 2. Jika token valid, jalankan semua kode asli Anda di bawah ini
+        if (isset($_POST['action'])) {
+            $id = intval($_POST['id']);
+            $admin_action = $db->escapeString($_POST['admin_action']); // 'send_to_user' or 'send_to_ktt'
+            
+            // Get notes from textarea (using JavaScript to sync before submit)
+            $admin_notes = '';
+            if (isset($_POST['admin_notes']) && !empty($_POST['admin_notes'])) {
+                $admin_notes = $db->escapeString($_POST['admin_notes']);
             } else {
-                $error = stela_t('failed-process-decision');
+                // Fallback: try to get from the textarea by ID
+                $admin_notes = $db->escapeString($_POST['admin_notes_value'] ?? 'No notes');
             }
+            $current_admin_id = $_SESSION['user_id'];
+            
+            if ($admin_action == 'send_to_user') {
+                // Get appointment details to determine which KTT rejected
+                $appointment = $db->query("
+                    SELECT employee_id, last_rejected_by_ktt, ktt_msm_status, ktt_ttn_status
+                    FROM appointments WHERE id = $id
+                ")->fetch_assoc();
 
-        } elseif ($admin_action == 'send_to_ktt') {
-            // Get appointment details to determine which KTT rejected
-            $appointment = $db->query("
-                SELECT last_rejected_by_ktt, rejected_by_ktt_user_id,
-                       ktt_msm_status, ktt_ttn_status
-                FROM appointments WHERE id = $id
-            ")->fetch_assoc();
+                // Set flags for which KTT needs to review after resubmit
+                $requires_ktt_msm = ($appointment['last_rejected_by_ktt'] == 'msm') ? 1 : 0;
+                $requires_ktt_ttn = ($appointment['last_rejected_by_ktt'] == 'ttn') ? 1 : 0;
 
-            $rejected_ktt = $appointment['last_rejected_by_ktt'];
+                // Get KTT rejection notes
+                $ktt_rejection = $db->query("
+                    SELECT approval_notes
+                    FROM ktt_approvals
+                    WHERE appointment_id = $id AND action = 'reject'
+                    ORDER BY approval_date DESC LIMIT 1
+                ")->fetch_assoc();
+                $rejection_notes = isset($ktt_rejection['approval_notes']) ? $ktt_rejection['approval_notes'] : '';
 
-            // Validate: last_rejected_by_ktt must not be NULL
-            if (empty($rejected_ktt)) {
-                // Fallback: determine from ktt statuses
-                if ($appointment['ktt_msm_status'] == 'rejected') {
-                    $rejected_ktt = 'msm';
-                } elseif ($appointment['ktt_ttn_status'] == 'rejected') {
-                    $rejected_ktt = 'ttn';
+                // Combine rejection notes for user
+                $combined_notes = "Rejection from KTT: " . $rejection_notes . "\n\nAdmin Notes: " . $admin_notes;
+
+                // Send back to user to fix data
+                $update_sql = "UPDATE appointments SET
+                              status = 'rejected',
+                              admin_approved_by = $current_admin_id,
+                              admin_approved_date = NOW(),
+                              admin_approval_action = 'send_to_user',
+                              admin_approval_notes = '$admin_notes',
+                              requires_ktt_msm_review = $requires_ktt_msm,
+                              requires_ktt_ttn_review = $requires_ktt_ttn,
+                              resubmit_reason = '{$db->escapeString($combined_notes)}',
+                              resubmit_count = COALESCE(resubmit_count, 0) + 1
+                              WHERE id = $id AND status = 'rejected_by_ktt'";
+
+                if ($db->query($update_sql)) {
+                    if ($appointment) {
+                        $db->query("UPDATE employees SET
+                                   verification_status = 'rejected',
+                                   verification_notes = '{$db->escapeString($combined_notes)}',
+                                   verified_by = NULL,
+                                   verified_date = NULL
+                                   WHERE id = {$appointment['employee_id']}");
+                    }
+
+                    $message = stela_t('letter-returned-user-correction');
+                    // Notify user/dept of the final rejection (KTT rejected + admin also rejected)
+                    try {
+                        require_once '../../includes/notifications.php';
+                        set_time_limit(60);
+                        $notifService = new NotificationService();
+                        $notifService->notifyAdminFinalRejectionToUserDept($id, $admin_notes);
+                    } catch (Exception $e) {
+                        error_log("Notification error (admin final rejection): " . $e->getMessage());
+                    }
                 } else {
-                    $error = stela_t('cannot-send-ktt-no-rejection');
-                    goto end_send_to_ktt;
+                    $error = stela_t('failed-process-decision');
                 }
-            }
 
-            // Set flags for which KTT needs to review (only rejected ones)
-            $requires_ktt_msm = ($rejected_ktt == 'msm' || $appointment['ktt_msm_status'] == 'rejected') ? 1 : 0;
-            $requires_ktt_ttn = ($rejected_ktt == 'ttn' || $appointment['ktt_ttn_status'] == 'rejected') ? 1 : 0;
+            } elseif ($admin_action == 'send_to_ktt') {
+                // Get appointment details to determine which KTT rejected
+                $appointment = $db->query("
+                    SELECT last_rejected_by_ktt, rejected_by_ktt_user_id,
+                           ktt_msm_status, ktt_ttn_status
+                    FROM appointments WHERE id = $id
+                ")->fetch_assoc();
 
-            // Only reset the rejected KTT's status to pending, keep approved KTT intact
-            if ($requires_ktt_msm) {
-                $db->query("UPDATE appointments SET
-                           ktt_msm_status = 'pending',
-                           ktt1_approved_by = NULL,
-                           ktt1_approved_date = NULL
-                           WHERE id = $id");
-            }
-            if ($requires_ktt_ttn) {
-                $db->query("UPDATE appointments SET
-                           ktt_ttn_status = 'pending',
-                           ktt2_approved_by = NULL,
-                           ktt2_approved_date = NULL
-                           WHERE id = $id");
-            }
+                $rejected_ktt = $appointment['last_rejected_by_ktt'];
 
-            // Send back to KTT for re-review (only rejected KTT(s))
-            $update_sql = "UPDATE appointments SET
-                          status = 'pending',
-                          admin_approved_by = $current_admin_id,
-                          admin_approved_date = NOW(),
-                          admin_approval_action = 'send_to_ktt',
-                          admin_approval_notes = '$admin_notes',
-                          requires_ktt_msm_review = $requires_ktt_msm,
-                          requires_ktt_ttn_review = $requires_ktt_ttn,
-                          last_rejected_by_ktt = NULL,
-                          rejected_by_ktt_user_id = NULL
-                          WHERE id = $id AND status = 'rejected_by_ktt'";
+                // Validate: last_rejected_by_ktt must not be NULL
+                if (empty($rejected_ktt)) {
+                    // Fallback: determine from ktt statuses
+                    if ($appointment['ktt_msm_status'] == 'rejected') {
+                        $rejected_ktt = 'msm';
+                    } elseif ($appointment['ktt_ttn_status'] == 'rejected') {
+                        $rejected_ktt = 'ttn';
+                    } else {
+                        $error = stela_t('cannot-send-ktt-no-rejection');
+                        goto end_send_to_ktt;
+                    }
+                }
 
-            if ($db->query($update_sql)) {
-                // Delete only the rejected KTT's approval records
+                // Set flags for which KTT needs to review (only rejected ones)
+                $requires_ktt_msm = ($rejected_ktt == 'msm' || $appointment['ktt_msm_status'] == 'rejected') ? 1 : 0;
+                $requires_ktt_ttn = ($rejected_ktt == 'ttn' || $appointment['ktt_ttn_status'] == 'rejected') ? 1 : 0;
+
+                // Only reset the rejected KTT's status to pending, keep approved KTT intact
                 if ($requires_ktt_msm) {
-                    $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 7");
+                    $db->query("UPDATE appointments SET
+                               ktt_msm_status = 'pending',
+                               ktt1_approved_by = NULL,
+                               ktt1_approved_date = NULL
+                               WHERE id = $id");
                 }
                 if ($requires_ktt_ttn) {
-                    $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 8");
+                    $db->query("UPDATE appointments SET
+                               ktt_ttn_status = 'pending',
+                               ktt2_approved_by = NULL,
+                               ktt2_approved_date = NULL
+                               WHERE id = $id");
                 }
 
-                // Send email notification to KTT
-                try {
-                    require_once '../../includes/notifications.php';
-                    $notifService = new NotificationService();
-                    $notifService->notifyKttForApproval($id, $requires_ktt_msm == 1, $requires_ktt_ttn == 1);
-                } catch (Exception $e) {
-                    error_log("Notification error (admin send to KTT): " . $e->getMessage());
+                // Send back to KTT for re-review (only rejected KTT(s))
+                $update_sql = "UPDATE appointments SET
+                              status = 'pending',
+                              admin_approved_by = $current_admin_id,
+                              admin_approved_date = NOW(),
+                              admin_approval_action = 'send_to_ktt',
+                              admin_approval_notes = '$admin_notes',
+                              requires_ktt_msm_review = $requires_ktt_msm,
+                              requires_ktt_ttn_review = $requires_ktt_ttn,
+                              last_rejected_by_ktt = NULL,
+                              rejected_by_ktt_user_id = NULL
+                              WHERE id = $id AND status = 'rejected_by_ktt'";
+
+                if ($db->query($update_sql)) {
+                    // Delete only the rejected KTT's approval records
+                    if ($requires_ktt_msm) {
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 7");
+                    }
+                    if ($requires_ktt_ttn) {
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 8");
+                    }
+
+                    // Send email notification to KTT
+                    try {
+                        require_once '../../includes/notifications.php';
+                        $notifService = new NotificationService();
+                        $notifService->notifyKttForApproval($id, $requires_ktt_msm == 1, $requires_ktt_ttn == 1);
+                    } catch (Exception $e) {
+                        error_log("Notification error (admin send to KTT): " . $e->getMessage());
+                    }
+
+                    $ktt_name = ($rejected_ktt == 'msm') ? 'KTT MSM' : 'KTT TTN';
+                    $message = stela_t('letter-sent-back-ktt-rereview', ['ktt_list' => $ktt_name]);
+                } else {
+                    $error = stela_t('failed-process-decision');
                 }
 
-                $ktt_name = ($rejected_ktt == 'msm') ? 'KTT MSM' : 'KTT TTN';
-                $message = stela_t('letter-sent-back-ktt-rereview', ['ktt_list' => $ktt_name]);
-            } else {
-                $error = stela_t('failed-process-decision');
+                end_send_to_ktt: // Label untuk goto jika validasi gagal
             }
-
-            end_send_to_ktt: // Label for goto when validation fails
         }
     }
 }
@@ -345,23 +353,27 @@ require_once '../../includes/header.php';
                         </div>
 
                         <div class="action-buttons">
-                            <form method="POST" class="inline-form" onsubmit="return confirmAccept(this);">
-                                <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                <input type="hidden" name="admin_action" value="send_to_ktt">
-                                <input type="hidden" name="admin_notes_value" value="">
-                                <button type="submit" name="action" value="review" class="btn btn-accept">
-                                    <i class="fas fa-check-circle"></i> <span data-lang="accept-send-to-ktt">Accept - Send to KTT</span>
-                                </button>
-                            </form>
+                    <form method="POST" class="inline-form" onsubmit="return confirmAccept(this);">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
-                            <form method="POST" class="inline-form" onsubmit="return confirmReject(this);">
-                                <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                <input type="hidden" name="admin_action" value="send_to_user">
-                                <input type="hidden" name="admin_notes_value" value="">
-                                <button type="submit" name="action" value="review" class="btn btn-reject">
-                                    <i class="fas fa-times-circle"></i> <span data-lang="reject-return-to-user">Reject - Return to User</span>
-                                </button>
-                            </form>
+                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                        <input type="hidden" name="admin_action" value="send_to_ktt">
+                        <input type="hidden" name="admin_notes_value" value="">
+                        <button type="submit" name="action" value="review" class="btn btn-accept">
+                        <i class="fas fa-check-circle"></i> <span data-lang="accept-send-to-ktt">Accept - Send to KTT</span>
+                            </button>
+                    </form>
+
+                    <form method="POST" class="inline-form" onsubmit="return confirmReject(this);">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+
+                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                        <input type="hidden" name="admin_action" value="send_to_user">
+                        <input type="hidden" name="admin_notes_value" value="">
+                        <button type="submit" name="action" value="review" class="btn btn-reject">
+                        <i class="fas fa-times-circle"></i> <span data-lang="reject-return-to-user">Reject - Return to User</span>
+                            </button>
+                    </form>
                         </div>
                     </div>
                 </div>
