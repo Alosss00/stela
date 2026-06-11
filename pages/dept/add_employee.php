@@ -10,6 +10,16 @@ if (!hasDepartment() && $_SESSION['role'] != 'department_user') {
     exit();
 }
 
+// Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token CSRF jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();   
 $current_department = $_SESSION['department'] ?? '';
 $message = '';
@@ -53,6 +63,14 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_n
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // ==========================================
+    // PERBAIKAN KEAMANAN: Validasi Token CSRF
+    // ==========================================
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        http_response_code(403);
+        die("Error: Validasi keamanan (CSRF) gagal. Permintaan ditolak.");
+    }
+
     $employee_code = $db->escapeString(trim($_POST['employee_code']));
     $full_name = $db->escapeString(trim($_POST['full_name']));
     $position = $db->escapeString(trim($_POST['position']));
@@ -99,7 +117,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $error = 'File size too large! Maximum 5MB.';
             } else {
                 // PERBAIKAN 1: Gunakan Absolute Path berbasis Document Root
-                // rtrim digunakan untuk mencegah double slash (//) pada path
                 $base_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/'); 
                 
                 // Pastikan folder assets berada tepat di dalam public_html
@@ -114,12 +131,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $upload_path = $upload_dir . $new_filename;
                 
                 if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                    // Path ini yang disimpan ke database, sudah benar tidak perlu diubah
-                    $cv_file = 'uploads/cv/' . $new_filename; 
+                    $cv_file = 'assets/uploads/cv/' . $new_filename; 
                 } else {
                     $error = 'Failed to upload CV file.';
                 }
             }
+
             // Handle Statement upload (required)
             $statement_file = '';
             if (!$error) {
@@ -134,7 +151,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     $stmt_upload_dir = '../../assets/uploads/statements/';
                     if (!file_exists($stmt_upload_dir)) {
-                        mkdir($stmt_upload_dir, 0777, true);
+                        mkdir($stmt_upload_dir, 0755, true); // Diubah ke 0755 demi keamanan
                     }
                     
                     $stmt_new_filename = 'statement_' . $employee_code . '_' . time() . '.pdf';
@@ -198,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
                         $upload_dir = '../../assets/uploads/certifications/';
                         if (!file_exists($upload_dir)) {
-                            mkdir($upload_dir, 0777, true);
+                            mkdir($upload_dir, 0755, true); // Diubah ke 0755 demi keamanan
                         }
                         
                         $cert_ids = $_POST['certification_ids'] ?? [];
@@ -252,6 +269,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                     
                     $message = 'Employee successfully added! Waiting for verification from Admin.';
+                    
+                    // PERBAIKAN OPTIONAL: Hapus token setelah sukses submit 
+                    // Ini mencegah pengiriman ganda jika user me-refresh halaman sukses (Double Submit)
+                    unset($_SESSION['csrf_token']);
+
                     // Redirect after 2 seconds
                     header("refresh:2;url=employees.php");
                 } else {
@@ -299,6 +321,7 @@ require_once '../../includes/header.php';
     <?php endif; ?>
     
     <form method="POST" action="" enctype="multipart/form-data" class="form-container">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
         <!-- Section 1: Data Identitas & Kompetensi -->
         <div class="form-section">
             <div class="section-header">
