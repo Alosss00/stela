@@ -246,10 +246,16 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/user/expired_certificates.php" class="<?php echo $current_page == 'expired_certificates.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-chart-bar"></i> <span data-lang="reports">Expired Certificates</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/reports.php" class="<?php echo $current_page == 'reports.php' ? 'active' : ''; ?>">
                             <i class="fas fa-chart-bar"></i> <span data-lang="reports">Reports</span>
                         </a>
                     </li>
+                     
 
                 <?php elseif (($_SESSION['role'] == 'user' && hasDepartment()) || $_SESSION['role'] == 'department_user'): ?>
                     <!-- Menu untuk Department Users -->
@@ -266,6 +272,11 @@ $current_page = get_current_page();
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/dept/appointments.php" class="<?php echo $current_page == 'appointments.php' ? 'active' : ''; ?>">
                             <i class="fas fa-file-alt"></i> <span data-lang="assign-letter">Assign Letter</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/user/expired_certificates.php" class="<?php echo $current_page == 'expired_certificates.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-chart-bar"></i> <span data-lang="reports">Expired Certificates</span>
                         </a>
                     </li>
                     <li>
@@ -312,6 +323,11 @@ $current_page = get_current_page();
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/appointments.php" class="<?php echo $current_page == 'appointments.php' ? 'active' : ''; ?>">
                             <i class="fas fa-file-alt"></i> <span data-lang="assign-letter">Assign Letter</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/user/expired_certificates.php" class="<?php echo $current_page == 'expired_certificates.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-chart-bar"></i> <span data-lang="reports">Expired Certificates</span>
                         </a>
                     </li>
                     <?php endif; ?>
