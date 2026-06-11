@@ -47,7 +47,6 @@ $current_page = get_current_page();
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
-    <!-- Sidebar enabled for all roles -->
     <style>
         .topbar {
             display: flex;
@@ -229,13 +228,11 @@ $current_page = get_current_page();
             
             <ul class="sidebar-menu">
                 <?php if ($_SESSION['role'] == 'user' && !hasDepartment()): ?>
-                    <!-- Menu untuk Company Users (Contractor) -->
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/dashboard.php" class="<?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
                             <i class="fas fa-home"></i> <span data-lang="dashboard">Dashboard</span>
                         </a>
-                    </li>
-                    <li>
+                    </                    <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/employees.php" class="<?php echo $current_page == 'employees.php' || $current_page == 'employee_detail.php' ? 'active' : ''; ?>">
                             <i class="fas fa-users"></i> <span data-lang="request">Request</span>
                         </a>
@@ -251,6 +248,11 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/user/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/reports.php" class="<?php echo $current_page == 'reports.php' ? 'active' : ''; ?>">
                             <i class="fas fa-chart-bar"></i> <span data-lang="reports">Reports</span>
                         </a>
@@ -258,7 +260,6 @@ $current_page = get_current_page();
                      
 
                 <?php elseif (($_SESSION['role'] == 'user' && hasDepartment()) || $_SESSION['role'] == 'department_user'): ?>
-                    <!-- Menu untuk Department Users -->
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/dept/dashboard.php" class="<?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
                             <i class="fas fa-home"></i> <span data-lang="dashboard">Dashboard</span>
@@ -280,13 +281,17 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/user/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="<?php echo BASE_URL; ?>/pages/dept/reports.php" class="<?php echo $current_page == 'reports.php' ? 'active' : ''; ?>">
                             <i class="fas fa-chart-bar"></i> <span data-lang="reports">Reports</span>
                         </a>
                     </li>
 
                 <?php else: ?>
-                    <!-- Menu untuk Admin dan KTT -->
                     <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'superadmin'): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/dashboard.php" class="<?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
@@ -328,6 +333,11 @@ $current_page = get_current_page();
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/expired_certificates.php" class="<?php echo $current_page == 'expired_certificates.php' ? 'active' : ''; ?>">
                             <i class="fas fa-chart-bar"></i> <span data-lang="reports">Expired Certificates</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/user/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span>
                         </a>
                     </li>
                     <?php endif; ?>
@@ -400,4 +410,3 @@ $current_page = get_current_page();
             </div>
             
             <div class="content">
-
