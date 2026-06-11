@@ -14,71 +14,87 @@ $message = '';
 $error = '';
 
 // Handle form submission for adding certificate
+// Pastikan session sudah dimulai di bagian paling atas file PHP Anda
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'add_certificate') {
-    $employee_id = intval($_POST['employee_id']);
     
-    // Verify employee belongs to this company
-    $emp_check_result = $db->query("SELECT id FROM employees WHERE id = $employee_id AND contractor_company = '" . $db->escapeString($company_name) . "'");
-    if (!$emp_check_result) {
-        $error = 'Database error during verification.';
+    // --- 1. VALIDASI TOKEN ANTI-CSRF ---
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $error = 'Akses ditolak: Token keamanan tidak valid atau telah kedaluwarsa.';
     } else {
-        $emp_check = $emp_check_result->fetch_assoc();
-        if (!$emp_check) {
-            $error = 'Employee not found or not part of your company.';
+        
+        // --- 2. LOGIKA UTAMA (Hanya berjalan jika lolos validasi CSRF) ---
+        $employee_id = intval($_POST['employee_id']);
+        
+        // Verify employee belongs to this company
+        $emp_check_result = $db->query("SELECT id FROM employees WHERE id = $employee_id AND contractor_company = '" . $db->escapeString($company_name) . "'");
+        if (!$emp_check_result) {
+            $error = 'Database error during verification.';
         } else {
-            $certification_id = intval($_POST['certification_id']);
-            $cert_number = $db->escapeString($_POST['cert_number']);
-            $issue_date = $db->escapeString($_POST['issue_date']);
-            $expiry_date = !empty($_POST['expiry_date']) ? $db->escapeString($_POST['expiry_date']) : null;
-            $expiry_reason = $db->escapeString($_POST['expiry_reason'] ?? '');
-            $notes = $db->escapeString($_POST['notes'] ?? '');
-            
-            // Handle file upload
-            $document_file = '';
-            if (isset($_FILES['document_file']) && $_FILES['document_file']['error'] == 0) {
-                $allowed_types = ['pdf', 'jpg', 'jpeg', 'png'];
-                $file_ext = strtolower(pathinfo($_FILES['document_file']['name'], PATHINFO_EXTENSION));
+            $emp_check = $emp_check_result->fetch_assoc();
+            if (!$emp_check) {
+                $error = 'Employee not found or not part of your company.';
+            } else {
+                $certification_id = intval($_POST['certification_id']);
+                $cert_number = $db->escapeString($_POST['cert_number']);
+                $issue_date = $db->escapeString($_POST['issue_date']);
+                $expiry_date = !empty($_POST['expiry_date']) ? $db->escapeString($_POST['expiry_date']) : null;
+                $expiry_reason = $db->escapeString($_POST['expiry_reason'] ?? '');
+                $notes = $db->escapeString($_POST['notes'] ?? '');
                 
-                if (in_array($file_ext, $allowed_types) && $_FILES['document_file']['size'] <= 5242880) { // 5MB
-                    $upload_dir = '../../assets/uploads/certifications/';
-                    if (!is_dir($upload_dir)) {
-                        mkdir($upload_dir, 0755, true);
-                    }
+                // Handle file upload
+                $document_file = '';
+                if (isset($_FILES['document_file']) && $_FILES['document_file']['error'] == 0) {
+                    $allowed_types = ['pdf', 'jpg', 'jpeg', 'png'];
+                    $file_ext = strtolower(pathinfo($_FILES['document_file']['name'], PATHINFO_EXTENSION));
                     
-                    $file_name = 'cert_' . $employee_id . '_' . time() . '.' . $file_ext;
-                    $file_path = $upload_dir . $file_name;
-                    
-                    if (move_uploaded_file($_FILES['document_file']['tmp_name'], $file_path)) {
-                        $document_file = $file_name;
+                    if (in_array($file_ext, $allowed_types) && $_FILES['document_file']['size'] <= 5242880) { // 5MB
+                        $upload_dir = '../../assets/uploads/certifications/';
+                        if (!is_dir($upload_dir)) {
+                            mkdir($upload_dir, 0755, true);
+                        }
+                        
+                        $file_name = 'cert_' . $employee_id . '_' . time() . '.' . $file_ext;
+                        $file_path = $upload_dir . $file_name;
+                        
+                        if (move_uploaded_file($_FILES['document_file']['tmp_name'], $file_path)) {
+                            $document_file = $file_name;
+                        } else {
+                            $error = 'Failed to upload certificate file.';
+                        }
                     } else {
-                        $error = 'Failed to upload certificate file.';
+                        $error = 'File format not supported or file size too large (max 5MB).';
                     }
-                } else {
-                    $error = 'File format not supported or file size too large (max 5MB).';
-                }
-            }
-            
-            if (!$error) {
-                // Determine status based on expiry date
-                $status = 'pending';
-                if ($expiry_date) {
-                    $today = date('Y-m-d');
-                    $status = ($expiry_date < $today) ? 'expired' : 'active';
                 }
                 
-                $sql = "INSERT INTO employee_certifications 
-                        (employee_id, certification_id, cert_number, issue_date, expiry_date, document_file, status, verification_status, notes) 
-                        VALUES ($employee_id, $certification_id, '$cert_number', '$issue_date', " . 
-                        ($expiry_date ? "'$expiry_date'" : "NULL") . ", '$document_file', '$status', 'pending', '$notes')";
-                
-                if ($db->query($sql)) {
-                    $message = 'Certificate successfully added! Waiting for Admin verification.';
-                } else {
-                    $error = 'Failed to add certificate.';
+                if (!$error) {
+                    // Determine status based on expiry date
+                    $status = 'pending';
+                    if ($expiry_date) {
+                        $today = date('Y-m-d');
+                        $status = ($expiry_date < $today) ? 'expired' : 'active';
+                    }
+                    
+                    $sql = "INSERT INTO employee_certifications 
+                            (employee_id, certification_id, cert_number, issue_date, expiry_date, document_file, status, verification_status, notes) 
+                            VALUES ($employee_id, $certification_id, '$cert_number', '$issue_date', " . 
+                            ($expiry_date ? "'$expiry_date'" : "NULL") . ", '$document_file', '$status', 'pending', '$notes')";
+                    
+                    if ($db->query($sql)) {
+                        $message = 'Certificate successfully added! Waiting for Admin verification.';
+                    } else {
+                        $error = 'Failed to add certificate.';
+                    }
                 }
             }
         }
-    }
+    } // End of CSRF else
 }
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
@@ -632,70 +648,73 @@ $competency_type_labels = [
             <h3><i class="fas fa-certificate"></i> <span data-lang="add-employee-certificate">Add Employee Certificate</span></h3>
             <span class="close" onclick="closeModal('addCertModal')">&times;</span>
         </div>
-        <form method="POST" action="" enctype="multipart/form-data">
-            <input type="hidden" name="action" value="add_certificate">
-            <input type="hidden" name="employee_id" value="<?php echo $id; ?>">
-            <div class="modal-body">
-                <div class="form-group">
-                    <label data-lang="certification-type">Certification Type <span class="text-danger">*</span></label>
-                    <select name="certification_id" class="form-control" required>
-                        <option value="" data-lang="select-certification">-- Select Certification --</option>
-                        <?php
-                        $all_certs = $db->query("SELECT id, cert_name FROM certifications WHERE is_active = 1 ORDER BY cert_name");
-                        if ($all_certs && $all_certs->num_rows > 0):
-                            while ($cert = $all_certs->fetch_assoc()):
-                        ?>
-                        <option value="<?php echo $cert['id']; ?>">
-                            <?php echo htmlspecialchars($cert['cert_name']); ?>
-                        </option>
-                        <?php 
-                            endwhile;
-                        endif;
-                        ?>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label data-lang="certificate-no">Certificate No. <span class="text-danger">*</span></label>
-                    <input type="text" name="cert_number" class="form-control" required placeholder="Enter certificate number" data-lang-placeholder="enter-certificate-number">
-                </div>
-                <div class="form-row">
-                    <div class="form-group">
-                        <label data-lang="issue-date">Issue Date <span class="text-danger">*</span></label>
-                        <input type="date" name="issue_date" class="form-control issue-date" required onchange="calculateExpiryDate(this)">
-                    </div>
-                    <div class="form-group">
-                        <label data-lang="validity-period-years">Validity Period (Years) <span class="text-danger">*</span></label>
-                        <div style="display: flex; gap: 10px; align-items: center;">
-                            <input type="number" name="validity_years" class="form-control validity-years" min="0" step="0.5" placeholder="Example: 1, 2, 3" data-lang-placeholder="validity-years-example" onchange="calculateExpiryDate(this)">
-                            <label style="white-space: nowrap; margin: 0;">
-                                <input type="checkbox" name="no_expiry" class="no-expiry-check" onchange="toggleExpiryField(this)"> <span data-lang="no-expiry">No Expiry</span>
-                            </label>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group">
-                    <label data-lang="expiry-date">Expiry Date <span class="text-danger">*</span></label>
-                    <input type="date" name="expiry_date" class="form-control expiry-date" readonly style="background-color: #f0f0f0;">
-                </div>
-                <div class="form-group">
-                    <label data-lang="upload-certificate-document">Upload Certificate Document (PDF/JPG/PNG, Max 5MB)</label>
-                    <input type="file" name="document_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
-                    <small class="text-muted" data-lang="supported-formats">Supported formats: PDF, JPG, PNG (Maximum 5MB)</small>
-                </div>
-                <div class="form-group">
-                    <label data-lang="notes">Notes</label>
-                    <textarea name="notes" class="form-control" rows="3" placeholder="Additional notes if needed" data-lang-placeholder="additional-notes-if-needed"></textarea>
+    <form method="POST" action="" enctype="multipart/form-data">
+    <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
+    
+    <input type="hidden" name="action" value="add_certificate">
+    <input type="hidden" name="employee_id" value="<?php echo $id; ?>">
+    
+    <div class="modal-body">
+        <div class="form-group">
+            <label data-lang="certification-type">Certification Type <span class="text-danger">*</span></label>
+            <select name="certification_id" class="form-control" required>
+                <option value="" data-lang="select-certification">-- Select Certification --</option>
+                <?php
+                $all_certs = $db->query("SELECT id, cert_name FROM certifications WHERE is_active = 1 ORDER BY cert_name");
+                if ($all_certs && $all_certs->num_rows > 0):
+                    while ($cert = $all_certs->fetch_assoc()):
+                ?>
+                <option value="<?php echo $cert['id']; ?>">
+                    <?php echo htmlspecialchars($cert['cert_name']); ?>
+                </option>
+                <?php 
+                    endwhile;
+                endif;
+                ?>
+            </select>
+        </div>
+        <div class="form-group">
+            <label data-lang="certificate-no">Certificate No. <span class="text-danger">*</span></label>
+            <input type="text" name="cert_number" class="form-control" required placeholder="Enter certificate number" data-lang-placeholder="enter-certificate-number">
+        </div>
+        <div class="form-row">
+            <div class="form-group">
+                <label data-lang="issue-date">Issue Date <span class="text-danger">*</span></label>
+                <input type="date" name="issue_date" class="form-control issue-date" required onchange="calculateExpiryDate(this)">
+            </div>
+            <div class="form-group">
+                <label data-lang="validity-period-years">Validity Period (Years) <span class="text-danger">*</span></label>
+                <div style="display: flex; gap: 10px; align-items: center;">
+                    <input type="number" name="validity_years" class="form-control validity-years" min="0" step="0.5" placeholder="Example: 1, 2, 3" data-lang-placeholder="validity-years-example" onchange="calculateExpiryDate(this)">
+                    <label style="white-space: nowrap; margin: 0;">
+                        <input type="checkbox" name="no_expiry" class="no-expiry-check" onchange="toggleExpiryField(this)"> <span data-lang="no-expiry">No Expiry</span>
+                    </label>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('addCertModal')">
-                    <i class="fas fa-times"></i> <span data-lang="cancel">Cancel</span>
-                </button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-save"></i> <span data-lang="save">Save</span>
-                </button>
-            </div>
-        </form>
+        </div>
+        <div class="form-group">
+            <label data-lang="expiry-date">Expiry Date <span class="text-danger">*</span></label>
+            <input type="date" name="expiry_date" class="form-control expiry-date" readonly style="background-color: #f0f0f0;">
+        </div>
+        <div class="form-group">
+            <label data-lang="upload-certificate-document">Upload Certificate Document (PDF/JPG/PNG, Max 5MB)</label>
+            <input type="file" name="document_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png">
+            <small class="text-muted" data-lang="supported-formats">Supported formats: PDF, JPG, PNG (Maximum 5MB)</small>
+        </div>
+        <div class="form-group">
+            <label data-lang="notes">Notes</label>
+            <textarea name="notes" class="form-control" rows="3" placeholder="Additional notes if needed" data-lang-placeholder="additional-notes-if-needed"></textarea>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" onclick="closeModal('addCertModal')">
+            <i class="fas fa-times"></i> <span data-lang="cancel">Cancel</span>
+        </button>
+        <button type="submit" class="btn btn-primary">
+            <i class="fas fa-save"></i> <span data-lang="save">Save</span>
+        </button>
+    </div>
+</form>
     </div>
 </div>
 
