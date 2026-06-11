@@ -3,6 +3,11 @@ $page_title = 'Certification List';
 require_once '../../includes/auth.php';
 require_once '../../includes/db.php';
 
+
+// Pastikan session sudah aktif di bagian paling atas file
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 // Only USER role can access this page
 checkPageAccess(['user']);
 
@@ -13,60 +18,70 @@ $company_name = $_SESSION['company_name'] ?? '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    if (isset($_POST['action']) && $_POST['action'] == 'add_certification') {
-        $cert_name = $db->escapeString(trim($_POST['cert_name'] ?? ''));
-        $cert_type = $db->escapeString(trim($_POST['cert_type'] ?? ''));
-        $issuing_authority = $db->escapeString(trim($_POST['issuing_authority'] ?? ''));
-        $is_active = isset($_POST['is_active']) ? 1 : 0;
-
-        // Validate required fields
-        if (empty($cert_name) || empty($cert_type) || empty($issuing_authority)) {
-            $error = 'All fields are required!';
-        } else {
-            $sql = "INSERT INTO certifications (cert_name, cert_type, issuing_authority, is_active)
-                    VALUES ('$cert_name', '$cert_type', '$issuing_authority', $is_active)";
-            
-            if ($db->query($sql)) {
-                $message = 'Certification successfully added!';
-                $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 ORDER BY cert_type, cert_name");
-            } else {
-                $error = 'Failed to add certification! Error: ' . $db->getConnection()->error;
-                error_log("Error adding certification: " . $db->getConnection()->error);
-            }
-        }
-    } elseif (isset($_POST['action']) && $_POST['action'] == 'edit_certification') {
-        $cert_id = intval($_POST['cert_id']);
-        $cert_name = $db->escapeString(trim($_POST['cert_name'] ?? ''));
-        $cert_type = $db->escapeString(trim($_POST['cert_type'] ?? ''));
-        $issuing_authority = $db->escapeString(trim($_POST['issuing_authority'] ?? ''));
-        $is_active = isset($_POST['is_active']) ? 1 : 0;
+    
+    // --- 1. VALIDASI TOKEN ANTI-CSRF GLOBAL UNTUK SEMUA AKSI POST ---
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $error = 'Akses ditolak: Token keamanan tidak valid atau telah kedaluwarsa.';
+    } else {
         
-        // Validate required fields
-        if (empty($cert_name) || empty($cert_type) || empty($issuing_authority)) {
-            $error = 'All fields are required!';
-        } else {
-            $sql = "UPDATE certifications SET cert_name='$cert_name', cert_type='$cert_type', issuing_authority='$issuing_authority', is_active=$is_active WHERE id=$cert_id";
+        // --- 2. LOGIKA UTAMA (Hanya berjalan jika lolos validasi CSRF) ---
+        if (isset($_POST['action']) && $_POST['action'] == 'add_certification') {
+            $cert_name = $db->escapeString(trim($_POST['cert_name'] ?? ''));
+            $cert_type = $db->escapeString(trim($_POST['cert_type'] ?? ''));
+            $issuing_authority = $db->escapeString(trim($_POST['issuing_authority'] ?? ''));
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
+
+            // Validate required fields
+            if (empty($cert_name) || empty($cert_type) || empty($issuing_authority)) {
+                $error = 'All fields are required!';
+            } else {
+                $sql = "INSERT INTO certifications (cert_name, cert_type, issuing_authority, is_active)
+                        VALUES ('$cert_name', '$cert_type', '$issuing_authority', $is_active)";
+                
+                if ($db->query($sql)) {
+                    $message = 'Certification successfully added!';
+                    $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 ORDER BY cert_type, cert_name");
+                } else {
+                    $error = 'Failed to add certification! Error: ' . $db->getConnection()->error;
+                    error_log("Error adding certification: " . $db->getConnection()->error);
+                }
+            }
+            
+        } elseif (isset($_POST['action']) && $_POST['action'] == 'edit_certification') {
+            $cert_id = intval($_POST['cert_id']);
+            $cert_name = $db->escapeString(trim($_POST['cert_name'] ?? ''));
+            $cert_type = $db->escapeString(trim($_POST['cert_type'] ?? ''));
+            $issuing_authority = $db->escapeString(trim($_POST['issuing_authority'] ?? ''));
+            $is_active = isset($_POST['is_active']) ? 1 : 0;
+            
+            // Validate required fields
+            if (empty($cert_name) || empty($cert_type) || empty($issuing_authority)) {
+                $error = 'All fields are required!';
+            } else {
+                $sql = "UPDATE certifications SET cert_name='$cert_name', cert_type='$cert_type', issuing_authority='$issuing_authority', is_active=$is_active WHERE id=$cert_id";
+
+                if ($db->query($sql)) {
+                    $message = 'Certification successfully updated!';
+                    $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 ORDER BY cert_type, cert_name");
+                } else {
+                    $error = 'Failed to update certification! Error: ' . $db->getConnection()->error;
+                    error_log("Error updating certification: " . $db->getConnection()->error);
+                }
+            }
+            
+        } elseif (isset($_POST['action']) && $_POST['action'] == 'delete_certification') {
+            $cert_id = intval($_POST['cert_id']);
+            $sql = "DELETE FROM certifications WHERE id=$cert_id";
 
             if ($db->query($sql)) {
-                $message = 'Certification successfully updated!';
+                $message = 'Certification successfully deleted!';
                 $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 ORDER BY cert_type, cert_name");
             } else {
-                $error = 'Failed to update certification! Error: ' . $db->getConnection()->error;
-                error_log("Error updating certification: " . $db->getConnection()->error);
+                $error = 'Failed to delete certification!';
+                error_log("Error deleting certification: " . $db->getConnection()->error);
             }
         }
-    } elseif (isset($_POST['action']) && $_POST['action'] == 'delete_certification') {
-        $cert_id = intval($_POST['cert_id']);
-        $sql = "DELETE FROM certifications WHERE id=$cert_id";
-
-        if ($db->query($sql)) {
-            $message = 'Certification successfully deleted!';
-            $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 ORDER BY cert_type, cert_name");
-        } else {
-            $error = 'Failed to delete certification!';
-            error_log("Error deleting certification: " . $db->getConnection()->error);
-        }
-    }
+    } // End of CSRF else
 }
 
 // Get all certifications
@@ -193,6 +208,8 @@ require_once '../../includes/header.php';
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
+            
             <input type="hidden" name="action" value="add_certification">
             <div class="modal-body">
                 <div class="form-group">
@@ -225,7 +242,6 @@ require_once '../../includes/header.php';
     </div>
 </div>
 
-<!-- Edit Modal -->
 <div id="editModal" class="modal">
     <div class="modal-content modal-cert">
         <div class="modal-header modal-header-cert">
@@ -233,6 +249,8 @@ require_once '../../includes/header.php';
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
+            
             <input type="hidden" name="action" value="edit_certification">
             <input type="hidden" name="cert_id" id="edit_cert_id">
             <div class="modal-body">
@@ -266,7 +284,6 @@ require_once '../../includes/header.php';
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
 <div id="deleteModal" class="modal">
     <div class="modal-content modal_cert">
         <div class="modal-header modal-header-cert">
@@ -274,6 +291,8 @@ require_once '../../includes/header.php';
             <span class="close" onclick="closeModal('deleteModal')">&times;</span>
         </div>
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
+            
             <input type="hidden" name="action" value="delete_certification">
             <input type="hidden" name="cert_id" id="delete_cert_id">
             <div class="modal-body">
