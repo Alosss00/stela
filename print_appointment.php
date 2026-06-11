@@ -413,7 +413,7 @@ function getLetterContent($competency_type, $competency_name, $appointment) {
         ],
     ];
     // If competency type is explicitly Pengawas Teknis, always use the
-    // Pengawas Teknis template — do not override it with keyword-based
+    // Pengawas Teknis template ï¿½ do not override it with keyword-based
     // templates (e.g., 'rigger', 'juru las', etc.).
     if ($competency_type === 'pengawas_teknis' && isset($templatesByType['pengawas_teknis'])) {
         return $templatesByType['pengawas_teknis'];
@@ -487,6 +487,21 @@ $header_title = getHeaderTitle($appointment['competency_type']);
 
 // Handle AJAX save request
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_content') {
+    
+    // 1. Ambil token dari POST data atau dari HTTP Header
+    $csrf_token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+    
+    // 2. Validasi token dengan session
+    if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
+        http_response_code(403); // Forbidden
+        echo json_encode([
+            'success' => false, 
+            'message' => 'Validasi keamanan (CSRF) gagal. Permintaan ditolak.'
+        ]);
+        exit();
+    }
+
+    // 3. Jika lolos validasi, lanjutkan proses simpan data
     $new_content = $_POST['content'] ?? '';
     
     $stmt = $db->prepare("UPDATE appointments SET letter_content = ? WHERE id = ?");
@@ -763,7 +778,7 @@ $can_edit = isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'k
         }
         
         .content-area ul li:before {
-            content: "• ";
+            content: "ï¿½ ";
             font-weight: bold;
         }
         
@@ -1219,28 +1234,31 @@ $can_edit = isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'k
             document.getElementById('contentDisplay').innerHTML = content;
         }
         
-        function saveContent() {
-            const content = editor.getData();
-            
-            fetch(window.location.href, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: 'action=save_content&content=' + encodeURIComponent(content)
-            })
-            .then(response => response.json())
-            .then(data => {
-                showAlert(data.success ? 'success' : 'error', data.message);
-                if (data.success) {
-                    updateContentDisplay();
-                }
-            })
-            .catch(error => {
-                showAlert('error', 'Terjadi kesalahan: ' + error);
-            });
+      function saveContent() {
+    const content = editor.getData();
+    const csrfToken = "<?php echo $_SESSION['csrf_token']; ?>"; 
+
+    // Membuat objek FormData baru
+    const formData = new FormData();
+    formData.append('action', 'save_content');
+    formData.append('csrf_token', csrfToken); // Masukkan token ke FormData
+    formData.append('content', content);
+
+    fetch(window.location.href, {
+        method: 'POST',
+        body: formData // Langsung kirim objek formData tanpa mengubah headers
+    })
+    .then(response => response.json())
+    .then(data => {
+        showAlert(data.success ? 'success' : 'error', data.message);
+        if (data.success) {
+            updateContentDisplay();
         }
-        
+    })
+    .catch(error => {
+        showAlert('error', 'Terjadi kesalahan: ' + error);
+    });
+}
         function showAlert(type, message) {
             const alertContainer = document.getElementById('alertContainer');
             const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
