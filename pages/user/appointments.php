@@ -28,7 +28,10 @@ if ($status_filter != 'all') {
 if (isset($_GET['action']) && $_GET['action'] == 'resubmit_to_ktt' && isset($_GET['id'])) {
     
     // --- 1. VALIDASI TOKEN ANTI-CSRF ---
-    if (!isset($_GET['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['SESSION_base_csrf_token_jangan_lupa_diganti_jika_beda' ?? 'csrf_token'], $_GET['csrf_token'])) {
+    if (!isset($_GET['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals(
+    $_SESSION['csrf_token'],
+    $_GET['csrf_token']
+)) {
         
         $error_message = "Akses ditolak: Token keamanan tidak valid atau telah kedaluwarsa.";
         
