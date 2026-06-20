@@ -72,10 +72,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     ")->fetch_assoc();
                     
                     $appointment_id = null; // Variable untuk menyimpan ID appointment
-                    
+
+                    $resubmit_check = $db->query("
+                        SELECT resubmit_type
+                        FROM employees
+                        WHERE id = $employee_id
+                    ")->fetch_assoc();
+
                     $is_certificate_resubmit =
-                    (($employee['resubmit_type'] ?? '') === 'certificate');
-                    
+                        (($resubmit_check['resubmit_type'] ?? '') === 'certificate');
+
                     if (!$existing_appointment) {
                         // Create new appointment for first-time verification
                         // Get employee data for appointment number generation
@@ -157,6 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         } else {
                             $_SESSION['error_message'] = stela_t('verified-create-appointment-failed');
                         }
+                        } elseif ($is_certificate_resubmit) {
+
+                                die('CERTIFICATE RESUBMIT TERDETEKSI');
+
                     } else {
                         // For existing appointment (re-submit case), update the existing appointment
                         $existing_number = $existing_appointment['appointment_number'];
