@@ -11,6 +11,10 @@ require_once '../../includes/header.php';
 $db = new Database();
 $is_superadmin = isSuperadmin();
 $company_name = $_SESSION['company_name'] ?? '';
+echo "<pre>";
+echo "SESSION COMPANY = [" . $company_name . "]";
+echo "</pre>";
+exit;
 if ($is_superadmin) {
     $company_name = 'All Companies';
 }
@@ -20,17 +24,18 @@ $company_condition = $is_superadmin
     : "contractor_company = '" . $db->escapeString($_SESSION['company_name'] ?? '') . "'";
 
 // Get statistics for this company
-$total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition")->fetch_assoc()['count'];
-$verified_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND verification_status = 'verified'")->fetch_assoc()['count'];
-$pending_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND verification_status = 'pending'")->fetch_assoc()['count'];
-$rejected_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND verification_status = 'rejected'")->fetch_assoc()['count'];
+$total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND is_active = 1")->fetch_assoc()['count'];
+$verified_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND is_active = 1 AND verification_status = 'verified'")->fetch_assoc()['count'];
+$pending_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND is_active = 1 AND verification_status = 'pending'")->fetch_assoc()['count'];
+$rejected_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND is_active = 1 AND verification_status = 'rejected'")->fetch_assoc()['count'];
 
 // Get appointments for this company
 $total_appointments = $db->query("
-    SELECT COUNT(*) as count 
+    SELECT COUNT(*) as count
     FROM appointments a
     JOIN employees e ON a.employee_id = e.id
-	WHERE $company_condition
+    WHERE $company_condition
+    AND e.is_active = 1
 ")->fetch_assoc()['count'];
 
 $approved_appointments = $db->query("
@@ -38,6 +43,7 @@ $approved_appointments = $db->query("
     FROM appointments a
     JOIN employees e ON a.employee_id = e.id
 	WHERE $company_condition AND a.status = 'approved'
+    AND e.is_active = 1
 ")->fetch_assoc()['count'];
 
 $rejected_appointments = $db->query("
@@ -45,6 +51,7 @@ $rejected_appointments = $db->query("
     FROM appointments a
     JOIN employees e ON a.employee_id = e.id
 	WHERE $company_condition AND a.status = 'rejected'
+    AND e.is_active = 1
 ")->fetch_assoc()['count'];
 
 $pending_appointments = $db->query("
@@ -52,6 +59,7 @@ $pending_appointments = $db->query("
     FROM appointments a
     JOIN employees e ON a.employee_id = e.id
 	WHERE $company_condition AND a.status = 'pending'
+    AND e.is_active = 1
 ")->fetch_assoc()['count'];
 
 // Get certificate expiration statistics (certificates expiring in 2 months or less) for this company
@@ -75,7 +83,11 @@ $rejected_appointments_list = $db->query("
     JOIN employees e ON a.employee_id = e.id
     JOIN positions p ON a.position_id = p.id
     WHERE e.contractor_company = '" . $db->escapeString($company_name) . "'
-    AND a.status = 'rejected'
+    AND a.status IN (
+    'rejected',
+    'rejected_by_ktt'
+)
+    AND e.is_active = 1
     ORDER BY a.updated_at DESC
     LIMIT 5
 ");
