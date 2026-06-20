@@ -73,6 +73,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     
                     $appointment_id = null; // Variable untuk menyimpan ID appointment
                     
+                    $is_certificate_resubmit =
+                    (($employee['resubmit_type'] ?? '') === 'certificate');
+                    
                     if (!$existing_appointment) {
                         // Create new appointment for first-time verification
                         // Get employee data for appointment number generation
