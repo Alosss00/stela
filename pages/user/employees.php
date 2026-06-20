@@ -25,20 +25,34 @@ $employees = $db->query("SELECT e.*,
            u.full_name as verified_by_name,
            e.resubmit_count,
            e.resubmit_date,
-           MAX(a.status) as appointment_status,
-           MAX(a.approval_notes) as ktt_rejection_notes,
+           a.status as appointment_status,
+           a.approval_notes as ktt_rejection_notes,
            MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) as has_ktt_rejection,
            CASE 
-               WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 AND e.verification_status = 'pending' AND e.resubmit_date IS NOT NULL THEN 'pending'
-               WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 THEN 'rejected'
-               WHEN MAX(a.status) = 'rejected' THEN 'rejected'
-               WHEN e.verification_status = 'rejected' THEN 'rejected'
-               ELSE e.verification_status
-           END as combined_status
+            WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 
+                AND e.verification_status = 'pending'
+                AND e.resubmit_date IS NOT NULL THEN 'pending'
+
+            WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 THEN 'rejected'
+
+            WHEN a.status = 'rejected' THEN 'rejected'
+
+            WHEN e.verification_status = 'rejected' THEN 'rejected'
+
+            ELSE e.verification_status
+            END as combined_status
     FROM employees e
     LEFT JOIN employee_certifications ec ON e.id = ec.employee_id
     LEFT JOIN users u ON e.verified_by = u.id
-    LEFT JOIN appointments a ON e.id = a.employee_id
+    LEFT JOIN (
+            SELECT a1.*
+            FROM appointments a1
+            INNER JOIN (
+                SELECT employee_id, MAX(id) latest_id
+                FROM appointments
+                GROUP BY employee_id
+            ) a2 ON a1.id = a2.latest_id
+        ) a ON e.id = a.employee_id
     LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
     WHERE e.is_active = 1 AND e.contractor_company = '" . $db->escapeString($company_name) . "'
     GROUP BY e.id
@@ -157,7 +171,7 @@ $rejected_count = $db->query("
                                 </td>
                                 <td>
                                     <?php
-                                    $final_status = $row['combined_status'];
+                                    $final_status = $row['verification_status'];
                                     $status_badges = [
                                         'verified' => '<span class="badge badge-success" data-lang="accept">Disetujui</span>',
                                         'pending' => '<span class="badge badge-warning" data-lang="pending">Menunggu</span>',
