@@ -217,25 +217,52 @@ die();
 
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                                 
-                               echo "<pre>";
-echo $sql_cert;
-echo "<br><br>";
-
-$result = $db->query($sql_cert);
-
-if(!$result){
-
-    die(
-        "MYSQL ERROR :<br>" .
-        $db->getConnection()->error .
-        "<br><br>QUERY :<br>" .
-        $sql_cert
-    );
-
-}
-
-echo "INSERT CERTIFICATE BERHASIL";
-die();
+                                if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
+                                    $cert_path = 'uploads/certifications/' . $cert_file;
+                                    $cert_id = intval($cert_ids[$key] ?? 0);
+                                    $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
+                                    
+                                    // Get cert_type: if "Lainnya", use manual input, otherwise use dropdown value
+                                    $cert_type = '';
+                                    if (isset($cert_types[$key]) && !empty($cert_types[$key])) {
+                                        if ($cert_types[$key] === 'Lainnya') {
+                                            $cert_type = $db->escapeString($cert_types_other[$key] ?? '');
+                                        } else {
+                                            $cert_type = $db->escapeString($cert_types[$key]);
+                                        }
+                                    }
+                                    
+                                    $cert_issuer = $db->escapeString($cert_issuers[$key] ?? '');
+                                    $issue_date = $db->escapeString($issue_dates[$key] ?? '');
+                                    $expiry_date = $db->escapeString($expiry_dates[$key] ?? '');
+                                    $reason = $db->escapeString($expiry_reasons[$key] ?? '');
+                                    
+                                    // Check if expired
+                                    $today = date('Y-m-d');
+                                    $status = ($expiry_date && $expiry_date < $today) ? 'expired' : 'pending';
+                                    
+                                    // Check if cert_type column exists in employee_certifications table
+                                    $columns_check = $db->query("SHOW COLUMNS FROM employee_certifications LIKE 'cert_type'");
+                                    
+                                    if ($columns_check && $columns_check->num_rows > 0) {
+                                        // Column cert_type EXISTS - include in INSERT
+                                        $sql_cert = "INSERT INTO employee_certifications 
+                                                    (employee_id, certification_id, cert_type, cert_number, cert_issuer, issue_date, expiry_date, 
+                                                     document_file, status, verification_status, expiry_reason) 
+                                                    VALUES ($employee_id, $cert_id, '$cert_type', '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
+                                                            '$cert_path', '$status', 'pending', '$reason')";
+                                    } else {
+                                        // Column cert_type DOES NOT EXIST - skip cert_type (backward compatible)
+                                        $sql_cert = "INSERT INTO employee_certifications 
+                                                    (employee_id, certification_id, cert_number, cert_issuer, issue_date, expiry_date, 
+                                                     document_file, status, verification_status, expiry_reason) 
+                                                    VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
+                                                            '$cert_path', '$status', 'pending', '$reason')";
+                                    }
+                                    if (!$db->query($sql_cert)) {
+                                        error_log("Error inserting certification: " . $db->getConnection()->error);
+                                    }
+                                }
                             }
                         }
                     }
