@@ -201,7 +201,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $expiry_reasons = $_POST['expiry_reasons'] ?? [];
 
                         foreach ($_FILES['certifications']['tmp_name'] as $key => $tmp_name) {
-
                             if (isset($_FILES['certifications']['error'][$key]) && $_FILES['certifications']['error'][$key] == 0) {
                                 $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
 
@@ -212,14 +211,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 }
 
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
-                                echo "<h2>SEBELUM MOVE FILE</h2>";
-echo "<br>";
-echo "Tmp File : " . $tmp_name;
-echo "<br>";
-echo "Destination : " . $upload_dir . $cert_file;
-die();
+                                
                                 if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
-                                    $cert_path = 'uploads/certifications/' . $cert_file;
+                                echo "<h2>UPLOAD BERHASIL</h2>";
+    echo "<br>";
+    echo "File berhasil dipindahkan ke:<br>";
+    echo $upload_dir . $cert_file;
+    die();   
+                                $cert_path = 'uploads/certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
                                     $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
                                     
@@ -229,7 +228,11 @@ die();
                                         if ($cert_types[$key] === 'Lainnya') {
                                             $cert_type = $db->escapeString($cert_types_other[$key] ?? '');
                                         } else {
-                                            $cert_type = $db->escapeString($cert_types[$key]);
+                                             die(
+        "<h2>UPLOAD GAGAL</h2>" .
+        "<br><br>Tmp File : " . $tmp_name .
+        "<br>Tujuan : " . $upload_dir . $cert_file
+    );
                                         }
                                     }
                                     
