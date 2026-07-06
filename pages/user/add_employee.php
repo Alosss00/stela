@@ -183,8 +183,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         VALUES (" . implode(', ', $insert_values) . ")";
                 
                 if ($db->query($sql)) {
-                    $employee_id = $db->lastInsertId();
-                    
+   
+                $employee_id = $db->lastInsertId();
+echo "<h2>Employee ID</h2>";
+var_dump($employee_id);
+die();   
                     // Handle multiple certification uploads
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
                         $upload_dir = '../../assets/uploads/certifications/';
@@ -256,7 +259,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                     VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
                                                             '$cert_path', '$status', 'pending', '$reason')";
                                     }
-                                    
                                     if (!$db->query($sql_cert)) {
                                         error_log("Error inserting certification: " . $db->getConnection()->error);
                                     }
