@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $upload_path = $upload_dir . $new_filename;
                 
                 if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                    $cv_file = 'assets/uploads/cv/' . $new_filename;
+                    $cv_file = 'uploads/cv/' . $new_filename;
                 } else {
                     $error = 'Failed to upload CV file.';
                 }
@@ -183,7 +183,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         VALUES (" . implode(', ', $insert_values) . ")";
                 
                 if ($db->query($sql)) {
-         // Handle multiple certification uploads
+                    $employee_id = $db->lastInsertId();
+                    
+                    // Handle multiple certification uploads
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
                         $upload_dir = '../../assets/uploads/certifications/';
                         if (!file_exists($upload_dir)) {
@@ -199,7 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $expiry_dates = $_POST['expiry_dates'] ?? [];
                         $no_expiry = $_POST['no_expiry'] ?? [];
                         $expiry_reasons = $_POST['expiry_reasons'] ?? [];
-
+                        
                         foreach ($_FILES['certifications']['tmp_name'] as $key => $tmp_name) {
                             if (isset($_FILES['certifications']['error'][$key]) && $_FILES['certifications']['error'][$key] == 0) {
                                 $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
@@ -213,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                                 
                                 if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
-                                   $cert_path = '../../assets/uploads/certifications/' . $cert_file;
+                                    $cert_path = 'uploads/certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
                                     $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
                                     
@@ -254,6 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                     VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
                                                             '$cert_path', '$status', 'pending', '$reason')";
                                     }
+                                    
                                     if (!$db->query($sql_cert)) {
                                         error_log("Error inserting certification: " . $db->getConnection()->error);
                                     }
@@ -332,21 +335,8 @@ require_once '../../includes/header.php';
     </div>
     <?php endif; ?>
     
- <?php
-// Pastikan session sudah berjalan sebelum output apapun
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
-
-// Buat token CSRF jika belum ada di session saat ini
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-?>
-
     <form method="POST" action="" enctype="multipart/form-data" class="form-container">
-        <input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
-
+        <!-- Section 1: Identity & Competency Data -->
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-id-card"></i> <span data-lang="identity-competency-data">Identity & Competency Data</span></h3>
@@ -370,6 +360,7 @@ if (empty($_SESSION['csrf_token'])) {
                 </div>
             </div>
             
+            <!-- Department disembunyikan, nilai default diatur otomatis -->
             <input type="hidden" id="department" name="department" value="General">
             
             <div class="form-row">
@@ -406,7 +397,7 @@ if (empty($_SESSION['csrf_token'])) {
                     <select class="form-control" id="supervision_area" name="supervision_area">
                         <option value="" data-lang="select-supervision-area">-- Select Supervision Area --</option>
                         <?php
-                        if (isset($supervision_areas) && $supervision_areas->num_rows > 0) {
+                        if ($supervision_areas && $supervision_areas->num_rows > 0) {
                             $supervision_areas->data_seek(0);
                             while ($area = $supervision_areas->fetch_assoc()):
                                 $selected = (isset($_POST['supervision_area']) && $_POST['supervision_area'] == $area['area_name']) ? 'selected' : '';
@@ -478,12 +469,13 @@ if (empty($_SESSION['csrf_token'])) {
                         <?php endif; ?>
                     </label>
                     <input type="text" class="form-control" id="contractor_company" name="contractor_company"
-                           value="<?php echo htmlspecialchars(!empty($current_department) ? $current_department : (isset($company_name) ? $company_name : '')); ?>"
+                           value="<?php echo htmlspecialchars(!empty($current_department) ? $current_department : $company_name); ?>"
                            required readonly>
                     <small class="form-hint" data-lang="auto-filled-from-account">Automatically filled from your account</small>
                 </div>
             </div>
             
+            <!-- File Upload Section -->
             <div class="form-row">
                 <div class="form-group col-lg-6">
                     <label for="cv_file" data-lang="upload-cv">Upload CV<span class="text-danger">*</span></label>
@@ -511,13 +503,14 @@ if (empty($_SESSION['csrf_token'])) {
                 <div>
                     <strong data-lang="important-statement-letter">Important - Statement Letter:</strong>
                     <p style="margin-bottom: 8px;" data-lang="wet-signature-pdf-instruction">The statement letter must be signed with wet signature (original) and scanned in PDF format</p>
-                    <a href="https://drive.google.com/drive/folders/176NPnFCvAnzp2Mb9vrA2RC5OMA45Hga1?usp=sharing" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
+                    <a href="https://drive.google.com/drive/folders/1z_LkU7C0bgz5VnVKyZBmmbP8mUuZGr06?usp=sharing" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
                         <i class="fas fa-download"></i> <span data-lang="download-statement-letter-template">Download Statement Letter Template</span>
                     </a>
                 </div>
             </div>
         </div>
         
+        <!-- Section 2: Sertifikasi -->
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-certificate"></i> <span data-lang="certification-competency">Certification/Competency</span></h3>
@@ -529,7 +522,8 @@ if (empty($_SESSION['csrf_token'])) {
                     <div class="cert-item-header">
                         <h5><i class="fas fa-file-certificate"></i> <span data-lang="certification-number-1">Certification #1</span></h5>
                         <div class="cert-header-actions">
-                            </div>
+                            <!-- Remove button will appear for additional certifications -->
+                        </div>
                     </div>
                     
                     <div class="form-row">
@@ -538,7 +532,7 @@ if (empty($_SESSION['csrf_token'])) {
                             <select name="certification_ids[]" class="form-control cert-name-select" required onchange="updateIssuer(this)">
                                 <option value="" data-lang="select-certification">-- Select Certification --</option>
                                 <?php
-                                if (isset($certifications) && $certifications->num_rows > 0) {
+                                if ($certifications && $certifications->num_rows > 0) {
                                     $certifications->data_seek(0);
                                     while ($cert = $certifications->fetch_assoc()):
                                     ?>
@@ -627,6 +621,7 @@ if (empty($_SESSION['csrf_token'])) {
             </button>
         </div>
 
+        <!-- Info Alert -->
         <div class="alert alert-info-custom">
             <i class="fas fa-lightbulb"></i>
             <div>
@@ -635,6 +630,7 @@ if (empty($_SESSION['csrf_token'])) {
             </div>
         </div>
         
+        <!-- Form Actions -->
         <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-lg">
                 <i class="fas fa-save"></i> <span data-lang="save-submit-verification">Save & Submit for Verification</span>
@@ -829,13 +825,6 @@ function filterCompetencies(competencyType) {
         if (option.value === '') {
             option.style.display = 'block';
         } else if (competencyType === 'pengawas_teknis') {
-            // Pengawas Teknis uses the same competency list as Tenaga Teknis
-            const optionType = option.getAttribute('data-type');
-            if (optionType === 'tenaga_teknis') {
-                option.style.display = 'block';
-            } else {
-                option.style.display = 'none';
-            }
         } else if (option.getAttribute('data-type') === competencyType) {
             option.style.display = 'block';
         } else {
