@@ -183,12 +183,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         VALUES (" . implode(', ', $insert_values) . ")";
                 
                 if ($db->query($sql)) {
-   
-                $employee_id = $db->lastInsertId();
-echo "<h2>Employee ID</h2>";
-var_dump($employee_id);
-die();   
-                    // Handle multiple certification uploads
+         // Handle multiple certification uploads
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
                         $upload_dir = '../../assets/uploads/certifications/';
                         if (!file_exists($upload_dir)) {
@@ -204,7 +199,8 @@ die();
                         $expiry_dates = $_POST['expiry_dates'] ?? [];
                         $no_expiry = $_POST['no_expiry'] ?? [];
                         $expiry_reasons = $_POST['expiry_reasons'] ?? [];
-                        
+                        echo "<h2>MASUK KE FOREACH</h2>";
+die();
                         foreach ($_FILES['certifications']['tmp_name'] as $key => $tmp_name) {
                             if (isset($_FILES['certifications']['error'][$key]) && $_FILES['certifications']['error'][$key] == 0) {
                                 $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
