@@ -238,11 +238,6 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/user/employees.php" class="<?php echo $current_page == 'employees.php' || $current_page == 'employee_detail.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-users"></i> <span data-lang="request">Request</span>
-                        </a>
-                    </li>
-                    <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/appointments.php" class="<?php echo $current_page == 'appointments.php' || $current_page == 'appointment_detail.php' ? 'active' : ''; ?>">
                             <i class="fas fa-file-alt"></i> <span data-lang="assign-letter">Assign Letter</span>
                         </a>
