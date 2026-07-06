@@ -202,6 +202,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $no_expiry = $_POST['no_expiry'] ?? [];
                         $expiry_reasons = $_POST['expiry_reasons'] ?? [];
                         
+                        echo "<pre>";
+
+                            echo "POST";
+                            print_r($_POST);
+
+                            echo "<br><br>FILES";
+                            print_r($_FILES['certifications']);
+
+                            die();
+
                         foreach ($_FILES['certifications']['tmp_name'] as $key => $tmp_name) {
                             if (isset($_FILES['certifications']['error'][$key]) && $_FILES['certifications']['error'][$key] == 0) {
                                 $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
