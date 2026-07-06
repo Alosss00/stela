@@ -201,9 +201,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $expiry_reasons = $_POST['expiry_reasons'] ?? [];
 
                         foreach ($_FILES['certifications']['tmp_name'] as $key => $tmp_name) {
-                            echo "<h2>FOREACH BERJALAN</h2>";
-echo "KEY = ".$key;
-die();
+
                             if (isset($_FILES['certifications']['error'][$key]) && $_FILES['certifications']['error'][$key] == 0) {
                                 $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
 
@@ -214,7 +212,12 @@ die();
                                 }
 
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
-                                
+                                echo "<h2>SEBELUM MOVE FILE</h2>";
+echo "<br>";
+echo "Tmp File : " . $tmp_name;
+echo "<br>";
+echo "Destination : " . $upload_dir . $cert_file;
+die();
                                 if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
                                     $cert_path = 'uploads/certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
