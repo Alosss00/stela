@@ -199,9 +199,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $expiry_dates = $_POST['expiry_dates'] ?? [];
                         $no_expiry = $_POST['no_expiry'] ?? [];
                         $expiry_reasons = $_POST['expiry_reasons'] ?? [];
-                        echo "<h2>MASUK KE FOREACH</h2>";
-die();
+
                         foreach ($_FILES['certifications']['tmp_name'] as $key => $tmp_name) {
+                            echo "<h2>FOREACH BERJALAN</h2>";
+echo "KEY = ".$key;
+die();
                             if (isset($_FILES['certifications']['error'][$key]) && $_FILES['certifications']['error'][$key] == 0) {
                                 $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
 
