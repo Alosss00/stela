@@ -11,10 +11,7 @@ require_once '../../includes/header.php';
 $db = new Database();
 $is_superadmin = isSuperadmin();
 $company_name = $_SESSION['company_name'] ?? '';
-echo "<pre>";
-echo "SESSION COMPANY = [" . $company_name . "]";
-echo "</pre>";
-exit;
+
 if ($is_superadmin) {
     $company_name = 'All Companies';
 }
