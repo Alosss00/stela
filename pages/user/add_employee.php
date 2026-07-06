@@ -212,12 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                                 
-                                if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
-                                echo "<h2>UPLOAD BERHASIL</h2>";
-    echo "<br>";
-    echo "File berhasil dipindahkan ke:<br>";
-    echo $upload_dir . $cert_file;
-    die();   
+                                if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) { 
                                 $cert_path = 'uploads/certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
                                     $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
@@ -263,6 +258,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                     VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
                                                             '$cert_path', '$status', 'pending', '$reason')";
                                     }
+                                    echo "<h2>QUERY INSERT CERTIFICATE</h2>";
+echo "<pre>";
+echo htmlspecialchars($sql_cert);
+echo "</pre>";
+
+$result = $db->query($sql_cert);
+
+if (!$result) {
+
+    die(
+        "<h2>MYSQL ERROR</h2>" .
+        "<br>" .
+        $db->getConnection()->error .
+        "<br><br><b>QUERY :</b><br><pre>" .
+        htmlspecialchars($sql_cert) .
+        "</pre>"
+    );
+
+}
+
+die("<h2>INSERT CERTIFICATE BERHASIL</h2>");
                                     if (!$db->query($sql_cert)) {
                                         error_log("Error inserting certification: " . $db->getConnection()->error);
                                     }
