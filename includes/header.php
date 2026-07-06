@@ -232,7 +232,12 @@ $current_page = get_current_page();
                         <a href="<?php echo BASE_URL; ?>/pages/user/dashboard.php" class="<?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
                             <i class="fas fa-home"></i> <span data-lang="dashboard">Dashboard</span>
                         </a>
-                    </                    <li>
+                      <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/user/employees.php" class="<?php echo $current_page == 'employees.php' || $current_page == 'employee_detail.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-users"></i> <span data-lang="request">Request</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/employees.php" class="<?php echo $current_page == 'employees.php' || $current_page == 'employee_detail.php' ? 'active' : ''; ?>">
                             <i class="fas fa-users"></i> <span data-lang="request">Request</span>
                         </a>
@@ -240,11 +245,6 @@ $current_page = get_current_page();
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/appointments.php" class="<?php echo $current_page == 'appointments.php' || $current_page == 'appointment_detail.php' ? 'active' : ''; ?>">
                             <i class="fas fa-file-alt"></i> <span data-lang="assign-letter">Assign Letter</span>
-                        </a>
-                    </li>
-                    <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/user/expired_certificates.php" class="<?php echo $current_page == 'expired_certificates.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-chart-bar"></i> <span data-lang="reports">Expired Certificates</span>
                         </a>
                     </li>
                     <li>
