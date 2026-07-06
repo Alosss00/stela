@@ -213,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                                 
                                 if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
-                                   $cert_path = 'uploads/certifications/' . $cert_file;
+                                   $cert_path = '../../assets/uploads/certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
                                     $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
                                     
