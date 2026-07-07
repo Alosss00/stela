@@ -21,10 +21,13 @@ $company_name = $_SESSION['company_name'] ?? '';
 $department = $_SESSION['department'] ?? '';
 
 $scope_conditions = [];
-if ($role === 'user') {
-	$scope_conditions[] = "e.contractor_company = '" . $db->escapeString($company_name) . "'";
-} elseif ($role === 'department_user') {
-	$scope_conditions[] = "e.department = '" . $db->escapeString($department) . "'";
+if ($role === 'department_user' || ($role === 'user' && !empty($department))) {
+	$scope_conditions[] = "TRIM(e.department) = '" . $db->escapeString(trim($department)) . "'";
+} elseif ($role === 'user' && !empty($company_name)) {
+	$scope_conditions[] = "TRIM(e.contractor_company) = '" . $db->escapeString(trim($company_name)) . "'";
+} else {
+	// Failsafe: never expose cross-scope data when session scope is incomplete.
+	$scope_conditions[] = '1 = 0';
 }
 
 $scope_sql = !empty($scope_conditions) ? ' AND ' . implode(' AND ', $scope_conditions) : '';
@@ -42,8 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 		FROM employee_certifications ec\
 		JOIN employees e ON ec.employee_id = e.id\
 		WHERE ec.id = $cert_id\
-		AND ec.expiry_date IS NOT NULL\
-		AND ec.expiry_date < CURDATE()\
+		AND (ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE() OR ec.status = 'expired')\
 		$scope_sql\
 		LIMIT 1\
 	");
@@ -96,7 +98,7 @@ $where_clause = 'WHERE 1=1';
 if (!empty($scope_conditions)) {
 	$where_clause .= ' AND ' . implode(' AND ', $scope_conditions);
 }
-$where_clause .= ' AND ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE()';
+$where_clause .= " AND (ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE() OR ec.status = 'expired')";
 
 $certificates = $db->query("\
 	SELECT ec.*,\
@@ -109,7 +111,8 @@ $certificates = $db->query("\
 		   c.cert_type,\
 		   c.issuing_authority,\
 		   CASE\
-			   WHEN ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE() THEN 'expired'\
+				   WHEN ec.status = 'expired' THEN 'expired'\
+				   WHEN ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE() THEN 'expired'\
 			   WHEN ec.verification_status = 'pending' THEN 'pending'\
 			   WHEN ec.verification_status = 'rejected' THEN 'rejected'\
 			   WHEN ec.verification_status = 'verified' THEN 'verified'\
@@ -120,7 +123,7 @@ $certificates = $db->query("\
 	LEFT JOIN certifications c ON ec.certification_id = c.id\
 	$where_clause\
 	ORDER BY\
-		CASE WHEN ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE() THEN 0 ELSE 1 END,\
+			CASE WHEN ec.status = 'expired' OR (ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE()) THEN 0 ELSE 1 END,\
 		ec.expiry_date ASC,\
 		ec.updated_at DESC\
 ");
