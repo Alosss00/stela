@@ -3,10 +3,7 @@ $page_title = 'Certificate Status';
 require_once '../../includes/auth.php';
 require_once '../../includes/db.php';
 
-if (!in_array($_SESSION['role'], ['user', 'department_user', 'admin', 'superadmin'], true)) {
-	header('Location: ../../index.php');
-	exit();
-}
+checkPageAccess(['user', 'department_user']);
 
 $db = new Database();
 
@@ -23,6 +20,15 @@ $role = $_SESSION['role'] ?? '';
 $company_name = $_SESSION['company_name'] ?? '';
 $department = $_SESSION['department'] ?? '';
 
+$scope_conditions = [];
+if ($role === 'user') {
+	$scope_conditions[] = "e.contractor_company = '" . $db->escapeString($company_name) . "'";
+} elseif ($role === 'department_user') {
+	$scope_conditions[] = "e.department = '" . $db->escapeString($department) . "'";
+}
+
+$scope_sql = !empty($scope_conditions) ? ' AND ' . implode(' AND ', $scope_conditions) : '';
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resubmit_file') {
 	if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
 		http_response_code(403);
@@ -31,20 +37,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 
 	$cert_id = isset($_POST['cert_id']) ? intval($_POST['cert_id']) : 0;
 
-	$scope_conditions = [];
-	if ($role === 'user' && empty($department)) {
-		$scope_conditions[] = "e.contractor_company = '" . $db->escapeString($company_name) . "'";
-	} elseif ($role === 'department_user' || ($role === 'user' && !empty($department))) {
-		$scope_conditions[] = "e.department = '" . $db->escapeString($department) . "'";
-	}
-
-	$scope_sql = !empty($scope_conditions) ? ' AND ' . implode(' AND ', $scope_conditions) : '';
-
 	$cert_check = $db->query("\
 		SELECT ec.id, ec.employee_id, ec.document_file, ec.expiry_date, ec.verification_status, e.employee_code\
 		FROM employee_certifications ec\
 		JOIN employees e ON ec.employee_id = e.id\
 		WHERE ec.id = $cert_id\
+		AND ec.expiry_date IS NOT NULL\
+		AND ec.expiry_date < CURDATE()\
 		$scope_sql\
 		LIMIT 1\
 	");
@@ -93,26 +92,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 	}
 }
 
-$status_filter = isset($_GET['status']) ? $_GET['status'] : 'expired';
-$allowed_filters = ['all', 'expired', 'pending', 'verified', 'rejected'];
-if (!in_array($status_filter, $allowed_filters, true)) {
-	$status_filter = 'expired';
-}
-
-$scope_conditions = [];
-if ($role === 'user' && empty($department)) {
-	$scope_conditions[] = "e.contractor_company = '" . $db->escapeString($company_name) . "'";
-} elseif ($role === 'department_user' || ($role === 'user' && !empty($department))) {
-	$scope_conditions[] = "e.department = '" . $db->escapeString($department) . "'";
-}
-
 $where_clause = 'WHERE 1=1';
 if (!empty($scope_conditions)) {
 	$where_clause .= ' AND ' . implode(' AND ', $scope_conditions);
 }
-if ($status_filter !== 'all') {
-	$where_clause .= " AND ec.verification_status = '" . $db->escapeString($status_filter) . "'";
-}
+$where_clause .= ' AND ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE()';
 
 $certificates = $db->query("\
 	SELECT ec.*,\
@@ -172,13 +156,10 @@ require_once '../../includes/header.php';
 		<div>
 			<p class="eyebrow">Certificate Status</p>
 			<h2><i class="fas fa-id-card"></i> Status Sertifikat</h2>
-			<p>Data sertifikat kadaluarsa, status verifikasi, dan unggah ulang file tersedia di halaman ini.</p>
+			<p>Data sertifikat kadaluarsa milik akun yang sedang login, siap untuk diresubmit atau diperbarui.</p>
 		</div>
 		<div class="hero-actions">
-			<a class="btn btn-secondary" href="?status=all">All</a>
-			<a class="btn btn-secondary" href="?status=expired">Expired</a>
-			<a class="btn btn-secondary" href="?status=pending">Pending</a>
-			<a class="btn btn-secondary" href="?status=verified">Verified</a>
+			<span class="btn btn-secondary" style="pointer-events:none;">Expired Only</span>
 		</div>
 	</div>
 
@@ -199,19 +180,11 @@ require_once '../../includes/header.php';
 	<div class="stats-grid">
 		<div class="stat-card">
 			<span class="stat-number"><?php echo $total_certificates; ?></span>
-			<span class="stat-label">Total</span>
+			<span class="stat-label">Expired Certificates</span>
 		</div>
 		<div class="stat-card stat-expired">
 			<span class="stat-number"><?php echo $expired_count; ?></span>
-			<span class="stat-label">Expired</span>
-		</div>
-		<div class="stat-card stat-pending">
-			<span class="stat-number"><?php echo $pending_count; ?></span>
-			<span class="stat-label">Pending</span>
-		</div>
-		<div class="stat-card stat-verified">
-			<span class="stat-number"><?php echo $verified_count; ?></span>
-			<span class="stat-label">Verified</span>
+			<span class="stat-label">Ready for Re-submit</span>
 		</div>
 	</div>
 
@@ -271,7 +244,7 @@ require_once '../../includes/header.php';
 										<?php endif; ?>
 									</td>
 									<td>
-										<?php if ($cert['display_status'] === 'expired' || $cert['verification_status'] === 'rejected' || $cert['verification_status'] === 'pending'): ?>
+										<?php if ($cert['display_status'] === 'expired'): ?>
 											<button type="button"
 													class="btn btn-primary btn-sm"
 													onclick='openResubmitModal(<?php echo json_encode($cert, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP); ?>)'>
