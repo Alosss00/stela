@@ -6,6 +6,20 @@ require_once '../../includes/db.php';
 // Only USER role can access this page
 checkPageAccess(['user']);
 
+// Pastikan session sudah aktif
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Buat CSRF token jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+// Generate token jika belum tersedia di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 $current_department = $_SESSION['department'] ?? '';
@@ -136,6 +150,10 @@ $existing_certifications = $db->query("
 
 // Handle form submission for re-submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // --- LALU KAN VALIDASI ANTI-CSRF ---
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $error = 'Token keamanan (CSRF) tidak valid atau telah kedaluwarsa. Silakan muat ulang halaman.';
+    } else {
     $full_name = $db->escapeString(trim($_POST['full_name']));
     $position = $db->escapeString(trim($_POST['position']));
     $department = $db->escapeString(trim($_POST['department']));
@@ -484,6 +502,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
     }
+ }
 }
 
 require_once '../../includes/header.php';
