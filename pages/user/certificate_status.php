@@ -21,7 +21,7 @@ $company_name = $_SESSION['company_name'] ?? '';
 $department = $_SESSION['department'] ?? '';
 
 $scope_conditions = [];
-if ($role === 'department_user' || ($role === 'user' && !empty($department))) {
+if ($role === 'department_user') {
 	$scope_conditions[] = "TRIM(e.department) = '" . $db->escapeString(trim($department)) . "'";
 } elseif ($role === 'user' && !empty($company_name)) {
 	$scope_conditions[] = "TRIM(e.contractor_company) = '" . $db->escapeString(trim($company_name)) . "'";
