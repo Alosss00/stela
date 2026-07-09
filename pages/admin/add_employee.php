@@ -362,7 +362,8 @@ require_once '../../includes/header.php';
     <?php endif; ?>
     
 <form method="POST" action="" enctype="multipart/form-data" class="form-container"> 
-    csrf: <?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : 'test'; ?>
+    <span>csrf: <?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : 'test'; ?></span?>
+    
         <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
 
         <div class="form-section">
