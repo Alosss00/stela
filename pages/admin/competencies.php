@@ -3,6 +3,16 @@ $page_title = 'Competency Management';
 require_once '../../includes/auth.php';
 require_once '../../includes/db.php';
 
+// Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token CSRF jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();
 $message = '';
 $error = '';
@@ -16,6 +26,11 @@ if ($check_table && $check_table->num_rows > 0) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && $competencies_table_exists) {
+    // --- IMPLEMENTASI ANTI-CSRF ---
+    // Memvalidasi token token CSRF dari POST request menggunakan hash_equals
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        http_response_code(403);
+    }
     if (isset($_POST['action'])) {
         if ($_POST['action'] == 'add') {
             $competency_name = $db->escapeString($_POST['competency_name']);
@@ -109,20 +124,6 @@ require_once '../../includes/header.php';
             <strong>Attention!</strong>
             <p>The competency table has not been created yet. Run the SQL below to create the table:</p>
             <pre style="background: #F9FAFB; padding: 10px; border-radius: 5px; overflow-x: auto; font-size: 11px;">
-CREATE TABLE competencies (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    competency_name VARCHAR(255) NOT NULL,
-    position_type VARCHAR(50) NOT NULL,
-    description TEXT,
-    is_active TINYINT DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-ALTER TABLE positions ADD COLUMN competency_id INT NULL AFTER position_type;
-ALTER TABLE positions ADD FOREIGN KEY (competency_id) REFERENCES competencies(id);</pre>
-        </div>
-    </div>
-    <?php else: ?>
     
     <!-- Statistics Card -->
     <div class="stat-card-competencies">
@@ -220,6 +221,7 @@ ALTER TABLE positions ADD FOREIGN KEY (competency_id) REFERENCES competencies(id
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
             <input type="hidden" name="action" value="add">
             <div class="modal-body">
                 <div class="form-group">
@@ -256,6 +258,7 @@ ALTER TABLE positions ADD FOREIGN KEY (competency_id) REFERENCES competencies(id
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
         <form method="POST" action="">
+            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id" id="edit_id">
             <div class="modal-body">
