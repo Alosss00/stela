@@ -679,6 +679,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                                             
                                             <!-- Submit for KTT approval -->
                                             <form method="POST" style="display: inline;">
+                                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                                                 <input type="hidden" name="action" value="submit">
                                                 <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
                                                 <button type="submit" class="btn-action-appt ajukan-btn"
@@ -731,6 +732,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                 <span class="close" onclick="closeModal('editModal')">&times;</span>
             </div>
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <input type="hidden" name="action" value="update_content">
                 <input type="hidden" name="id" id="editAppointmentId">
                 <div class="modal-body-appt">
@@ -1100,6 +1102,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
 
                 <!-- Admin Action Form -->
                 <form method="POST" action="" id="reviewActionForm">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                     <input type="hidden" name="action" value="admin_review">
                     <input type="hidden" name="id" id="reviewActionAppointmentId">
                     <input type="hidden" name="admin_action" id="reviewActionType">
@@ -1132,6 +1135,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                 <span class="close" onclick="closeModal('adminReviewModal')">&times;</span>
             </div>
             <form method="POST" action="" id="adminReviewForm">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <input type="hidden" name="action" value="admin_review">
                 <input type="hidden" name="id" id="reviewAppointmentId">
                 <input type="hidden" name="admin_action" id="reviewAdminAction">
