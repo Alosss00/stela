@@ -5,6 +5,17 @@ require_once '../../includes/auth.php';
 require_once '../../includes/db.php';
 require_once '../../includes/i18n.php';
 
+
+// Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token CSRF jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();
 $message = '';
 $error = '';
@@ -58,6 +69,11 @@ function generateAppointmentNumber($db, $employee_id, $appointment_date) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // --- IMPLEMENTASI ANTI-CSRF ---
+    // Validasi apakah token CSRF ada dan cocok dengan token di session
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request');
+    }
     if (isset($_POST['action'])) {
         // Handle admin review of KTT rejections
         if ($_POST['action'] == 'admin_review') {
@@ -769,6 +785,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                 <span class="close" onclick="closeModal('addModal')">&times;</span>
             </div>
             <form method="POST" action="">
+                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <input type="hidden" name="action" value="add">
                 <div class="modal-body-appt">
                     <div class="form-group-appt">
