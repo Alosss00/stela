@@ -9,6 +9,16 @@ if (!isset($_GET['id'])) {
     exit();
 }
 
+// Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token CSRF jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();
 $employee_id = intval($_GET['id']);
 $message = '';
@@ -16,6 +26,11 @@ $error = '';
 
 // Handle verification submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
+    // 1. Validasi Token Anti-CSRF
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        http_response_code(403);
+        die('Keamanan: Token CSRF tidak valid atau tidak ditemukan.');
+    }
     if ($_POST['action'] == 'verify_cert') {
         $cert_id = intval($_POST['cert_id']);
         $status = $_POST['status']; // verified or rejected
@@ -572,6 +587,7 @@ require_once '../../includes/header.php';
             <div class="section verification-section">
                 <h4 data-lang="final-data-verification">Final Data Verification</h4>
                 <form method="POST" id="verificationForm">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                     <input type="hidden" name="action" value="verify_employee">
                     
                     <div class="verification-form-wrapper">
