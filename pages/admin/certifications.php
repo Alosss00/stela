@@ -3,6 +3,16 @@ $page_title = 'Certification Management';
 require_once '../../includes/auth.php';
 require_once '../../includes/db.php';
 
+// Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token CSRF jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();
 $message = '';
 $error = '';
@@ -167,7 +177,6 @@ require_once '../../includes/header.php';
         </div>
             <form method="POST" action="">
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
-            
             <input type="hidden" name="action" value="add">
             <div class="modal-body">
                 <div class="form-group">
@@ -196,7 +205,6 @@ require_once '../../includes/header.php';
         </div>
             <form method="POST" action="">
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
-            
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id" id="edit_id">
             <div class="modal-body">
