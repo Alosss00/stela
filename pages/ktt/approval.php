@@ -347,12 +347,12 @@ require_once '../../includes/header.php';
             <p data-lang="ktt-approved-sent-admin-review">You have approved this assign letter. It has been sent to Admin for review.</p>
             <?php elseif ($message === 'You have approved this assign letter.'): ?>
             <p data-lang="ktt-approved-assign-letter">You have approved this assign letter.</p>
-            <?php elseif ($message === 'You have approved this assign letter, but KTT MSM has rejected it. It has been sent to Admin for review.'): ?>
+            <?php elseif ($message === 'You have approved this assign letter, It has been sent to Admin for review.'): ?>
             <p data-lang="ktt-approved-but-other-rejected-sent-admin-review">You have approved this assign letter, It has been sent to Admin for review.</p>
             <?php elseif ($message === 'You have rejected this assign letter. It has been sent to Admin for review.'): ?>
             <p data-lang="ktt-rejected-sent-admin-review">You have rejected this assign letter. It has been sent to Admin for review.</p>
-            <?php elseif (preg_match('/^You \(([^)]+)\) have rejected this assign letter\. Waiting for other KTT to complete their review\.$/', $message, $m)): ?>
-            <p><span data-lang="ktt-you">You</span> (<?php echo htmlspecialchars($m[1]); ?>) <span data-lang="ktt-have-rejected-this-assign-letter">have rejected this assign letter.</span> <span data-lang="ktt-waiting-other-ktt-complete-review">Waiting for other KTT to complete their review.</span></p>
+            <?php elseif (preg_match('/^You \(([^)]+)\) have rejected this assign letter\.$/', $message, $m)): ?>
+            <p><span data-lang="ktt-you">You</span> (<?php echo htmlspecialchars($m[1]); ?>) <span data-lang="ktt-have-rejected-this-assign-letter">have rejected this assign letter.</span></p>
             <?php else: ?>
             <p><?php echo htmlspecialchars($message); ?></p>
             <?php endif; ?>
