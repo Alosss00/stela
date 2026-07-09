@@ -7,6 +7,17 @@ require_once '../../includes/notifications.php';
 // Only USER role can access this page
 checkPageAccess(['user']);
 
+
+// Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token CSRF jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 $current_department = $_SESSION['department'] ?? '';
@@ -58,6 +69,12 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_n
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // PERBAIKAN KEAMANAN: Validasi Token CSRF
+    // ==========================================
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        http_response_code(403);
+        die("Error: Validasi keamanan (CSRF) gagal. Permintaan ditolak.");
+    }
     $employee_code = $db->escapeString(trim($_POST['employee_code']));
     $full_name = $db->escapeString(trim($_POST['full_name']));
     $position = $db->escapeString(trim($_POST['position']));
@@ -285,6 +302,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
 
                     $message = 'Employee successfully added! Waiting for Admin verification.';
+
+                    // Ini mencegah pengiriman ganda jika user me-refresh halaman sukses (Double Submit)
+                    unset($_SESSION['csrf_token']);
                     // Redirect after 2 seconds
                     header("refresh:2;url=employees.php");
                 } else {
@@ -336,6 +356,7 @@ require_once '../../includes/header.php';
     <?php endif; ?>
     
     <form method="POST" action="" enctype="multipart/form-data" class="form-container">
+        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
         <!-- Section 1: Identity & Competency Data -->
         <div class="form-section">
             <div class="section-header">
