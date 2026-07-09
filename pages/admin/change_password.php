@@ -6,6 +6,16 @@ require_once '../../includes/db.php';
 // Only admin (reviewer) can access
 checkPageAccess(['admin']);
 
+// Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token CSRF jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();
 $message = '';
 $error = '';
