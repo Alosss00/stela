@@ -5,6 +5,16 @@ require_once '../../includes/auth.php';
 require_once '../../includes/db.php';
 require_once '../../includes/i18n.php';
 
+// Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token CSRF jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();
 $message = '';
 $error = '';
@@ -309,7 +319,6 @@ require_once '../../includes/header.php';
         </div>
             <form method="POST" action="">
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
-            
             <input type="hidden" name="action" value="add">
             <div class="modal-body modal-body-enhanced">
                 <div class="form-group-enhanced">
@@ -1161,8 +1170,3 @@ textarea.form-control-enhanced {
 </style>
 
 <?php require_once '../../includes/footer.php'; ?>
-
-
-
-
-
