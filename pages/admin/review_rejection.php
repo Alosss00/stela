@@ -9,6 +9,16 @@ if ($_SESSION['role'] != 'admin') {
     exit();
 }
 
+// Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// Generate token CSRF jika belum ada di session
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();
 $message = '';
 $error = '';
@@ -18,8 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 1. Ambil token dari POST dan jalankan validasi CSRF
     $csrf_token = $_POST['csrf_token'] ?? '';
     if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
-        // Menggunakan fungsi translasi aplikasi Anda jika ada, atau fallback ke string biasa
-        $error = function_exists('stela_t') ? stela_t('csrf-validation-failed') : 'Security validation failed. Request denied.';
+        $error = 'Security validation failed. Request denied.';
     } else {
         // 2. Jika token valid, jalankan semua kode asli Anda di bawah ini
         if (isset($_POST['action'])) {
@@ -1219,7 +1228,3 @@ function confirmReject(form) {
 </script>
 
 <?php require_once '../../includes/footer.php'; ?>
-
-
-
-
