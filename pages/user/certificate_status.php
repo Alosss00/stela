@@ -52,20 +52,20 @@ if (empty($_SESSION['csrf_token'])) {
 $message = '';
 $error = '';
 $role = $_SESSION['role'] ?? '';
-$company_name = $_SESSION['company_name'] ?? '';
-$department = $_SESSION['department'] ?? '';
+$company_name = trim((string) ($_SESSION['company_name'] ?? ''));
+$department = trim((string) ($_SESSION['department'] ?? ''));
 
 $scope_sql = '';
 $scope_params = [];
 $scope_types = '';
 
-if ($role === 'department_user') {
-	$scope_sql = ' AND TRIM(e.department) = ?';
-	$scope_params[] = trim($department);
+if ($role === 'department_user' && $department !== '') {
+	$scope_sql = ' AND LOWER(TRIM(e.department)) = LOWER(TRIM(?))';
+	$scope_params[] = $department;
 	$scope_types .= 's';
-} elseif ($role === 'user' && !empty($company_name)) {
-	$scope_sql = ' AND TRIM(e.contractor_company) = ?';
-	$scope_params[] = trim($company_name);
+} elseif ($role === 'user' && $company_name !== '') {
+	$scope_sql = ' AND LOWER(TRIM(e.contractor_company)) = LOWER(TRIM(?))';
+	$scope_params[] = $company_name;
 	$scope_types .= 's';
 } else {
 	// Failsafe: never expose cross-scope data when session scope is incomplete.
@@ -115,9 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 	} else {
 		$cert_row = $cert_check->fetch_assoc();
 		$document_allowed = $cert_row['verification_status'] === 'verified' && (int) $cert_row['is_active'] === 1 && $cert_row['status'] !== 'expired';
-		$document_in_scope = $role === 'department_user'
-			? trim((string) $cert_row['department']) === trim($department)
-			: trim((string) $cert_row['contractor_company']) === trim($company_name);
+		$document_in_scope = false;
+		if ($role === 'department_user' && $department !== '') {
+			$document_in_scope = strtolower(trim((string) ($cert_row['department'] ?? ''))) === strtolower($department);
+		} elseif ($role === 'user' && $company_name !== '') {
+			$document_in_scope = strtolower(trim((string) ($cert_row['contractor_company'] ?? ''))) === strtolower($company_name);
+		}
 		$document_in_window = !empty($cert_row['expiry_date']) && $cert_row['expiry_date'] > date('Y-m-d') && $cert_row['expiry_date'] <= date('Y-m-d', strtotime('+' . $monitor_window_days . ' days'));
 
 		if (!$document_allowed || !$document_in_scope || !$document_in_window) {
@@ -297,7 +300,7 @@ require_once '../../includes/header.php';
 			<h3><i class="fas fa-list"></i> Daftar Sertifikat</h3>
 		</div>
 		<div class="card-body cert-card-body">
-			<?php if ($certificates && $certificates->num_rows > 0): ?>
+			<?php if (!empty($certificates)): ?>
 				<div class="table-responsive">
 					<table class="table cert-table">
 						<thead>
