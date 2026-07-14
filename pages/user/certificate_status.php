@@ -19,15 +19,15 @@ function bindStatementParams($stmt, string $types, array $params): void
 
 function getMonitoringBadge(int $days_left): array
 {
-	if ($days_left <= 7) {
-		return ['class' => 'critical', 'label' => '≤ 7 HARI'];
+	if ($days_left <= 14) {
+		return ['class' => 'critical', 'label' => 'Very Urgent'];
 	}
 
 	if ($days_left <= 30) {
-		return ['class' => 'warning', 'label' => '8 - 30 HARI'];
+		return ['class' => 'urgent', 'label' => 'Urgent'];
 	}
 
-	return ['class' => 'info', 'label' => '31 - 60 HARI'];
+	return ['class' => 'warning', 'label' => 'Warning'];
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
@@ -223,9 +223,8 @@ $monitor_sql = '
 $monitor_stmt = $db->prepare($monitor_sql);
 if ($monitor_stmt) {
 	$verified_status = 'verified';
-	$excluded_status = 'expired';
-	$monitor_params = [$verified_status, $monitor_window_days, $excluded_status];
-	$monitor_types = 'sis' . $scope_types;
+	$monitor_params = [$verified_status, $monitor_window_days];
+	$monitor_types = 'si' . $scope_types;
 	$monitor_params = array_merge($monitor_params, $scope_params);
 	bindStatementParams($monitor_stmt, $monitor_types, $monitor_params);
 	$monitor_stmt->execute();
@@ -236,7 +235,7 @@ if ($monitor_stmt) {
 			$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
 			$certificates[] = $row;
 			$total_certificates++;
-			if ($row['days_left'] <= 7) {
+			if ($row['days_left'] <= 14) {
 				$critical_count++;
 			} elseif ($row['days_left'] <= 30) {
 				$warning_count++;
@@ -283,15 +282,15 @@ require_once '../../includes/header.php';
 		</div>
 		<div class="stat-card stat-expired">
 			<span class="stat-number"><?php echo $critical_count; ?></span>
-			<span class="stat-label">&le; 7 Hari</span>
+			<span class="stat-label">Very Urgent (&le; 14 Hari)</span>
 		</div>
 		<div class="stat-card stat-pending">
 			<span class="stat-number"><?php echo $warning_count; ?></span>
-			<span class="stat-label">8 - 30 Hari</span>
+			<span class="stat-label">Urgent (15 - 30 Hari)</span>
 		</div>
 		<div class="stat-card stat-verified">
 			<span class="stat-number"><?php echo $info_count; ?></span>
-			<span class="stat-label">31 - 60 Hari</span>
+			<span class="stat-label">Warning (&gt; 30 Hari)</span>
 		</div>
 	</div>
 
@@ -328,7 +327,13 @@ require_once '../../includes/header.php';
 									<td><?php echo htmlspecialchars($cert['cert_number'] ?: '-'); ?></td>
 									<td>
 										<?php echo $cert['expiry_date'] ? date('d M Y', strtotime($cert['expiry_date'])) : '-'; ?><br>
-										<small class="text-muted">Sisa <?php echo (int) $cert['days_left']; ?> hari</small>
+										<small class="text-muted">
+											<?php if ((int) $cert['days_left'] >= 0): ?>
+												Sisa <?php echo (int) $cert['days_left']; ?> hari
+											<?php else: ?>
+												Lewat <?php echo abs((int) $cert['days_left']); ?> hari
+											<?php endif; ?>
+										</small>
 									</td>
 									<td>
 										<span class="status-badge status-<?php echo htmlspecialchars($cert['monitoring_badge']['class']); ?>">
@@ -345,7 +350,7 @@ require_once '../../includes/header.php';
 										<?php endif; ?>
 									</td>
 									<td>
-										<?php if (!empty($cert['appointment_id'])): ?>
+										<?php if (!empty($cert['appointment_id']) && (int) $cert['days_left'] >= 0): ?>
 											<a class="btn btn-primary btn-sm" href="<?php echo htmlspecialchars(buildResubmitUrl($cert, $_SESSION['csrf_token'])); ?>">
 												<i class="fas fa-upload"></i> Resubmit
 											</a>
@@ -444,8 +449,8 @@ require_once '../../includes/header.php';
 .stat-verified { border-left-color: #16a34a; }
 
 .status-critical { background: #fee2e2; color: #b91c1c; }
+.status-urgent { background: #ffedd5; color: #9a3412; }
 .status-warning { background: #fef3c7; color: #92400e; }
-.status-info { background: #dbeafe; color: #1d4ed8; }
 
 .stat-number {
 	display: block;
