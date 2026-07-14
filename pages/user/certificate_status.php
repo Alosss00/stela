@@ -19,15 +19,31 @@ function bindStatementParams($stmt, string $types, array $params): void
 
 function getMonitoringBadge(int $days_left): array
 {
-	if ($days_left <= 14) {
-		return ['class' => 'critical', 'label' => 'Very Urgent'];
-	}
+    if ($days_left <= 0) {
+        return [
+            'class' => 'critical',
+            'label' => 'EXPIRED'
+        ];
+    }
 
-	if ($days_left <= 30) {
-		return ['class' => 'urgent', 'label' => 'Urgent'];
-	}
+    if ($days_left <= 14) {
+        return [
+            'class' => 'critical',
+            'label' => 'VERY URGENT'
+        ];
+    }
 
-	return ['class' => 'warning', 'label' => 'Warning'];
+    if ($days_left <= 30) {
+        return [
+            'class' => 'warning',
+            'label' => 'URGENT'
+        ];
+    }
+
+    return [
+        'class' => 'info',
+        'label' => 'WARNING'
+    ];
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
@@ -87,9 +103,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 		  AND ec.verification_status = ?
 		  AND e.is_active = 1
 		  AND ec.expiry_date IS NOT NULL
-		  AND ec.expiry_date > CURDATE()
-		  AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL ? DAY)
-		  AND COALESCE(ec.status, "") <> ?
+		  AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 2 MONTH)
 		' . $scope_sql . '
 		LIMIT 1
 	';
@@ -327,7 +341,11 @@ require_once '../../includes/header.php';
 										<?php echo $cert['expiry_date'] ? date('d M Y', strtotime($cert['expiry_date'])) : '-'; ?><br>
 										<small class="text-muted">
 											<?php if ((int) $cert['days_left'] >= 0): ?>
-												Sisa <?php echo (int) $cert['days_left']; ?> hari
+												<?php
+													echo $cert['days_left'] < 0
+														? abs($cert['days_left']) . ' hari yang lalu'
+														: $cert['days_left'] . ' hari';
+													?> 
 											<?php else: ?>
 												Lewat <?php echo abs((int) $cert['days_left']); ?> hari
 											<?php endif; ?>
