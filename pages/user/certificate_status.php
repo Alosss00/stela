@@ -213,9 +213,7 @@ $monitor_sql = '
 	WHERE ec.verification_status = ?
 	  AND e.is_active = 1
 	  AND ec.expiry_date IS NOT NULL
-	  AND ec.expiry_date > CURDATE()
 	  AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL ? DAY)
-	  AND COALESCE(ec.status, "") <> ?
 	' . $scope_sql . '
 	ORDER BY ec.expiry_date ASC, ec.updated_at DESC
 ';
@@ -254,10 +252,10 @@ require_once '../../includes/header.php';
 		<div>
 			<p class="eyebrow">Certificate Status</p>
 			<h2><i class="fas fa-id-card"></i> Status Sertifikat</h2>
-			<p>Monitoring sertifikat aktif yang akan expired dalam 60 hari ke depan untuk akun yang sedang login.</p>
+			<p>Monitoring sertifikat verified yang kedaluwarsa atau akan expired dalam 60 hari ke depan untuk akun yang sedang login.</p>
 		</div>
 		<div class="hero-actions">
-			<span class="btn btn-secondary" style="pointer-events:none;">Monitoring &le; 60 Hari</span>
+			<span class="btn btn-secondary" style="pointer-events:none;">Monitoring &le; 2 Bulan</span>
 		</div>
 	</div>
 
