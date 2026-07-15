@@ -367,7 +367,7 @@ require_once '../../includes/header.php';
 									</td>
 									<td>
 										<?php if (!empty($cert['appointment_id']) && (int) $cert['days_left'] >= 0): ?>
-											<a class="btn btn-primary btn-sm" href="<?php echo htmlspecialchars(buildResubmitUrl($cert, $_SESSION['csrf_token'])); ?>">
+											<a class="btn btn-primary btn-sm" href="resubmit_certificate.php?id=<?php echo htmlspecialchars(buildResubmitUrl($cert, $_SESSION['csrf_token'])); ?>">
 												<i class="fas fa-upload"></i> Resubmit
 											</a>
 										<?php else: ?>
