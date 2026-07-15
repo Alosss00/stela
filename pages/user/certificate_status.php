@@ -372,10 +372,7 @@ require_once '../../includes/header.php';
 												href="resubmit_certificate.php?employee_id=<?php echo (int)$cert['employee_id']; ?>&certificate_id=<?php echo (int)$cert['employee_certification_id']; ?>">
 												<i class="fas fa-upload"></i> Resubmit
 												</a>
-											<?php else: ?>
-											<span class="badge bg-danger">Expired
-											</span>
-											<?php endif; ?>
+											
 										<?php else: ?>
 											<span class="text-muted">No Appointment</span>
 										<?php endif; ?>
