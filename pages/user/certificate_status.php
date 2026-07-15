@@ -368,11 +368,15 @@ require_once '../../includes/header.php';
 									<td>
 										<?php if (!empty($cert['appointment_id'])): ?>
 											<a class="btn btn-primary btn-sm"
-											href="resubmit_certificate.php?employee_id=<?php echo (int)$cert['employee_id']; ?>&certificate_id=<?php echo (int)$cert['employee_certification_id']; ?>">
+											href="resubmit_certificate.php?appointment_id=<?php echo (int)$cert['appointment_id']; ?>
+													&employee_id=<?php echo (int)$cert['employee_id']; ?>
+													&employee_certification_id=<?php echo (int)$cert['employee_certification_id']; ?>">
 												<i class="fas fa-upload"></i> Resubmit
 											</a>
-											<?php else: ?>
-												<span class="text-muted">No Appointment</span>
+
+										<?php else: ?>
+											<span class="badge badge-secondary">No Appointment
+											</span>
 										<?php endif; ?>
 									</td>
 								</tr> 	
