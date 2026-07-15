@@ -112,8 +112,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 	if ($cert_check_stmt) {
 		$verification_status = 'verified';
 		$excluded_status = 'expired';
-		$cert_params = [$cert_id, $verification_status];
-		$cert_types = 'is' . $scope_types;
+		$cert_params = [$cert_id, $verification_status, $monitor_window_days, $excluded_status];
+		$cert_types = 'isis' . $scope_types;
 		$cert_params = array_merge($cert_params, $scope_params);
 		bindStatementParams($cert_check_stmt, $cert_types, $cert_params);
 		$cert_check_stmt->execute();
@@ -213,20 +213,17 @@ $monitor_sql = '
 	       c.cert_name,
 	       c.cert_type,
 	       c.issuing_authority,
-	       a.id AS appointment_id,
-			a.appointment_number,
-			a.status AS appointment_status,
+	       a.id as appointment_id,
+	       a.status as appointment_status,
 	       DATEDIFF(ec.expiry_date, CURDATE()) as days_left
 	FROM employee_certifications ec
 	JOIN employees e ON ec.employee_id = e.id
 	LEFT JOIN certifications c ON ec.certification_id = c.id
 	LEFT JOIN appointments a ON a.id = (
-			SELECT ap.id
-			FROM appointments ap
-			WHERE ap.employee_id = e.id
-			ORDER BY ap.created_at DESC
-			LIMIT 1
-		)
+		SELECT MAX(ap.id)
+		FROM appointments ap
+		WHERE ap.employee_id = e.id
+	)
 	WHERE ec.verification_status = ?
 	  AND e.is_active = 1
 	  AND ec.expiry_date IS NOT NULL
@@ -246,16 +243,18 @@ if ($monitor_stmt) {
 	$monitor_result = $monitor_stmt->get_result();
 	if ($monitor_result) {
 		while ($row = $monitor_result->fetch_assoc()) {
-
-				echo "<pre>";
-				print_r($row);
-				echo "</pre>";
-
-				$row['days_left'] = (int)$row['days_left'];
-				$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
-
-				$certificates[] = $row;
+			$row['days_left'] = (int) $row['days_left'];
+			$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
+			$certificates[] = $row;
+			$total_certificates++;
+			if ($row['days_left'] <= 14) {
+				$critical_count++;
+			} elseif ($row['days_left'] <= 30) {
+				$warning_count++;
+			} else {
+				$info_count++;
 			}
+		}
 	}
 }
 
@@ -328,35 +327,6 @@ require_once '../../includes/header.php';
 						</thead>
 						<tbody>
 							<?php foreach ($certificates as $cert): ?>
-								<?php
-								echo "<small style='color:red'>";
-								echo "Emp: " . $cert['employee_id'];
-								echo "<br>AppID: ";
-								var_dump($cert['appointment_id']);
-								echo "<br>AppNo: ";
-								var_dump($cert['appointment_number']);
-								echo "</small><hr>";
-								?>
-								<?php if (empty($cert['appointment_id'])): ?>
-									<div style="background:#ffe6e6;border:1px solid red;padding:10px;margin-bottom:10px;">
-										<strong>DEBUG - NO APPOINTMENT</strong><br>
-
-										Employee ID :
-										<?= $cert['employee_id']; ?><br>
-
-										Employee Certification ID :
-										<?= $cert['employee_certification_id']; ?><br>
-
-										Appointment ID :
-										<?php var_dump($cert['appointment_id']); ?><br>
-
-										Appointment Number :
-										<?php var_dump($cert['appointment_number']); ?><br>
-
-										Appointment Status :
-										<?php var_dump($cert['appointment_status']); ?><br>
-									</div>
-								<?php endif; ?>
 								<tr>
 									<td>
 										<strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><br>
@@ -397,19 +367,20 @@ require_once '../../includes/header.php';
 									</td>
 									<td>
 										<?php if (!empty($cert['appointment_id'])): ?>
-											<a class="btn btn-primary btn-sm"
-												href="resubmit_certificate.php?appointment_id=<?php echo (int)$cert['appointment_id']; ?>
-												&employee_id=<?php echo (int)$cert['employee_id']; ?>
-												&employee_certification_id=<?php echo (int)$cert['employee_certification_id']; ?>">
-													<i class="fas fa-upload"></i> Resubmit
+											<?php if ((int)$cert['days_left'] >= 0): ?>
+												<a class="btn btn-primary btn-sm"
+												href="resubmit_certificate.php?employee_id=<?php echo (int)$cert['employee_id']; ?>&certificate_id=<?php echo (int)$cert['employee_certification_id']; ?>">
+												<i class="fas fa-upload"></i> Resubmit
 												</a>
-
-										<?php else: ?>
-											<span class="badge badge-secondary">No Appointment
+											<?php else: ?>
+											<span class="badge bg-danger">Expired
 											</span>
+											<?php endif; ?>
+										<?php else: ?>
+											<span class="text-muted">No Appointment</span>
 										<?php endif; ?>
 									</td>
-								</tr> 	
+								</tr>
 							<?php endforeach; ?>
 						</tbody>
 					</table>
