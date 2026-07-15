@@ -220,8 +220,7 @@ $monitor_sql = '
 	FROM employee_certifications ec
 	JOIN employees e ON ec.employee_id = e.id
 	LEFT JOIN certifications c ON ec.certification_id = c.id
-	LEFT JOIN appointments a
-		ON a.id = (
+	LEFT JOIN appointments a ON a.id = (
 			SELECT ap.id
 			FROM appointments ap
 			WHERE ap.employee_id = e.id
@@ -247,18 +246,16 @@ if ($monitor_stmt) {
 	$monitor_result = $monitor_stmt->get_result();
 	if ($monitor_result) {
 		while ($row = $monitor_result->fetch_assoc()) {
-			$row['days_left'] = (int) $row['days_left'];
-			$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
-			$certificates[] = $row;
-			$total_certificates++;
-			if ($row['days_left'] <= 14) {
-				$critical_count++;
-			} elseif ($row['days_left'] <= 30) {
-				$warning_count++;
-			} else {
-				$info_count++;
+
+				echo "<pre>";
+				print_r($row);
+				echo "</pre>";
+
+				$row['days_left'] = (int)$row['days_left'];
+				$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
+
+				$certificates[] = $row;
 			}
-		}
 	}
 }
 
