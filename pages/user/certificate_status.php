@@ -331,7 +331,15 @@ require_once '../../includes/header.php';
 						</thead>
 						<tbody>
 							<?php foreach ($certificates as $cert): ?>
-
+								<?php
+								echo "<small style='color:red'>";
+								echo "Emp: " . $cert['employee_id'];
+								echo "<br>AppID: ";
+								var_dump($cert['appointment_id']);
+								echo "<br>AppNo: ";
+								var_dump($cert['appointment_number']);
+								echo "</small><hr>";
+								?>
 								<?php if (empty($cert['appointment_id'])): ?>
 									<div style="background:#ffe6e6;border:1px solid red;padding:10px;margin-bottom:10px;">
 										<strong>DEBUG - NO APPOINTMENT</strong><br>
