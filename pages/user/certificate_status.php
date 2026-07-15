@@ -366,15 +366,15 @@ require_once '../../includes/header.php';
 										<?php endif; ?>
 									</td>
 									<td>
-										<?php if (!empty($cert['appointment_id'])): ?>
-											<?php if ((int)$cert['days_left'] >= 0): ?>
-												<a class="btn btn-primary btn-sm"
+										<?php if ((int)$cert['days_left'] >= 0): ?>
+
+											<a class="btn btn-primary btn-sm"
 												href="resubmit_certificate.php?employee_id=<?php echo (int)$cert['employee_id']; ?>&certificate_id=<?php echo (int)$cert['employee_certification_id']; ?>">
 												<i class="fas fa-upload"></i> Resubmit
-												</a>
-											
+											</a>
+
 										<?php else: ?>
-											<span class="text-muted">No Appointment</span>
+											<span class="badge bg-danger">Expired</span>
 										<?php endif; ?>
 									</td>
 								</tr>
