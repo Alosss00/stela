@@ -55,7 +55,7 @@ ON c.id = ec.certification_id
 WHERE ec.id = ?
 LIMIT 1
 ";
-
+ 
 $stmt = $db->prepare($sql);
 $stmt->bind_param("i", $employee_certification_id);
 $stmt->execute();
