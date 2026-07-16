@@ -92,7 +92,7 @@ $expiry_date = !empty($certificate['expiry_date'])
 
 ?>
 <?php include '../../includes/header.php'; ?>
-
+ 
 <div class="container-fluid py-4">
     <div class="row justify-content-center">
         <div class="col-lg-10">
