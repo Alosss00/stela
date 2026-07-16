@@ -1,5 +1,4 @@
 <?php
-die("INI FILE CERTIFICATE STATUS");
 $page_title = 'Certificate Status';
 require_once '../../includes/auth.php';
 require_once '../../includes/db.php';
