@@ -7,12 +7,6 @@ require_once '../../includes/db.php';
 checkPageAccess(['user', 'department_user']);
 
 $db = new Database();
-echo "<pre>";
-var_dump($db);
-exit;
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
-}
 
 /*CSRF TOKEN*/
 
@@ -59,6 +53,18 @@ LIMIT 1
 ";
  
 $stmt = $db->prepare($sql);
+if ($stmt === false) {
+
+    $conn = $db->getConnection();
+
+    die(
+        "<h2>SQL PREPARE ERROR</h2>" .
+        "<pre>" .
+        $conn->error .
+        "</pre>"
+    );
+}
+
 $stmt->bind_param("i", $employee_certification_id);
 $stmt->execute();
 
