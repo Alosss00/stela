@@ -93,7 +93,6 @@ $expiry_date = !empty($certificate['expiry_date'])
 ?>
 <?php include '../../includes/header.php'; ?>
 
-/*Section Pertama*/
 <div class="add-employee-container">
 
     <div class="page-header-add">
@@ -180,8 +179,6 @@ $expiry_date = !empty($certificate['expiry_date'])
 </div>
 
 </div>
-
-/*Section Kedua*/
 
 <div class="form-section">    
         <div class="section-header">
