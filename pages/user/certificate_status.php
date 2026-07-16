@@ -365,18 +365,24 @@ require_once '../../includes/header.php';
 											-
 										<?php endif; ?>
 									</td>
-									<td>
-										<?php if ((int)$cert['days_left'] >= 0): ?>
+										<td>
+											<?php
+											$canResubmit =
+												!empty($cert['employee_certification_id']) &&
+												$cert['verification_status'] === 'verified' &&
+												!empty($cert['document_file']);
+											?>
+											<?php if ($canResubmit): ?>
+												<a class="btn btn-primary btn-sm"
+													href="resubmit_certificate.php?employee_id=<?php echo (int)$cert['employee_id']; ?>&certificate_id=<?php echo (int)$cert['employee_certification_id']; ?>">
+													<i class="fas fa-upload"></i>
+													Resubmit
+												</a>
 
-											<a class="btn btn-primary btn-sm"
-												href="resubmit_certificate.php?employee_id=<?php echo (int)$cert['employee_id']; ?>&certificate_id=<?php echo (int)$cert['employee_certification_id']; ?>">
-												<i class="fas fa-upload"></i> Resubmit
-											</a>
-
-										<?php else: ?>
-											<span class="badge bg-danger">Expired</span>
-										<?php endif; ?>
-									</td>
+											<?php else: ?>
+												<span class="badge bg-secondary">Not Available</span>
+											<?php endif; ?>
+										</td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
