@@ -243,11 +243,6 @@ if ($monitor_stmt) {
 	$monitor_result = $monitor_stmt->get_result();
 	if ($monitor_result) {
 		while ($row = $monitor_result->fetch_assoc()) {
-			echo "<pre>";
-				print_r($row);
-				echo "</pre>";
-				exit;
-
 			$row['days_left'] = (int) $row['days_left'];
 			$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
 			$certificates[] = $row;
@@ -371,22 +366,15 @@ require_once '../../includes/header.php';
 										<?php endif; ?>
 									</td>
 										<td>
-											<?php
-											$canResubmit =
-												!empty($cert['employee_certification_id']) &&
-												$cert['verification_status'] === 'verified' &&
-												!empty($cert['document_file']);
-											?>
-											<?php if ($canResubmit): ?>
-												<a class="btn btn-primary btn-sm"
-													href="resubmit_certificate.php?employee_id=<?php echo (int)$cert['employee_id']; ?>&certificate_id=<?php echo (int)$cert['employee_certification_id']; ?>">
-													<i class="fas fa-upload"></i>
-													Resubmit
-												</a>
+										<?php if (!empty($cert['employee_certification_id'])): ?>
+											<a class="btn btn-primary btn-sm"
+											href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>">
+												<i class="fas fa-upload"></i>
+												Resubmit
+											</a>
 
-											<?php else: ?>
-												<span class="badge bg-secondary">Not Available</span>
-											<?php endif; ?>
+										<?php endif; ?>
+
 										</td>
 								</tr>
 							<?php endforeach; ?>
