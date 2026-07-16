@@ -92,7 +92,7 @@ $expiry_date = !empty($certificate['expiry_date'])
 
 ?>
 <?php include '../../includes/header.php'; ?>
- 
+/*Section Pertama*/
 <div class="add-employee-container">
 
     <div class="page-header-add">
@@ -179,4 +179,62 @@ $expiry_date = !empty($certificate['expiry_date'])
 </div>
 
 </div>
+
+/*Section Kedua*/
+
+<div class="form-section">
+
+    <div class="section-header">
+
+        <h3>
+
+            <i class="fas fa-file-upload"></i>
+
+            Upload New Certificate
+
+        </h3>
+
+        <span class="section-number">
+
+            2
+
+        </span>
+
+    </div>
 <?php include '../../includes/footer.php'; ?>
+
+<script>
+
+const uploadArea=document.getElementById('certificateUpload');
+
+const input=document.getElementById('certificate_file');
+
+const preview=document.getElementById('selectedCertificateFile');
+
+uploadArea.addEventListener('click',()=>{
+
+input.click();
+
+});
+
+input.addEventListener('change',function(){
+
+if(this.files.length){
+
+preview.style.display='block';
+
+preview.innerHTML=
+
+'<div class="alert alert-success mb-0">'+
+
+'<i class="fas fa-file-pdf"></i> '+
+
+this.files[0].name+
+
+'</div>';
+
+}
+
+});
+
+</script>
