@@ -92,6 +92,7 @@ $expiry_date = !empty($certificate['expiry_date'])
 
 ?>
 <?php include '../../includes/header.php'; ?>
+
 /*Section Pertama*/
 <div class="add-employee-container">
 
@@ -182,59 +183,72 @@ $expiry_date = !empty($certificate['expiry_date'])
 
 /*Section Kedua*/
 
-<div class="form-section">
+<div class="form-section">    
+        <div class="section-header">
+            <h3>
+                <i class="fas fa-file-upload"></i>Upload New Certificate
+            </h3>
 
-    <div class="section-header">
-
-        <h3>
-
-            <i class="fas fa-file-upload"></i>
-
-            Upload New Certificate
-
-        </h3>
-
-        <span class="section-number">
-
-            2
-
-        </span>
-
+        <span class="section-number">2</span>
     </div>
+
+    <div class="form-group">
+
+        <label>Upload Certificate File</label>
+            <div class="file-upload-area" id="certificateUpload">
+                <input type="file" id="certificate_file" name="certificate_file" accept=".pdf" hidden>
+                <div class="upload-content">
+                    <i class="fas fa-file-pdf upload-icon"></i>
+                        <p> Click or drag certificate file here</p>
+
+                    <small>PDF only (Max 5 MB)</small>
+
+                </div>
+    </div>
+
+        <div class="selected-file mt-3" id="selectedCertificateFile" style="display:none;">
+    </div>
+</div>
+        <div class="form-group">
+            <label>Correction Notes</label>
+                <textarea name="notes" rows="4" class="form-control" placeholder="Explain what has been corrected..."></textarea>
+        </div>
+
+
+        <div class="form-actions">
+            <a href="certificate_status.php" class="btn btn-secondary">Cancel</a>
+                <button type="submit" name="submit_resubmit" class="btn btn-primary">
+                    <i class="fas fa-upload"></i>Upload Correction
+                </button>
+
+        </div>
+    </div>
+
+</form>
+
 <?php include '../../includes/footer.php'; ?>
 
 <script>
 
-const uploadArea=document.getElementById('certificateUpload');
+    const uploadArea=document.getElementById('certificateUpload');
+    const input=document.getElementById('certificate_file');
+    const preview=document.getElementById('selectedCertificateFile');
+    uploadArea.addEventListener('click',()=>{
+    input.click();
+    });
 
-const input=document.getElementById('certificate_file');
+    input.addEventListener('change',function(){
 
-const preview=document.getElementById('selectedCertificateFile');
+    if(this.files.length){
 
-uploadArea.addEventListener('click',()=>{
+        preview.style.display='block';
+        preview.innerHTML=
+        '<div class="alert alert-success mb-0">'+
+        '<i class="fas fa-file-pdf"></i> '+
+        this.files[0].name+
+        '</div>';
+        }
 
-input.click();
-
-});
-
-input.addEventListener('change',function(){
-
-if(this.files.length){
-
-preview.style.display='block';
-
-preview.innerHTML=
-
-'<div class="alert alert-success mb-0">'+
-
-'<i class="fas fa-file-pdf"></i> '+
-
-this.files[0].name+
-
-'</div>';
-
-}
-
-});
+    });
 
 </script>
