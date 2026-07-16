@@ -93,84 +93,90 @@ $expiry_date = !empty($certificate['expiry_date'])
 ?>
 <?php include '../../includes/header.php'; ?>
  
-<div class="container-fluid py-4">
-    <div class="row justify-content-center">
-        <div class="col-lg-10">
-            <div class="card shadow-sm border-0">
-                <div class="card-header bg-warning text-dark">
-                    <h4 class="mb-0">
-                        <i class="fas fa-upload"></i>Resubmit Certificate
-                    </h4>
-                </div>
+<div class="add-employee-container">
 
-                <div class="card-body">
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                        <label class="form-label fw-bold">Employee</label>
-            <input type="text" class="form-control"value="<?php echo htmlspecialchars($certificate['full_name']); ?>"readonly>
+    <div class="page-header-add">
+        <div class="header-left">
+            <h2>
+                <i class="fas fa-upload"></i>
+                Resubmit Certificate
+            </h2>
+            <p>Correct rejected certificate and upload again.</p>
         </div>
-    </div>
-
-    <div class="col-md-6">
-        <div class="mb-3">
-            <label class="form-label fw-bold">Employee Code</label>
-            <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['employee_code']); ?>"readonly>
-        </div>
-    </div>
-
-</div>
-    <div class="row">
-    <div class="col-md-6">
-        <div class="mb-3">
-            <label class="form-label fw-bold">Certificate</label>
-            <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['cert_name']); ?>"readonly>
-        </div>
-
-    </div>
-    <div class="col-md-6">
-        <div class="mb-3">
-            <label class="form-label fw-bold">Certificate Number</label>
-            <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['cert_number']); ?>" readonly>
-        </div>
-    </div>
-
-</div>
-<div class="row">
-    <div class="col-md-6">
-        <div class="mb-3">
-            <label class="form-label fw-bold">Issue Date</label>
-            <input type="text" class="form-control" value="<?php echo $issue_date; ?>" readonly>
-        </div>
-
-    </div>
-    <div class="col-md-6">
-        <div class="mb-3">
-            <label class="form-label fw-bold">Expiry Date</label>
-            <input type="text" class="form-control" value="<?php echo $expiry_date; ?>" readonly>
-        </div>
-    </div>
-
-</div>
-<div class="mb-4">
-    <label class="form-label fw-bold">Current Certificate</label>
-
-    <br>
-    <?php if (!empty($certificate['document_file'])): ?>
-        <a href="../../assets/<?php echo htmlspecialchars($certificate['document_file']); ?>" target="_blank"
-            class="btn btn-info">
-            <i class="fas fa-eye"></i> View Certificate
+        <a href="certificate_status.php" class="btn btn-outline-secondary">
+            <i class="fas fa-arrow-left"></i>Back
         </a>
-
-    <?php else: ?>
-        <span class="badge bg-danger"> No Document</span>
-    <?php endif; ?>
-</div>
-            </div>
-
-            </div>
-        </div>
     </div>
+
+<form method="POST" enctype="multipart/form-data" class="form-container">     
+    <div class="form-section">
+            <div class="section-header">
+                <h3>
+                    <i class="fas fa-certificate"></i> Certificate Information
+                </h3>
+                <span class="section-number"> 1</span>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group col-lg-6">
+                <label>Employee Name</label>
+
+        <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['full_name']); ?>" readonly>
+    </div>
+
+            <div class="form-group col-lg-6">
+                <label>Employee Code</label>
+
+        <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['employee_code']); ?>"readonly>
+            </div>
 </div>
 
+    <div class="form-row">
+        <div class="form-group col-lg-6">
+            <label>Certificate Name</label>
+
+        <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['cert_name']); ?>" readonly>
+
+    </div>
+
+        <div class="form-group col-lg-6">
+        <label>Certificate Number</label>
+
+        <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['cert_number']); ?>" readonly>
+    </div>
+
+    </div>
+        <div class="form-row">
+        <div class="form-group col-lg-6">
+        <label>Issuer</label>
+        <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['cert_issuer']); ?>" readonly>
+    </div>
+
+    <div class="form-group col-lg-6">
+        <label>Issue Date</label>
+
+        <input type="text" class="form-control" value="<?php echo date('d M Y',strtotime($certificate['issue_date'])); ?>" readonly>
+    </div>
+
+</div>
+
+        <div class="form-row">
+            <div class="form-group col-lg-6">
+            <label>Expiry Date</label>
+        <input type="text" class="form-control" value="<?php echo date('d M Y',strtotime($certificate['expiry_date'])); ?>" readonly>
+
+</div>
+
+        <div class="form-group col-lg-6">
+        <label>Current Certificate</label>
+        <br>
+    <a class="btn btn-info" target="_blank" href="../../assets/<?php echo $certificate['document_file']; ?>">
+        <i class="fas fa-eye"></i> View Certificate
+    </a>
+
+</div>
+
+</div>
+
+</div>
 <?php include '../../includes/footer.php'; ?>
