@@ -243,6 +243,11 @@ if ($monitor_stmt) {
 	$monitor_result = $monitor_stmt->get_result();
 	if ($monitor_result) {
 		while ($row = $monitor_result->fetch_assoc()) {
+			echo "<pre>";
+				print_r($row);
+				echo "</pre>";
+				exit;
+
 			$row['days_left'] = (int) $row['days_left'];
 			$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
 			$certificates[] = $row;
@@ -266,10 +271,10 @@ require_once '../../includes/header.php';
 		<div>
 			<p class="eyebrow">Certificate Status</p>
 			<h2><i class="fas fa-id-card"></i> Status Sertifikat</h2>
-			<p>Monitoring sertifikat verified yang kedaluwarsa atau akan expired dalam 60 hari ke depan untuk akun yang sedang login.</p>
+			<p>Monitoring sertifikat verified yang kedaluwarsa atau akan expired.</p>
 		</div>
 		<div class="hero-actions">
-			<span class="btn btn-secondary" style="pointer-events:none;">Monitoring &le; 2 Bulan</span>
+			<span class="btn btn-secondary" style="pointer-events:none;">Monitoring; 2 Bulan</span>
 		</div>
 	</div>
 
