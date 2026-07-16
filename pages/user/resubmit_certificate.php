@@ -41,7 +41,6 @@ SELECT
     e.full_name,
     e.department,
     e.contractor_company,
-    e.position_id,
     c.cert_name
 FROM employee_certifications ec
 INNER JOIN employees e
