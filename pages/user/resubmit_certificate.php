@@ -7,7 +7,9 @@ require_once '../../includes/db.php';
 checkPageAccess(['user', 'department_user']);
 
 $db = new Database();
-
+echo "<pre>";
+var_dump($db);
+exit;
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
