@@ -200,6 +200,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         } else {
             $error = "Failed upload.";
         }
+
+        if (!empty($error)) { 
+            $_SESSION['error_message'] = $error;
+        }
      }
 }
 
