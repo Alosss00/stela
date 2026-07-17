@@ -187,7 +187,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
 
         <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['full_name']); ?>" readonly>
     </div>
-
             <div class="form-group col-lg-6">
                 <label>Employee Code</label>
 
