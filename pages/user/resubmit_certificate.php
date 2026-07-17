@@ -90,6 +90,69 @@ $expiry_date = !empty($certificate['expiry_date'])
     ? date('d M Y', strtotime($certificate['expiry_date']))
     : '-';
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
+
+    $error = '';
+
+    /*VALIDASI CSRF*/
+
+    if (
+        !isset($_POST['csrf_token']) ||
+        !isset($_SESSION['csrf_token']) ||
+        !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+    )   {
+            $error = "Invalid CSRF Token.";
+        }
+
+    /*VALIDASI FILE*/
+
+    if (!$error) {
+        if (
+            !isset($_FILES['certificate_file']) ||
+            $_FILES['certificate_file']['error'] != 0
+        )   {
+                $error = "Please upload certificate.";
+            }
+    }
+
+    /*VALIDASI PDF*/
+    if (!$error) {
+        $extension = strtolower( pathinfo($_FILES['certificate_file']['name'],PATHINFO_EXTENSION));
+        if ($extension != 'pdf') {
+            $error = "Only PDF allowed.";
+        }
+    }
+
+    /* VALIDASI SIZE*/
+    if (!$error) {
+        if ($_FILES['certificate_file']['size'] > (5 * 1024 * 1024)) {
+            $error = "Maximum file size is 5 MB.";
+        }
+    }
+    if (!$error) {
+        $upload_dir = '../../assets/uploads/certifications/';
+        if (!file_exists($upload_dir)) {
+            mkdir($upload_dir,0777,true);
+        }
+
+        $employee_code = $certificate['employee_code'];
+        $new_filename = $employee_code . '_resubmit_' . time() .'.pdf';
+        $upload_path = $upload_dir . $new_filename;
+
+        if (
+            move_uploaded_file(
+                $_FILES['certificate_file']['tmp_name'],
+                $upload_path
+            )
+        ) {
+            $document_file ='uploads/certifications/' .
+                $new_filename;
+
+        } else {
+            $error = "Failed upload.";
+        }
+    }
+
 ?>
 <?php include '../../includes/header.php'; ?>
  
@@ -109,6 +172,7 @@ $expiry_date = !empty($certificate['expiry_date'])
     </div>
 
 <form method="POST" enctype="multipart/form-data" class="form-container">     
+<input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">    
     <div class="form-section">
             <div class="section-header">
                 <h3>
