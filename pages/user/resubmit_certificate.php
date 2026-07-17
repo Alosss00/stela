@@ -197,10 +197,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         $error = $e->getMessage();
     }
 
-} else {
-    $error = "Failed upload.";
-}
-    }
+        } else {
+            $error = "Failed upload.";
+        }
+     }
 }
 
 ?>
