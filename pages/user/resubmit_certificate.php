@@ -152,6 +152,7 @@ $expiry_date = !empty($certificate['expiry_date'])
             $error = "Failed upload.";
         }
     }
+}
 
 ?>
 <?php include '../../includes/header.php'; ?>
