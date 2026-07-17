@@ -90,7 +90,7 @@ $expiry_date = !empty($certificate['expiry_date'])
     ? date('d M Y', strtotime($certificate['expiry_date']))
     : '-';
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
+
 
     $error = '';
 
