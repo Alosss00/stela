@@ -139,18 +139,67 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         $new_filename = $employee_code . '_resubmit_' . time() .'.pdf';
         $upload_path = $upload_dir . $new_filename;
 
-        if (
-            move_uploaded_file(
-                $_FILES['certificate_file']['tmp_name'],
-                $upload_path
-            )
-        ) {
-            $document_file ='uploads/certifications/' .
-                $new_filename;
+    if (
+    move_uploaded_file(
+        $_FILES['certificate_file']['tmp_name'],
+        $upload_path)) 
+    {
 
-        } else {
-            $error = "Failed upload.";
-        }
+    $document_file = 'uploads/certifications/' . $new_filename;
+    $conn = $db->getConnection();
+    $conn->begin_transaction();
+
+    try {
+        /*UPDATE employee_certifications*/
+        $notes = trim($_POST['notes']);
+        $stmt1 = $conn->prepare("
+            UPDATE employee_certifications
+            SET
+                document_file = ?,
+                verification_status = 'pending',
+                notes = ?,
+                updated_at = NOW()
+            WHERE id = ?
+        ");
+
+        $stmt1->bind_param(
+            "ssi",
+            $document_file,
+            $notes,
+            $employee_certification_id
+        );
+
+        $stmt1->execute();
+
+        /*UPDATE employees*/
+
+        $stmt2 = $conn->prepare("
+            UPDATE employees
+            SET
+                verification_status = 'pending',
+                resubmit_type = 'certificate',
+                resubmit_count = IFNULL(resubmit_count,0)+1,
+                resubmit_date = NOW()
+            WHERE id = ?
+        ");
+
+        $stmt2->bind_param("i", $certificate['employee_id']);
+        $stmt2->execute();
+        $conn->commit();
+
+        $_SESSION['success_message'] = "Certificate resubmitted successfully.";
+
+        header("Location: certificate_status.php");
+        exit;
+
+    } catch (Exception $e) {
+        $conn->rollback();
+        $error = $e->getMessage();
+    }
+
+} else {
+    $error = "Failed upload.";
+}
     }
 }
 
