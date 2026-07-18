@@ -298,139 +298,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
 
 </div>
 
-<div class="form-section">
-            <div class="section-header">
-                <h3><i class="fas fa-certificate"></i> <span data-lang="certifications">Certifications</span></h3>
-                <span class="section-number">2</span>
-            </div>
+<div class="form-section">    
+        <div class="section-header">
+            <h3>
+                <i class="fas fa-file-upload"></i>Upload New Certificate
+            </h3>
 
-            <div class="alert alert-info-custom">
-                <i class="fas fa-info-circle"></i>
-                <strong data-lang="important-information">Important Information:</strong> <span data-lang="resubmit-file-upload-optional-info">File uploads are OPTIONAL. You don't need to re-upload CV, signature, or certificate files if the existing data is correct. Existing files will continue to be used.</span> <strong data-lang="reupload-only-if">Re-upload only if:</strong> <span data-lang="resubmit-reupload-condition">Admin specified in rejection notes that certain files need to be corrected/replaced.</span>
-            </div>
-            
-            <div id="certificationContainer" class="certifications-list">
-                <?php 
-                $cert_index = 0;
-                if ($existing_certifications && $existing_certifications->num_rows > 0):
-                    while ($cert = $existing_certifications->fetch_assoc()): 
-                        $cert_index++;
-                ?>
-                <div class="certification-item">
-                    <div class="cert-item-header">
-                        <h5><i class="fas fa-file-certificate"></i> <span data-lang="certification">Certification</span> #<?php echo $cert_index; ?></h5>
-                        <div class="cert-header-actions">
-                            <span class="badge badge-<?php echo $cert['verification_status'] == 'rejected' ? 'danger' : 'warning'; ?>">
-                                <?php echo strtoupper($cert['verification_status']); ?>
-                            </span>
-                            <?php if ($cert_index > 1): ?>
-                            <button type="button" class="btn-remove-cert" onclick="removeCertification(this)" title="Remove this certification" data-lang-title="remove-this-certification">
-                                <i class="fas fa-times"></i>
-                            </button>
-                            <?php endif; ?>
-                        </div>
-                    </div>
+        <span class="section-number">2</span>
+    </div>
 
-                    <input type="hidden" name="existing_cert_ids[]" value="<?php echo $cert['id']; ?>">
+    <div class="form-group">
 
-                    <div class="form-row">
-                        <div class="form-group col-lg-4">
-                            <label data-lang="certification-name-required">Certification Name <span class="text-danger">*</span></label>
-                            <select name="certification_ids[]" class="form-control cert-name-select" required onchange="updateIssuer(this)">
-                                <option value="" data-lang="select-certification">-- Select Certification --</option>
-                                <?php
-                                if ($certifications && $certifications->num_rows > 0) {
-                                    $certifications->data_seek(0);
-                                    while ($c = $certifications->fetch_assoc()):
-                                        $selected = ($cert['certification_id'] == $c['id']) ? 'selected' : '';
-                                    ?>
-                                    <option value="<?php echo $c['id']; ?>" data-issuer="<?php echo htmlspecialchars($c['cert_issuer'] ?? ''); ?>" <?php echo $selected; ?>>
-                                        <?php echo htmlspecialchars($c['cert_name']); ?>
-                                    </option>
-                                    <?php 
-                                    endwhile;
-                                }
-                                ?>
-                            </select>
-                        </div>
-                        
-                        <div class="form-group col-lg-4">
-                            <label data-lang="certificate-number-required">Certificate Number <span class="text-danger">*</span></label>
-                            <input type="text" name="cert_numbers[]" class="form-control" required placeholder="Certificate number" data-lang-placeholder="certificate-number-placeholder" value="<?php echo htmlspecialchars($cert['cert_number']); ?>">
-                        </div>
-                        
-                        <div class="form-group col-lg-4">
-                            <label data-lang="issuer-required">Issuer <span class="text-danger">*</span></label>
-                            <input type="text" name="cert_issuers[]" class="form-control" required placeholder="Issuer name" data-lang-placeholder="issuer-name-placeholder" value="<?php echo htmlspecialchars($cert['cert_issuer']); ?>">
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-lg-6">
-                            <label data-lang="issue-date-required">Issue Date <span class="text-danger">*</span></label>
-                            <input type="date" name="issue_dates[]" class="form-control issue-date" required onchange="calculateExpiryDate(this)" value="<?php echo $cert['issue_date']; ?>">
-                        </div>
-                        <div class="form-group col-lg-6">
-                            <label data-lang="validity-period-required">Validity Period <span class="text-danger">*</span></label>
-                            <div class="validity-input-group">
-                                <input type="number" name="validity_years[]" class="form-control validity-years" min="0" step="0.5" placeholder="Years" data-lang-placeholder="years" onchange="calculateExpiryDate(this)" value="<?php 
-                                    // Calculate validity years from issue and expiry dates
-                                    if (!empty($cert['issue_date']) && !empty($cert['expiry_date'])) {
-                                        $issue = new DateTime($cert['issue_date']);
-                                        $expiry = new DateTime($cert['expiry_date']);
-                                        $diff = $issue->diff($expiry);
-                                        $years = $diff->y + ($diff->m / 12);
-                                        echo round($years, 1);
-                                    } else {
-                                        echo '3';
-                                    }
-                                ?>">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="no_expiry[]" class="no-expiry-check" onchange="toggleExpiryField(this)">
-                                    <span data-lang="no-expiry">No Expiry</span>
-                                </label>
-                            </div>
-                            <small class="form-hint" data-lang="validity-years-hint">Enter in years, e.g.: 3 or 2.5 for 2 years 6 months</small>
-                        </div>
-                    </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-lg-6">
-                            <label data-lang="expiry-date-required">Expiry Date <span class="text-danger">*</span></label>
-                            <input type="date" name="expiry_dates[]" class="form-control expiry-date" required value="<?php echo $cert['expiry_date']; ?>">
-                            <small class="form-hint" data-lang="expiry-date-manual-edit-note">You can manually edit the expiry date if needed</small>
-                        </div>
-                        <div class="form-group col-lg-6">
-                            <label><span data-lang="no-expiry-reason">No Expiry Reason</span> <span class="text-muted" data-lang="optional">(Optional)</span></label>
-                            <input type="text" name="expiry_reasons[]" class="form-control other-expiry-reason" style="display: none;" placeholder="Example: Lifetime Certificate" data-lang-placeholder="lifetime-certificate-example">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label><span data-lang="upload-new-certificate-file">Upload New Certificate File</span> <span class="text-muted" data-lang="optional-leave-blank-if-no-change">(Optional - Leave blank if no changes)</span></label>
-                        <?php if ($cert['document_file']): ?>
-                        <div class="current-file-info">
-                            <i class="fas fa-file-pdf"></i>
-                            <span><span data-lang="current-file">Current file:</span> <a href="../../assets/<?php echo htmlspecialchars($cert['document_file']); ?>" target="_blank" data-lang="view-certificate">View Certificate</a></span>
-                        </div>
-                        <?php endif; ?>
-                        <div class="file-upload-area">
-                            <i class="fas fa-file-pdf"></i>
-                            <input type="file" name="certifications[]" class="file-input" accept=".pdf">
-                            <span class="file-text" data-lang="click-or-drag-new-certificate-file">Click or drag new certificate file<br>(PDF, Max 5MB)</span>
-                            <span class="file-name"></span>
-                        </div>
-                    </div>
+        <label>Upload Certificate File</label>
+            <div class="file-upload-area" id="certificateUpload">
+                <input type="file" id="certificate_file" name="certificate_file" accept=".pdf" hidden>
+                <div class="upload-content">
+                    <i class="fas fa-file-pdf upload-icon"></i>
+                        <p> Click or drag certificate file here</p>
+
+                    <small>PDF only (Max 5 MB)</small>
+
                 </div>
-                <?php
-                    endwhile;
-                endif;
-                ?>
-            </div>
+    </div>
 
-            <button type="button" class="btn btn-outline-primary" onclick="addCertification()">
-                <i class="fas fa-plus-circle"></i> <span data-lang="add-another-certification">Add Another Certification</span>
-            </button>
+        <div class="selected-file mt-3" id="selectedCertificateFile" style="display:none;">
+    </div>
+</div>
+        <div class="form-group">
+            <label>Correction Notes</label>
+                <textarea name="notes" rows="4" class="form-control" placeholder="Explain what has been corrected..."></textarea>
+        </div>
+
+
+        <div class="form-actions">
+            <a href="certificate_status.php" class="btn btn-secondary">Cancel</a>
+                <button type="submit" name="submit_resubmit" class="btn btn-primary">
+                    <i class="fas fa-upload"></i>Upload Correction
+                </button>
+
         </div>
     </div>
 
