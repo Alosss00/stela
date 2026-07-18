@@ -149,81 +149,113 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
     $conn = $db->getConnection();
     $conn->begin_transaction();
 
-    try {
-        /* INSERT NEW CERTIFICATE */
+   try {
 
-$certification_id = (int)$_POST['new_certification_id'];
+    /* DATA FORM */
+    $certification_id = (int)$_POST['new_certification_id'];
+    $cert_type        = trim($_POST['new_cert_type']);
+    $cert_number      = trim($_POST['new_cert_number']);
+    $cert_issuer      = trim($_POST['new_cert_issuer']);
+    $issue_date       = $_POST['new_issue_date'];
+    $expiry_date      = $_POST['new_expiry_date'];
+    $notes            = trim($_POST['notes']);
 
-$cert_type = trim($_POST['new_cert_type']);
+    /*
+    INSERT CERTIFICATE
+    */
+    $stmt1 = $conn->prepare("
+        INSERT INTO employee_certifications
+        (
+            employee_id,
+            certification_id,
+            cert_type,
+            cert_number,
+            cert_issuer,
+            issue_date,
+            expiry_date,
+            document_file,
+            status,
+            verification_status,
+            notes
+        )
+        VALUES
+        (
+            ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', ?
+        )
+    ");
 
-$cert_number = trim($_POST['new_cert_number']);
-
-$cert_issuer = trim($_POST['new_cert_issuer']);
-
-$issue_date = $_POST['new_issue_date'];
-
-$expiry_date = $_POST['new_expiry_date'];
-
-$notes = trim($_POST['notes']);
-
-$stmt1 = $conn->prepare("
-INSERT INTO employee_certifications
-(
-    employee_id,
-    certification_id,
-    cert_type,
-    cert_number,
-    cert_issuer,
-    issue_date,
-    expiry_date,
-    document_file,
-    status,
-    verification_status,
-    notes
-)
-VALUES
-(
-    ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', ?
-)
-");
-$stmt1->bind_param(
-    "iisssssss",
-    $certificate['employee_id'],
-    $certification_id,
-    $cert_type,
-    $cert_number,
-    $cert_issuer,
-    $issue_date,
-    $expiry_date,
-    $document_file,
-    $notes
-);
-
-        /*UPDATE employees*/
-
-        $stmt2 = $conn->prepare("
-            UPDATE employees
-            SET
-                verification_status = 'pending',
-                resubmit_type = 'certificate',
-                resubmit_count = IFNULL(resubmit_count,0)+1,
-                resubmit_date = NOW()
-            WHERE id = ?
-        ");
-
-        $stmt2->bind_param("i", $certificate['employee_id']);
-        $stmt2->execute();
-        $conn->commit();
-
-        $_SESSION['success_message'] = "Certificate resubmitted successfully.";
-
-        header("Location: certificate_status.php");
-        exit;
-
-    } catch (Exception $e) {
-        $conn->rollback();
-        $error = $e->getMessage();
+    if (!$stmt1) {
+        throw new Exception("Prepare INSERT gagal : " . $conn->error);
     }
+
+    $stmt1->bind_param(
+        "iisssssss",
+        $certificate['employee_id'],
+        $certification_id,
+        $cert_type,
+        $cert_number,
+        $cert_issuer,
+        $issue_date,
+        $expiry_date,
+        $document_file,
+        $notes
+    );
+
+    if (!$stmt1->execute()) {
+        throw new Exception("INSERT gagal : " . $stmt1->error);
+    }
+
+    $stmt1->close();
+
+
+    /*
+    UPDATE EMPLOYEE
+    */
+
+    $stmt2 = $conn->prepare("
+        UPDATE employees
+        SET
+            verification_status='pending',
+            resubmit_type='certificate',
+            resubmit_count=IFNULL(resubmit_count,0)+1,
+            resubmit_date=NOW()
+        WHERE id=?
+    ");
+
+    if (!$stmt2) {
+        throw new Exception("Prepare UPDATE gagal : " . $conn->error);
+    }
+
+    $stmt2->bind_param(
+        "i",
+        $certificate['employee_id']
+    );
+
+    if (!$stmt2->execute()) {
+        throw new Exception("UPDATE gagal : " . $stmt2->error);
+    }
+
+    $stmt2->close();
+
+
+    /*
+    COMMIT
+    */
+
+    $conn->commit();
+
+    $_SESSION['success_message'] = "Certificate resubmitted successfully.";
+
+    header("Location: certificate_status.php");
+    exit;
+
+} catch (Exception $e) {
+
+    $conn->rollback();
+
+    $_SESSION['error_message'] = $e->getMessage();
+
+}
 
         } else {
             $error = "Failed upload.";
