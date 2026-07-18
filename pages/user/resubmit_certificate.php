@@ -150,27 +150,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
     $conn->begin_transaction();
 
     try {
-        /*UPDATE employee_certifications*/
-        $notes = trim($_POST['notes']);
-        $stmt1 = $conn->prepare("
-            UPDATE employee_certifications
-            SET
-                document_file = ?,
-                verification_status = 'pending',
-                notes = ?,
-                updated_at = NOW()
-            WHERE id = ?
-        ");
+        /* INSERT NEW CERTIFICATE */
 
-        $stmt1->bind_param(
-            "ssi",
-            $document_file,
-            $notes,
-            $employee_certification_id
-        );
+$certification_id = (int)$_POST['certification_id'];
 
-        $stmt1->execute();
+$cert_type = trim($_POST['new_cert_type']);
 
+$cert_number = trim($_POST['new_cert_number']);
+
+$cert_issuer = trim($_POST['new_cert_issuer']);
+
+$issue_date = $_POST['new_issue_date'];
+
+$expiry_date = $_POST['new_expiry_date'];
+
+$notes = trim($_POST['notes']);
+
+$stmt1 = $conn->prepare("
+INSERT INTO employee_certifications
+(
+    employee_id,
+    certification_id,
+    cert_type,
+    cert_number,
+    cert_issuer,
+    issue_date,
+    expiry_date,
+    document_file,
+    status,
+    verification_status,
+    notes
+)
+VALUES
+(
+    ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', ?
+)
+");
         /*UPDATE employees*/
 
         $stmt2 = $conn->prepare("

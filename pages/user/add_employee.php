@@ -75,17 +75,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         http_response_code(403);
         die("Error: Validasi keamanan (CSRF) gagal. Permintaan ditolak.");
     }
-    echo "<pre>";
-
-echo "POST TOKEN : ";
-var_dump($_POST['csrf_token'] ?? null);
-
-echo "\nSESSION TOKEN : ";
-var_dump($_SESSION['csrf_token'] ?? null);
-
-echo "</pre>";
-
-exit;
     $employee_code = $db->escapeString(trim($_POST['employee_code']));
     $full_name = $db->escapeString(trim($_POST['full_name']));
     $position = $db->escapeString(trim($_POST['position']));
