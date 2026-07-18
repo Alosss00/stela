@@ -21,11 +21,11 @@ class NotificationService {
     
     // Email Configuration - Gmail SMTP
     private $smtp_host = 'smtp-legacy.office365.com';
-    private $smtp_port = 587;
-    private $smtp_username = 'archi.info@archimining.com';
-    private $smtp_password = 'V!07496878447ax';
-    private $email_from = 'tosar@archimining.com';
-    private $email_from_name = 'Mining Appointment System';
+private $smtp_port = 587;
+private $smtp_username = 'archi.info@archimining.com';
+private $smtp_password = 'V!074968784470ax';
+private $email_from = 'tosar@archimining.com';
+private $email_from_name = 'Mining Appointment System';
 
     // Fonnte WhatsApp Configuration
     // Replace with your Fonnte token from https://app.fonnte.com
