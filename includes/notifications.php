@@ -23,7 +23,7 @@ class NotificationService {
     private $smtp_host = 'smtp.gmail.com';
     private $smtp_port = 587;
     private $smtp_username = 'agriawanwiranto09@gmail.com';
-    private $smtp_password = 'mroy tcqt fkju wwpo';
+    private $smtp_password = 'mroytcqtfkjuwwpo';
     private $email_from = 'agriawanwiranto09@gmail.com';
     private $email_from_name = 'Mining Appointment System';
 
