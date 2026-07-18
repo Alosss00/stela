@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
     try {
         /* INSERT NEW CERTIFICATE */
 
-$certification_id = (int)$_POST['certification_id'];
+$certification_id = (int)$_POST['new_certification_id'];
 
 $cert_type = trim($_POST['new_cert_type']);
 
@@ -186,6 +186,22 @@ VALUES
     ?, ?, ?, ?, ?, ?, ?, ?, 'pending', 'pending', ?
 )
 ");
+$stmt1->bind_param(
+    "iisssssss",
+    $certificate['employee_id'],
+    $certification_id,
+    $cert_type,
+    $cert_number,
+    $cert_issuer,
+    $issue_date,
+    $expiry_date,
+    $document_file,
+    $notes
+);
+
+$stmt1->execute();
+echo $stmt1->affected_rows;
+exit;
         /*UPDATE employees*/
 
         $stmt2 = $conn->prepare("
