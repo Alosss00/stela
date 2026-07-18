@@ -78,6 +78,10 @@ if ($result->num_rows == 0) {
 }
 
 $certificate = $result->fetch_assoc();
+echo "<pre>";
+print_r($certificate);
+echo "</pre>";
+exit;
 $stmt->close();
 
 /*FORMAT DATE*/
