@@ -400,9 +400,6 @@ class NotificationService {
             $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
             $mail->Port       = $this->smtp_port;
             $mail->CharSet    = 'UTF-8';
-
-            $mail->SMTPDebug = 2;
-            $mail->Debugoutput = 'html';
             
             // Set timeouts to prevent hanging
             $mail->Timeout    = 10; // Connection timeout (seconds)
