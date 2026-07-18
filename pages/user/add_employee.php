@@ -278,15 +278,13 @@ exit;
                                                     VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
                                                             '$cert_path', '$status', 'pending', '$reason')";
                                     }
-                                    
-                                    if (!$db->query($sql_cert)) {
-                                        error_log("Error inserting certification: " . $db->getConnection()->error);
-                                    }
-
                                     echo "<pre>";
 echo $sql_cert;
 echo "</pre>";
-exit; 
+exit;
+                                    if (!$db->query($sql_cert)) {
+                                        error_log("Error inserting certification: " . $db->getConnection()->error);
+                                    } 
                                 }
                             }
                         }
