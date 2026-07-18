@@ -199,9 +199,6 @@ $stmt1->bind_param(
     $notes
 );
 
-$stmt1->execute();
-echo $stmt1->affected_rows;
-exit;
         /*UPDATE employees*/
 
         $stmt2 = $conn->prepare("
