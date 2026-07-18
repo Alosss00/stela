@@ -245,7 +245,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             $cert_type = $db->escapeString($cert_types[$key]);
                                         }
                                     }
-                                    
+                                    echo "<pre>";
+print_r($_POST['cert_issuers']);
+echo "</pre>";
+exit;
                                     $cert_issuer = $db->escapeString($cert_issuers[$key] ?? '');
                                     $issue_date = $db->escapeString($issue_dates[$key] ?? '');
                                     $expiry_date = $db->escapeString($expiry_dates[$key] ?? '');
@@ -855,25 +858,22 @@ function filterCompetencies(competencyType) {
 }
 
 function updateIssuer(selectElement) {
-    // Fungsi ini tidak lagi auto-fill issuer dan certificate type
-    // User harus input manual untuk issuer dan certificate type
-    const certId = selectElement.value;
+
+    // User mengisi issuer secara manual.
+    // Jangan menghapus nilai issuer jika Certification Name berubah.
+
     const certItem = selectElement.closest('.certification-item');
-    const issuerInput = certItem.querySelector('input[name="cert_issuers[]"]');
-    const certTypeSelect = certItem.querySelector('select[name="cert_types[]"]');
-    const otherTypeInput = certItem.querySelector('.other-type-input');
-    
-    // Reset fields - user harus input manual
-    issuerInput.value = '';
-    issuerInput.readOnly = false;
-    issuerInput.style.backgroundColor = '';
-    issuerInput.style.cursor = 'auto';
-    
+
+    const certTypeSelect =
+        certItem.querySelector('select[name="cert_types[]"]');
+
+    const otherTypeInput =
+        certItem.querySelector('.other-type-input');
+
+    // Reset Certificate Type saja
     certTypeSelect.value = '';
-    certTypeSelect.disabled = false;
-    certTypeSelect.style.backgroundColor = '';
-    certTypeSelect.style.cursor = 'auto';
     otherTypeInput.style.display = 'none';
+
 }
 
 function toggleOtherType(selectElement) {
