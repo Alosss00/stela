@@ -282,6 +282,11 @@ exit;
                                     if (!$db->query($sql_cert)) {
                                         error_log("Error inserting certification: " . $db->getConnection()->error);
                                     }
+
+                                    echo "<pre>";
+echo $sql_cert;
+echo "</pre>";
+exit; 
                                 }
                             }
                         }
