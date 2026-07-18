@@ -230,9 +230,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
     <div class="form-section">
             <div class="section-header">
                 <h3>
-                    <i class="fas fa-certificate"></i> Certificate Information
+                    <i class="fas fa-exclamation-triangle text-warning"></i> Expired Certificate Information
                 </h3>
                 <span class="section-number"> 1</span>
+        </div>
+
+        <div class="alert alert-warning">
+
+                <strong>Expired Certificate</strong>
+                <br>
+                This certificate has expired.
+                Please submit your latest certificate below.
+                The previous certificate will remain stored in the system for history purposes. 
         </div>
 
         <div class="form-row">
@@ -301,7 +310,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
 <div class="form-section">    
         <div class="section-header">
             <h3>
-                <i class="fas fa-file-upload"></i>Upload New Certificate
+                <i class="fas fa-plus-circle text-success"></i>New Certificate Information
             </h3>
 
         <span class="section-number">2</span>
