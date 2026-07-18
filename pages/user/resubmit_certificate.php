@@ -316,6 +316,104 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         <span class="section-number">2</span>
     </div>
 
+    <div class="form-row">
+
+        <div class="form-group col-lg-6">
+            <label>Certificate Name</label>
+            <select name="new_certification_id" class="form-control" required>
+                <option value="">-- Select Certificate --</option>
+                
+                <?php
+                $certificates = $db->query("SELECT id, cert_name FROM certifications ORDER BY cert_name ASC");
+                while($row = $certificates->fetch_assoc()){
+                ?>
+
+            <option value="<?php echo $row['id']; ?>">
+                <?php echo htmlspecialchars($row['cert_name']); ?>
+            </option>
+
+            <?php } ?>
+
+        </select>
+
+    </div>
+
+        <div class="form-group col-lg-6">
+            <label>Certificate Type</label>
+            <input type="text" name="new_cert_type" class="form-control" required>
+        </div>
+
+    </div>
+
+    <div class="form-row">
+
+    <div class="form-group col-lg-6">
+
+        <label>Certificate Number</label>
+
+        <input
+
+            type="text"
+
+            name="new_cert_number"
+
+            class="form-control"
+
+            required>
+
+    </div>
+
+    <div class="form-group col-lg-6">
+            <label>Issuer</label>
+            <input type="text" name="new_cert_issuer" class="form-control" required>
+    </div>
+
+    </div>
+
+    <div class="form-row">
+
+    <div class="form-group col-lg-4">
+
+        <label>Issue Date</label>
+
+        <input
+
+            type="date"
+
+            name="new_issue_date"
+
+            class="form-control"
+
+            required>
+
+    </div>
+
+    <div class="form-group col-lg-4">
+
+        <label>Validity Period (Years)</label>
+
+        <input
+
+            type="number"
+
+            name="validity"
+
+            class="form-control"
+
+            min="1"
+
+            value="2"
+
+            required>
+
+    </div>
+
+        <div class="form-group col-lg-4">
+                <label>Expiry Date</label>
+                <input type="date" name="new_expiry_date" class="form-control" required>
+        </div>
+</div>
+
     <div class="form-group">
 
         <label>Upload Certificate File</label>
