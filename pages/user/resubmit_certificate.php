@@ -291,7 +291,9 @@ VALUES
         <div class="form-row">
         <div class="form-group col-lg-6">
         <label>Issuer</label>
-        <input type="text" class="form-control" value="<?php echo htmlspecialchars($certificate['cert_issuer']); ?>" readonly>
+        <input type="text"
+       value="<?php echo htmlspecialchars($certificate['cert_issuer'] ?? ''); ?>"
+       readonly>
     </div>
 
     <div class="form-group col-lg-6">
