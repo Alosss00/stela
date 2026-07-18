@@ -245,11 +245,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             $cert_type = $db->escapeString($cert_types[$key]);
                                         }
                                     }
+                                    
+                                    $cert_issuer = $db->escapeString($cert_issuers[$key] ?? '');
                                     echo "<pre>";
-print_r($_POST['cert_issuers']);
+echo "Issuer = ";
+var_dump($cert_issuer);
 echo "</pre>";
 exit;
-                                    $cert_issuer = $db->escapeString($cert_issuers[$key] ?? '');
                                     $issue_date = $db->escapeString($issue_dates[$key] ?? '');
                                     $expiry_date = $db->escapeString($expiry_dates[$key] ?? '');
                                     $reason = $db->escapeString($expiry_reasons[$key] ?? '');
