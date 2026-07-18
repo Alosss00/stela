@@ -340,27 +340,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
 
         <div class="form-group col-lg-6">
             <label>Certificate Type</label>
-            <input type="text" name="new_cert_type" class="form-control" required>
+            <select name="new_cert_type" class="form-control" required>
+                <option value="">-- Select Type --</option>
+                <option value="Attendance/Participant">Attendance / Participant</option>
+                <option value="Competent">Competent</option>
+                <option value="Training">Training</option>
+            </select>
         </div>
 
     </div>
 
     <div class="form-row">
-
     <div class="form-group col-lg-6">
-
         <label>Certificate Number</label>
-
-        <input
-
-            type="text"
-
-            name="new_cert_number"
-
-            class="form-control"
-
-            required>
-
+        <input type="text" name="new_cert_number" class="form-control" required>
     </div>
 
     <div class="form-group col-lg-6">
@@ -371,46 +364,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
     </div>
 
     <div class="form-row">
-
     <div class="form-group col-lg-4">
-
         <label>Issue Date</label>
-
-        <input
-
-            type="date"
-
-            name="new_issue_date"
-
-            class="form-control"
-
-            required>
-
+        <input type="date" id="issue_date" name="new_issue_date" class="form-control" required>
     </div>
 
     <div class="form-group col-lg-4">
-
         <label>Validity Period (Years)</label>
-
-        <input
-
-            type="number"
-
-            name="validity"
-
-            class="form-control"
-
-            min="1"
-
-            value="2"
-
-            required>
-
+        <input type="number" id="validity" name="validity" class="form-control" min="1" value="2" required>
     </div>
 
         <div class="form-group col-lg-4">
                 <label>Expiry Date</label>
-                <input type="date" name="new_expiry_date" class="form-control" required>
+                <input type="date" id="expiry_date" name="new_expiry_date" class="form-control" readonly required>
         </div>
 </div>
 
@@ -472,5 +438,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         }
 
     });
+
+const issueDate = document.getElementById('issue_date');
+const validity = document.getElementById('validity');
+const expiryDate = document.getElementById('expiry_date');
+
+function calculateExpiry(){
+
+    if(issueDate.value && validity.value){
+
+        const date = new Date(issueDate.value);
+
+        date.setFullYear(
+            date.getFullYear() + parseInt(validity.value)
+        );
+
+        expiryDate.value =
+            date.toISOString().split('T')[0];
+
+    }
+
+}
+
+issueDate.addEventListener('change', calculateExpiry);
+
+validity.addEventListener('input', calculateExpiry);
 
 </script>
