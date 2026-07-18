@@ -273,13 +273,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                     VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
                                                             '$cert_path', '$status', 'pending', '$reason')";
                                     }
-                                    echo "<pre>";
-echo $sql_cert;
-echo "</pre>";
-exit;
+                                
                                     if (!$db->query($sql_cert)) {
-                                        error_log("Error inserting certification: " . $db->getConnection()->error);
-                                    } 
+
+    die(
+        "<h3>INSERT GAGAL</h3><pre>" .
+        $db->getConnection()->error .
+        "</pre>"
+    );
+
+}
                                 }
                             }
                         }
