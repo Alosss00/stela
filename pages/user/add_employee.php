@@ -136,7 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     $error = 'Failed to upload CV file.';
                 }
-            }
+            } 
             
             // Handle Statement upload (required)
             $statement_file = '';
@@ -150,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } elseif ($stmt_file_size > $stmt_max_size) {
                     $error = 'Statement Letter file size too large! Maximum 5MB.';
                 } else {
-                    $stmt_upload_dir = '../../assets/uploads/statements/';
+                    $stmt_upload_dir = dirname(__DIR__, 2) . '/assets/uploads/statements/';
                     if (!file_exists($stmt_upload_dir)) {
                         mkdir($stmt_upload_dir, 0755, true);
                     }
