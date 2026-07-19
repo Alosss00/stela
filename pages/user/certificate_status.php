@@ -429,8 +429,7 @@ require_once '../../includes/header.php';
 						<tbody>
 							<?php foreach ($certificates as $cert): ?>
 								<tr>
-									<td>
-										<span><?php echo htmlspecialchars($cert['status']); ?></span>
+									<td>	
 										<strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><br>
 										<small><?php echo htmlspecialchars($cert['employee_code']); ?></small>
 									</td>
