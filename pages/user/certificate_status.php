@@ -48,10 +48,6 @@ function getMonitoringBadge(int $days_left): array
 
 function getWorkflowStatus(array $cert): array
 {
-    // Sertifikat expired dan belum resubmit
-    if ($cert['status'] == 'expired' && empty($cert['resubmit_type'])) {
-        return ['class'=>'critical','label'=>'EXPIRED'];
-    }
 
     // Sedang menunggu Admin
     if ($cert['resubmit_type'] == 'certificate' &&
@@ -491,13 +487,12 @@ require_once '../../includes/header.php';
 											}
 
 											// EXPIRED
-											elseif ($cert['status'] == 'expired') {
-
+											elseif ($cert['status'] === 'expired') {
 											?>
 											<a class="btn btn-primary btn-sm" href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id'];?>">
 											<i class="fas fa-upload"></i>Resubmit</a>
 										<?php
-											}
+												}
 											?>
 											</td>
 								</tr>
