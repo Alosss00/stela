@@ -266,10 +266,10 @@ require_once '../../includes/header.php';
 		<div>
 			<p class="eyebrow">Certificate Status</p>
 			<h2><i class="fas fa-id-card"></i> Status Sertifikat</h2>
-			<p>Monitoring sertifikat verified yang kedaluwarsa atau akan expired dalam 60 hari ke depan untuk akun yang sedang login.</p>
+			<p>Monitoring sertifikat verified yang kedaluwarsa atau akan expired.</p>
 		</div>
 		<div class="hero-actions">
-			<span class="btn btn-secondary" style="pointer-events:none;">Monitoring &le; 2 Bulan</span>
+			<span class="btn btn-secondary" style="pointer-events:none;">Monitoring; 2 Bulan</span>
 		</div>
 	</div>
 
@@ -365,15 +365,17 @@ require_once '../../includes/header.php';
 											-
 										<?php endif; ?>
 									</td>
-									<td>
-										<?php if (!empty($cert['appointment_id']) && (int) $cert['days_left'] >= 0): ?>
-											<a class="btn btn-primary btn-sm" href="<?php echo htmlspecialchars(buildResubmitUrl($cert, $_SESSION['csrf_token'])); ?>">
-												<i class="fas fa-upload"></i> Resubmit
+										<td>
+										<?php if (!empty($cert['employee_certification_id'])): ?>
+											<a class="btn btn-primary btn-sm"
+											href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>">
+												<i class="fas fa-upload"></i>
+												Resubmit
 											</a>
-										<?php else: ?>
-											<span class="text-muted">No appointment</span>
+ 
 										<?php endif; ?>
-									</td>
+
+										</td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
