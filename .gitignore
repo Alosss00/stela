@@ -1,6 +1,5 @@
 # Ignore uploaded files
 assets/uploads/*
-!assets/uploads/.gitkeep
 
 #password
 .env
