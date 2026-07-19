@@ -468,7 +468,7 @@ require_once '../../includes/header.php';
 											}
 
 											// WAITING REVIEWER
-											elseif ($cert['verification_status'] == 'pending') {
+											elseif ($cert['status'] == 'pending') {
 												echo '<span class="badge badge-secondary">
 														Waiting Reviewer
 													</span>';
@@ -477,7 +477,7 @@ require_once '../../includes/header.php';
 
 											// WAITING KTT
 											elseif (
-												$cert['verification_status'] == 'verified'
+												$cert['status'] == 'verified'
 												&&
 												in_array($cert['appointment_status'],['draft','pending'])
 											) {
