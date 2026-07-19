@@ -125,7 +125,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 $upload_dir = '../../assets/uploads/cv/';
                 if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 755, true);
+                    mkdir($upload_dir, 0755, true);
                 }
                 
                 $new_filename = 'cv_' . $employee_code . '_' . time() . '.' . $file_extension;
@@ -152,7 +152,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     $stmt_upload_dir = '../../assets/uploads/statements/';
                     if (!file_exists($stmt_upload_dir)) {
-                        mkdir($stmt_upload_dir, 755, true);
+                        mkdir($stmt_upload_dir, 0755, true);
                     }
                     
                     $stmt_new_filename = 'statement_' . $employee_code . '_' . time() . '.pdf';
@@ -210,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
                         $upload_dir = '../../assets/uploads/certifications/';
                         if (!file_exists($upload_dir)) {
-                            mkdir($upload_dir, 755, true);
+                            mkdir($upload_dir, 0755, true);
                         }
                         
                         $cert_ids = $_POST['certification_ids'] ?? [];
