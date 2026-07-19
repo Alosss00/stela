@@ -400,7 +400,7 @@ require_once '../../includes/header.php';
 	</style>
 	<div class="card cert-card">
 		<div class="card-header cert-card-header">
-			<h3><i class="fas fa-list"></i> Daftar Sertifikat</h3>
+			<h3><i class="fas fa-list"></i> Daftar Sertifikat</h3> <span>status</span>
 		</div>
 		<div class="card-body cert-card-body">
 			<?php if (!empty($certificates)): ?>
@@ -421,6 +421,7 @@ require_once '../../includes/header.php';
 							<?php foreach ($certificates as $cert): ?>
 								<tr>
 									<td>
+										<span><?php echo htmlspecialchars($cert['status']); ?></span>
 										<strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><br>
 										<small><?php echo htmlspecialchars($cert['employee_code']); ?></small>
 									</td>
