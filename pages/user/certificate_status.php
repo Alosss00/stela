@@ -48,57 +48,32 @@ function getMonitoringBadge(int $days_left): array
 
 function getWorkflowStatus(array $cert): array
 {
-    /*
-    PRIORITAS STATUS
-    1. Waiting Reviewer
-    2. Waiting KTT
-    3. Active
-    4. Expired
-    5. Monitoring Expiry
-    */
+    // Sertifikat expired dan belum resubmit
+    if ($cert['status'] == 'expired' && empty($cert['resubmit_type'])) {
+        return ['class'=>'critical','label'=>'EXPIRED'];
+    }
 
-    // User sudah upload correction
-    if ($cert['verification_status'] == 'pending') {
-        return [
-            'class' => 'pending',
-            'label' => 'WAITING REVIEWER'
-        ];
+    // Sedang menunggu Admin
+    if ($cert['resubmit_type'] == 'certificate' &&
+        $cert['verification_status'] == 'pending') {
+        return ['class'=>'pending','label'=>'WAITING REVIEWER'];
     }
 
     // Sudah diverifikasi Admin
-    // Menunggu Approval KTT
-    if (
+    if ($cert['resubmit_type'] == 'certificate' &&
         $cert['verification_status'] == 'verified' &&
-        in_array($cert['appointment_status'], ['draft','pending'])
-    ) {
-        return [
-            'class' => 'warning',
-            'label' => 'WAITING KTT'
-        ];
+        $cert['appointment_status'] == 'pending') {
+        return ['class'=>'warning','label'=>'WAITING KTT'];
     }
 
-    // Sudah disetujui KTT
-    if (
-        $cert['verification_status'] == 'verified' &&
+    // Workflow selesai
+    if ($cert['resubmit_type'] == 'certificate' &&
         $cert['appointment_status'] == 'approved' &&
-        $cert['status'] == 'active'
-    ) {
-        return [
-            'class' => 'success',
-            'label' => 'ACTIVE'
-        ];
+        $cert['status'] == 'active') {
+        return ['class'=>'success','label'=>'ACTIVE'];
     }
 
-    // Sertifikat lama
-    if ($cert['status'] == 'expired') {
-        return [
-            'class' => 'critical',
-            'label' => 'EXPIRED'
-        ];
-    }
-
-    // Default kembali ke monitoring berdasarkan tanggal
-    return getMonitoringBadge((int)$cert['days_left']);
+    return ['class'=>'critical','label'=>'EXPIRED'];
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
@@ -266,6 +241,7 @@ SELECT
        e.department,
        e.contractor_company,
        e.is_active,
+	   e.resubmit_type,
        c.cert_name,
        c.cert_type,
        c.issuing_authority,
@@ -291,25 +267,19 @@ ON a.id=
     WHERE ap.employee_id=e.id
 )
 
-WHERE e.is_active=1
+WHERE e.is_active = 1
 
 AND
 (
-        ec.verification_status='pending'
+    /* Sertifikat lama yang expired */
+    ec.status = 'expired'
 
-        OR
+    OR
 
-        (
-            ec.verification_status='verified'
-            AND ec.expiry_date IS NOT NULL
-            AND ec.expiry_date<=DATE_ADD(CURDATE(),INTERVAL ? DAY)
-        )
-
-        OR
-
-        (
-            ec.status='active'
-        )
+    /* Sedang proses resubmit certificate */
+    (
+        e.resubmit_type = 'certificate'
+    )
 )
 
 ".$scope_sql."
@@ -320,9 +290,10 @@ ORDER BY ec.updated_at DESC
 $monitor_stmt = $db->prepare($monitor_sql);
 if ($monitor_stmt) {
 	$verified_status = 'verified';
-	$monitor_params = [$monitor_window_days];
-	$monitor_types = 'i'.$scope_types;
+	$monitor_params = [];
+	$monitor_types = '';
 	$monitor_params = array_merge($monitor_params, $scope_params);
+	$monitor_types .= $scope_types;
 	bindStatementParams($monitor_stmt, $monitor_types, $monitor_params);
 	$monitor_stmt->execute();
 	$monitor_result = $monitor_stmt->get_result();
