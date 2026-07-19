@@ -46,6 +46,61 @@ function getMonitoringBadge(int $days_left): array
     ];
 }
 
+function getWorkflowStatus(array $cert): array
+{
+    /*
+    PRIORITAS STATUS
+    1. Waiting Reviewer
+    2. Waiting KTT
+    3. Active
+    4. Expired
+    5. Monitoring Expiry
+    */
+
+    // User sudah upload correction
+    if ($cert['verification_status'] == 'pending') {
+        return [
+            'class' => 'pending',
+            'label' => 'WAITING REVIEWER'
+        ];
+    }
+
+    // Sudah diverifikasi Admin
+    // Menunggu Approval KTT
+    if (
+        $cert['verification_status'] == 'verified' &&
+        in_array($cert['appointment_status'], ['draft','pending'])
+    ) {
+        return [
+            'class' => 'warning',
+            'label' => 'WAITING KTT'
+        ];
+    }
+
+    // Sudah disetujui KTT
+    if (
+        $cert['verification_status'] == 'verified' &&
+        $cert['appointment_status'] == 'approved' &&
+        $cert['status'] == 'active'
+    ) {
+        return [
+            'class' => 'success',
+            'label' => 'ACTIVE'
+        ];
+    }
+
+    // Sertifikat lama
+    if ($cert['status'] == 'expired') {
+        return [
+            'class' => 'critical',
+            'label' => 'EXPIRED'
+        ];
+    }
+
+    // Default kembali ke monitoring berdasarkan tanggal
+    return getMonitoringBadge((int)$cert['days_left']);
+}
+
 function buildResubmitUrl(array $cert, string $csrf_token): string
 {
 	return 'appointments.php?' . http_build_query([
@@ -215,6 +270,8 @@ $monitor_sql = '
 	       c.issuing_authority,
 	       a.id as appointment_id,
 	       a.status as appointment_status,
+		   a.ktt_msm_status,
+			a.ktt_ttn_status
 	       DATEDIFF(ec.expiry_date, CURDATE()) as days_left
 	FROM employee_certifications ec
 	JOIN employees e ON ec.employee_id = e.id
@@ -244,7 +301,7 @@ if ($monitor_stmt) {
 	if ($monitor_result) {
 		while ($row = $monitor_result->fetch_assoc()) {
 			$row['days_left'] = (int) $row['days_left'];
-			$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
+			$row['monitoring_badge'] = getWorkflowStatus($row);
 			$certificates[] = $row;
 			$total_certificates++;
 			if ($row['days_left'] <= 14) {
@@ -406,16 +463,44 @@ require_once '../../includes/header.php';
 										<?php endif; ?>
 									</td>
 										<td>
-										<?php if (!empty($cert['employee_certification_id'])): ?>
-											<a class="btn btn-primary btn-sm"
-											href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>">
-												<i class="fas fa-upload"></i>
-												Resubmit
-											</a>
- 
-										<?php endif; ?>
+											<?php
+											// ACTIVE
+											if ($cert['status'] == 'active'
+												&& $cert['appointment_status'] == 'approved') {
+												echo '<span class="badge badge-success">Completed</span>';
 
-										</td>
+											}
+
+											// WAITING REVIEWER
+											elseif ($cert['verification_status'] == 'pending') {
+												echo '<span class="badge badge-secondary">
+														Waiting Reviewer
+													</span>';
+
+											}
+
+											// WAITING KTT
+											elseif (
+												$cert['verification_status'] == 'verified'
+												&&
+												in_array($cert['appointment_status'],['draft','pending'])
+											) {
+												echo '<span class="badge badge-warning">
+														Waiting KTT
+													</span>';
+
+											}
+
+											// EXPIRED
+											elseif ($cert['status'] == 'expired') {
+
+											?>
+											<a class="btn btn-primary btn-sm" href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id'];?>">
+											<i class="fas fa-upload"></i>Resubmit</a>
+										<?php
+											}
+											?>
+											</td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
