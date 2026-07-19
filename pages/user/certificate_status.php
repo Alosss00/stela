@@ -318,7 +318,6 @@ require_once '../../includes/header.php';
 		<div>
 			<p class="eyebrow">Certificate Status</p>
 			<h2><i class="fas fa-id-card"></i> Status Sertifikat</h2>
-			<p>Monitoring sertifikat verified yang kedaluwarsa atau akan expired.</p>
 		</div>
 		<div class="hero-actions">
 			<span class="btn btn-secondary" style="pointer-events:none;">Monitoring; 2 Bulan</span>
