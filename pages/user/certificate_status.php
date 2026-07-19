@@ -51,13 +51,13 @@ function getWorkflowStatus(array $cert): array
 
     // Sedang menunggu Admin
     if ($cert['resubmit_type'] == 'certificate' &&
-        $cert['verification_status'] == 'pending') {
+        $cert['status'] == 'pending') {
         return ['class'=>'pending','label'=>'WAITING REVIEWER'];
     }
 
     // Sudah diverifikasi Admin
     if ($cert['resubmit_type'] == 'certificate' &&
-        $cert['verification_status'] == 'verified' &&
+        $cert['status'] == 'verified' &&
         $cert['appointment_status'] == 'pending') {
         return ['class'=>'warning','label'=>'WAITING KTT'];
     }
@@ -267,14 +267,24 @@ WHERE e.is_active = 1
 
 AND
 (
-    /* Sertifikat lama yang expired */
-    ec.status = 'expired'
+    /* Employee BELUM resubmit */
+    (
+        ec.status = 'expired'
+        AND e.resubmit_type IS NULL
+    )
 
     OR
 
-    /* Sedang proses resubmit certificate */
+    /* Employee SUDAH resubmit */
     (
         e.resubmit_type = 'certificate'
+
+        AND ec.id =
+        (
+            SELECT MAX(ec3.id)
+            FROM employee_certifications ec3
+            WHERE ec3.employee_id = ec.employee_id
+        )
     )
 )
 
