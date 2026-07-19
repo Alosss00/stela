@@ -305,7 +305,23 @@ require_once '../../includes/header.php';
 			<span class="stat-label">Warning (&gt; 30 Hari)</span>
 		</div>
 	</div>
+<style>
+.stats-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 14px;
+	margin-bottom: 22px;
+}
 
+.stat-card {
+	background: #fff;
+	border-radius: 14px;
+	padding: 18px 20px;
+	box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+	border-left: 4px solid #37474F;
+}
+
+	</style>
 	<div class="card cert-card">
 		<div class="card-header cert-card-header">
 			<h3><i class="fas fa-list"></i> Daftar Sertifikat</h3>
