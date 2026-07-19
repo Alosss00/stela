@@ -49,56 +49,77 @@ function getMonitoringBadge(int $days_left): array
 function getWorkflowStatus(array $cert): array
 {
     /*
-    PRIORITAS STATUS
-    1. Waiting Reviewer
-    2. Waiting KTT
-    3. Active
-    4. Expired
-    5. Monitoring Expiry
+        CERTIFICATE RESUBMIT FLOW
+
+        Expired
+        ↓
+        Waiting Reviewer
+        ↓
+        Waiting KTT
+        ↓
+        Active
     */
 
-    // User sudah upload correction
-    if ($cert['verification_status'] == 'pending') {
-        return [
-            'class' => 'pending',
-            'label' => 'WAITING REVIEWER'
-        ];
-    }
-
-    // Sudah diverifikasi Admin
-    // Menunggu Approval KTT
+    // Belum Resubmit
     if (
-        $cert['verification_status'] == 'verified' &&
-        in_array($cert['appointment_status'], ['draft','pending'])
+        $cert['status'] == 'expired'
+        &&
+        empty($cert['resubmit_type'])
     ) {
         return [
-            'class' => 'warning',
-            'label' => 'WAITING KTT'
+            'class'=>'critical',
+            'label'=>'EXPIRED'
         ];
     }
 
-    // Sudah disetujui KTT
+    // Menunggu Admin
     if (
-        $cert['verification_status'] == 'verified' &&
-        $cert['appointment_status'] == 'approved' &&
-        $cert['status'] == 'active'
+        $cert['resubmit_type']=='certificate'
+        &&
+        $cert['verification_status']=='pending'
     ) {
         return [
-            'class' => 'success',
-            'label' => 'ACTIVE'
+            'class'=>'pending',
+            'label'=>'WAITING REVIEWER'
         ];
     }
 
-    // Sertifikat lama
-    if ($cert['status'] == 'expired') {
+    // Menunggu KTT
+    if (
+        $cert['resubmit_type']=='certificate'
+        &&
+        $cert['verification_status']=='verified'
+        &&
+        (
+            $cert['ktt_msm_status']!='approved'
+            ||
+            $cert['ktt_ttn_status']!='approved'
+        )
+    ) {
         return [
-            'class' => 'critical',
-            'label' => 'EXPIRED'
+            'class'=>'warning',
+            'label'=>'WAITING KTT'
         ];
     }
 
-    // Default kembali ke monitoring berdasarkan tanggal
-    return getMonitoringBadge((int)$cert['days_left']);
+    // Selesai
+    if (
+        $cert['resubmit_type']=='certificate'
+        &&
+        $cert['ktt_msm_status']=='approved'
+        &&
+        $cert['ktt_ttn_status']=='approved'
+    ) {
+        return [
+            'class'=>'success',
+            'label'=>'ACTIVE'
+        ];
+    }
+
+    return [
+        'class'=>'critical',
+        'label'=>'EXPIRED'
+    ];
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
@@ -266,6 +287,7 @@ SELECT
        e.department,
        e.contractor_company,
        e.is_active,
+	   e.resubmit_type,
        c.cert_name,
        c.cert_type,
        c.issuing_authority,
@@ -335,24 +357,17 @@ ON a.id=
     WHERE ap.employee_id=e.id
 )
 
-WHERE e.is_active=1
+WHERE
+    e.is_active = 1
 
 AND
 (
-        ec.verification_status='pending'
+        ec.status = 'expired'
 
         OR
 
         (
-            ec.verification_status='verified'
-            AND ec.expiry_date IS NOT NULL
-            AND ec.expiry_date<=DATE_ADD(CURDATE(),INTERVAL ? DAY)
-        )
-
-        OR
-
-        (
-            ec.status='active'
+            e.resubmit_type = 'certificate'
         )
 )
 
@@ -535,43 +550,106 @@ require_once '../../includes/header.php';
 										<?php endif; ?>
 									</td>
 										<td>
+
 											<?php
-											// ACTIVE
-											if ($cert['status'] == 'active'
-												&& $cert['appointment_status'] == 'approved') {
-												echo '<span class="badge badge-success">Completed</span>';
 
-											}
+											/* EXPIRED */
 
-											// WAITING REVIEWER
-											elseif ($cert['verification_status'] == 'pending') {
-												echo '<span class="badge badge-secondary">
-														Waiting Reviewer
-													</span>';
-
-											}
-
-											// WAITING KTT
-											elseif (
-												$cert['verification_status'] == 'verified'
+											if(
+												$cert['status']=='expired'
 												&&
-												in_array($cert['appointment_status'],['draft','pending'])
-											) {
-												echo '<span class="badge badge-warning">
-														Waiting KTT
-													</span>';
+												empty($cert['resubmit_type'])
+											){
+
+											?>
+
+											<a class="btn btn-primary btn-sm"
+											href="resubmit_certificate.php?id=<?=$cert['employee_certification_id']?>">
+
+											<i class="fas fa-upload"></i>
+
+											Resubmit
+
+											</a>
+
+											<?php
 
 											}
 
-											// EXPIRED
-											elseif ($cert['status'] == 'expired') {
+											/* WAITING REVIEWER */
+
+											elseif(
+												$cert['verification_status']=='pending'
+											){
 
 											?>
-											<a class="btn btn-primary btn-sm" href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id'];?>">
-											<i class="fas fa-upload"></i>Resubmit</a>
-										<?php
+
+											<span class="badge badge-secondary">
+
+											Waiting Reviewer
+
+											</span>
+
+											<?php
+
 											}
+
+											/* WAITING KTT */
+
+											elseif(
+
+												$cert['verification_status']=='verified'
+
+												&&
+
+												(
+													$cert['ktt_msm_status']!='approved'
+
+													||
+
+													$cert['ktt_ttn_status']!='approved'
+												)
+
+											){
+
 											?>
+
+											<span class="badge badge-warning">
+
+											Waiting KTT
+
+											</span>
+
+											<?php
+
+											}
+
+											/* ACTIVE */
+
+											elseif(
+
+												$cert['ktt_msm_status']=='approved'
+
+												&&
+
+												$cert['ktt_ttn_status']=='approved'
+
+											){
+
+											?>
+
+											<span class="badge badge-success">
+
+											Completed
+
+											</span>
+
+											<?php
+
+											}
+
+											?>
+
 											</td>
 								</tr>
 							<?php endforeach; ?>
