@@ -320,7 +320,31 @@ require_once '../../includes/header.php';
 	box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
 	border-left: 4px solid #37474F;
 }
+.stat-expired { border-left-color: #dc2626; }
+.stat-pending { border-left-color: #f59e0b; }
+.stat-verified { border-left-color: #16a34a; }
 
+.status-critical { background: #fee2e2; color: #b91c1c; }
+.status-urgent { background: #ffedd5; color: #9a3412; }
+.status-warning { background: #fef3c7; color: #92400e; }
+
+.stat-number {
+	display: block;
+	font-size: 28px;
+	font-weight: 700;
+	color: #111827;
+	line-height: 1;
+}
+
+.stat-label {
+	display: block;
+	margin-top: 6px;
+	color: #6b7280;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: .08em;
+}
+   
 	</style>
 	<div class="card cert-card">
 		<div class="card-header cert-card-header">
