@@ -71,10 +71,14 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_n
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // PERBAIKAN KEAMANAN: Validasi Token CSRF
     // ==========================================
-    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-        http_response_code(403);
-        die("Error: Validasi keamanan (CSRF) gagal. Permintaan ditolak.");
-    }
+   if (
+    !isset($_SESSION['csrf_token']) ||
+    !isset($_POST['csrf_token']) ||
+    !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])
+) {
+    http_response_code(403);
+    die("CSRF validation failed");
+}
     $employee_code = $db->escapeString(trim($_POST['employee_code']));
     $full_name = $db->escapeString(trim($_POST['full_name']));
     $position = $db->escapeString(trim($_POST['position']));
