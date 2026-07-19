@@ -180,9 +180,58 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         }
                         } elseif ($is_certificate_resubmit) {
 
-                                die('CERTIFICATE RESUBMIT TERDETEKSI');
+                            $appointment_id   = $existing_appointment['id'];
+                            $existing_number  = $existing_appointment['appointment_number'];
 
-                    } else {
+                            // Ambil tanggal expiry terbaru dari sertifikat yang baru diverifikasi
+                            $cert_expiry = $db->query("
+                                SELECT MIN(expiry_date) AS earliest_expiry
+                                FROM employee_certifications
+                                WHERE employee_id = $employee_id
+                                AND verification_status='verified'
+                            ")->fetch_assoc();
+
+                            $expiry_date = $cert_expiry['earliest_expiry'];
+
+                            $db->query("
+                                UPDATE appointments
+                                SET
+                                    status='draft',
+                                    expiry_date=" . ($expiry_date ? "'$expiry_date'" : "NULL") . ",
+                                    approved_by=NULL,
+                                    approved_date=NULL,
+                                    approval_notes=NULL,
+                                    ktt_msm_status='pending',
+                                    ktt_ttn_status='pending',
+                                    ktt1_approved_by=NULL,
+                                    ktt1_approved_date=NULL,
+                                    ktt2_approved_by=NULL,
+                                    ktt2_approved_date=NULL,
+                                    requires_ktt_msm_review=1,
+                                    requires_ktt_ttn_review=1,
+                                    updated_at=NOW()
+                                WHERE id=$appointment_id
+                            ");
+
+                            // Hapus approval lama
+                            $db->query("
+                                DELETE FROM ktt_approvals
+                                WHERE appointment_id=$appointment_id
+                            ");
+
+                            // Reset status employee
+                            $db->query("
+                                UPDATE employees
+                                SET
+                                    verification_status='verified',
+                                    resubmit_type=NULL
+                                WHERE id=$employee_id
+                            ");
+
+                            $_SESSION['success_message'] =
+                                "Certificate has been verified and sent back to KTT for approval.";
+                        }                   
+                    else {
                         // For existing appointment (re-submit case), update the existing appointment
                         $existing_number = $existing_appointment['appointment_number'];
                         $appointment_id = $existing_appointment['id'];
