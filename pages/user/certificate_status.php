@@ -247,53 +247,81 @@ $critical_count = 0;
 $warning_count = 0;
 $info_count = 0;
 
-$monitor_sql = '
-	SELECT ec.id as employee_certification_id,
-	       ec.employee_id,
-	       ec.certification_id,
-	       ec.cert_number,
-	       ec.cert_issuer,
-	       ec.issue_date,
-	       ec.expiry_date,
-	       ec.document_file,
-	       ec.status,
-	       ec.verification_status,
-	       ec.updated_at,
-	       e.full_name,
-	       e.employee_code,
-	       e.position,
-	       e.department,
-	       e.contractor_company,
-	       e.is_active,
-	       c.cert_name,
-	       c.cert_type,
-	       c.issuing_authority,
-	       a.id as appointment_id,
-	       a.status as appointment_status,
-		   a.ktt_msm_status,
-			a.ktt_ttn_status
-	       DATEDIFF(ec.expiry_date, CURDATE()) as days_left
-	FROM employee_certifications ec
-	JOIN employees e ON ec.employee_id = e.id
-	LEFT JOIN certifications c ON ec.certification_id = c.id
-	LEFT JOIN appointments a ON a.id = (
-		SELECT MAX(ap.id)
-		FROM appointments ap
-		WHERE ap.employee_id = e.id
-	)
-	WHERE ec.verification_status = ?
-	  AND e.is_active = 1
-	  AND ec.expiry_date IS NOT NULL
-	  AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL ? DAY)
-	' . $scope_sql . '
-	ORDER BY ec.expiry_date ASC, ec.updated_at DESC
-';
+$monitor_sql = "
+SELECT
+       ec.id as employee_certification_id,
+       ec.employee_id,
+       ec.certification_id,
+       ec.cert_number,
+       ec.cert_issuer,
+       ec.issue_date,
+       ec.expiry_date,
+       ec.document_file,
+       ec.status,
+       ec.verification_status,
+       ec.updated_at,
+       e.full_name,
+       e.employee_code,
+       e.position,
+       e.department,
+       e.contractor_company,
+       e.is_active,
+       c.cert_name,
+       c.cert_type,
+       c.issuing_authority,
+       a.id as appointment_id,
+       a.status as appointment_status,
+       a.ktt_msm_status,
+       a.ktt_ttn_status,
+       DATEDIFF(ec.expiry_date, CURDATE()) as days_left
+
+FROM employee_certifications ec
+
+JOIN employees e
+ON ec.employee_id=e.id
+
+LEFT JOIN certifications c
+ON ec.certification_id=c.id
+
+LEFT JOIN appointments a
+ON a.id=
+(
+    SELECT MAX(ap.id)
+    FROM appointments ap
+    WHERE ap.employee_id=e.id
+)
+
+WHERE e.is_active=1
+
+AND
+(
+        ec.verification_status='pending'
+
+        OR
+
+        (
+            ec.verification_status='verified'
+            AND ec.expiry_date IS NOT NULL
+            AND ec.expiry_date<=DATE_ADD(CURDATE(),INTERVAL ? DAY)
+        )
+
+        OR
+
+        (
+            ec.status='active'
+        )
+)
+
+".$scope_sql."
+
+ORDER BY ec.updated_at DESC
+";
 
 $monitor_stmt = $db->prepare($monitor_sql);
 if ($monitor_stmt) {
 	$verified_status = 'verified';
-	$monitor_params = [$verified_status, $monitor_window_days];
-	$monitor_types = 'si' . $scope_types;
+	$monitor_params = [$monitor_window_days];
+	$monitor_types = 'i'.$scope_types;
 	$monitor_params = array_merge($monitor_params, $scope_params);
 	bindStatementParams($monitor_stmt, $monitor_types, $monitor_params);
 	$monitor_stmt->execute();
