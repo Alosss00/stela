@@ -535,7 +535,7 @@ require_once '../../includes/header.php';
                 <?php if (!empty($employee['statement_file'])): ?>
                 <div class="info-item">
                     <label data-lang="ktt-statement-letter">Statement Letter:</label>
-                    <a href="/<?php echo $employee['statement_file']; ?>" target="_blank" class="btn btn-sm btn-primary">
+                    <a href="assets/<?php echo $employee['statement_file']; ?>" target="_blank" class="btn btn-sm btn-primary">
                         <i class="fas fa-signature"></i> <span data-lang="ktt-view-statement">View Statement Letter</span>
                     </a>
                 </div>
