@@ -277,6 +277,50 @@ SELECT
 
 FROM employee_certifications ec
 
+INNER JOIN
+(
+    SELECT ec1.*
+
+    FROM employee_certifications ec1
+
+    WHERE ec1.id =
+    (
+        SELECT ec2.id
+
+        FROM employee_certifications ec2
+
+        WHERE ec2.employee_id = ec1.employee_id
+
+        ORDER BY
+
+        CASE
+
+            WHEN ec2.verification_status='pending'
+                THEN 1
+
+            WHEN ec2.verification_status='verified'
+                 AND ec2.status='active'
+                THEN 2
+
+            WHEN ec2.verification_status='verified'
+                THEN 3
+
+            WHEN ec2.status='expired'
+                THEN 4
+
+            ELSE 5
+
+        END,
+
+        ec2.id DESC
+
+        LIMIT 1
+    )
+
+) latest
+
+ON latest.id=ec.id
+
 JOIN employees e
 ON ec.employee_id=e.id
 
