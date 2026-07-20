@@ -46,6 +46,32 @@ function getMonitoringBadge(int $days_left): array
     ];
 }
 
+function getWorkflowStatus(array $cert): array
+{
+
+    // Sedang menunggu Admin
+    if ($cert['resubmit_type'] == 'certificate' &&
+        $cert['status'] == 'pending') {
+        return ['class'=>'pending','label'=>'WAITING REVIEWER'];
+    }
+
+    // Sudah diverifikasi Admin
+    if ($cert['resubmit_type'] == 'certificate' &&
+        $cert['status'] == 'verified' &&
+        $cert['appointment_status'] == 'pending') {
+        return ['class'=>'warning','label'=>'WAITING KTT'];
+    }
+
+    // Workflow selesai
+    if ($cert['resubmit_type'] == 'certificate' &&
+        $cert['appointment_status'] == 'approved' &&
+        $cert['status'] == 'active') {
+        return ['class'=>'success','label'=>'ACTIVE'];
+    }
+
+    return ['class'=>'critical','label'=>'EXPIRED'];
+}
+
 function buildResubmitUrl(array $cert, string $csrf_token): string
 {
 	return 'appointments.php?' . http_build_query([
@@ -192,59 +218,95 @@ $critical_count = 0;
 $warning_count = 0;
 $info_count = 0;
 
-$monitor_sql = '
-	SELECT ec.id as employee_certification_id,
-	       ec.employee_id,
-	       ec.certification_id,
-	       ec.cert_number,
-	       ec.cert_issuer,
-	       ec.issue_date,
-	       ec.expiry_date,
-	       ec.document_file,
-	       ec.status,
-	       ec.verification_status,
-	       ec.updated_at,
-	       e.full_name,
-	       e.employee_code,
-	       e.position,
-	       e.department,
-	       e.contractor_company,
-	       e.is_active,
-	       c.cert_name,
-	       c.cert_type,
-	       c.issuing_authority,
-	       a.id as appointment_id,
-	       a.status as appointment_status,
-	       DATEDIFF(ec.expiry_date, CURDATE()) as days_left
-	FROM employee_certifications ec
-	JOIN employees e ON ec.employee_id = e.id
-	LEFT JOIN certifications c ON ec.certification_id = c.id
-	LEFT JOIN appointments a ON a.id = (
-		SELECT MAX(ap.id)
-		FROM appointments ap
-		WHERE ap.employee_id = e.id
-	)
-	WHERE ec.verification_status = ?
-	  AND e.is_active = 1
-	  AND ec.expiry_date IS NOT NULL
-	  AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL ? DAY)
-	' . $scope_sql . '
-	ORDER BY ec.expiry_date ASC, ec.updated_at DESC
-';
+$monitor_sql = "
+SELECT
+       ec.id as employee_certification_id,
+       ec.employee_id,
+       ec.certification_id,
+       ec.cert_number,
+       ec.cert_issuer,
+       ec.issue_date,
+       ec.expiry_date,
+       ec.document_file,
+       ec.status,
+       ec.verification_status,
+       ec.updated_at,
+       e.full_name,
+       e.employee_code,
+       e.position,
+       e.department,
+       e.contractor_company,
+       e.is_active,
+	   e.resubmit_type,
+       c.cert_name,
+       c.cert_type,
+       c.issuing_authority,
+       a.id as appointment_id,
+       a.status as appointment_status,
+       a.ktt_msm_status,
+       a.ktt_ttn_status,
+       DATEDIFF(ec.expiry_date, CURDATE()) as days_left
+
+FROM employee_certifications ec
+
+JOIN employees e
+ON ec.employee_id=e.id
+
+LEFT JOIN certifications c
+ON ec.certification_id=c.id
+
+LEFT JOIN appointments a
+ON a.id=
+(
+    SELECT MAX(ap.id)
+    FROM appointments ap
+    WHERE ap.employee_id=e.id
+)
+
+WHERE e.is_active = 1
+
+AND
+(
+    /* Employee BELUM resubmit */
+    (
+        ec.status = 'expired'
+        AND e.resubmit_type IS NULL
+    )
+
+    OR
+
+    /* Employee SUDAH resubmit */
+    (
+        e.resubmit_type = 'certificate'
+
+        AND ec.id =
+        (
+            SELECT MAX(ec3.id)
+            FROM employee_certifications ec3
+            WHERE ec3.employee_id = ec.employee_id
+        )
+    )
+)
+
+".$scope_sql."
+
+ORDER BY ec.updated_at DESC
+";
 
 $monitor_stmt = $db->prepare($monitor_sql);
 if ($monitor_stmt) {
 	$verified_status = 'verified';
-	$monitor_params = [$verified_status, $monitor_window_days];
-	$monitor_types = 'si' . $scope_types;
+	$monitor_params = [];
+	$monitor_types = '';
 	$monitor_params = array_merge($monitor_params, $scope_params);
+	$monitor_types .= $scope_types;
 	bindStatementParams($monitor_stmt, $monitor_types, $monitor_params);
 	$monitor_stmt->execute();
 	$monitor_result = $monitor_stmt->get_result();
 	if ($monitor_result) {
 		while ($row = $monitor_result->fetch_assoc()) {
 			$row['days_left'] = (int) $row['days_left'];
-			$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
+			$row['monitoring_badge'] = getWorkflowStatus($row);
 			$certificates[] = $row;
 			$total_certificates++;
 			if ($row['days_left'] <= 14) {
@@ -266,7 +328,6 @@ require_once '../../includes/header.php';
 		<div>
 			<p class="eyebrow">Certificate Status</p>
 			<h2><i class="fas fa-id-card"></i> Status Sertifikat</h2>
-			<p>Monitoring sertifikat verified yang kedaluwarsa atau akan expired.</p>
 		</div>
 		<div class="hero-actions">
 			<span class="btn btn-secondary" style="pointer-events:none;">Monitoring; 2 Bulan</span>
@@ -305,10 +366,50 @@ require_once '../../includes/header.php';
 			<span class="stat-label">Warning (&gt; 30 Hari)</span>
 		</div>
 	</div>
+<style>
+.stats-grid {
+	display: grid;
+	grid-template-columns: repeat(4, minmax(0, 1fr));
+	gap: 14px;
+	margin-bottom: 22px;
+}
 
+.stat-card {
+	background: #fff;
+	border-radius: 14px;
+	padding: 18px 20px;
+	box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+	border-left: 4px solid #37474F;
+}
+.stat-expired { border-left-color: #dc2626; }
+.stat-pending { border-left-color: #f59e0b; }
+.stat-verified { border-left-color: #16a34a; }
+
+.status-critical { background: #fee2e2; color: #b91c1c; }
+.status-urgent { background: #ffedd5; color: #9a3412; }
+.status-warning { background: #fef3c7; color: #92400e; }
+
+.stat-number {
+	display: block;
+	font-size: 28px;
+	font-weight: 700;
+	color: #111827;
+	line-height: 1;
+}
+
+.stat-label {
+	display: block;
+	margin-top: 6px;
+	color: #6b7280;
+	font-size: 12px;
+	text-transform: uppercase;
+	letter-spacing: .08em;
+}
+   
+	</style>
 	<div class="card cert-card">
 		<div class="card-header cert-card-header">
-			<h3><i class="fas fa-list"></i> Daftar Sertifikat</h3>
+			<h3><i class="fas fa-list"></i> Daftar Sertifikat</h3> <span>status</span>
 		</div>
 		<div class="card-body cert-card-body">
 			<?php if (!empty($certificates)): ?>
@@ -328,7 +429,7 @@ require_once '../../includes/header.php';
 						<tbody>
 							<?php foreach ($certificates as $cert): ?>
 								<tr>
-									<td>
+									<td>	
 										<strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><br>
 										<small><?php echo htmlspecialchars($cert['employee_code']); ?></small>
 									</td>
@@ -366,16 +467,43 @@ require_once '../../includes/header.php';
 										<?php endif; ?>
 									</td>
 										<td>
-										<?php if (!empty($cert['employee_certification_id'])): ?>
-											<a class="btn btn-primary btn-sm"
-											href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>">
-												<i class="fas fa-upload"></i>
-												Resubmit
-											</a>
- 
-										<?php endif; ?>
+											<?php
+											// ACTIVE
+											if ($cert['status'] == 'active'
+												&& $cert['appointment_status'] == 'approved') {
+												echo '<span class="badge badge-success">Completed</span>';
 
-										</td>
+											}
+
+											// WAITING REVIEWER
+											elseif ($cert['status'] == 'pending') {
+												echo '<span class="badge badge-secondary">
+														Waiting Reviewer
+													</span>';
+
+											}
+
+											// WAITING KTT
+											elseif (
+												$cert['status'] == 'verified'
+												&&
+												in_array($cert['appointment_status'],['draft','pending'])
+											) {
+												echo '<span class="badge badge-warning">
+														Waiting KTT
+													</span>';
+
+											}
+
+											// EXPIRED
+											elseif ($cert['status'] === 'expired') {
+											?>
+											<a class="btn btn-primary btn-sm" href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id'];?>">
+											<i class="fas fa-upload"></i>Resubmit</a>
+										<?php
+												}
+											?>
+											</td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
