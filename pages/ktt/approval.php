@@ -2106,7 +2106,7 @@ function showReviewModal(appointmentId) {
                                 ${employee.cv_file ? `
                                     <div class="review-doc-item">
                                         <div class="review-info-label"><i class="fas fa-file-pdf"></i> ${i18n('ktt-curriculum-vitae')}</div>
-                                        <a href="${employee.cv_file}" target="_blank" class="review-cv-button">
+                                        <a href="/assets/${employee.cv_file}" target="_blank" class="review-cv-button">
                                             <i class="fas fa-download"></i> ${i18n('ktt-view-cv')}
                                         </a>
                                     </div>
@@ -2114,7 +2114,7 @@ function showReviewModal(appointmentId) {
                                 ${employee.statement_file ? `
                                     <div class="review-doc-item">
                                         <div class="review-info-label"><i class="fas fa-file-contract"></i> ${i18n('ktt-statement-letter')}</div>
-                                        <a href="${employee.statement_file}" target="_blank" class="review-cv-button">
+                                        <a href="/assets/${employee.statement_file}" target="_blank" class="review-cv-button">
                                             <i class="fas fa-download"></i> ${i18n('ktt-view-statement')}
                                         </a>
                                     </div>
