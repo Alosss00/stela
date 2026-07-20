@@ -155,7 +155,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         
                         $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
                         
-                        if ($expiry_date) {
+                        // Nonaktifkan appointment lama
+                            $db->query("
+                                UPDATE appointments
+                                SET
+                                    status='superseded',
+                                    updated_at=NOW()
+                                WHERE employee_id=$employee_id
+                                AND status IN ('draft','approved')
+                            ");
+
+                            if ($expiry_date) {
                             $sql_appointment = "INSERT INTO appointments 
                                               (appointment_number, employee_id, position_id, appointment_date, 
                                                effective_date, expiry_date, status, auto_generated, created_by, notes) 
