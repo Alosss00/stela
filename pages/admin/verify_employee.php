@@ -654,7 +654,7 @@ require_once '../../includes/header.php';
                 <?php if ($employee['cv_file']): ?>
                 <div class="info-item">
                     <label data-lang="cv-file">CV:</label>
-                    <a href="/asstes/<?php echo $employee['cv_file']; ?>" target="_blank" class="btn btn-sm btn-info">
+                    <a href="/assets/<?php echo $employee['cv_file']; ?>" target="_blank" class="btn btn-sm btn-info">
                         <i class="fas fa-file-pdf"></i> <span data-lang="view-cv">Lihat CV</span>
                     </a>
                 </div>
@@ -731,7 +731,7 @@ require_once '../../includes/header.php';
                             <?php if ($cert['document_file']): ?>
                             <div class="info-item">
                                 <label data-lang="document">Document:</label>
-                                <a href="/<?php echo $cert['document_file']; ?>" target="_blank" class="btn btn-sm btn-info">
+                                <a href="assets/<?php echo $cert['document_file']; ?>" target="_blank" class="btn btn-sm btn-info">
                                     <i class="fas fa-file-pdf"></i> <span data-lang="ktt-view-certificate">View Certificate</span>
                                 </a>
                             </div>
