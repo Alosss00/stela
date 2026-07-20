@@ -2175,7 +2175,7 @@ function showReviewModal(appointmentId) {
                                     
                                     ${cert.document_file ? `
                                         <div class="review-cert-document">
-                                            <a href="${cert.document_file}" target="_blank" class="review-doc-button">
+                                            <a href="/${cert.document_file}" target="_blank" class="btn btn-sm btn-info">
                                                 <i class="fas fa-file-pdf"></i> ${i18n('ktt-view-certificate')}
                                             </a>
                                         </div>
