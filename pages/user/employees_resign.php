@@ -375,7 +375,7 @@ $companies = $db->query("
     ORDER BY contractor_company
 ");
 ?>
-
+  
 <div class="employees-admin-container">
     <!-- Page Header -->
     <div class="page-header-emp-admin">
@@ -383,9 +383,6 @@ $companies = $db->query("
             <h2><i class="fas fa-user-times"></i>Resigned Employees</h2>
             <p>Manage resigned contractor workforce data</p>
         </div>
-        <a href="add_employee.php" class="btn btn-primary btn-lg-emp">
-            <i class="fas fa-plus-circle"></i> <span data-lang="new-request">New Request</span>
-        </a>
     </div>
     
     <?php if ($rejected_resubmit_count > 0): ?>
