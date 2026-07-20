@@ -12,6 +12,10 @@ class QueryBuilder
 
     private array $order = [];
 
+    private array $group = [];
+
+    private array $having = [];
+
     private ?int $limit = null;
 
     private ?int $offset = null;
@@ -57,6 +61,46 @@ class QueryBuilder
                ON {$first} {$operator} {$second}";
 
         return $this;
+    }
+
+    /**
+     * LEFT JOIN
+     */
+    public function leftJoin(
+        string $table,
+        string $first,
+        string $operator,
+        string $second
+    ): self {
+
+        return $this->join(
+            $table,
+            $first,
+            $operator,
+            $second,
+            'LEFT'
+        );
+
+    }
+
+    /**
+ * RIGHT JOIN
+ */
+    public function rightJoin(
+        string $table,
+        string $first,
+        string $operator,
+        string $second
+    ): self {
+
+        return $this->join(
+            $table,
+            $first,
+            $operator,
+            $second,
+            'RIGHT'
+        );
+
     }
 
     /**
