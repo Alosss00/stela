@@ -248,6 +248,11 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/user/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span>
+                        </a>
+                    </li>
+                    <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/reports.php" class="<?php echo $current_page == 'reports.php' ? 'active' : ''; ?>">
                             <i class="fas fa-chart-bar"></i> <span data-lang="reports">Reports</span>
                         </a>
