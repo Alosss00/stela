@@ -253,37 +253,20 @@ if (!empty($filter)) {
 
 // Get all employees with verification status and KTT rejection awareness
 $employees = $db->query("
-    SELECT e.*,
-           CASE
-               WHEN e.verification_status = 'pending' THEN 'warning'
-               WHEN e.verification_status = 'verified' THEN 'success'
-               WHEN e.verification_status = 'rejected' THEN 'danger'
-           END as status_class,
-           u.full_name as verified_by_name,
-           e.verified_date,
-           CASE
-               WHEN e.competency_type = 'pengawas_operasional' THEN 'Pengawas Operasional'
-               WHEN e.competency_type = 'pengawas_teknis' THEN 'Pengawas Teknis'
-               WHEN e.competency_type = 'tenaga_teknis' THEN 'Tenaga Teknis'
-               ELSE e.competency_type
-           END as competency_type_display,
-           MAX(a.status) as appointment_status,
-           MAX(a.approval_notes) as ktt_rejection_notes,
-           MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) as has_ktt_rejection,
-           CASE
-               WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 AND e.verification_status = 'pending' AND e.resubmit_date IS NOT NULL THEN 'pending'
-               WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 THEN 'rejected'
-               WHEN MAX(a.status) = 'rejected' THEN 'rejected'
-               WHEN e.verification_status = 'rejected' THEN 'rejected'
-               ELSE e.verification_status
-           END as combined_status
-    FROM employees e
-    LEFT JOIN users u ON e.verified_by = u.id
-    LEFT JOIN appointments a ON e.id = a.employee_id
-    LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
-    WHERE $where_clause
-    GROUP BY e.id
-    ORDER BY e.verification_status, e.created_at DESC
+SELECT
+    id,
+    employee_code,
+    full_name,
+    position,
+    contractor_company,
+    competency_type,
+    competency_name,
+    employment_status,
+    resign_date,
+    resign_reason
+FROM employees
+WHERE is_active = 1
+ORDER BY full_name ASC
 ");
 
 // Get certifications for dropdown
@@ -499,76 +482,72 @@ $companies = $db->query("
                             </tr>
                         </thead>
                         <tbody>
-                            <?php 
-                            $employees->data_seek(0);
-                            while ($row = $employees->fetch_assoc()): 
-                                $company_name = htmlspecialchars($row['contractor_company']);
-                            ?>
-                            <tr class="emp-row" data-company="<?php echo $company_name; ?>" data-status="<?php echo htmlspecialchars($row['verification_status']); ?>">
-                                <td class="col-code">
-                                    <span class="code-badge"><?php echo htmlspecialchars($row['employee_code']); ?></span>
-                                </td>
-                                <td class="col-name">
-                                    <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
-                                </td>
-                                <td class="col-position">
-                                    <span class="position-tag-emp"><?php echo htmlspecialchars($row['position']); ?></span>
-                                </td>
-                                <td class="col-company">
-                                    <span class="company-tag-emp"><?php echo $company_name; ?></span>
-                                </td>
-                                <td class="col-competency-type">
-                                    <span class="competency-type-badge competency-<?php echo $row['competency_type']; ?>">
-                                        <?php echo htmlspecialchars($row['competency_type_display'] ?? ''); ?>
-                                    </span>
-                                </td>
-                                <td class="col-competency">
-                                    <?php if (!empty($row['competency_name'])): ?>
-                                        <span class="competency-tag"><?php echo htmlspecialchars($row['competency_name']); ?></span>
-                                    <?php else: ?>
-                                        <span class="text-muted">-</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="col-status">
-                                    <?php
-                                    $final_status = $row['combined_status'] ?? $row['verification_status'];
-                                    $final_class = $row['status_class'];
-                                    if ($final_status == 'rejected') $final_class = 'danger';
-                                    ?>
-                                    <span class="badge-status badge-<?php echo $final_class; ?>">
-                                        <?php echo strtoupper($final_status); ?>
-                                    </span>
-                                    <?php if ($final_status == 'rejected' && !empty($row['ktt_rejection_notes'])): ?>
-                                    <br><small class="text-muted">Ditolak oleh KTT</small>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="col-verified-by">
-                                    <?php 
-                                    if (($row['verification_status'] == 'verified' || $row['verification_status'] == 'rejected') && $row['verified_by_name']) {
-                                        echo '<strong>' . htmlspecialchars($row['verified_by_name']) . '</strong>';
-                                        if ($row['verified_date']) {
-                                            echo '<br><small class="text-muted">' . date('d/m/Y', strtotime($row['verified_date'])) . '</small>';
-                                        }
-                                    } else {
-                                        echo '<span class="text-muted">-</span>';
-                                    }
-                                    ?>
-                                </td>
-                                <td class="col-action">
-                                    <div class="action-buttons-emp">
-                                        <a href="verify_employee.php?id=<?php echo $row['id']; ?>" class="btn-action-emp open-btn" title="Open" data-lang-title="open">
-                                            <i class="fas fa-folder-open"></i>
-                                        </a>
-                                        <?php if ($final_status == 'rejected' && isset($row['created_by']) && $row['created_by'] == $_SESSION['user_id']): ?>
-                                        <a href="resubmit_employee.php?id=<?php echo $row['id']; ?>" class="btn-action-emp resubmit-btn" title="Resubmit" data-lang-title="resubmit">
-                                            <i class="fas fa-upload"></i>
-                                        </a>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
+                        <?php
+                        $employees->data_seek(0);
+                        while ($row = $employees->fetch_assoc()):
+
+                            $company_name = htmlspecialchars($row['contractor_company'] ?? '');
+
+                            $competencyType = [
+                                'pengawas_operasional' => 'Pengawas Operasional',
+                                'pengawas_teknis'      => 'Pengawas Teknis',
+                                'tenaga_teknis'        => 'Tenaga Teknis'
+                            ];
+
+                            $status = $row['employment_status'] ?? 'Active';
+                            $badgeClass = ($status == 'Resign') ? 'danger' : 'success';
+                        ?>
+                        <tr>
+
+                            <td>
+                                <span class="code-badge">
+                                    <?= htmlspecialchars($row['employee_code'] ?? '') ?>
+                                </span>
+                            </td>
+
+                            <td>
+                                <strong>
+                                    <?= htmlspecialchars($row['full_name'] ?? '') ?>
+                                </strong>
+                            </td>
+
+                            <td>
+                                <?= htmlspecialchars($row['position'] ?? '') ?>
+                            </td>
+
+                            <td>
+                                <?= $company_name ?>
+                            </td>
+
+                            <td>
+                                <?= htmlspecialchars($competencyType[$row['competency_type']] ?? ($row['competency_type'] ?? '')) ?>
+                            </td>
+
+                            <td>
+                                <?= htmlspecialchars($row['competency_name'] ?? '-') ?>
+                            </td>
+
+                            <td>
+                                <span class="badge-status badge-<?php echo $badgeClass; ?>">
+                                    <?= htmlspecialchars($status) ?>
+                                </span>
+
+                            </td>
+                            <td>
+                            <button
+                                class="btn btn-warning btn-sm btn-change-status"
+                                data-id="<?= $row['id'] ?>"
+                                data-name="<?= htmlspecialchars($row['full_name']) ?>"
+                                data-status="<?= htmlspecialchars($status) ?>"
+                                data-date="<?= htmlspecialchars($row['resign_date'] ?? '') ?>"
+                                data-reason="<?= htmlspecialchars($row['resign_reason'] ?? '') ?>">
+                                <i class="fas fa-exchange-alt"></i>Change Status
+                            </button>
+                        </td>
+                    </tr>
+
+                    <?php endwhile; ?>
+                    </tbody>
                     </table>
                 </div>
             <?php else: ?>
