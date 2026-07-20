@@ -380,8 +380,8 @@ $companies = $db->query("
     <!-- Page Header -->
     <div class="page-header-emp-admin">
         <div class="header-left">
-            <h2><i class="fas fa-building"></i> <span data-lang="contractor-workforce-data">Contractor Workforce Data</span></h2>
-            <p data-lang="manage-verify-workforce">Manage and verify contractor workforce data</p>
+            <h2><i class="fas fa-user-times"></i>Resigned Employees</h2>
+            <p>Manage resigned contractor workforce data</p>
         </div>
         <a href="add_employee.php" class="btn btn-primary btn-lg-emp">
             <i class="fas fa-plus-circle"></i> <span data-lang="new-request">New Request</span>
