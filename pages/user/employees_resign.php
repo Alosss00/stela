@@ -1307,5 +1307,6 @@ function updateFileName(area, file) {
 }
 </script>
 
+<?php require_once '../../assets/css/style.css'; ?>
 <?php require_once '../../includes/footer.php'; ?>
 
