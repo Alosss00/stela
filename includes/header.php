@@ -244,12 +244,12 @@ $current_page = get_current_page();
                     </li>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span>
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Certification</span>
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/user/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span>
+                        <a href="<?php echo BASE_URL; ?>/pages/user/employees_resign.php" class="<?php echo $current_page == 'employees_resign.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Employee</span>
                         </a>
                     </li>
                     <li>
@@ -276,8 +276,13 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/user/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span>
+                        <a href="<?php echo BASE_URL; ?>/pages/dept/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Certification</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/dept/employees_resign.php" class="<?php echo $current_page == 'employees_resign.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Employee</span>
                         </a>
                     </li>
                     <li>
@@ -326,8 +331,13 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/user/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span>
+                        <a href="<?php echo BASE_URL; ?>/pages/admin/certificate_status.php" class="<?php echo $current_page == 'certificate_status.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Certification</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a href="<?php echo BASE_URL; ?>/pages/admin/employees_resign.php" class="<?php echo $current_page == 'employees_resign.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Employee</span>
                         </a>
                     </li>
                     <?php endif; ?>
