@@ -338,7 +338,7 @@ $current_page = get_current_page();
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/employees_resign.php" class="<?php echo $current_page == 'employees_resign.php' ? 'active' : ''; ?>">
                             <i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Employee</span>
-                        </a>
+                        </a> 
                     </li>
                     <?php endif; ?>
 
