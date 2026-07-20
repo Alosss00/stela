@@ -253,37 +253,20 @@ if (!empty($filter)) {
 
 // Get all employees with verification status and KTT rejection awareness
 $employees = $db->query("
-    SELECT e.*,
-           CASE
-               WHEN e.verification_status = 'pending' THEN 'warning'
-               WHEN e.verification_status = 'verified' THEN 'success'
-               WHEN e.verification_status = 'rejected' THEN 'danger'
-           END as status_class,
-           u.full_name as verified_by_name,
-           e.verified_date,
-           CASE
-               WHEN e.competency_type = 'pengawas_operasional' THEN 'Pengawas Operasional'
-               WHEN e.competency_type = 'pengawas_teknis' THEN 'Pengawas Teknis'
-               WHEN e.competency_type = 'tenaga_teknis' THEN 'Tenaga Teknis'
-               ELSE e.competency_type
-           END as competency_type_display,
-           MAX(a.status) as appointment_status,
-           MAX(a.approval_notes) as ktt_rejection_notes,
-           MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) as has_ktt_rejection,
-           CASE
-               WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 AND e.verification_status = 'pending' AND e.resubmit_date IS NOT NULL THEN 'pending'
-               WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 THEN 'rejected'
-               WHEN MAX(a.status) = 'rejected' THEN 'rejected'
-               WHEN e.verification_status = 'rejected' THEN 'rejected'
-               ELSE e.verification_status
-           END as combined_status
-    FROM employees e
-    LEFT JOIN users u ON e.verified_by = u.id
-    LEFT JOIN appointments a ON e.id = a.employee_id
-    LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
-    WHERE $where_clause
-    GROUP BY e.id
-    ORDER BY e.verification_status, e.created_at DESC
+SELECT
+    id,
+    employee_code,
+    full_name,
+    position,
+    contractor_company,
+    competency_type,
+    competency_name,
+    employment_status,
+    resign_date,
+    resign_reason
+FROM employees
+WHERE is_active = 1
+ORDER BY full_name ASC
 ");
 
 // Get certifications for dropdown
@@ -493,8 +476,7 @@ $companies = $db->query("
                                 <th class="col-company no-required-marker" data-lang="company">Company</th>
                                 <th class="col-competency-type no-required-marker" data-lang="competency-type">Competency Type</th>
                                 <th class="col-competency no-required-marker" data-lang="competency">Competency</th>
-                                <th class="col-status" data-lang="status">Status</th>
-                                <th class="col-verified-by" data-lang="verified-by">Verified By</th>
+                                <th class="col-status" data-lang="status">Employment Status</th>
                                 <th class="col-action" data-lang="action">Action</th>
                             </tr>
                         </thead>
@@ -582,283 +564,6 @@ $companies = $db->query("
 </div>
 
 <!-- Add Modal -->
-<div id="addModal" class="modal">
-    <div class="modal-content modal-large-emp">
-        <div class="modal-header modal-header-emp">
-            <h3><i class="fas fa-plus-circle"></i> <span data-lang="add-contractor-workforce">Add Contractor Workforce Data</span></h3>
-            <span class="close" onclick="closeModal('addModal')">&times;</span>
-        </div>
-            <form method="POST" action="" enctype="multipart/form-data">
-            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
-            <input type="hidden" name="action" value="add">
-            <div class="modal-body">
-                <h4 class="section-title-modal" data-lang="identity-competency-data">Identity & Competency Data</h4>
-                <div class="form-row-modal">
-                    <div class="form-group-modal">
-                        <label><span data-lang="id-badge">ID BADGE</span> <span class="text-danger">*</span></label>
-                        <input type="text" name="employee_code" class="form-control-modal" required placeholder="Example: BADGE001" data-lang="example-badge" value="<?php echo isset($_POST['employee_code']) ? htmlspecialchars($_POST['employee_code']) : ''; ?>">
-                        <small class="form-hint" data-lang="unique-id-badge">Unique ID for employee badge identification</small>
-                    </div>
-                    <div class="form-group-modal">
-                        <label><span data-lang="full-name">Full Name</span> <span class="text-danger">*</span></label>
-                        <input type="text" name="full_name" class="form-control-modal" required placeholder="Employee full name" data-lang="employee-full-name" value="<?php echo isset($_POST['full_name']) ? htmlspecialchars($_POST['full_name']) : ''; ?>">
-                    </div>
-                </div>
-
-                <div class="form-group-modal full-width">
-                    <label><span data-lang="position">Position</span></label>
-                    <input type="text" name="position" class="form-control-modal" required placeholder="Example: Rigger, HSE Superintendent" data-lang="example-position" value="<?php echo isset($_POST['position']) ? htmlspecialchars($_POST['position']) : ''; ?>">
-                </div>
-
-                <input type="hidden" name="department" value="General">
-
-                <div class="form-group-modal full-width">
-                    <label><span data-lang="competency-type">Competency Type</span></label>
-                    <select name="competency_type" class="form-control-modal" id="addCompetencyType" onchange="toggleCompetencyField()" required>
-                        <option value="" data-lang="select-competency-type">-- Select Competency Type --</option>
-                        <option value="pengawas_operasional" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_operasional') ? 'selected' : ''; ?>>Pengawas Operasional</option>
-                        <option value="pengawas_teknis" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_teknis') ? 'selected' : ''; ?>>Pengawas Teknis</option>
-                        <option value="tenaga_teknis" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'tenaga_teknis') ? 'selected' : ''; ?>>Tenaga Teknis</option>
-                    </select>
-                </div>
-
-                <div class="form-group-modal full-width" id="ruang_lingkup_group" style="display: none;">
-                    <label id="scopeLabelEmp"><span data-lang="scope-of-work">Scope of Work</span> <span class="text-danger">*</span></label>
-                    <select name="ruang_lingkup" id="scopeSelectEmp" class="form-control-modal">
-                        <option value="" data-lang="select-scope-of-work">-- Select Scope of Work --</option>
-                        <option value="PT Meares Soputan Mining (MSM)" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Meares Soputan Mining (MSM)') ? 'selected' : ''; ?>>PT MSM</option>
-                        <option value="PT Tambang Tondano Nusajaya (TTN)" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Tambang Tondano Nusajaya (TTN)') ? 'selected' : ''; ?>>PT TTN</option>
-                    </select>
-                </div>
-
-                <div class="form-group-modal full-width" id="competency_group" style="display: none;">
-                    <label><span data-lang="competency">Competency</span></label>
-                    <select name="competency_name" class="form-control-modal" id="addCompetencyName" onchange="loadSubCompetencies()">
-                        <option value="" data-lang="select-competency">-- Select Competency --</option>
-                        <?php
-                        // Populate competencies for pengawas_operasional
-                        if (!empty($competencies_by_type['pengawas_operasional'])) {
-                            foreach ($competencies_by_type['pengawas_operasional'] as $comp):
-                        ?>
-                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="pengawas_operasional" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($comp['competency_name']); ?>
-                            </option>
-                        <?php
-                            endforeach;
-                        }
-                        // Populate competencies for pengawas_teknis
-                        if (!empty($competencies_by_type['pengawas_teknis'])) {
-                            foreach ($competencies_by_type['pengawas_teknis'] as $comp):
-                        ?>
-                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="pengawas_teknis" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($comp['competency_name']); ?>
-                            </option>
-                        <?php
-                            endforeach;
-                        }
-                        // Populate competencies for tenaga_teknis
-                        if (!empty($competencies_by_type['tenaga_teknis'])) {
-                            foreach ($competencies_by_type['tenaga_teknis'] as $comp):
-                        ?>
-                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="tenaga_teknis" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($comp['competency_name']); ?>
-                            </option>
-                        <?php
-                            endforeach;
-                        }
-                        ?>
-                    </select>
-                </div>
-
-                <div class="form-group-modal full-width" id="sub_competency_group" style="display: none;">
-                    <label><span data-lang="sub-competency">Sub Competency</span> <span class="text-danger">*</span></label>
-                    <select name="sub_competency" class="form-control-modal" id="addSubCompetency">
-                        <option value="">-- Pilih Sub Competency --</option>
-                    </select>
-                </div>
-
-                <div class="form-group-modal full-width" id="supervision_area_group" style="display: none;">
-                    <label>Supervision Area <span class="text-danger">*</span></label>
-                    <select name="supervision_area" class="form-control-modal" id="addSupervisionArea">
-                        <option value="">-- Select Supervision Area --</option>
-                        <?php
-                        if ($supervision_areas && $supervision_areas->num_rows > 0) {
-                            $supervision_areas->data_seek(0);
-                            while ($area = $supervision_areas->fetch_assoc()):
-                                $selected = (isset($_POST['supervision_area']) && $_POST['supervision_area'] == $area['area_name']) ? 'selected' : '';
-                        ?>
-                        <option value="<?php echo htmlspecialchars($area['area_name']); ?>" <?php echo $selected; ?>>
-                            <?php echo htmlspecialchars($area['area_name']); ?>
-                        </option>
-                        <?php
-                            endwhile;
-                        }
-                        ?>
-                    </select>
-                </div>
-
-                <div class="form-group-modal full-width">
-                    <label>Company</label>
-                    <select name="contractor_company" class="form-control-modal" id="contractorCompanyEmp" required>
-                        <option value="">-- Select Company --</option>
-
-                            <optgroup label="INTERNAL COMPANIES">
-                                <option value="PT Meares Soputan Mining" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Meares Soputan Mining') ? 'selected' : ''; ?>>PT Meares Soputan Mining</option>
-                                <option value="PT Tambang Tondano Nusajaya" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tambang Tondano Nusajaya') ? 'selected' : ''; ?>>PT Tambang Tondano Nusajaya</option>
-                            </optgroup>
-
-                            <optgroup label="CONTRACTOR COMPANIES (EXTERNAL)">
-                                <option value="G4S Security Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'G4S Security Services') ? 'selected' : ''; ?>>G4S Security Services</option>
-                                <option value="PT Part Sentra Indomandiri" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Part Sentra Indomandiri') ? 'selected' : ''; ?>>PT Part Sentra Indomandiri</option>
-                                <option value="PT Aneka Kimia Raya Corporindo" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Aneka Kimia Raya Corporindo') ? 'selected' : ''; ?>>PT Aneka Kimia Raya Corporindo</option>
-                                <option value="PT Saribuana Manado" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Saribuana Manado') ? 'selected' : ''; ?>>PT Saribuana Manado</option>
-                                <option value="PT Maxidrill Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Maxidrill Indonesia') ? 'selected' : ''; ?>>PT Maxidrill Indonesia</option>
-                                <option value="PT Tata Wisata" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tata Wisata') ? 'selected' : ''; ?>>PT Tata Wisata</option>
-                                <option value="PT Arlie Labora Utama" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Arlie Labora Utama') ? 'selected' : ''; ?>>PT Arlie Labora Utama</option>
-                                <option value="PT Tou Maesa Sejahtera" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tou Maesa Sejahtera') ? 'selected' : ''; ?>>PT Tou Maesa Sejahtera</option>
-                                <option value="PT DNX Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT DNX Indonesia') ? 'selected' : ''; ?>>PT DNX Indonesia</option>
-                                <option value="PT Mandara Fasilitas Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Mandara Fasilitas Indonesia') ? 'selected' : ''; ?>>PT Mandara Fasilitas Indonesia</option>
-                                <option value="PT Aptekindo Mitra Solusitama" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Aptekindo Mitra Solusitama') ? 'selected' : ''; ?>>PT Aptekindo Mitra Solusitama</option>
-                                <option value="PT Geopersada Mulai Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Geopersada Mulai Abadi') ? 'selected' : ''; ?>>PT Geopersada Mulai Abadi</option>
-                                <option value="PT Hidup Baru Sukses Mandiri" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Hidup Baru Sukses Mandiri') ? 'selected' : ''; ?>>PT Hidup Baru Sukses Mandiri</option>
-                                <option value="PT Intertek Utama Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Intertek Utama Services') ? 'selected' : ''; ?>>PT Intertek Utama Services</option>
-                                <option value="PT Macmahon Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Macmahon Indonesia') ? 'selected' : ''; ?>>PT Macmahon Indonesia</option>
-                                <option value="PT Manado Karya Angrah" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Manado Karya Angrah') ? 'selected' : ''; ?>>PT Manado Karya Angrah</option>
-                                <option value="PT Samudera Mulia Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Samudera Mulia Abadi') ? 'selected' : ''; ?>>PT Samudera Mulia Abadi</option>
-                            </optgroup>
-                    </select>
-                </div>
-
-                <div class="form-row-modal">
-                    <div class="form-group-modal">
-                        <label>Upload CV <span class="text-danger">*</span></label>
-                        <div class="file-upload-modal">
-                            <i class="fas fa-file-upload"></i>
-                            <input type="file" name="cv_file" class="file-input-modal" accept=".pdf,.doc,.docx" required>
-                            <span class="file-text">Click or drag your CV file</span>
-                            <span class="file-name"></span>
-                        </div>
-                    </div>
-                    <div class="form-group-modal">
-                        <label>Upload Statement Letter <span class="text-danger">*</span></label>
-                        <div class="file-upload-modal">
-                            <i class="fas fa-file-contract"></i>
-                            <input type="file" name="statement_file" class="file-input-modal" accept=".pdf,.doc,.docx" required>
-                            <span class="file-text">Click or drag statement file</span>
-                            <span class="file-name"></span>
-                        </div>
-                    </div>
-                </div>
-                
-                <hr style="margin: 25px 0;">
-                <h4 class="section-title-modal">Certification/Competency</h4>
-                <div id="certificationContainer">
-                    <div class="certification-item">
-                        <div class="cert-item-header">
-                            <h5><i class="fas fa-file-certificate"></i> Certification #1</h5>
-                            <div class="cert-header-actions">
-                                </div>
-                        </div>
-
-                        <div class="form-row-modal">
-                            <div class="form-group-modal">
-                                <label>Certification Name <span class="text-danger">*</span></label>
-                                <select name="certification_ids[]" class="form-control-modal cert-name-select" required onchange="updateIssuer(this)">
-                                    <option value="">-- Select Certification --</option>
-                                    <?php
-                                    if ($certifications && $certifications->num_rows > 0) {
-                                        $certifications->data_seek(0);
-                                        while ($cert = $certifications->fetch_assoc()):
-                                        ?>
-                                        <option value="<?php echo $cert['id']; ?>" data-issuer="<?php echo htmlspecialchars($cert['cert_issuer'] ?? ''); ?>">
-                                            <?php echo htmlspecialchars($cert['cert_name']); ?>
-                                        </option>
-                                        <?php
-                                        endwhile;
-                                    }
-                                    ?>
-                                </select>
-                            </div>
-                            <div class="form-group-modal">
-                                <label>Certificate Type <span class="text-danger">*</span></label>
-                                <select name="cert_types[]" class="form-control-modal cert-type-select" required onchange="toggleOtherType(this)">
-                                    <option value="">-- Select Type --</option>
-                                    <option value="Attendance/Peserta">Attendance/Peserta</option>
-                                    <option value="Kompeten">Competent</option>
-                                    <option value="Training">Training</option>
-                                </select>
-                            </div>
-                            <div class="form-group-modal other-type-input" style="display: none;">
-                                <label>Other Type <span class="text-danger">*</span></label>
-                                <input type="text" name="cert_types_other[]" class="form-control-modal" placeholder="Enter certificate type" data-lang-placeholder="enter-certificate-type">
-                            </div>
-                        </div>
-
-                        <div class="form-row-modal">
-                            <div class="form-group-modal">
-                                <label>Certificate No. <span class="text-danger">*</span></label>
-                                <input type="text" name="cert_numbers[]" class="form-control-modal" required placeholder="Certificate number" data-lang-placeholder="certificate-number-placeholder">
-                            </div>
-                            <div class="form-group-modal">
-                                <label>Issuer <span class="text-danger">*</span></label>
-                                <input type="text" name="cert_issuers[]" class="form-control-modal cert-issuer" required placeholder="Issuer/certification body name" data-lang-placeholder="issuer-certification-body-name">
-                            </div>
-                        </div>
-                        
-                        <div class="form-row-modal">
-                            <div class="form-group-modal">
-                                <label>Issue Date <span class="text-danger">*</span></label>
-                                <input type="date" name="issue_dates[]" class="form-control-modal issue-date" required onchange="calculateExpiryDate(this)">
-                            </div>
-                            <div class="form-group-modal">
-                                <label>Validity Period <span class="text-danger">*</span></label>
-                                <div class="validity-input-group">
-                                    <input type="number" name="validity_years[]" class="form-control-modal validity-years" min="0" step="0.5" placeholder="Years" data-lang-placeholder="years" onchange="calculateExpiryDate(this)">
-                                    <label class="checkbox-label">
-                                        <input type="checkbox" name="no_expiry[]" class="no-expiry-check" onchange="toggleExpiryField(this)">
-                                        <span>No Expiry</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="form-row-modal">
-                            <div class="form-group-modal">
-                                <label>Expiry Date <span class="text-danger">*</span></label>
-                                <input type="date" name="expiry_dates[]" class="form-control-modal expiry-date" readonly>
-                            </div>
-                            <div class="form-group-modal">
-                            </div>
-                        </div>
-                        
-                        <div class="form-group-modal other-expiry-reason" style="display: none;">
-                            <label>Notes <span class="text-danger">*</span></label>
-                            <textarea name="expiry_reasons[]" class="form-control-modal" placeholder="Explain the reason..." data-lang-placeholder="explain-the-reason" rows="2"></textarea>
-                        </div>
-                        
-                        <div class="form-group-modal">
-                            <label>Upload Certificate File <span class="text-danger">*</span></label>
-                            <div class="file-upload-modal">
-                                <i class="fas fa-file-pdf"></i>
-                                <input type="file" name="certifications[]" class="file-input-modal" accept=".pdf" required>
-                                <span class="file-text">Click or drag certificate file (PDF, Max 5MB)</span>
-                                <span class="file-name"></span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <button type="button" class="btn btn-outline-primary-modal" onclick="addCertification()">
-                    <i class="fas fa-plus-circle"></i> Add Another Certification
-                </button>
-            </div>
-            <div class="modal-footer-modal">
-                <button type="button" class="btn btn-secondary" onclick="closeModal('addModal')">Cancel</button>
-                <button type="submit" class="btn btn-primary">Save & Submit for Verification</button>
-            </div>
-        </form>
-    </div>
-</div>
 
 <script>
 const competenciesData = <?php echo json_encode($competencies_by_type); ?>;
