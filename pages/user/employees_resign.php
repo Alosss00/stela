@@ -134,7 +134,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             while ($col = $columns_result->fetch_assoc()) {
                 $available_columns[] = $col['Field'];
             }
-              
+            
             // Buat query INSERT dinamis berdasarkan kolom yang tersedia
             $insert_fields = ['employee_code', 'full_name', 'position', 'department', 'competency_type', 'contractor_company', 'cv_file', 'verification_status', 'is_active'];
             $insert_values = ["'$employee_code'", "'$full_name'", "'$position'", "'$department'", "'$competency_type'", "'$contractor_company'", "'$cv_file'", "'pending'", "1"];
@@ -375,14 +375,17 @@ $companies = $db->query("
     ORDER BY contractor_company
 ");
 ?>
-  
+
 <div class="employees-admin-container">
     <!-- Page Header -->
     <div class="page-header-emp-admin">
         <div class="header-left">
-            <h2><i class="fas fa-user-times"></i>Resigned Employees</h2>
-            <p>Manage resigned contractor workforce data</p>
+            <h2><i class="fas fa-building"></i> <span data-lang="contractor-workforce-data">Contractor Workforce Data</span></h2>
+            <p data-lang="manage-verify-workforce">Manage and verify contractor workforce data</p>
         </div>
+        <a href="add_employee.php" class="btn btn-primary btn-lg-emp">
+            <i class="fas fa-plus-circle"></i> <span data-lang="new-request">New Request</span>
+        </a>
     </div>
     
     <?php if ($rejected_resubmit_count > 0): ?>
@@ -2597,3 +2600,7 @@ input[readonly] {
 </style>
 
 <?php require_once '../../includes/footer.php'; ?>
+
+
+
+
