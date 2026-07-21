@@ -105,7 +105,7 @@ $companies = $db->query("
 </div>
 
     <?php if (!empty($filter)): ?>
-    <div class="alert alert-info alert-custom-emp">
+    <div class="alert alert-info alert-custom-emp"> 
         <i class="fas fa-filter"></i>
         <div>
             <strong data-lang="active-filter">Active Filter:</strong>
