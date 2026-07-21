@@ -230,9 +230,9 @@ AND contractor_company='$company_name'
                             <?php 
                             $employees->data_seek(0);
                             while ($row = $employees->fetch_assoc()): 
-                               $user_company = $_SESSION['company_name'] ?? '';
+                               $employee_company = htmlspecialchars($row['contractor_company']);
                             ?>
-                            <tr class="emp-row" data-company="<?php echo $company_name; ?>" data-status="<?= htmlspecialchars($row['employee_status']) ?>">
+                            <tr class="emp-row" data-company="<?= $employee_company ?>" data-status="<?= htmlspecialchars($row['employee_status']) ?>">
                                 <td class="col-code">
                                     <span class="code-badge"><?php echo htmlspecialchars($row['employee_code']); ?></span>
                                 </td>
@@ -243,7 +243,7 @@ AND contractor_company='$company_name'
                                     <span class="position-tag-emp"><?php echo htmlspecialchars($row['position']); ?></span>
                                 </td>
                                 <td class="col-company">
-                                    <span class="company-tag-emp"><?php echo $company_name; ?></span>
+                                    <span class="company-tag-emp"><?= $employee_company ?></span>
                                 </td>
                                 <td class="col-competency-type">
                                     <?php $type = strtolower(str_replace(' ', '_', trim($row['competency_type'])));?>
@@ -277,7 +277,8 @@ AND contractor_company='$company_name'
                                         data-company="<?= htmlspecialchars($row['contractor_company']) ?>"
                                         data-position="<?= htmlspecialchars($row['position']) ?>"
                                         data-status="<?= htmlspecialchars($row['employee_status']) ?>"
-                                        data-appointment="<?= htmlspecialchars($row['appointment_number']) ?>">
+                                        data-appointment="<?= htmlspecialchars($row['appointment_number']) ?>"
+                                        data-csrf="<?= $_SESSION['csrf_token'] ?? '' ?>">
 
                                         <i class="fas fa-user-edit"></i>
 
@@ -405,6 +406,11 @@ AND contractor_company='$company_name'
 
                     </select>
 
+                </div>
+
+                <div class="mb-3" id="resign_date_container" style="display:none;">
+                    <label>Resign Date</label>
+                    <input type="date" id="resign_date" class="form-control">
                 </div>
 
                 <div
