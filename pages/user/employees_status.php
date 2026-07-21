@@ -357,96 +357,35 @@ AND contractor_company='$company_name'
                 </div>
 
                 <div class="row mb-3">
-
                     <div class="col-md-6">
-
                         <label>Appointment Number</label>
-
-                        <input
-                            type="text"
-                            id="appointment_number"
-                            class="form-control"
-                            readonly>
-
+                        <input type="text" id="appointment_number" class="form-control" readonly>
                     </div>
-
                     <div class="col-md-6">
-
                         <label>Current Status</label>
-
-                        <input
-                            type="text"
-                            id="current_status"
-                            class="form-control"
-                            readonly>
-
+                        <input type="text" id="current_status"class="form-control" readonly>
                     </div>
 
                 </div>
-
                 <div class="mb-3">
-
                     <label>New Status</label>
-
-                    <select
-                        id="new_status"
-                        class="form-select">
-
-                        <option value="active">
-
-                            Active
-
-                        </option>
-
-                        <option value="resigned">
-
-                            Resigned
-
-                        </option>
-
+                    <select id="new_status" class="form-select">
+                        <option value="active">Active</option>
+                        <option value="resigned">Resigned</option>
                     </select>
-
                 </div>
-
                 <div class="mb-3" id="resign_date_container" style="display:none;">
                     <label>Resign Date</label>
                     <input type="date" id="resign_date" class="form-control">
                 </div>
-
-                <div
-                    class="mb-3"
-                    id="reason_container"
-                    style="display:none;">
-
+                <div class="mb-3" id="reason_container" style="display:none;">
                     <label>Resign Reason</label>
-
-                    <textarea
-                        id="resign_reason"
-                        class="form-control"
-                        rows="3"></textarea>
-
+                    <textarea id="resign_reason" class="form-control" rows="3"></textarea>
                 </div>
-
             </div>
-
             <div class="modal-footer">
-
-                <button
-                    class="btn btn-secondary"
-                    data-bs-dismiss="modal">
-
-                    Cancel
-
-                </button>
-
-                <button
-                    class="btn btn-primary"
-                    id="saveStatusBtn">
-
-                    Save
-
-                </button>
-
+                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-primary" id="saveStatusBtn">Save</button>
             </div>
 
         </div>
