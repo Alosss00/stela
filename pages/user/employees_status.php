@@ -268,8 +268,13 @@ AND contractor_company='$company_name'
                                     </td>
                                 <td>
                                     <div class="action-buttons-emp">
-                                    <button class="btn-action-emp edit-status-btn" data-id="<?= $row['id']?>" data-status="<?= $row['employee_status']?>" title="Change Status">
-                                    <i class="fas fa-user-edit"></i>
+                                    <button class="btn-action-emp edit-status-btn"
+                                        data-id="<?= $row['id'] ?>"
+                                        data-name="<?= htmlspecialchars($row['full_name']) ?>"
+                                        data-current-status="<?= $row['employee_status'] ?>"
+                                        data-company="<?= htmlspecialchars($row['contractor_company']) ?>"
+                                        title="Change Employee Status">
+                                        <i class="fas fa-user-edit"></i>
                                     </button>
                                     </div>
                                 </td>
