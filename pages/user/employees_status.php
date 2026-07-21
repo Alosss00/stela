@@ -116,7 +116,7 @@ $companies = $db->query("
 
 <div class="employees-admin-container">
     <!-- Page Header -->
-    <<div class="page-header-emp-admin">
+    <div class="page-header-emp-admin">
     <div class="header-left">
         <h2><i class="fas fa-user-clock"></i>Employee Status</h2>
         <p>Manage Active and Resigned Employees</p>
@@ -221,7 +221,7 @@ $companies = $db->query("
                             while ($row = $employees->fetch_assoc()): 
                                 $company_name = htmlspecialchars($row['contractor_company']);
                             ?>
-                            <tr class="emp-row" data-company="<?php echo $company_name; ?>" data-status="<?php echo htmlspecialchars($row['verification_status']); ?>">
+                            <tr class="emp-row" data-company="<?php echo $company_name; ?>" data-status="<?= htmlspecialchars($row['employee_status']) ?>"
                                 <td class="col-code">
                                     <span class="code-badge"><?php echo htmlspecialchars($row['employee_code']); ?></span>
                                 </td>
@@ -253,18 +253,6 @@ $companies = $db->query("
                                     }else{
                                         echo '<span class="badge-status badge-danger">RESIGNED</span>';
                                          }
-                                    ?>
-                                </td>
-                                <td class="col-verified-by">
-                                    <?php 
-                                    if (($row['verification_status'] == 'verified' || $row['verification_status'] == 'rejected') && $row['verified_by_name']) {
-                                        echo '<strong>' . htmlspecialchars($row['verified_by_name']) . '</strong>';
-                                        if ($row['verified_date']) {
-                                            echo '<br><small class="text-muted">' . date('d/m/Y', strtotime($row['verified_date'])) . '</small>';
-                                        }
-                                    } else {
-                                        echo '<span class="text-muted">-</span>';
-                                    }
                                     ?>
                                 </td>
                                 <td>
@@ -632,30 +620,12 @@ $companies = $db->query("
     color: white;
 }
 
-.verify-btn {
-    background: #2E7D32;
-}
-
-.verify-btn:hover {
-    background: #1B5E20;
-    transform: translateY(-1px);
-}
-
 .open-btn {
     background: #37474F;
 }
 
 .open-btn:hover {
     background: #263238;
-    transform: translateY(-1px);
-}
-
-.resubmit-btn {
-    background: #f59e0b;
-}
-
-.resubmit-btn:hover {
-    background: #d97706;
     transform: translateY(-1px);
 }
 
@@ -670,14 +640,6 @@ $companies = $db->query("
     font-size: 24px !important;
 }
 
-.cv-btn {
-    background: #37474F;
-}
-
-.cv-btn:hover {
-    background: #1d4ed8;
-    transform: translateY(-1px);
-}
 
 /* Empty State */
 .empty-state-emp {
