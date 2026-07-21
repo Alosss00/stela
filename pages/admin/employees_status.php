@@ -12,10 +12,15 @@ $error = '';
 // Get filter from URL
 $filter = isset($_GET['filter']) ? $db->escapeString($_GET['filter']) : '';
 
-// Build WHERE clause for filter
+
 $where_clause = "e.is_active = 1";
+
+if (!empty($company_name)) {
+    $where_clause .= " AND e.contractor_company = '$company_name'";
+}
+
 if (!empty($filter)) {
-    $where_clause .= " AND e.employee_status='$filter'";
+    $where_clause .= " AND e.employee_status = '$filter'";
 }
 
 // Get all employees with verification status and KTT rejection awareness
@@ -49,14 +54,6 @@ ORDER BY e.full_name ASC
 
 require_once '../../includes/header.php';
 
-// Get unique companies for filter (moved here before statistics calculation)
-$companies = $db->query("
-    SELECT DISTINCT contractor_company
-    FROM employees
-    WHERE is_active = 1
-    ORDER BY contractor_company
-");
-
 // Get statistics
 $total_employees =
 $db->query("
@@ -86,13 +83,6 @@ FROM employees
 WHERE is_active=0
 ")->fetch_assoc()['total'];
 
-// Reset companies pointer for filter dropdown
-$companies = $db->query("
-    SELECT DISTINCT contractor_company
-    FROM employees
-    WHERE is_active = 1
-    ORDER BY contractor_company
-");
 ?>
 
 <div class="employees-admin-container">
@@ -105,7 +95,7 @@ $companies = $db->query("
 </div>
 
     <?php if (!empty($filter)): ?>
-    <div class="alert alert-info alert-custom-emp">
+    <div class="alert alert-info alert-custom-emp"> 
         <i class="fas fa-filter"></i>
         <div>
             <strong data-lang="active-filter">Active Filter:</strong>
@@ -146,39 +136,46 @@ $companies = $db->query("
     <?php endif; ?>
 
     <!-- Statistics Cards - Overall -->
-    <div class="stats-section-title">
-        <h4><span data-lang="overall-statistics">Overall Statistics</span></h4>
-    </div>
+<div class="stats-section-title">
+    <h4><span data-lang="overall-statistics">Overall Statistics</span></h4>
 </div>
-    <div class="stats-grid-emp">
-        <div class="stat-box-emp stat-active">
-        <div class="stat-box-emp stat-total">
-            <div class="stat-icon-emp">
+
+<div class="stats-grid-emp">
+
+    <div class="stat-box-emp stat-total">
+        <div class="stat-icon-emp">
             <i class="fas fa-users"></i>
         </div>
-            <div class="stat-info">
-                <div class="stat-number"><?= $total_employees ?></div>
-                <div class="stat-text">Total Employee</div>
-            </div>
-            <div class="stat-icon-emp">
-                <i class="fas fa-user-check"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-number"><?= $active_count ?></div>
-                <div class="stat-text">Active</div>
-            </div>
+
+        <div class="stat-info">
+            <div class="stat-number"><?= $total_employees ?></div>
+            <div class="stat-text">Total Employee</div>
+        </div>
+    </div>
+
+    <div class="stat-box-emp stat-active">
+        <div class="stat-icon-emp">
+            <i class="fas fa-user-check"></i>
         </div>
 
-        <div class="stat-box-emp stat-resigned">
-            <div class="stat-icon-emp">
-                <i class="fas fa-user-times"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-number"><?= $resigned_count ?></div>
-                <div class="stat-text">Resigned</div>
-            </div>
-            </div>
-            <div class="stat-box-emp stat-inactive">
+        <div class="stat-info">
+            <div class="stat-number"><?= $active_count ?></div>
+            <div class="stat-text">Active</div>
+        </div>
+    </div>
+
+    <div class="stat-box-emp stat-resigned">
+        <div class="stat-icon-emp">
+            <i class="fas fa-user-times"></i>
+        </div>
+
+        <div class="stat-info">
+            <div class="stat-number"><?= $resigned_count ?></div>
+            <div class="stat-text">Resigned</div>
+        </div>
+    </div>
+
+    <div class="stat-box-emp stat-inactive">
         <div class="stat-icon-emp">
             <i class="fas fa-user-slash"></i>
         </div>
@@ -187,8 +184,8 @@ $companies = $db->query("
             <div class="stat-number"><?= $inactive_count ?></div>
             <div class="stat-text">Inactive</div>
         </div>
-        </div>
     </div>
+
 </div>
     
     <!-- Employees Table -->
@@ -209,7 +206,7 @@ $companies = $db->query("
                                 <th class="col-company no-required-marker" data-lang="company">Company</th>
                                 <th class="col-competency-type no-required-marker" data-lang="competency-type">Competency Type</th>
                                 <th class="col-competency no-required-marker" data-lang="competency">Competency</th>
-                                <th class="col-status" data-lang="status">Appointment No</th>
+                                <th class="col-status">Appointment No</th>
                                 <th class="col-employee-status" data-lang="employee-status">Employee Status</th>
                                 <th class="col-action" data-lang="action">Action</th>
                             </tr>
@@ -234,10 +231,9 @@ $companies = $db->query("
                                     <span class="company-tag-emp"><?php echo $company_name; ?></span>
                                 </td>
                                 <td class="col-competency-type">
-                                    <span class="competency-type-badge competency-<?php echo $row['competency_type']; ?>">
-                                        <?= htmlspecialchars($row['competency_type']) ?>
-                                    </span>
-                                </td>
+                                    <?php $type = strtolower(str_replace(' ', '_', trim($row['competency_type'])));?>
+                                    <span class="competency-type-badge competency-<?= $type ?>"><?= htmlspecialchars($row['competency_type']) ?></span>
+                                    </td>      
                                 <td class="col-competency">
                                     <?php if (!empty($row['competency_name'])): ?>
                                         <span class="competency-tag"><?php echo htmlspecialchars($row['competency_name']); ?></span>
