@@ -149,17 +149,17 @@ $companies = $db->query("
     <div class="stats-section-title">
         <h4><span data-lang="overall-statistics">Overall Statistics</span></h4>
     </div>
+</div>
+    <div class="stats-grid-emp">
+        <div class="stat-box-emp stat-active">
         <div class="stat-box-emp stat-total">
             <div class="stat-icon-emp">
             <i class="fas fa-users"></i>
         </div>
-    <div class="stat-info">
-        <div class="stat-number"><?= $total_employees ?></div>
-        <div class="stat-text">Total Employee</div>
-    </div>
-</div>
-    <div class="stats-grid-emp">
-        <div class="stat-box-emp stat-active">
+            <div class="stat-info">
+                <div class="stat-number"><?= $total_employees ?></div>
+                <div class="stat-text">Total Employee</div>
+            </div>
             <div class="stat-icon-emp">
                 <i class="fas fa-user-check"></i>
             </div>
@@ -210,7 +210,7 @@ $companies = $db->query("
                                 <th class="col-competency-type no-required-marker" data-lang="competency-type">Competency Type</th>
                                 <th class="col-competency no-required-marker" data-lang="competency">Competency</th>
                                 <th class="col-status" data-lang="status">Appointment No</th>
-                                <th class="col-verified-by" data-lang="verified-by">Employee Status</th>
+                                <th class="col-employee-status" data-lang="employee-status">Employee Status</th>
                                 <th class="col-action" data-lang="action">Action</th>
                             </tr>
                         </thead>
@@ -521,7 +521,7 @@ $companies = $db->query("
 .col-competency-type { width: 13%; }
 .col-competency { width: 15%; }
 .col-status { width: 9%; }
-.col-verified-by { width: 10%; }
+.col-employee-status { width: 10%; }
 .col-action { width: 7%; }
 
 .code-badge {
@@ -560,11 +560,7 @@ $companies = $db->query("
 .table-emp thead th.col-competency::after {
     content: none !important;
 }
-.cert-badge {
-    font-weight: 600;
-    color: #333;
-    font-size: 12px;
-}
+
 
 .badge-status {
     display: inline-block;
@@ -618,6 +614,14 @@ $companies = $db->query("
     transform: translateY(-1px);
 }
 
+.edit-status-btn{
+    background:#F57C00;
+    color:#fff;
+}
+
+.edit-status-btn:hover{
+    background:#E65100;
+}
 /* Rejected Alert Banner */
 
 
@@ -762,21 +766,6 @@ $companies = $db->query("
     gap: 10px;
 }
 
-.badge-info {
-    background: #dbeafe;
-    color: #1d4ed8;
-    padding: 4px 10px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-}
-
-/* Other Type Input */
-.other-type-input {
-    display: none;
-}
-
-
 /* Form Hint */
 
 .text-muted {
@@ -795,12 +784,12 @@ input[readonly] {
         grid-template-columns: repeat(2, 1fr);
     }
     
-    .col-competency, .col-verified-by {
+    .col-competency, .col-employee-status {
         display: none;
     }
     
     .table-emp thead th.col-competency,
-    .table-emp thead th.col-verified-by {
+    .table-emp thead th.col-employee-status {
         display: none;
     }
 }
@@ -1007,11 +996,11 @@ input[readonly] {
         font-size: 10px;
     }
     
-    .col-status {
+    .col-employee-status {
         display: none;
     }
     
-    .table-emp thead th.col-status {
+    .table-emp thead th.col-employee-status {
         display: none;
     }
     
@@ -1114,7 +1103,7 @@ input[readonly] {
     .emp-row .col-competency-type,
     .emp-row .col-competency,
     .emp-row .col-status,
-    .emp-row .col-verified-by {
+    .emp-row .col-employee-status {
         display: none;
     }
     
