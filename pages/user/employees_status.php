@@ -8,28 +8,6 @@ $db = new Database();
 $message = '';
 $error = '';
 
-// Check if competencies table exists and get competencies by type
-$competencies_table_exists = false;
-$check_table = $db->query("SHOW TABLES LIKE 'competencies'");
-if ($check_table && $check_table->num_rows > 0) {
-    $competencies_table_exists = true;
-}
-
-$competencies_by_type = [];
-$competencies_with_id = []; // Store competencies with ID for JavaScript
-if ($competencies_table_exists) {
-    $competencies_result = $db->query("SELECT id, competency_name, position_type FROM competencies ORDER BY position_type, competency_name");
-    while ($comp = $competencies_result->fetch_assoc()) {
-        $type = $comp['position_type'];
-        if (!isset($competencies_by_type[$type])) {
-            $competencies_by_type[$type] = [];
-        }
-        $competencies_by_type[$type][] = $comp;
-        // Store all competencies with ID for JavaScript use
-        $competencies_with_id[] = $comp;
-    }
-}
-
 
 // Get filter from URL
 $filter = isset($_GET['filter']) ? $db->escapeString($_GET['filter']) : '';
@@ -37,69 +15,38 @@ $filter = isset($_GET['filter']) ? $db->escapeString($_GET['filter']) : '';
 // Build WHERE clause for filter
 $where_clause = "e.is_active = 1";
 if (!empty($filter)) {
-    $where_clause .= " AND e.verification_status = '$filter'";
+    $where_clause .= " AND e.employee_status='$filter'";
 }
 
 // Get all employees with verification status and KTT rejection awareness
 $employees = $db->query("
-    SELECT e.*,
-           CASE
-               WHEN e.verification_status = 'pending' THEN 'warning'
-               WHEN e.verification_status = 'verified' THEN 'success'
-               WHEN e.verification_status = 'rejected' THEN 'danger'
-           END as status_class,
-           u.full_name as verified_by_name,
-           e.verified_date,
-           CASE
-               WHEN e.competency_type = 'pengawas_operasional' THEN 'Pengawas Operasional'
-               WHEN e.competency_type = 'pengawas_teknis' THEN 'Pengawas Teknis'
-               WHEN e.competency_type = 'tenaga_teknis' THEN 'Tenaga Teknis'
-               ELSE e.competency_type
-           END as competency_type_display,
-           MAX(a.status) as appointment_status,
-           MAX(a.approval_notes) as ktt_rejection_notes,
-           MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) as has_ktt_rejection,
-           CASE
-               WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 AND e.verification_status = 'pending' AND e.resubmit_date IS NOT NULL THEN 'pending'
-               WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 THEN 'rejected'
-               WHEN MAX(a.status) = 'rejected' THEN 'rejected'
-               WHEN e.verification_status = 'rejected' THEN 'rejected'
-               ELSE e.verification_status
-           END as combined_status
-    FROM employees e
-    LEFT JOIN users u ON e.verified_by = u.id
-    LEFT JOIN appointments a ON e.id = a.employee_id
-    LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
-    WHERE $where_clause
-    GROUP BY e.id
-    ORDER BY e.verification_status, e.created_at DESC
+SELECT
+    e.id,
+    e.employee_code,
+    e.full_name,
+    e.contractor_company,
+    e.position,
+    e.competency_type,
+    e.competency_name,
+    e.employee_status,
+    e.resign_date,
+
+    a.appointment_number,
+    a.appointment_date
+
+FROM employees e
+
+LEFT JOIN appointments a
+ON e.id=a.employee_id
+
+WHERE
+$where_clause
+
+GROUP BY e.id
+
+ORDER BY e.full_name ASC
 ");
 
-// Get certifications for dropdown
-$certifications = $db->query("SELECT * FROM certifications ORDER BY cert_name");
-$certifications_data = [];
-if ($certifications && $certifications->num_rows > 0) {
-    $certifications->data_seek(0);
-    while ($cert = $certifications->fetch_assoc()) {
-        $certifications_data[$cert['id']] = $cert;
-    }
-}
-
-// Get positions grouped by position_type for competency selection
-$positions = $db->query("SELECT * FROM positions ORDER BY position_type, position_name");
-$positions_by_type = [];
-if ($positions && $positions->num_rows > 0) {
-    while ($pos = $positions->fetch_assoc()) {
-        $type = $pos['position_type'];
-        if (!isset($positions_by_type[$type])) {
-            $positions_by_type[$type] = [];
-        }
-        $positions_by_type[$type][] = $pos;
-    }
-}
-
-// Get supervision areas from database
-$supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_name");
 
 require_once '../../includes/header.php';
 
@@ -112,12 +59,33 @@ $companies = $db->query("
 ");
 
 // Get statistics
-$total_employees = $employees->num_rows;
-$pending_verification = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
-// Count only verified/rejected by current logged-in admin
-$current_user_id = $_SESSION['user_id'];
-$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'verified' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
-$rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'rejected' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
+$total_employees =
+$db->query("
+SELECT COUNT(*) total
+FROM employees
+WHERE is_active=1
+")->fetch_assoc()['total'];
+
+$active_count =
+$db->query("
+SELECT COUNT(*) total
+FROM employees
+WHERE employee_status='active'
+")->fetch_assoc()['total'];
+
+$resigned_count =
+$db->query("
+SELECT COUNT(*) total
+FROM employees
+WHERE employee_status='resigned'
+")->fetch_assoc()['total'];
+
+$inactive_count =
+$db->query("
+SELECT COUNT(*) total
+FROM employees
+WHERE is_active=0
+")->fetch_assoc()['total'];
 
 // Get statistics per company
 $companies_stats = [];
@@ -139,23 +107,6 @@ if ($companies && $companies->num_rows > 0) {
     }
 }
 
-// Count rejected employees that need resubmission (only those created by current admin)
-$rejected_resubmit_count = $db->query("
-    SELECT COUNT(DISTINCT e.id) as count
-    FROM employees e
-    LEFT JOIN appointments a ON e.id = a.employee_id
-    LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id AND ka.action = 'reject'
-    WHERE e.is_active = 1
-    AND e.created_by = '$current_user_id'
-    AND (
-        (e.verification_status = 'rejected')
-        OR
-        (ka.id IS NOT NULL AND NOT (e.verification_status = 'pending' AND e.resubmit_date IS NOT NULL))
-        OR
-        (a.status = 'rejected' AND NOT (e.verification_status = 'pending' AND e.resubmit_date IS NOT NULL))
-    )
-")->fetch_assoc()['count'];
-
 // Reset companies pointer for filter dropdown
 $companies = $db->query("
     SELECT DISTINCT contractor_company
@@ -176,16 +127,6 @@ $companies = $db->query("
             <i class="fas fa-plus-circle"></i> <span data-lang="new-request">New Request</span>
         </a>
     </div>
-    
-    <?php if ($rejected_resubmit_count > 0): ?>
-    <div class="alert alert-warning alert-custom-emp alert-resubmit-emp">
-        <i class="fas fa-exclamation-triangle"></i>
-        <div>
-            <strong data-lang="data-rejected">Data Ditolak!</strong>
-            <p><span data-lang="rejected-employees-message-1">Terdapat</span> <strong><?php echo $rejected_resubmit_count; ?></strong> <span data-lang="rejected-employees-message-2">data karyawan yang ditolak dan perlu diperbaiki. Klik tombol</span> <strong>"Resubmit"</strong> <span data-lang="rejected-employees-message-3">pada kolom aksi untuk mengupload koreksi data.</span></p>
-        </div>
-    </div>
-    <?php endif; ?>
 
     <?php if (!empty($filter)): ?>
     <div class="alert alert-info alert-custom-emp">
@@ -241,30 +182,8 @@ $companies = $db->query("
                 <div class="stat-text" data-lang="total-employees">Total Employees</div>
             </div>
         </div>
-
-        <div class="stat-box-emp stat-pending">
-            <div class="stat-icon-emp"><i class="fas fa-hourglass-half"></i></div>
-            <div class="stat-info">
-                <div class="stat-number"><?php echo $pending_verification; ?></div>
-                <div class="stat-text" data-lang="pending">Pending</div>
-            </div>
         </div>
 
-        <div class="stat-box-emp stat-verified">
-            <div class="stat-icon-emp"><i class="fas fa-check-circle"></i></div>
-            <div class="stat-info">
-                <div class="stat-number"><?php echo $verified_count; ?></div>
-                <div class="stat-text" data-lang="accept">Accept</div>
-            </div>
-        </div>
-
-        <div class="stat-box-emp stat-rejected">
-            <div class="stat-icon-emp"><i class="fas fa-times-circle"></i></div>
-            <div class="stat-info">
-                <div class="stat-number"><?php echo $rejected_count; ?></div>
-                <div class="stat-text" data-lang="reject">Reject</div>
-            </div>
-        </div>
     </div>
     
     <!-- Employees Table -->
@@ -375,10 +294,7 @@ $companies = $db->query("
 
 
 <script>
-const competenciesData = <?php echo json_encode($competencies_by_type); ?>;
 const competenciesTableExists = <?php echo json_encode($competencies_table_exists); ?>;
-const certificationsData = <?php echo json_encode($certifications_data); ?>;
-const positionsData = <?php echo json_encode($positions_by_type); ?>;
 const REQUIRES_COMPETENCY = ['pengawas_teknis', 'tenaga_teknis'];
 
 // Store POST values for restoring after error
