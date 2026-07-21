@@ -248,7 +248,7 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/user/employees_resign.php" class="<?php echo $current_page == 'employees_resign.php' ? 'active' : ''; ?>">
+                        <a href="<?php echo BASE_URL; ?>/pages/user/employees_status.php" class="<?php echo $current_page == 'employees_status.php' ? 'active' : ''; ?>">
                             <i class="fas fa-id-card"></i> <span data-lang="employee-status">Status Employee</span>
                         </a>
                     </li>
@@ -281,7 +281,7 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/dept/employees_resign.php" class="<?php echo $current_page == 'employees_resign.php' ? 'active' : ''; ?>">
+                        <a href="<?php echo BASE_URL; ?>/pages/dept/employees_status.php" class="<?php echo $current_page == 'employees_status.php' ? 'active' : ''; ?>">
                             <i class="fas fa-id-card"></i> <span data-lang="employee-status">Status Employee</span>
                         </a>
                     </li>
@@ -336,7 +336,7 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <li>
-                        <a href="<?php echo BASE_URL; ?>/pages/admin/employees_resign.php" class="<?php echo $current_page == 'employees_resign.php' ? 'active' : ''; ?>">
+                        <a href="<?php echo BASE_URL; ?>/pages/admin/employees_status.php" class="<?php echo $current_page == 'employees_status.php' ? 'active' : ''; ?>">
                             <i class="fas fa-id-card"></i> <span data-lang="employee-status">Status Employee</span>
                         </a> 
                     </li>
