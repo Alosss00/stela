@@ -302,58 +302,26 @@ AND contractor_company='$company_name'
 
 
 <div class="modal fade" id="employeeStatusModal" tabindex="-1">
-
     <div class="modal-dialog modal-lg">
-
         <div class="modal-content">
-
             <div class="modal-header">
-
                 <h5 class="modal-title">
-
-                    <i class="fas fa-user-edit"></i>
-
-                    Change Employee Status
-
+                    <i class="fas fa-user-edit"></i>Change Employee Status
                 </h5>
-
-                <button
-                    type="button"
-                    class="btn-close"
-                    data-bs-dismiss="modal"></button>
-
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
 
             <div class="modal-body">
-
                 <input type="hidden" id="employee_id">
-
                 <div class="row mb-3">
-
                     <div class="col-md-6">
-
                         <label>Employee</label>
-
-                        <input
-                            type="text"
-                            id="employee_name"
-                            class="form-control"
-                            readonly>
-
+                        <input type="text" id="employee_name" class="form-control" readonly>
                     </div>
-
                     <div class="col-md-6">
-
                         <label>Company</label>
-
-                        <input
-                            type="text"
-                            id="employee_company"
-                            class="form-control"
-                            readonly>
-
+                        <input type="text" id="employee_company" class="form-control" readonly>
                     </div>
-
                 </div>
 
                 <div class="row mb-3">
