@@ -36,17 +36,16 @@ SELECT
 
 FROM employees e
 
-LEFT JOIN appointments a
-ON e.id=a.employee_id
+INNER JOIN appointments a
+    ON a.employee_id = e.id
 
 WHERE
-$where_clause
-
-GROUP BY e.id
+    $where_clause
+    AND a.status='approved'
+    AND a.is_current=1
 
 ORDER BY e.full_name ASC
 ");
-
 
 require_once '../../includes/header.php';
 
@@ -91,19 +90,18 @@ WHERE is_active=0
 $companies_stats = [];
 if ($companies && $companies->num_rows > 0) {
     $companies->data_seek(0);
-    while ($comp = $companies->fetch_assoc()) {
-        $company_name = $comp['contractor_company'];
-        $stats = $db->query("
-            SELECT 
-                COUNT(*) as total,
-                SUM(CASE WHEN verification_status = 'pending' THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN verification_status = 'verified' THEN 1 ELSE 0 END) as verified,
-                SUM(CASE WHEN verification_status = 'rejected' THEN 1 ELSE 0 END) as rejected
-            FROM employees 
-            WHERE contractor_company = '" . $db->escapeString($company_name) . "' AND is_active = 1
+    while($comp=$companies->fetch_assoc()){
+        $company_name=$comp['contractor_company'];
+        $stats=$db->query("
+        SELECT
+        COUNT(*) total,
+        SUM(employee_status='active') active,
+        SUM(employee_status='resign') resign
+        FROM employees
+        WHERE contractor_company='".$db->escapeString($company_name)."'
+        AND is_active=1
         ")->fetch_assoc();
-        
-        $companies_stats[$company_name] = $stats;
+        $companies_stats[$company_name]=$stats;
     }
 }
 
@@ -118,15 +116,12 @@ $companies = $db->query("
 
 <div class="employees-admin-container">
     <!-- Page Header -->
-    <div class="page-header-emp-admin">
-        <div class="header-left">
-            <h2><i class="fas fa-user-check"></i>Employee Status</h2>
-            p>Manage Active and Resigned Employees</p>
-        </div>
-        <a href="add_employee.php" class="btn btn-primary btn-lg-emp">
-            <i class="fas fa-plus-circle"></i> <span data-lang="new-request">New Request</span>
-        </a>
+    <<div class="page-header-emp-admin">
+    <div class="header-left">
+        <h2><i class="fas fa-user-clock"></i>Employee Status</h2>
+        <p>Manage Active and Resigned Employees</p>
     </div>
+</div>
 
     <?php if (!empty($filter)): ?>
     <div class="alert alert-info alert-custom-emp">
@@ -136,15 +131,14 @@ $companies = $db->query("
             <p><span data-lang="displaying-employees-status">Displaying employees with status:</span> <strong>
                 <?php
                 $filter_labels = [
-                    'pending' => 'Pending',
-                    'verified' => 'Verified',
-                    'rejected' => 'Rejected'
+                    'active' => 'Active',
+                    'resign' => 'Resigned'
                 ];
                 echo $filter_labels[$filter] ?? $filter;
                 ?>
             </strong></p>
         </div>
-        <a href="employees.php" class="btn btn-sm btn-secondary" style="margin-left: auto;">
+        <a href="employees_status.php" class="btn btn-sm btn-secondary" style="margin-left: auto;">
             <i class="fas fa-times"></i> <span data-lang="remove-filter">Remove Filter</span>
         </a>
     </div>
@@ -175,16 +169,28 @@ $companies = $db->query("
         <h4><span data-lang="overall-statistics">Overall Statistics</span></h4>
     </div>
     <div class="stats-grid-emp">
-        <div class="stat-box-emp stat-total">
-            <div class="stat-icon-emp"><i class="fas fa-users"></i></div>
+        <div class="stat-box-emp stat-active">
+            <div class="stat-icon-emp">
+                <i class="fas fa-user-check"></i>
+            </div>
             <div class="stat-info">
-                <div class="stat-number"><?php echo $total_employees; ?></div>
-                <div class="stat-text" data-lang="total-employees">Total Employees</div>
+                <div class="stat-number"><?= $active_count ?></div>
+                <div class="stat-text">Active</div>
             </div>
         </div>
-        </div>
 
-    </div>
+        <div class="stat-box-emp stat-resigned">
+            <div class="stat-icon-emp">
+                <i class="fas fa-user-times"></i>
+            </div>
+            <div class="stat-info">
+                <div class="stat-number"><?= $resigned_count ?></div>
+                <div class="stat-text">Resigned</div>
+            </div>
+            </div>
+                </div>
+
+            </div>
     
     <!-- Employees Table -->
     <div class="card-emp">
@@ -204,8 +210,8 @@ $companies = $db->query("
                                 <th class="col-company no-required-marker" data-lang="company">Company</th>
                                 <th class="col-competency-type no-required-marker" data-lang="competency-type">Competency Type</th>
                                 <th class="col-competency no-required-marker" data-lang="competency">Competency</th>
-                                <th class="col-status" data-lang="status">Status</th>
-                                <th class="col-verified-by" data-lang="verified-by">Verified By</th>
+                                <th class="col-status" data-lang="status">Appointment No</th>
+                                <th class="col-verified-by" data-lang="verified-by">Employee Status</th>
                                 <th class="col-action" data-lang="action">Action</th>
                             </tr>
                         </thead>
@@ -240,18 +246,14 @@ $companies = $db->query("
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td class="col-status">
+                                <td>
                                     <?php
-                                    $final_status = $row['combined_status'] ?? $row['verification_status'];
-                                    $final_class = $row['status_class'];
-                                    if ($final_status == 'rejected') $final_class = 'danger';
+                                    if($row['employee_status']=="active"){
+                                        echo '<span class="badge-status badge-success">ACTIVE</span>';
+                                    }else{
+                                        echo '<span class="badge-status badge-danger">RESIGNED</span>';
+                                         }
                                     ?>
-                                    <span class="badge-status badge-<?php echo $final_class; ?>">
-                                        <?php echo strtoupper($final_status); ?>
-                                    </span>
-                                    <?php if ($final_status == 'rejected' && !empty($row['ktt_rejection_notes'])): ?>
-                                    <br><small class="text-muted">Ditolak oleh KTT</small>
-                                    <?php endif; ?>
                                 </td>
                                 <td class="col-verified-by">
                                     <?php 
@@ -265,19 +267,14 @@ $companies = $db->query("
                                     }
                                     ?>
                                 </td>
-                                <td class="col-action">
+                                <td>
                                     <div class="action-buttons-emp">
-                                        <a href="verify_employee.php?id=<?php echo $row['id']; ?>" class="btn-action-emp open-btn" title="Open" data-lang-title="open">
-                                            <i class="fas fa-folder-open"></i>
-                                        </a>
-                                        <?php if ($final_status == 'rejected' && isset($row['created_by']) && $row['created_by'] == $_SESSION['user_id']): ?>
-                                        <a href="resubmit_employee.php?id=<?php echo $row['id']; ?>" class="btn-action-emp resubmit-btn" title="Resubmit" data-lang-title="resubmit">
-                                            <i class="fas fa-upload"></i>
-                                        </a>
-                                        <?php endif; ?>
+                                    <button class="btn-action-emp edit-status-btn" data-id="<?= $row['id']?>" data-status="<?= $row['employee_status']?>" title="Change Status">
+                                    <i class="fas fa-user-edit"></i>
+                                    </button>
                                     </div>
                                 </td>
-                            </tr>
+                              </tr>
                             <?php endwhile; ?>
                         </tbody>
                     </table>
@@ -292,119 +289,6 @@ $companies = $db->query("
     </div>
 </div>
 
-
-<script>
-const competenciesTableExists = <?php echo json_encode($competencies_table_exists); ?>;
-const REQUIRES_COMPETENCY = ['pengawas_teknis', 'tenaga_teknis'];
-
-// Store POST values for restoring after error
-const postSubCompetency = '<?php echo isset($_POST['sub_competency']) ? addslashes($_POST['sub_competency']) : ''; ?>';
-const hasPostError = <?php echo (!empty($error) && isset($_POST['action']) && $_POST['action'] == 'add') ? 'true' : 'false'; ?>;
-
-function updateCompanyType() {
-    // No action needed - removed department population logic
-}
-
-function updateScopeOptions() {
-    // No action needed
-}
-
-function getCertificationOptions() {
-    let options = '';
-    for (const id in certificationsData) {
-        const cert = certificationsData[id];
-        const certName = cert.cert_name || cert;
-        const certIssuer = cert.cert_issuer || '';
-        options += `<option value="${id}" data-issuer="${certIssuer}">${certName}</option>`;
-    }
-    return options;
-}
-
-function setupFileUpload(area) {
-    area.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        area.classList.add('dragover');
-    });
-    area.addEventListener('dragleave', () => {
-        area.classList.remove('dragover');
-    });
-    area.addEventListener('drop', (e) => {
-        e.preventDefault();
-        area.classList.remove('dragover');
-        const input = area.querySelector('.file-input-modal');
-        input.files = e.dataTransfer.files;
-        updateFileName(area, input.files[0]);
-    });
-    
-    const input = area.querySelector('.file-input-modal');
-    input.addEventListener('change', () => {
-        updateFileName(area, input.files[0]);
-    });
-}
-
-// Initialize on page load
-document.addEventListener('DOMContentLoaded', function() {
-    // Setup initial certification item
-    const initialCertItem = document.querySelector('.certification-item');
-    if (initialCertItem) {
-        const certTypeSelect = initialCertItem.querySelector('.cert-type-select');
-        if (certTypeSelect) {
-            certTypeSelect.onchange = function() { toggleOtherType(this); };
-        }
-        
-        const certNameSelect = initialCertItem.querySelector('.cert-name-select');
-        if (certNameSelect) {
-            certNameSelect.onchange = function() { updateIssuer(this); };
-            if (certNameSelect.value) {
-                updateIssuer(certNameSelect);
-            }
-        }
-        
-        const issueDate = initialCertItem.querySelector('.issue-date');
-        if (issueDate) {
-            issueDate.onchange = function() { calculateExpiryDate(this); };
-        }
-        
-        const validityYears = initialCertItem.querySelector('.validity-years');
-        if (validityYears) {
-            validityYears.onchange = function() { calculateExpiryDate(this); };
-        }
-        
-        const noExpiryCheck = initialCertItem.querySelector('.no-expiry-check');
-        if (noExpiryCheck) {
-            noExpiryCheck.onchange = function() { toggleExpiryField(this); };
-        }
-    }
-    
-    // Setup file upload areas
-    document.querySelectorAll('.file-upload-modal').forEach(area => {
-        setupFileUpload(area);
-    });
-
-    // Trigger toggleCompetencyField if competency_type has a value on page load
-    const competencyTypeSelect = document.getElementById('addCompetencyType');
-    if (competencyTypeSelect && competencyTypeSelect.value) {
-        toggleCompetencyField();
-        // Load sub-competencies if competency_name is already selected (after POST error)
-        const competencyNameSelect = document.getElementById('addCompetencyName');
-        if (competencyNameSelect && competencyNameSelect.value) {
-            loadSubCompetencies();
-        }
-    }
-
-    // Open modal automatically if there was a POST error
-    if (hasPostError) {
-        openModal('addModal');
-    }
-});
-
-function updateFileName(area, file) {
-    if (file) {
-        area.querySelector('.file-name').textContent = file.name;
-        area.querySelector('.file-name').style.display = 'block';
-    }
-}
-</script>
 
 <style>
 .employees-admin-container {
@@ -813,40 +697,6 @@ function updateFileName(area, file) {
     font-size: 16px;
 }
 
-/* Modal */
-.modal-large-emp {
-    max-width: 900px;
-}
-
-.modal-header-emp {
-    background: #37474F;
-    color: white;
-    padding: 20px;
-    border-radius: 8px 8px 0 0;
-}
-
-.modal-header-emp h3 {
-    margin: 0;
-    font-size: 18px;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.modal-header-emp .close {
-    color: white;
-    opacity: 0.8;
-}
-
-.modal-header-emp .close:hover {
-    opacity: 1;
-}
-
-.modal-body {
-    padding: 25px;
-    max-height: 70vh;
-    overflow-y: auto;
-}
 
 .section-title-modal {
     color: #37474F;
@@ -855,73 +705,6 @@ function updateFileName(area, file) {
     border-bottom: 2px solid #e9ecef;
     font-size: 15px;
     font-weight: 600;
-}
-
-.form-row-modal {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 15px;
-    margin-bottom: 15px;
-}
-
-.form-group-modal {
-    margin-bottom: 0;
-}
-
-.form-group-modal.full-width {
-    grid-column: 1 / -1;
-    margin-bottom: 15px;
-}
-
-.form-group-modal label {
-    display: block;
-    margin-bottom: 6px;
-    font-weight: 600;
-    color: #333;
-    font-size: 13px;
-}
-
-.form-control-modal {
-    width: 100%;
-    padding: 10px 12px;
-    border: 2px solid #e9ecef;
-    border-radius: 6px;
-    font-size: 13px;
-    transition: border-color 0.3s ease;
-    font-family: inherit;
-}
-
-.form-control-modal:focus {
-    outline: none;
-    border-color: #37474F;
-}
-
-/* File Upload */
-.file-upload-modal {
-    border: 2px dashed #ddd;
-    border-radius: 8px;
-    padding: 25px;
-    text-align: center;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    position: relative;
-}
-
-.file-upload-modal:hover {
-    border-color: #37474F;
-    background: #f8f9ff;
-}
-
-.file-upload-modal.dragover {
-    border-color: #37474F;
-    background: #f0f4ff;
-}
-
-.file-upload-modal i {
-    font-size: 32px;
-    color: #37474F;
-    margin-bottom: 10px;
-    display: block;
 }
 
 .file-input-modal {
@@ -947,28 +730,6 @@ function updateFileName(area, file) {
     font-size: 12px;
     margin-top: 10px;
 }
-
-.modal-footer-modal {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    padding: 15px 25px;
-    border-top: 1px solid #e9ecef;
-}
-
-.btn-outline-primary-modal {
-    border: 2px solid #37474F;
-    color: #37474F;
-    background: white;
-    padding: 10px 16px;
-    font-weight: 600;
-    margin-bottom: 15px;
-}
-
-.btn-outline-primary-modal:hover {
-    background: #e8f7fa;
-}
-
 /* Filter Section */
 .filter-section-emp {
     padding: 20px;
@@ -1085,14 +846,6 @@ function updateFileName(area, file) {
 }
 
 /* Certification Item Styles */
-.certification-item {
-    background: #f8f9fa;
-    border: 1px solid #e9ecef;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 15px;
-}
-
 .cert-item-header {
     display: flex;
     justify-content: space-between;
@@ -1169,24 +922,6 @@ function updateFileName(area, file) {
 }
 
 /* Checkbox Label */
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    white-space: nowrap;
-    margin: 0;
-    cursor: pointer;
-    font-weight: normal;
-}
-
-.checkbox-label input {
-    cursor: pointer;
-}
-
-.checkbox-label span {
-    font-size: 13px;
-    color: #666;
-}
 
 /* Other Type Input */
 .other-type-input {
@@ -1214,12 +949,6 @@ function updateFileName(area, file) {
 }
 
 /* Form Hint */
-.form-hint {
-    display: block;
-    margin-top: 5px;
-    color: #999;
-    font-size: 11px;
-}
 
 .text-muted {
     color: #999 !important;
@@ -1263,16 +992,7 @@ input[readonly] {
     .btn-lg-emp {
         width: 100%;
     }
-    
-    .modal-large-emp {
-        max-width: 95%;
-        margin: 2% auto;
-    }
-    
-    .form-row-modal {
-        grid-template-columns: 1fr;
-    }
-    
+
     .col-competency-type {
         display: none;
     }
@@ -1393,62 +1113,19 @@ input[readonly] {
         font-size: 14px;
     }
     
-    .modal-body {
-        max-height: calc(100vh - 130px);
-        padding: 12px;
-    }
-    
-    .modal-header-emp {
-        padding: 15px;
-    }
-    
-    .modal-header-emp h3 {
-        font-size: 16px;
-    }
-    
     .section-title-modal {
         font-size: 14px;
-    }
-    
-    .form-control-modal {
-        padding: 8px 10px;
-        font-size: 13px;
-    }
-    
-    .file-upload-modal {
-        padding: 15px;
-    }
-    
-    .file-upload-modal i {
-        font-size: 24px;
     }
     
     .file-text {
         font-size: 12px;
     }
     
-    .modal-footer-modal {
-        padding: 15px;
-        flex-direction: column;
-    }
-    
-    .modal-footer-modal .btn {
-        width: 100%;
-    }
-    
-    .certification-item {
-        padding: 15px;
-        margin-bottom: 10px;
-    }
-    
     .validity-input-group {
         flex-direction: column;
         align-items: stretch;
     }
-    
-    .checkbox-label {
-        margin-top: 8px;
-    }
+
     
     .table-info-emp {
         font-size: 11px;
@@ -1533,45 +1210,10 @@ input[readonly] {
         font-size: 11px;
     }
     
-    .modal-content {
-        margin: 0;
-        border-radius: 0;
-        height: 100%;
-        max-height: 100%;
-    }
-    
-    .modal-large-emp {
-        max-width: 100%;
-        margin: 0;
-    }
-    
-    .modal-body {
-        max-height: calc(100vh - 130px);
-        padding: 12px;
-    }
-    
-    .form-group-modal label {
-        font-size: 12px;
-    }
-    
-    .form-control-modal {
-        padding: 8px;
-        font-size: 12px;
-    }
-    
-    .certification-item {
-        padding: 12px;
-        margin-bottom: 10px;
-    }
-    
     .cert-item-header h5 {
         font-size: 13px;
     }
-    
-    .btn-outline-primary-modal {
-        width: 100%;
-        padding: 12px;
-    }
+
     
     .empty-state-emp {
         padding: 40px 15px;
