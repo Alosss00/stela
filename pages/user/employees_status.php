@@ -277,9 +277,10 @@ AND contractor_company='$company_name'
                                         data-company="<?= htmlspecialchars($row['contractor_company']) ?>"
                                         data-position="<?= htmlspecialchars($row['position']) ?>"
                                         data-status="<?= htmlspecialchars($row['employee_status']) ?>"
-                                        data-appointment="<?= htmlspecialchars($row['appointment_number']) ?>"
-                                        title="Change Employee Status">
+                                        data-appointment="<?= htmlspecialchars($row['appointment_number']) ?>">
+
                                         <i class="fas fa-user-edit"></i>
+
                                     </button>
                                     </div>
                                 </td>
@@ -298,6 +299,211 @@ AND contractor_company='$company_name'
     </div>
 </div>
 
+
+<div class="modal fade" id="employeeStatusModal" tabindex="-1">
+
+    <div class="modal-dialog modal-lg">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+
+                    <i class="fas fa-user-edit"></i>
+
+                    Change Employee Status
+
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal"></button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="employee_id">
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+
+                        <label>Employee</label>
+
+                        <input
+                            type="text"
+                            id="employee_name"
+                            class="form-control"
+                            readonly>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label>Company</label>
+
+                        <input
+                            type="text"
+                            id="employee_company"
+                            class="form-control"
+                            readonly>
+
+                    </div>
+
+                </div>
+
+                <div class="row mb-3">
+
+                    <div class="col-md-6">
+
+                        <label>Appointment Number</label>
+
+                        <input
+                            type="text"
+                            id="appointment_number"
+                            class="form-control"
+                            readonly>
+
+                    </div>
+
+                    <div class="col-md-6">
+
+                        <label>Current Status</label>
+
+                        <input
+                            type="text"
+                            id="current_status"
+                            class="form-control"
+                            readonly>
+
+                    </div>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>New Status</label>
+
+                    <select
+                        id="new_status"
+                        class="form-select">
+
+                        <option value="active">
+
+                            Active
+
+                        </option>
+
+                        <option value="resigned">
+
+                            Resigned
+
+                        </option>
+
+                    </select>
+
+                </div>
+
+                <div
+                    class="mb-3"
+                    id="reason_container"
+                    style="display:none;">
+
+                    <label>Resign Reason</label>
+
+                    <textarea
+                        id="resign_reason"
+                        class="form-control"
+                        rows="3"></textarea>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    class="btn btn-primary"
+                    id="saveStatusBtn">
+
+                    Save
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    document.querySelectorAll('.edit-status-btn').forEach(button => {
+
+    button.addEventListener('click', function(){
+
+        document.getElementById('employee_id').value =
+            this.dataset.id;
+
+        document.getElementById('employee_name').value =
+            this.dataset.name;
+
+        document.getElementById('employee_company').value =
+            this.dataset.company;
+
+        document.getElementById('appointment_number').value =
+            this.dataset.appointment;
+
+        document.getElementById('current_status').value =
+            this.dataset.status;
+
+        document.getElementById('new_status').value =
+            this.dataset.status;
+
+        document.getElementById('reason_container').style.display='none';
+
+        new bootstrap.Modal(
+            document.getElementById('employeeStatusModal')
+        ).show();
+
+    });
+
+});
+
+document
+.getElementById('new_status')
+.addEventListener('change',function(){
+
+    if(this.value==="resigned"){
+
+        document
+        .getElementById('reason_container')
+        .style.display='block';
+
+    }else{
+
+        document
+        .getElementById('reason_container')
+        .style.display='none';
+
+    }
+
+});
+
+    
+</script>
 
 <style>
 .employees-admin-container {
