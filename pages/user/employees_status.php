@@ -216,7 +216,7 @@ $companies = $db->query("
                                 <th class="col-company no-required-marker" data-lang="company">Company</th>
                                 <th class="col-competency-type no-required-marker" data-lang="competency-type">Competency Type</th>
                                 <th class="col-competency no-required-marker" data-lang="competency">Competency</th>
-                                <th class="col-status" data-lang="appointment-number">Appointment No</th>
+                                <th class="col-status">Appointment No</th>
                                 <th class="col-employee-status" data-lang="employee-status">Employee Status</th>
                                 <th class="col-action" data-lang="action">Action</th>
                             </tr>
