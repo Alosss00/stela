@@ -86,25 +86,6 @@ FROM employees
 WHERE is_active=0
 ")->fetch_assoc()['total'];
 
-// Get statistics per company
-$companies_stats = [];
-if ($companies && $companies->num_rows > 0) {
-    $companies->data_seek(0);
-    while($comp=$companies->fetch_assoc()){
-        $company_name=$comp['contractor_company'];
-        $stats=$db->query("
-        SELECT
-        COUNT(*) total,
-        SUM(employee_status='active') active,
-        SUM(employee_status='resign') resign
-        FROM employees
-        WHERE contractor_company='".$db->escapeString($company_name)."'
-        AND is_active=1
-        ")->fetch_assoc();
-        $companies_stats[$company_name]=$stats;
-    }
-}
-
 // Reset companies pointer for filter dropdown
 $companies = $db->query("
     SELECT DISTINCT contractor_company
@@ -132,7 +113,7 @@ $companies = $db->query("
                 <?php
                 $filter_labels = [
                     'active' => 'Active',
-                    'resign' => 'Resigned'
+                    'resigned' => 'Resigned'
                 ];
                 echo $filter_labels[$filter] ?? $filter;
                 ?>
@@ -168,6 +149,15 @@ $companies = $db->query("
     <div class="stats-section-title">
         <h4><span data-lang="overall-statistics">Overall Statistics</span></h4>
     </div>
+        <div class="stat-box-emp stat-total">
+            <div class="stat-icon-emp">
+            <i class="fas fa-users"></i>
+        </div>
+    <div class="stat-info">
+        <div class="stat-number"><?= $total_employees ?></div>
+        <div class="stat-text">Total Employee</div>
+    </div>
+</div>
     <div class="stats-grid-emp">
         <div class="stat-box-emp stat-active">
             <div class="stat-icon-emp">
@@ -188,9 +178,18 @@ $companies = $db->query("
                 <div class="stat-text">Resigned</div>
             </div>
             </div>
-                </div>
+            <div class="stat-box-emp stat-inactive">
+        <div class="stat-icon-emp">
+            <i class="fas fa-user-slash"></i>
+        </div>
 
-            </div>
+        <div class="stat-info">
+            <div class="stat-number"><?= $inactive_count ?></div>
+            <div class="stat-text">Inactive</div>
+        </div>
+        </div>
+    </div>
+</div>
     
     <!-- Employees Table -->
     <div class="card-emp">
@@ -221,7 +220,7 @@ $companies = $db->query("
                             while ($row = $employees->fetch_assoc()): 
                                 $company_name = htmlspecialchars($row['contractor_company']);
                             ?>
-                            <tr class="emp-row" data-company="<?php echo $company_name; ?>" data-status="<?= htmlspecialchars($row['employee_status']) ?>"
+                            <tr class="emp-row" data-company="<?php echo $company_name; ?>" data-status="<?= htmlspecialchars($row['employee_status']) ?>">
                                 <td class="col-code">
                                     <span class="code-badge"><?php echo htmlspecialchars($row['employee_code']); ?></span>
                                 </td>
@@ -236,7 +235,7 @@ $companies = $db->query("
                                 </td>
                                 <td class="col-competency-type">
                                     <span class="competency-type-badge competency-<?php echo $row['competency_type']; ?>">
-                                        <?php echo htmlspecialchars($row['competency_type_display'] ?? ''); ?>
+                                        <?= htmlspecialchars($row['competency_type']) ?>
                                     </span>
                                 </td>
                                 <td class="col-competency">
@@ -246,15 +245,16 @@ $companies = $db->query("
                                         <span class="text-muted">-</span>
                                     <?php endif; ?>
                                 </td>
-                                <td>
-                                    <?php
-                                    if($row['employee_status']=="active"){
-                                        echo '<span class="badge-status badge-success">ACTIVE</span>';
-                                    }else{
-                                        echo '<span class="badge-status badge-danger">RESIGNED</span>';
-                                         }
-                                    ?>
+                                <td class="col-status">
+                                    <?= htmlspecialchars($row['appointment_number']) ?>
                                 </td>
+                                <td>
+                                    <?php if($row['employee_status']=="active"): ?>
+                                    <span class="badge-status badge-success">ACTIVE</span>
+                                    <?php else: ?>
+                                    <span class="badge-status badge-danger">RESIGNED</span>
+                                    <?php endif; ?>
+                                    </td>
                                 <td>
                                     <div class="action-buttons-emp">
                                     <button class="btn-action-emp edit-status-btn" data-id="<?= $row['id']?>" data-status="<?= $row['employee_status']?>" title="Change Status">
@@ -395,10 +395,21 @@ $companies = $db->query("
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.12);
 }
 
-.stat-total { border-left-color: #37474F; }
-.stat-pending { border-left-color: #f59e0b; }
-.stat-verified { border-left-color: #2E7D32; }
-.stat-rejected { border-left-color: #ef4444; }
+.stat-total{
+    border-left-color:#37474F;
+}
+
+.stat-active{
+    border-left-color:#2E7D32;
+}
+
+.stat-resigned{
+    border-left-color:#EF5350;
+}
+
+.stat-inactive{
+    border-left-color:#607D8B;
+}
 
 .stat-icon-emp {
     font-size: 28px;
@@ -413,25 +424,20 @@ $companies = $db->query("
 
 
 /* Selaraskan warna ikon statistik dengan dashboard dan appointments */
-.stat-total .stat-icon-emp {
-    background: #37474F;
-    color: #fff;
+.stat-total .stat-icon-emp{
+    background:#37474F;
 }
-.stat-pending .stat-icon-emp {
-    background: linear-gradient(135deg, #FFD600, #FFB300); /* Kuning terang */
-    color: #F57C00;
+
+.stat-active .stat-icon-emp{
+    background:#2E7D32;
 }
-.stat-verified .stat-icon-emp {
-    background: linear-gradient(135deg, #F57C00, #FF9800); /* Orange utama */
-    color: #fff;
+
+.stat-resigned .stat-icon-emp{
+    background:#EF5350;
 }
-.stat-rejected .stat-icon-emp {
-    background: linear-gradient(135deg, #EF5350, #D32F2F); /* Merah */
-    color: #fff;
-}
-.stat-needs-review .stat-icon-emp {
-    background: linear-gradient(135deg, #2196F3, #1976D2); /* Biru */
-    color: #fff;
+
+.stat-inactive .stat-icon-emp{
+    background:#607D8B;
 }
 
 .stat-number {
@@ -546,11 +552,7 @@ $companies = $db->query("
     display: inline-block;
 }
 
-.cert-count-emp {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
+
 
 .table-emp thead th.col-position::after,
 .table-emp thead th.col-company::after,
@@ -562,19 +564,6 @@ $companies = $db->query("
     font-weight: 600;
     color: #333;
     font-size: 12px;
-}
-
-.cert-progress {
-    width: 80px;
-    height: 6px;
-    background: #e5e7eb;
-    border-radius: 3px;
-    overflow: hidden;
-}
-
-.cert-fill {
-    height: 100%;
-    background: linear-gradient(90deg, #37474F, #37474F);
 }
 
 .badge-status {
@@ -630,15 +619,6 @@ $companies = $db->query("
 }
 
 /* Rejected Alert Banner */
-.alert-resubmit-emp {
-    background: #fef3c7 !important;
-    border-left-color: #f59e0b !important;
-}
-
-.alert-resubmit-emp i {
-    color: #f59e0b !important;
-    font-size: 24px !important;
-}
 
 
 /* Empty State */
@@ -659,39 +639,6 @@ $companies = $db->query("
     font-size: 16px;
 }
 
-
-.section-title-modal {
-    color: #37474F;
-    margin: 0 0 15px 0;
-    padding-bottom: 10px;
-    border-bottom: 2px solid #e9ecef;
-    font-size: 15px;
-    font-weight: 600;
-}
-
-.file-input-modal {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-}
-
-.file-text {
-    display: block;
-    color: #666;
-    font-size: 13px;
-}
-
-.file-name {
-    display: none;
-    color: #2E7D32;
-    font-weight: 600;
-    font-size: 12px;
-    margin-top: 10px;
-}
 /* Filter Section */
 .filter-section-emp {
     padding: 20px;
@@ -808,59 +755,11 @@ $companies = $db->query("
 }
 
 /* Certification Item Styles */
-.cert-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 15px;
-    padding-bottom: 10px;
-    border-bottom: 1px solid #ddd;
-}
-
-.cert-item-header h5 {
-    margin: 0;
-    color: #333;
-    font-size: 14px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-weight: 600;
-}
-
-.cert-item-header i {
-    color: #37474F;
-}
 
 .cert-header-actions {
     display: flex;
     align-items: center;
     gap: 10px;
-}
-
-.btn-remove-cert {
-    background: #fee2e2;
-    color: #dc2626;
-    border: 2px solid #fecaca;
-    width: 32px;
-    height: 32px;
-    border-radius: 6px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: all 0.3s ease;
-}
-
-.btn-remove-cert:hover {
-    background: #dc2626;
-    color: white;
-    border-color: #dc2626;
-    transform: scale(1.05);
-}
-
-.btn-remove-cert i {
-    color: inherit;
-    font-size: 14px;
 }
 
 .badge-info {
@@ -872,43 +771,11 @@ $companies = $db->query("
     font-weight: 600;
 }
 
-/* Validity Input Group */
-.validity-input-group {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.validity-input-group input[type="number"] {
-    flex: 1;
-}
-
-/* Checkbox Label */
-
 /* Other Type Input */
 .other-type-input {
     display: none;
 }
 
-/* Other Expiry Reason */
-.other-expiry-reason {
-    display: none;
-}
-
-.other-expiry-reason textarea {
-    width: 100%;
-    padding: 10px 12px;
-    border: 2px solid #e9ecef;
-    border-radius: 6px;
-    font-size: 13px;
-    font-family: inherit;
-    resize: vertical;
-}
-
-.other-expiry-reason textarea:focus {
-    outline: none;
-    border-color: #37474F;
-}
 
 /* Form Hint */
 
@@ -1074,20 +941,6 @@ input[readonly] {
         height: 40px;
         font-size: 14px;
     }
-    
-    .section-title-modal {
-        font-size: 14px;
-    }
-    
-    .file-text {
-        font-size: 12px;
-    }
-    
-    .validity-input-group {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
     
     .table-info-emp {
         font-size: 11px;
