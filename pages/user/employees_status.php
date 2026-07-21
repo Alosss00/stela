@@ -5,6 +5,8 @@ require_once '../../includes/db.php';
 require_once '../../includes/notifications.php';
 
 $db = new Database();
+$company_name = $_SESSION['company_name'] ?? '';
+$current_department = $_SESSION['department'] ?? '';
 $message = '';
 $error = '';
 
@@ -13,9 +15,16 @@ $error = '';
 $filter = isset($_GET['filter']) ? $db->escapeString($_GET['filter']) : '';
 
 // Build WHERE clause for filter
+$company_name = $db->escapeString($company_name);
+
 $where_clause = "e.is_active = 1";
+
+if (!empty($company_name)) {
+    $where_clause .= " AND e.contractor_company = '$company_name'";
+}
+
 if (!empty($filter)) {
-    $where_clause .= " AND e.employee_status='$filter'";
+    $where_clause .= " AND e.employee_status = '$filter'";
 }
 
 // Get all employees with verification status and KTT rejection awareness
@@ -49,50 +58,46 @@ ORDER BY e.full_name ASC
 
 require_once '../../includes/header.php';
 
-// Get unique companies for filter (moved here before statistics calculation)
-$companies = $db->query("
-    SELECT DISTINCT contractor_company
-    FROM employees
-    WHERE is_active = 1
-    ORDER BY contractor_company
-");
-
 // Get statistics
 $total_employees =
 $db->query("
 SELECT COUNT(*) total
 FROM employees
-WHERE is_active=1
+WHERE
+is_active=1
+AND contractor_company='$company_name'
 ")->fetch_assoc()['total'];
 
 $active_count =
 $db->query("
 SELECT COUNT(*) total
 FROM employees
-WHERE employee_status='active'
+WHERE
+is_active=1
+AND employee_status='active'
+AND contractor_company='$company_name'
 ")->fetch_assoc()['total'];
+
 
 $resigned_count =
 $db->query("
 SELECT COUNT(*) total
 FROM employees
-WHERE employee_status='resigned'
+WHERE
+is_active=1
+AND employee_status='resigned'
+AND contractor_company='$company_name'
 ")->fetch_assoc()['total'];
 
 $inactive_count =
 $db->query("
 SELECT COUNT(*) total
 FROM employees
-WHERE is_active=0
+WHERE
+is_active=0
+AND contractor_company='$company_name'
 ")->fetch_assoc()['total'];
 
-// Reset companies pointer for filter dropdown
-$companies = $db->query("
-    SELECT DISTINCT contractor_company
-    FROM employees
-    WHERE is_active = 1
-    ORDER BY contractor_company
-");
 ?>
 
 <div class="employees-admin-container">
@@ -225,7 +230,7 @@ $companies = $db->query("
                             <?php 
                             $employees->data_seek(0);
                             while ($row = $employees->fetch_assoc()): 
-                                $company_name = htmlspecialchars($row['contractor_company']);
+                               $user_company = $_SESSION['company_name'] ?? '';
                             ?>
                             <tr class="emp-row" data-company="<?php echo $company_name; ?>" data-status="<?= htmlspecialchars($row['employee_status']) ?>">
                                 <td class="col-code">
