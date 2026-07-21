@@ -146,39 +146,46 @@ $companies = $db->query("
     <?php endif; ?>
 
     <!-- Statistics Cards - Overall -->
-    <div class="stats-section-title">
-        <h4><span data-lang="overall-statistics">Overall Statistics</span></h4>
-    </div>
+<div class="stats-section-title">
+    <h4><span data-lang="overall-statistics">Overall Statistics</span></h4>
 </div>
-    <div class="stats-grid-emp">
-        <div class="stat-box-emp stat-active">
-        <div class="stat-box-emp stat-total">
-            <div class="stat-icon-emp">
+
+<div class="stats-grid-emp">
+
+    <div class="stat-box-emp stat-total">
+        <div class="stat-icon-emp">
             <i class="fas fa-users"></i>
         </div>
-            <div class="stat-info">
-                <div class="stat-number"><?= $total_employees ?></div>
-                <div class="stat-text">Total Employee</div>
-            </div>
-            <div class="stat-icon-emp">
-                <i class="fas fa-user-check"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-number"><?= $active_count ?></div>
-                <div class="stat-text">Active</div>
-            </div>
+
+        <div class="stat-info">
+            <div class="stat-number"><?= $total_employees ?></div>
+            <div class="stat-text">Total Employee</div>
+        </div>
+    </div>
+
+    <div class="stat-box-emp stat-active">
+        <div class="stat-icon-emp">
+            <i class="fas fa-user-check"></i>
         </div>
 
-        <div class="stat-box-emp stat-resigned">
-            <div class="stat-icon-emp">
-                <i class="fas fa-user-times"></i>
-            </div>
-            <div class="stat-info">
-                <div class="stat-number"><?= $resigned_count ?></div>
-                <div class="stat-text">Resigned</div>
-            </div>
-            </div>
-            <div class="stat-box-emp stat-inactive">
+        <div class="stat-info">
+            <div class="stat-number"><?= $active_count ?></div>
+            <div class="stat-text">Active</div>
+        </div>
+    </div>
+
+    <div class="stat-box-emp stat-resigned">
+        <div class="stat-icon-emp">
+            <i class="fas fa-user-times"></i>
+        </div>
+
+        <div class="stat-info">
+            <div class="stat-number"><?= $resigned_count ?></div>
+            <div class="stat-text">Resigned</div>
+        </div>
+    </div>
+
+    <div class="stat-box-emp stat-inactive">
         <div class="stat-icon-emp">
             <i class="fas fa-user-slash"></i>
         </div>
@@ -187,8 +194,8 @@ $companies = $db->query("
             <div class="stat-number"><?= $inactive_count ?></div>
             <div class="stat-text">Inactive</div>
         </div>
-        </div>
     </div>
+
 </div>
     
     <!-- Employees Table -->
@@ -234,10 +241,9 @@ $companies = $db->query("
                                     <span class="company-tag-emp"><?php echo $company_name; ?></span>
                                 </td>
                                 <td class="col-competency-type">
-                                    <span class="competency-type-badge competency-<?php echo $row['competency_type']; ?>">
-                                        <?= htmlspecialchars($row['competency_type']) ?>
-                                    </span>
-                                </td>
+                                    <?php $type = strtolower(str_replace(' ', '_', trim($row['competency_type'])));?>
+                                    <span class="competency-type-badge competency-<?= $type ?>"><?= htmlspecialchars($row['competency_type']) ?></span>
+                                    </td>      
                                 <td class="col-competency">
                                     <?php if (!empty($row['competency_name'])): ?>
                                         <span class="competency-tag"><?php echo htmlspecialchars($row['competency_name']); ?></span>
