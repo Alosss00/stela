@@ -645,17 +645,17 @@ require_once '../../includes/header.php';
             </div>
             
             <div class="form-group">
-                <label for="cv_file" data-lang="upload-cv-optional-no-change">Upload CV<span class="text-muted">(Optional - leave empty if no changes needed)</span></label>
+                <label for="cv_file"><span data-lang="upload-cv">Upload CV</span> <span class="text-muted" data-lang="optional-leave-blank-no-change">(Optional - leave blank if no changes needed)</span></label>
                 <?php if ($employee['cv_file']): ?>
                 <div class="current-file-info">
                     <i class="fas fa-file-pdf"></i>
-                    <span>Current file: <a href="../../assets/<?php echo htmlspecialchars($employee['cv_file']); ?>" target="_blank">View CV</a></span>
+                    <span><span data-lang="current-file">Current file:</span> <a href="../../assets/<?php echo htmlspecialchars($employee['cv_file']); ?>" target="_blank" data-lang="view-cv">View CV</a></span>
                 </div>
                 <?php endif; ?>
                 <div class="file-upload-area">
                     <i class="fas fa-file-upload"></i>
-                    <input type="file" name="cv_file" id="cv_file" class="file-input" accept=".pdf,.doc,.docx">
-                    <span class="file-text" data-lang="click-drag-new-cv-file">Click or drag new CV file (PDF/DOC/DOCX, Max 5MB)</span>
+                    <input type="file" name="cv_file" id="cv_file" class="file-input" accept=".pdf">
+                    <span class="file-text" data-lang="click-or-drag-new-cv-file">Click or drag new CV file<br>(PDF, Max 5MB)</span>
                     <span class="file-name"></span>
                 </div>
             </div>
@@ -665,7 +665,7 @@ require_once '../../includes/header.php';
                 <?php if ($employee['statement_file']): ?>
                 <div class="current-file-info">
                     <i class="fas fa-file-signature"></i>
-                    <span><span data-lang="current-file">Current file:</span> <a href="../../assets/<?php echo htmlspecialchars($employee['statement_file']); ?>" target="_blank" data-lang="view-statement-letter">View Statement Letter</a></span>
+                    <span><span data-lang="current-file">Current file:</span><a href="../../assets/<?php echo htmlspecialchars($employee['statement_file']); ?>" target="_blank" data-lang="view-statement-letter">View Statement Letter</a></span>
                 </div>
                 <?php endif; ?>
                 <div class="file-upload-area">
