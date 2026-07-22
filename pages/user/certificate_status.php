@@ -48,28 +48,58 @@ function getMonitoringBadge(int $days_left): array
 
 function getWorkflowStatus(array $cert): array
 {
+    $resubmitType     = $cert['resubmit_type'] ?? null;
+    $status           = $cert['status'] ?? null;
+    $appointmentStatus = $cert['appointment_status'] ?? null;
 
-    // Sedang menunggu Admin
-    if ($cert['resubmit_type'] == 'certificate' &&
-        $cert['status'] == 'pending') {
-        return ['class'=>'pending','label'=>'WAITING REVIEWER'];
+    // Waiting Reviewer
+    if (
+        $resubmitType === 'certificate' &&
+        $status === 'pending'
+    ) {
+        return [
+            'class' => 'pending',
+            'label' => 'WAITING REVIEWER'
+        ];
     }
 
-    // Sudah diverifikasi Admin
-    if ($cert['resubmit_type'] == 'certificate' &&
-        $cert['status'] == 'verified' &&
-        $cert['appointment_status'] == 'pending') {
-        return ['class'=>'warning','label'=>'WAITING KTT'];
+    // Waiting KTT
+    if (
+        $resubmitType === 'certificate' &&
+        $status === 'verified' &&
+        in_array($appointmentStatus, ['draft', 'pending'], true)
+    ) {
+        return [
+            'class' => 'warning',
+            'label' => 'WAITING KTT'
+        ];
     }
 
-    // Workflow selesai
-    if ($cert['resubmit_type'] == 'certificate' &&
-        $cert['appointment_status'] == 'approved' &&
-        $cert['status'] == 'active') {
-        return ['class'=>'success','label'=>'ACTIVE'];
+    // Completed
+    if (
+        $resubmitType === 'certificate' &&
+        $status === 'active' &&
+        $appointmentStatus === 'approved'
+    ) {
+        return [
+            'class' => 'success',
+            'label' => 'ACTIVE'
+        ];
     }
 
-    return ['class'=>'critical','label'=>'EXPIRED'];
+    // Expired
+    if ($status === 'expired') {
+        return [
+            'class' => 'critical',
+            'label' => 'EXPIRED'
+        ];
+    }
+
+    // Default
+    return [
+        'class' => 'secondary',
+        'label' => strtoupper($status ?? 'UNKNOWN')
+    ];
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
