@@ -645,7 +645,7 @@ require_once '../../includes/header.php';
             </div>
             
             <div class="form-group">
-                <label for="cv_file" data-lang="upload-cv-optional-no-change">Upload CV <span class="text-muted">(Optional - leave empty if no changes needed)</span></label>
+                <label for="cv_file" data-lang="upload-cv-optional-no-change">Upload CV<span class="text-muted">(Optional - leave empty if no changes needed)</span></label>
                 <?php if ($employee['cv_file']): ?>
                 <div class="current-file-info">
                     <i class="fas fa-file-pdf"></i>
@@ -660,20 +660,22 @@ require_once '../../includes/header.php';
                 </div>
             </div>
 
-            <div class="form-group">
-                <label for="signature_file" data-lang="upload-signature-optional">Upload Signature <span class="text-muted">(Optional)</span></label>
-                <?php if ($employee['signature_file']): ?>
+           <div class="form-group">
+                <label for="statement_file"><span data-lang="upload-statement-letter">Upload Statement Letter</span> <span class="text-muted" data-lang="optional-leave-blank-no-change">(Optional - leave blank if no changes needed)</span></label>
+                <?php if ($employee['statement_file']): ?>
                 <div class="current-file-info">
-                    <i class="fas fa-signature"></i>
-                    <span>Current file: <a href="../../assets/<?php echo htmlspecialchars($employee['signature_file']); ?>" target="_blank">View Signature</a></span>
+                    <i class="fas fa-file-signature"></i>
+                    <span><span data-lang="current-file">Current file:</span> <a href="../../assets/<?php echo htmlspecialchars($employee['statement_file']); ?>" target="_blank" data-lang="view-statement-letter">View Statement Letter</a></span>
                 </div>
                 <?php endif; ?>
                 <div class="file-upload-area">
-                    <i class="fas fa-signature"></i>
-                    <input type="file" name="signature_file" id="signature_file" class="file-input" accept=".png,.jpg,.jpeg">
-                    <span class="file-text" data-lang="click-drag-new-signature-file">Click or drag new signature file (PNG/JPG, Max 2MB)</span>
+                    <i class="fas fa-file-signature"></i>
+                    <input type="file" name="statement_file" id="statement_file" class="file-input" accept=".pdf">
+                    <span class="file-text" data-lang="click-or-drag-new-statement-letter-file">Click or drag new statement letter file<br>(PDF, Max 5MB)</span>
                     <span class="file-name"></span>
                 </div>
+                <small class="form-hint"><i class="fas fa-info-circle"></i> <span data-lang="wet-signature-pdf-instruction">Statement letter must be signed with wet signature (original) and scanned in PDF format</span></small>
+            </div>
                 <small class="form-hint"><i class="fas fa-info-circle"></i> The signature will automatically appear on the appointment letter after approval</small>
             </div>
         </div>
@@ -785,13 +787,13 @@ require_once '../../includes/header.php';
                             <small class="form-hint">You can manually edit the expiry date if needed</small>
                         </div>
                         <div class="form-group col-lg-6">
-                            <label data-lang="reason-for-no-expiry-optional">Reason for No Expiry <span class="text-muted">(Optional)</span></label>
+                            <label data-lang="reason-for-no-expiry-optional">Reason for No Expiry<span class="text-muted">(Optional)</span></label>
                             <input type="text" name="expiry_reasons[]" class="form-control other-expiry-reason" style="display: none;" placeholder="Example: Lifetime Certificate" data-lang-placeholder="lifetime-certificate-example">
                         </div>
                     </div>
 
                     <div class="form-group">
-                        <label data-lang="upload-new-certificate-file-optional">Upload New Certificate File <span class="text-muted">(Optional - Leave empty if no changes needed)</span></label>
+                        <label data-lang="upload-new-certificate-file-optional">Upload New Certificate File<span class="text-muted">(Optional - Leave empty if no changes needed)</span></label>
                         <?php if ($cert['document_file']): ?>
                         <div class="current-file-info">
                             <i class="fas fa-file-pdf"></i>
