@@ -272,6 +272,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         ")->fetch_assoc();
 
                         $expiry_date = $cert_expiry['earliest_expiry'];
+                        $new_certificate = $db->query("
+                            SELECT id
+                            FROM employee_certifications
+                            WHERE employee_id = $employee_id
+                            AND verification_status='verified'
+                            ORDER BY verified_date DESC, id DESC
+                            LIMIT 1
+                        ")->fetch_assoc();
+
+                        $new_certificate_id = (int)$new_certificate['id'];
 
                         if ($expiry_date) {
 
