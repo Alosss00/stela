@@ -205,6 +205,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         throw new Exception("INSERT gagal : " . $stmt1->error);
     }
 
+    $new_certificate_id = $conn->insert_id;
+
     $stmt1->close();
 
    /*UPDATE OLD CERTIFICATE*/
