@@ -76,29 +76,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$is_superadmin) {
                                          approval_notes = '$approval_notes'
                                          WHERE id = $id";
                             $db->query($final_sql);
-                            $cert_sql = "
-                                UPDATE employee_certifications
-                                SET
-                                    status='active',
-                                    verification_status='verified'
-                                WHERE id=
-                                (
-                                    SELECT cert_id
-                                    FROM
-                                    (
-                                        SELECT MAX(id) cert_id
-                                        FROM employee_certifications
-                                        WHERE employee_id=
-                                        (
-                                            SELECT employee_id
-                                            FROM appointments
-                                            WHERE id=$id
-                                        )
-                                    ) x
-                                )
-                                ";
+                            
+                            /* UPDATE CERTIFICATE STATUS */
+                            $employee = $db->query("
+                            SELECT employee_id
+                            FROM appointments
+                            WHERE id=$id
+                            ")->fetch_assoc();
 
-                                $db->query($cert_sql);
+                            $employee_id = (int)$employee['employee_id'];
+
+                            $db->query("
+                            UPDATE employee_certifications
+                            SET
+                                status='active',
+                                verification_status='verified'
+                            WHERE id=
+                            (
+                                SELECT latest_id
+                                FROM
+                                (
+                                    SELECT MAX(id) latest_id
+                                    FROM employee_certifications
+                                    WHERE employee_id=$employee_id
+                                ) x
+                            )
+                            ");
+                        
                             $message = 'Assign letter successfully approved!';
                             // Notify admin and user/dept that both KTTs approved
                             try {
@@ -135,29 +139,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$is_superadmin) {
                                          approval_notes = '$approval_notes'
                                          WHERE id = $id";
                             $db->query($final_sql);
-                            $cert_sql = "
+
+                            /* UPDATE CERTIFICATE STATUS */
+                                $employee = $db->query("
+                                SELECT employee_id
+                                FROM appointments
+                                WHERE id=$id
+                                ")->fetch_assoc();
+
+                                $employee_id = (int)$employee['employee_id'];
+
+                                $db->query("
                                 UPDATE employee_certifications
                                 SET
                                     status='active',
                                     verification_status='verified'
                                 WHERE id=
                                 (
-                                    SELECT cert_id
+                                    SELECT latest_id
                                     FROM
                                     (
-                                        SELECT MAX(id) cert_id
+                                        SELECT MAX(id) latest_id
                                         FROM employee_certifications
-                                        WHERE employee_id=
-                                        (
-                                            SELECT employee_id
-                                            FROM appointments
-                                            WHERE id=$id
-                                        )
+                                        WHERE employee_id=$employee_id
                                     ) x
                                 )
-                                ";
-
-                                $db->query($cert_sql);
+                                ");
+                                
                             $message = 'Assign letter successfully approved!';
                             // Notify admin and user/dept that both KTTs approved
                             try {

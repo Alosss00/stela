@@ -57,29 +57,21 @@ function getWorkflowStatus(array $cert): array
             ];
 
         case 'verified':
-
-            if($cert['appointment_status']=='approved'){
-                return [
-                    'class'=>'success',
-                    'label'=>'ACTIVE'
-                ];
-            }
-
             return [
                 'class'=>'warning',
                 'label'=>'WAITING KTT'
-            ];
-
-        case 'expired':
-            return [
-                'class'=>'critical',
-                'label'=>'EXPIRED'
             ];
 
         case 'active':
             return [
                 'class'=>'success',
                 'label'=>'ACTIVE'
+            ];
+
+        case 'expired':
+            return [
+                'class'=>'critical',
+                'label'=>'EXPIRED'
             ];
 
         default:
@@ -237,76 +229,79 @@ $warning_count = 0;
 $info_count = 0;
 
 $monitor_sql = "
-SELECT
-       ec.id as employee_certification_id,
-       ec.employee_id,
-       ec.certification_id,
-       ec.cert_number,
-       ec.cert_issuer,
-       ec.issue_date,
-       ec.expiry_date,
-       ec.document_file,
-       ec.status,
-       ec.verification_status,
-       ec.updated_at,
-       e.full_name,
-       e.employee_code,
-       e.position,
-       e.department,
-       e.contractor_company,
-       e.is_active,
-	   e.resubmit_type,
-       c.cert_name,
-       c.cert_type,
-       c.issuing_authority,
-       a.id as appointment_id,
-       a.status as appointment_status,
-       a.ktt_msm_status,
-       a.ktt_ttn_status,
-       DATEDIFF(ec.expiry_date, CURDATE()) as days_left
 
-FROM
+SELECT
+
+    ec.id AS employee_certification_id,
+    ec.employee_id,
+    ec.certification_id,
+    ec.cert_number,
+    ec.cert_issuer,
+    ec.issue_date,
+    ec.expiry_date,
+    ec.document_file,
+    ec.status,
+    ec.verification_status,
+
+    e.full_name,
+    e.employee_code,
+    e.position,
+    e.department,
+    e.contractor_company,
+    e.is_active,
+
+    c.cert_name,
+    c.cert_type,
+
+    a.id AS appointment_id,
+    a.status AS appointment_status,
+
+    DATEDIFF(ec.expiry_date,CURDATE()) days_left
+
+FROM employee_certifications ec
+
+INNER JOIN
 (
-    SELECT *
-    FROM employee_certifications ec1
-    WHERE ec1.id =
-    (
-        SELECT MAX(ec2.id)
-        FROM employee_certifications ec2
-        WHERE ec2.employee_id = ec1.employee_id
-    )
-) ec
+    SELECT
+        employee_id,
+        certification_id,
+        MAX(id) newest_id
+    FROM employee_certifications
+    GROUP BY
+        employee_id,
+        certification_id
+) latest
+
+ON latest.newest_id=ec.id
 
 JOIN employees e
-ON ec.employee_id=e.id
+ON e.id=ec.employee_id
 
 LEFT JOIN certifications c
-ON ec.certification_id=c.id
+ON c.id=ec.certification_id
 
 LEFT JOIN appointments a
 ON a.id=
 (
-    SELECT MAX(ap.id)
+    SELECT MAX(id)
     FROM appointments ap
     WHERE ap.employee_id=e.id
 )
 
-WHERE e.is_active = 1
+WHERE
 
-AND ec.status <> 'replaced'
+e.is_active=1
 
-AND
-(
-      ec.status='expired'
+AND ec.status<>'replaced'
 
-   OR ec.status='pending'
-
-   OR ec.status='verified'
-)
+AND ec.status<>'active'
 
 ".$scope_sql."
 
-ORDER BY ec.updated_at DESC
+ORDER BY
+
+ec.expiry_date ASC
+
 ";
 
 $monitor_stmt = $db->prepare($monitor_sql);
