@@ -239,7 +239,7 @@ $monitor_sql = "
 
 SELECT
 
-    ec.id,
+    ec.id AS employee_certification_id,
     ec.employee_id,
     ec.certification_id,
     ec.cert_number,
