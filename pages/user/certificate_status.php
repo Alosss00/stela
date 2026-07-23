@@ -48,38 +48,45 @@ function getMonitoringBadge(int $days_left): array
 
 function getWorkflowStatus(array $cert): array
 {
+
     switch ($cert['status']) {
 
         case 'pending':
+
             return [
-                'class'=>'pending',
-                'label'=>'WAITING REVIEWER'
+                'class' => 'pending',
+                'label' => 'WAITING REVIEWER'
             ];
 
         case 'verified':
+
             return [
-                'class'=>'warning',
-                'label'=>'WAITING KTT'
+                'class' => 'warning',
+                'label' => 'WAITING KTT'
             ];
 
         case 'active':
+
             return [
-                'class'=>'success',
-                'label'=>'ACTIVE'
+                'class' => 'success',
+                'label' => 'ACTIVE'
             ];
 
         case 'expired':
+
             return [
-                'class'=>'critical',
-                'label'=>'EXPIRED'
+                'class' => 'critical',
+                'label' => 'EXPIRED'
             ];
 
         default:
+
             return [
-                'class'=>'secondary',
-                'label'=>'UNKNOWN'
+                'class' => 'secondary',
+                'label' => strtoupper($cert['status'])
             ];
     }
+
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
@@ -232,31 +239,33 @@ $monitor_sql = "
 
 SELECT
 
-    ec.id AS employee_certification_id,
+    ec.id,
     ec.employee_id,
     ec.certification_id,
     ec.cert_number,
+    ec.cert_type,
     ec.cert_issuer,
     ec.issue_date,
     ec.expiry_date,
     ec.document_file,
     ec.status,
     ec.verification_status,
+    ec.notes,
 
-    e.full_name,
     e.employee_code,
+    e.full_name,
     e.position,
     e.department,
     e.contractor_company,
-    e.is_active,
+    e.resubmit_type,
 
     c.cert_name,
-    c.cert_type,
 
     a.id AS appointment_id,
+    a.appointment_number,
     a.status AS appointment_status,
 
-    DATEDIFF(ec.expiry_date,CURDATE()) days_left
+    DATEDIFF(ec.expiry_date,CURDATE()) AS days_left
 
 FROM employee_certifications ec
 
@@ -264,43 +273,36 @@ INNER JOIN
 (
     SELECT
         employee_id,
-        certification_id,
-        MAX(id) newest_id
+        MAX(id) latest_id
     FROM employee_certifications
-    GROUP BY
-        employee_id,
-        certification_id
+    GROUP BY employee_id
 ) latest
 
-ON latest.newest_id=ec.id
+ON latest.latest_id = ec.id
 
-JOIN employees e
-ON e.id=ec.employee_id
+INNER JOIN employees e
+ON e.id = ec.employee_id
 
 LEFT JOIN certifications c
-ON c.id=ec.certification_id
+ON c.id = ec.certification_id
 
 LEFT JOIN appointments a
-ON a.id=
+ON a.id =
 (
-    SELECT MAX(id)
+    SELECT MAX(ap.id)
     FROM appointments ap
-    WHERE ap.employee_id=e.id
+    WHERE ap.employee_id = e.id
 )
 
 WHERE
 
-e.is_active=1
-
-AND ec.status<>'replaced'
-
-AND ec.status<>'active'
+e.is_active = 1
 
 ".$scope_sql."
 
 ORDER BY
 
-ec.expiry_date ASC
+ec.updated_at DESC
 
 ";
 
