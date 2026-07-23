@@ -48,38 +48,82 @@ function getMonitoringBadge(int $days_left): array
 
 function getWorkflowStatus(array $cert): array
 {
-    switch ($cert['status']) {
+    $status = $cert['status'] ?? '';
+    $verification = $cert['verification_status'] ?? '';
+    $appointment = $cert['appointment_status'] ?? '';
 
-        case 'expired':
-            return [
-                'class'=>'critical',
-                'label'=>'EXPIRED'
-            ];
+    /*
+    |--------------------------------------------------------------------------
+    | EXPIRED
+    |--------------------------------------------------------------------------
+    */
 
-        case 'pending':
-            return [
-                'class'=>'pending',
-                'label'=>'WAITING REVIEWER'
-            ];
-
-        case 'verified':
-            return [
-                'class'=>'warning',
-                'label'=>'WAITING KTT'
-            ];
-
-        case 'active':
-            return [
-                'class'=>'success',
-                'label'=>'ACTIVE'
-            ];
-
-        default:
-            return [
-                'class'=>'secondary',
-                'label'=>'UNKNOWN'
-            ];
+    if ($status === 'expired') {
+        return [
+            'class' => 'critical',
+            'label' => 'EXPIRED'
+        ];
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | WAITING REVIEWER
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $status === 'pending' &&
+        $verification === 'pending'
+    ) {
+        return [
+            'class' => 'pending',
+            'label' => 'WAITING REVIEWER'
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | WAITING KTT
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $status === 'pending' &&
+        $verification === 'verified'
+    ) {
+        return [
+            'class' => 'warning',
+            'label' => 'WAITING KTT'
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ACTIVE
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $status === 'active' &&
+        $verification === 'verified' &&
+        $appointment === 'approved'
+    ) {
+        return [
+            'class' => 'success',
+            'label' => 'ACTIVE'
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DEFAULT
+    |--------------------------------------------------------------------------
+    */
+
+    return [
+        'class' => 'secondary',
+        'label' => strtoupper($status)
+    ];
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
@@ -494,42 +538,41 @@ require_once '../../includes/header.php';
 										<?php endif; ?>
 									</td>
 										<td>
-											<?php
-											// ACTIVE
-											if ($cert['status'] == 'active'
-												&& $cert['appointment_status'] == 'approved') {
-												echo '<span class="badge badge-success">Completed</span>';
+											<?php if ($cert['status'] == 'expired') : ?>
+											<a href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>"
+											class="btn btn-warning btn-sm">
+												<i class="fas fa-upload"></i>
+												Resubmit
+											</a>
 
-											}
+										<?php elseif (
+											$cert['status'] == 'pending' &&
+											$cert['verification_status'] == 'pending'
+										) : ?>
 
-											// WAITING REVIEWER
-											elseif ($cert['status'] == 'pending') {
-												echo '<span class="badge badge-secondary">
-														Waiting Reviewer
-													</span>';
+											<span class="badge badge-warning">
+												Waiting Reviewer
+											</span>
 
-											}
+										<?php elseif (
+											$cert['status'] == 'pending' &&
+											$cert['verification_status'] == 'verified'
+										) : ?>
 
-											// WAITING KTT
-											elseif (
-												$cert['status'] == 'verified'
-												&&
-												in_array($cert['appointment_status'],['draft','pending'])
-											) {
-												echo '<span class="badge badge-warning">
-														Waiting KTT
-													</span>';
+											<span class="badge badge-info">
+												Waiting KTT
+											</span>
 
-											}
+										<?php elseif (
+											$cert['status'] == 'active' &&
+											$cert['appointment_status'] == 'approved'
+										) : ?>
 
-											// EXPIRED
-											elseif ($cert['status'] === 'expired') {
-											?>
-											<a class="btn btn-primary btn-sm" href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id'];?>">
-											<i class="fas fa-upload"></i>Resubmit</a>
-										<?php
-												}
-											?>
+											<span class="badge badge-success">
+												Completed
+											</span>
+
+										<?php endif; ?>
 											</td>
 								</tr>
 							<?php endforeach; ?>
