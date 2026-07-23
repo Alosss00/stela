@@ -207,24 +207,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
 
     $stmt1->close();
 
-    /* Sertifikat lama menjadi history */
+   /*UPDATE OLD CERTIFICATE*/
 
-        $stmtOld = $conn->prepare("
-        UPDATE employee_certifications
-        SET status='replaced'
-        WHERE id=?
-        ");
+    $stmtOld = $conn->prepare("
+    UPDATE employee_certifications
+    SET
+        status='replaced'
+    WHERE id=?
+    ");
 
-        $stmtOld->bind_param(
-            "i",
-            $certificate['id']
-        );
+    $stmtOld->bind_param(
+        "i",
+        $certificate['id']
+    );
 
-        if(!$stmtOld->execute()){
-            throw new Exception($stmtOld->error);
-        }
+    if(!$stmtOld->execute()){
+        throw new Exception($stmtOld->error);
+    }
 
-$stmtOld->close();
+    $stmtOld->close();
 
 
     /*
