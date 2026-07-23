@@ -120,7 +120,7 @@ $recent_appointments = $db->query("
                 <p style="margin: 0 0 15px 0; color: #721c24; font-size: 14px;">
                     <span data-lang="there-are">There are</span> <strong><?php echo $expiring_certs_count; ?></strong> <span data-lang="expiring-certificate-message-suffix">employees with certificates expiring within = 2 months. Please check and update their certificates.</span>
                 </p>
-                <a href="reports.php#certificate-expiration" style="color: #dc3545; font-size: 13px; font-weight: 600; text-decoration: none;">
+                <a href="certificate_status.php" style="color: #dc3545; font-size: 13px; font-weight: 600; text-decoration: none;">
                     <i class="fas fa-list"></i> <span data-lang="view-certificate-details">View Certificate Details</span>
                 </a>
             </div>

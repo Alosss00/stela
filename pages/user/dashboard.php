@@ -217,7 +217,7 @@ $recent_appointments = $db->query("
                 <div class="expiring-cert-body">
                     <div class="expiring-cert-number"><?php echo $expiring_certs_count; ?></div>
                     <div class="expiring-cert-desc" data-lang="employees-expiring-certs">Employees with certificates expiring within = 2 months</div>
-                    <a href="reports.php#certificate-expiration" class="expiring-cert-action">
+                    <a href="certificate_status.php" class="expiring-cert-action">
                         <span data-lang="view-certificate-details">View Certificate Details</span>
                         <i class="fas fa-arrow-right"></i>
                     </a>
