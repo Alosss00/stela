@@ -54,13 +54,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         // Auto-verify all pending certifications when employee is verified
         if ($status == 'verified') {
             // Verify all pending certifications automatically
-            $db->query("UPDATE employee_certifications SET 
-                        verification_status = 'verified',
-                        verified_by = $verified_by,
-                        verified_date = NOW()
-                        WHERE employee_id = $employee_id 
-                        AND verification_status = 'pending'");
-        }
+            $db->query("UPDATE employee_certifications SET
+                status = 'verified',
+                verification_status = 'verified',
+                verified_by = $verified_by,
+                verified_date = NOW()
+            WHERE employee_id = $employee_id
+            AND verification_status = 'pending'");
+            }
         
         if (!$error) {
             $sql = "UPDATE employees SET 
