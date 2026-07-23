@@ -310,6 +310,10 @@ $pending = $db->query("
     ORDER BY a.created_at ASC
 ");
 
+if (!$pending) {
+    die("SQL Error: " . $db->error);
+}
+
 // Get completed decisions by current KTT user (untuk ditampilkan di section terpisah)
 $completed_decisions = $db->query("
     SELECT a.*, e.full_name as employee_name, e.employee_code, e.position, e.contractor_company,
