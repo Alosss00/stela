@@ -212,7 +212,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
     $stmtOld = $conn->prepare("
     UPDATE employee_certifications
     SET
-        status='history'
+        status='expired'
     WHERE id=?
     ");
 
