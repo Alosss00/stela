@@ -48,45 +48,38 @@ function getMonitoringBadge(int $days_left): array
 
 function getWorkflowStatus(array $cert): array
 {
-
     switch ($cert['status']) {
 
-        case 'pending':
-
+        case 'expired':
             return [
-                'class' => 'pending',
-                'label' => 'WAITING REVIEWER'
+                'class'=>'critical',
+                'label'=>'EXPIRED'
+            ];
+
+        case 'pending':
+            return [
+                'class'=>'pending',
+                'label'=>'WAITING REVIEWER'
             ];
 
         case 'verified':
-
             return [
-                'class' => 'warning',
-                'label' => 'WAITING KTT'
+                'class'=>'warning',
+                'label'=>'WAITING KTT'
             ];
 
         case 'active':
-
             return [
-                'class' => 'success',
-                'label' => 'ACTIVE'
-            ];
-
-        case 'expired':
-
-            return [
-                'class' => 'critical',
-                'label' => 'EXPIRED'
+                'class'=>'success',
+                'label'=>'ACTIVE'
             ];
 
         default:
-
             return [
-                'class' => 'secondary',
-                'label' => strtoupper($cert['status'])
+                'class'=>'secondary',
+                'label'=>'UNKNOWN'
             ];
     }
-
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
@@ -269,17 +262,6 @@ SELECT
 
 FROM employee_certifications ec
 
-INNER JOIN
-(
-    SELECT
-        employee_id,
-        MAX(id) latest_id
-    FROM employee_certifications
-    GROUP BY employee_id
-) latest
-
-ON latest.latest_id = ec.id
-
 INNER JOIN employees e
 ON e.id = ec.employee_id
 
@@ -296,13 +278,45 @@ ON a.id =
 
 WHERE
 
-e.is_active = 1
+ec.id =
+(
+    SELECT ec2.id
+    FROM employee_certifications ec2
+
+    WHERE ec2.employee_id = ec.employee_id
+
+    ORDER BY
+
+    FIELD
+    (
+        ec2.status,
+        'pending',
+        'verified',
+        'active',
+        'expired'
+    ),
+
+    ec2.id DESC
+
+    LIMIT 1
+)
+
+AND e.is_active = 1
 
 ".$scope_sql."
 
 ORDER BY
 
-ec.updated_at DESC
+CASE ec.status
+
+WHEN 'expired' THEN 1
+WHEN 'pending' THEN 2
+WHEN 'verified' THEN 3
+WHEN 'active' THEN 4
+
+END,
+
+ec.expiry_date ASC
 
 ";
 
