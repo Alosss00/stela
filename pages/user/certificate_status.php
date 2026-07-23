@@ -48,58 +48,46 @@ function getMonitoringBadge(int $days_left): array
 
 function getWorkflowStatus(array $cert): array
 {
-    $resubmitType     = $cert['resubmit_type'] ?? null;
-    $status           = $cert['status'] ?? null;
-    $appointmentStatus = $cert['appointment_status'] ?? null;
+    switch ($cert['status']) {
 
-    // Waiting Reviewer
-    if (
-        $resubmitType === 'certificate' &&
-        $status === 'pending'
-    ) {
-        return [
-            'class' => 'pending',
-            'label' => 'WAITING REVIEWER'
-        ];
+        case 'pending':
+            return [
+                'class'=>'pending',
+                'label'=>'WAITING REVIEWER'
+            ];
+
+        case 'verified':
+
+            if($cert['appointment_status']=='approved'){
+                return [
+                    'class'=>'success',
+                    'label'=>'ACTIVE'
+                ];
+            }
+
+            return [
+                'class'=>'warning',
+                'label'=>'WAITING KTT'
+            ];
+
+        case 'expired':
+            return [
+                'class'=>'critical',
+                'label'=>'EXPIRED'
+            ];
+
+        case 'active':
+            return [
+                'class'=>'success',
+                'label'=>'ACTIVE'
+            ];
+
+        default:
+            return [
+                'class'=>'secondary',
+                'label'=>'UNKNOWN'
+            ];
     }
-
-    // Waiting KTT
-    if (
-        $resubmitType === 'certificate' &&
-        $status === 'verified' &&
-        in_array($appointmentStatus, ['draft', 'pending'], true)
-    ) {
-        return [
-            'class' => 'warning',
-            'label' => 'WAITING KTT'
-        ];
-    }
-
-    // Completed
-    if (
-        $resubmitType === 'certificate' &&
-        $status === 'active' &&
-        $appointmentStatus === 'approved'
-    ) {
-        return [
-            'class' => 'success',
-            'label' => 'ACTIVE'
-        ];
-    }
-
-    // Expired
-    if ($status === 'expired') {
-        return [
-            'class' => 'critical',
-            'label' => 'EXPIRED'
-        ];
-    }
-
-    // Default
-    return [
-        'class' => 'secondary',
-        'label' => strtoupper($status ?? 'UNKNOWN')
-    ];
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
@@ -277,7 +265,17 @@ SELECT
        a.ktt_ttn_status,
        DATEDIFF(ec.expiry_date, CURDATE()) as days_left
 
-FROM employee_certifications ec
+FROM
+(
+    SELECT *
+    FROM employee_certifications ec1
+    WHERE ec1.id =
+    (
+        SELECT MAX(ec2.id)
+        FROM employee_certifications ec2
+        WHERE ec2.employee_id = ec1.employee_id
+    )
+) ec
 
 JOIN employees e
 ON ec.employee_id=e.id
@@ -295,27 +293,15 @@ ON a.id=
 
 WHERE e.is_active = 1
 
+AND ec.status <> 'replaced'
+
 AND
 (
-    /* Employee BELUM resubmit */
-    (
-        ec.status = 'expired'
-        AND e.resubmit_type IS NULL
-    )
+      ec.status='expired'
 
-    OR
+   OR ec.status='pending'
 
-    /* Employee SUDAH resubmit */
-    (
-        e.resubmit_type = 'certificate'
-
-        AND ec.id =
-        (
-            SELECT MAX(ec3.id)
-            FROM employee_certifications ec3
-            WHERE ec3.employee_id = ec.employee_id
-        )
-    )
+   OR ec.status='verified'
 )
 
 ".$scope_sql."

@@ -76,6 +76,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$is_superadmin) {
                                          approval_notes = '$approval_notes'
                                          WHERE id = $id";
                             $db->query($final_sql);
+                            $cert_sql = "
+                                UPDATE employee_certifications
+                                SET
+                                    status='active',
+                                    verification_status='verified'
+                                WHERE id=
+                                (
+                                    SELECT cert_id
+                                    FROM
+                                    (
+                                        SELECT MAX(id) cert_id
+                                        FROM employee_certifications
+                                        WHERE employee_id=
+                                        (
+                                            SELECT employee_id
+                                            FROM appointments
+                                            WHERE id=$id
+                                        )
+                                    ) x
+                                )
+                                ";
+
+                                $db->query($cert_sql);
                             $message = 'Assign letter successfully approved!';
                             // Notify admin and user/dept that both KTTs approved
                             try {
@@ -112,6 +135,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$is_superadmin) {
                                          approval_notes = '$approval_notes'
                                          WHERE id = $id";
                             $db->query($final_sql);
+                            $cert_sql = "
+                                UPDATE employee_certifications
+                                SET
+                                    status='active',
+                                    verification_status='verified'
+                                WHERE id=
+                                (
+                                    SELECT cert_id
+                                    FROM
+                                    (
+                                        SELECT MAX(id) cert_id
+                                        FROM employee_certifications
+                                        WHERE employee_id=
+                                        (
+                                            SELECT employee_id
+                                            FROM appointments
+                                            WHERE id=$id
+                                        )
+                                    ) x
+                                )
+                                ";
+
+                                $db->query($cert_sql);
                             $message = 'Assign letter successfully approved!';
                             // Notify admin and user/dept that both KTTs approved
                             try {
