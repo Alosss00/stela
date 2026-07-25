@@ -267,23 +267,24 @@ AND contractor_company='$company_name'
                                     <?php endif; ?>
                                     </td>
                                 <td>
-                                    <div class="action-buttons-emp">
-                                    <button
-                                        type="button"
-                                        class="btn-action-emp edit-status-btn"
+                                    <?php if ($row['employee_status'] == 'active'): ?>
+                                        <button
+                                            type="button"
+                                            class="btn-action-emp resign-btn"
+                                            data-id="<?= $row['id'] ?>"
+                                            data-name="<?= htmlspecialchars($row['full_name']) ?>"
+                                            data-company="<?= htmlspecialchars($row['contractor_company']) ?>"
+                                            data-appointment="<?= htmlspecialchars($row['appointment_number']) ?>">
+                                            <i class="fas fa-user-times"></i>
+                                        </button>
 
-                                        data-id="<?= $row['id'] ?>"
-                                        data-name="<?= htmlspecialchars($row['full_name']) ?>"
-                                        data-company="<?= htmlspecialchars($row['contractor_company']) ?>"
-                                        data-position="<?= htmlspecialchars($row['position']) ?>"
-                                        data-status="<?= htmlspecialchars($row['employee_status']) ?>"
-                                        data-appointment="<?= htmlspecialchars($row['appointment_number']) ?>"
-                                        data-csrf="<?= $_SESSION['csrf_token'] ?? '' ?>">
+                                        <?php else: ?>
 
-                                        <i class="fas fa-user-edit"></i>
+                                        <span class="badge-status badge-danger">
+                                            RESIGNED
+                                        </span>
 
-                                    </button>
-                                    </div>
+                                        <?php endif; ?>
                                 </td>
                               </tr>
                             <?php endwhile; ?>
@@ -335,13 +336,6 @@ AND contractor_company='$company_name'
                     </div>
 
                 </div>
-                <div class="mb-3">
-                    <label>New Status</label>
-                    <select id="new_status" class="form-select">
-                        <option value="active">Active</option>
-                        <option value="resigned">Resigned</option>
-                    </select>
-                </div>
                 <div class="mb-3" id="resign_date_container" style="display:none;">
                     <label>Resign Date</label>
                     <input type="date" id="resign_date" class="form-control">
@@ -363,6 +357,16 @@ AND contractor_company='$company_name'
 </div>
 
 <script>
+
+    if (document.getElementById('resign_reason').value.trim() == "") {
+    alert("Please enter resign reason.");
+    return;
+}
+
+if (document.getElementById('resign_date').value == "") {
+    alert("Please select resign date.");
+    return;
+}
     document.querySelectorAll('.edit-status-btn').forEach(button => {
 
     button.addEventListener('click', function(){
