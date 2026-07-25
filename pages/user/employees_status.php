@@ -367,36 +367,22 @@ if (document.getElementById('resign_date').value == "") {
     alert("Please select resign date.");
     return;
 }
-    document.querySelectorAll('.edit-status-btn').forEach(button => {
+    document.querySelectorAll('.resign-btn').forEach(button => {
+    button.addEventListener('click', function () {
 
-    button.addEventListener('click', function(){
+        document.getElementById('employee_id').value = this.dataset.id;
+        document.getElementById('employee_name').value = this.dataset.name;
+        document.getElementById('employee_company').value = this.dataset.company;
+        document.getElementById('appointment_number').value = this.dataset.appointment;
 
-        document.getElementById('employee_id').value =
-            this.dataset.id;
-
-        document.getElementById('employee_name').value =
-            this.dataset.name;
-
-        document.getElementById('employee_company').value =
-            this.dataset.company;
-
-        document.getElementById('appointment_number').value =
-            this.dataset.appointment;
-
-        document.getElementById('current_status').value =
-            this.dataset.status;
-
-        document.getElementById('new_status').value =
-            this.dataset.status;
-
-        document.getElementById('reason_container').style.display='none';
+        document.getElementById('resign_date_container').style.display = 'block';
+        document.getElementById('reason_container').style.display = 'block';
 
         new bootstrap.Modal(
             document.getElementById('employeeStatusModal')
         ).show();
 
-    });
-
+    })
 });
 
 document
