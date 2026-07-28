@@ -366,7 +366,7 @@ $current_page = get_current_page();
                     </li>
                     <?php endif; ?>
                 <?php endif; ?>
-
+  
                 <li>
                     <a href="<?php echo BASE_URL; ?>/logout.php" class="logout">
                         <i class="fas fa-sign-out-alt"></i> <span data-lang="logout">Logout</span>
