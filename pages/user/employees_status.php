@@ -460,7 +460,15 @@ AND contractor_company='$company_name'
     
 document.addEventListener("DOMContentLoaded", function () {
 
-    alert("DOM Loaded");
+    document.querySelectorAll(".resign-btn").forEach(function(button){
+
+        button.addEventListener("click", function(){
+
+            alert("BUTTON CLICKED");
+
+        });
+
+    });
 
 });
     document.querySelectorAll(".resign-btn").forEach(function(button){
