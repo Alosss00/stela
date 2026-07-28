@@ -457,25 +457,19 @@ AND contractor_company='$company_name'
 </div>
 
 <script>
-  document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function () {
 
     console.log("Script Loaded");
+
+    const modal = new bootstrap.Modal(
+        document.getElementById("employeeStatusModal")
+    );
 
     document.querySelectorAll(".resign-btn").forEach(function(button){
 
         button.addEventListener("click", function(){
 
             console.log("Button Clicked");
-
-        });
-
-    });
-
-});
-
-    document.querySelectorAll(".resign-btn").forEach(button => {
-
-        button.addEventListener("click", function () {
 
             document.getElementById("employee_id").value =
                 this.dataset.id;
@@ -498,41 +492,28 @@ AND contractor_company='$company_name'
 
     });
 
-;  
+    document.getElementById("saveStatusBtn").addEventListener("click", function(){
 
-document
-.getElementById("saveStatusBtn")
-.addEventListener("click", function(){
+        let resignDate = document.getElementById("resign_date").value;
+        let resignReason = document.getElementById("resign_reason").value.trim();
 
-    let resignDate =
-        document.getElementById("resign_date").value;
+        if(resignDate==""){
+            alert("Please select resign date.");
+            return;
+        }
 
-    let resignReason =
-        document.getElementById("resign_reason").value.trim();
+        if(resignReason==""){
+            alert("Please enter resign reason.");
+            return;
+        }
 
-    if(resignDate==""){
+        if(!confirm("Are you sure this employee has resigned?")){
+            return;
+        }
 
-        alert("Please select resign date.");
+        console.log("Save Clicked");
 
-        return;
-
-    }
-
-    if(resignReason==""){
-
-        alert("Please enter resign reason.");
-
-        return;
-
-    }
-
-    if(!confirm("Are you sure this employee has resigned?")){
-
-        return;
-
-    }
-
-    // AJAX / Fetch ke PHP update
+    });
 
 });
 </script>
