@@ -464,24 +464,16 @@ document.addEventListener("DOMContentLoaded", function () {
         document.getElementById("employeeStatusModal")
     );
 
-});
     document.querySelectorAll(".resign-btn").forEach(function(button){
 
         button.addEventListener("click", function(){
 
             console.log("Button Clicked");
 
-            document.getElementById("employee_id").value =
-                this.dataset.id;
-
-            document.getElementById("employee_name").value =
-                this.dataset.name;
-
-            document.getElementById("employee_company").value =
-                this.dataset.company;
-
-            document.getElementById("appointment_number").value =
-                this.dataset.appointment;
+            document.getElementById("employee_id").value = this.dataset.id;
+            document.getElementById("employee_name").value = this.dataset.name;
+            document.getElementById("employee_company").value = this.dataset.company;
+            document.getElementById("appointment_number").value = this.dataset.appointment;
 
             document.getElementById("resign_date").value = "";
             document.getElementById("resign_reason").value = "";
@@ -515,7 +507,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 
-;
+}); 
 </script>
 
 <style>
