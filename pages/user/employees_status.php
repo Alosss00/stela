@@ -498,7 +498,7 @@ AND contractor_company='$company_name'
 
     });
 
-});  
+;  
 
 document
 .getElementById("saveStatusBtn")
