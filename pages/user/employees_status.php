@@ -458,9 +458,87 @@ AND contractor_company='$company_name'
 </div>
 
 <script>
+document.addEventListener("DOMContentLoaded", function () {
 
-alert("TEST");
+    const modalElement = document.getElementById("employeeStatusModal");
 
+    if (!modalElement) {
+        console.error("Modal tidak ditemukan");
+        return;
+    }
+
+    const modal = new bootstrap.Modal(modalElement);
+
+    document.querySelectorAll(".resign-btn").forEach(function(button){
+
+        button.addEventListener("click", function(){
+
+            document.getElementById("employee_id").value = this.dataset.id;
+            document.getElementById("employee_name").value = this.dataset.name;
+            document.getElementById("employee_company").value = this.dataset.company;
+            document.getElementById("appointment_number").value = this.dataset.appointment;
+
+            document.getElementById("resign_date").value = "";
+            document.getElementById("resign_reason").value = "";
+
+            modal.show();
+
+        });
+
+    });
+
+    document.getElementById("saveStatusBtn").addEventListener("click", function(){
+
+        let resignDate = document.getElementById("resign_date").value;
+        let resignReason = document.getElementById("resign_reason").value.trim();
+
+        if(resignDate==""){
+            alert("Please select resign date.");
+            return;
+        }
+
+        if(resignReason==""){
+            alert("Please enter resign reason.");
+            return;
+        }
+
+        fetch("employees_status.php",{
+
+            method:"POST",
+
+            headers:{
+                "Content-Type":"application/x-www-form-urlencoded"
+            },
+
+            body:
+                "action=resign_employee"+
+                "&employee_id="+encodeURIComponent(document.getElementById("employee_id").value)+
+                "&resign_date="+encodeURIComponent(resignDate)+
+                "&resign_reason="+encodeURIComponent(resignReason)
+
+        })
+
+        .then(res=>res.json())
+
+        .then(data=>{
+
+            if(data.success){
+
+                alert("Employee resigned successfully");
+
+                location.reload();
+
+            }else{
+
+                alert("Failed");
+
+            }
+
+        });
+
+    });
+
+});
 </script>
 
 <style>
