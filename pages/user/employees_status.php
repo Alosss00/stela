@@ -1,3 +1,4 @@
+<?php echo "TEST123"; ?>
 <?php
 $page_title = 'Employee Status';
 require_once '../../includes/auth.php';
@@ -457,57 +458,9 @@ AND contractor_company='$company_name'
 </div>
 
 <script>
-    
-document.addEventListener("DOMContentLoaded", function () {
 
-    const modal = new bootstrap.Modal(
-        document.getElementById("employeeStatusModal")
-    );
+alert("TEST");
 
-    document.querySelectorAll(".resign-btn").forEach(function(button){
-
-        button.addEventListener("click", function(){
-
-            console.log("Button Clicked");
-
-            document.getElementById("employee_id").value = this.dataset.id;
-            document.getElementById("employee_name").value = this.dataset.name;
-            document.getElementById("employee_company").value = this.dataset.company;
-            document.getElementById("appointment_number").value = this.dataset.appointment;
-
-            document.getElementById("resign_date").value = "";
-            document.getElementById("resign_reason").value = "";
-
-            modal.show();
-
-        });
-
-    });
-
-    document.getElementById("saveStatusBtn").addEventListener("click", function(){
-
-        let resignDate = document.getElementById("resign_date").value;
-        let resignReason = document.getElementById("resign_reason").value.trim();
-
-        if(resignDate==""){
-            alert("Please select resign date.");
-            return;
-        }
-
-        if(resignReason==""){
-            alert("Please enter resign reason.");
-            return;
-        }
-
-        if(!confirm("Are you sure this employee has resigned?")){
-            return;
-        }
-
-        console.log("Save Clicked");
-
-    });
-
-}); 
 </script>
 
 <style>
