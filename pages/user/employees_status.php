@@ -457,15 +457,12 @@ AND contractor_company='$company_name'
 </div>
 
 <script>
-    alert("SCRIPT BERJALAN");
+    
 document.addEventListener("DOMContentLoaded", function () {
 
-    console.log("Script Loaded");
+    alert("DOM Loaded");
 
-    const modal = new bootstrap.Modal(
-        document.getElementById("employeeStatusModal")
-    );
-
+});
     document.querySelectorAll(".resign-btn").forEach(function(button){
 
         button.addEventListener("click", function(){
@@ -516,7 +513,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     });
 
-});
+;
 </script>
 
 <style>
