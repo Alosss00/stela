@@ -87,7 +87,7 @@ function getWorkflowStatus(array $cert): array
     ) {
         return [
             'class' => 'critical',
-            'label' => 'EXPIRED'
+            'label' => 'REJECT'
         ];
     }
 
