@@ -368,7 +368,7 @@ AND contractor_company='$company_name'
                     <label>Appointment Number</label>
                     <input type="text" id="appointment_number" class="form-control" readonly>
                 </div>
-                <div class="mb-3">
+                <div class="mb-3"> 
                     <label>Resign Date</label>
                     <input type="date" id="resign_date" class="form-control">
                 </div>
