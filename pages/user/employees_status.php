@@ -457,6 +457,7 @@ AND contractor_company='$company_name'
 </div>
 
 <script>
+    alert("SCRIPT BERJALAN");
 document.addEventListener("DOMContentLoaded", function () {
 
     console.log("Script Loaded");
