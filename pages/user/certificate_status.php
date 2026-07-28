@@ -81,6 +81,16 @@ function getWorkflowStatus(array $cert): array
         ];
     }
 
+	 if (
+        $status === 'pending' &&
+        $verification === 'rejected'
+    ) {
+        return [
+            'class' => 'critical',
+            'label' => 'EXPIRED'
+        ];
+    }
+
 
     // |--------------------------------------------------------------------------
     // | WAITING KTT
