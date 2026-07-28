@@ -1,4 +1,3 @@
-<?php echo "TEST123"; ?>
 <?php
 $page_title = 'Employee Status';
 require_once '../../includes/auth.php';
@@ -458,20 +457,18 @@ AND contractor_company='$company_name'
 </div>
 
 <script>
+    
 document.addEventListener("DOMContentLoaded", function () {
 
-    const modalElement = document.getElementById("employeeStatusModal");
-
-    if (!modalElement) {
-        console.error("Modal tidak ditemukan");
-        return;
-    }
-
-    const modal = new bootstrap.Modal(modalElement);
+    const modal = new bootstrap.Modal(
+        document.getElementById("employeeStatusModal")
+    );
 
     document.querySelectorAll(".resign-btn").forEach(function(button){
 
         button.addEventListener("click", function(){
+
+            console.log("Button Clicked");
 
             document.getElementById("employee_id").value = this.dataset.id;
             document.getElementById("employee_name").value = this.dataset.name;
@@ -502,43 +499,15 @@ document.addEventListener("DOMContentLoaded", function () {
             return;
         }
 
-        fetch("employees_status.php",{
+        if(!confirm("Are you sure this employee has resigned?")){
+            return;
+        }
 
-            method:"POST",
-
-            headers:{
-                "Content-Type":"application/x-www-form-urlencoded"
-            },
-
-            body:
-                "action=resign_employee"+
-                "&employee_id="+encodeURIComponent(document.getElementById("employee_id").value)+
-                "&resign_date="+encodeURIComponent(resignDate)+
-                "&resign_reason="+encodeURIComponent(resignReason)
-
-        })
-
-        .then(res=>res.json())
-
-        .then(data=>{
-
-            if(data.success){
-
-                alert("Employee resigned successfully");
-
-                location.reload();
-
-            }else{
-
-                alert("Failed");
-
-            }
-
-        });
+        console.log("Save Clicked");
 
     });
 
-});
+}); 
 </script>
 
 <style>
