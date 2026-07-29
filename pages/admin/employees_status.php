@@ -250,7 +250,7 @@ WHERE is_active=0
                                     <?php else: ?>
                                     <span class="badge-status badge-danger">RESIGNED</span>
                                     <?php endif; ?>
-                                    </td>
+                                    </td>   
                                 <td class="text-center">
                                     <?php if($row['employee_status']=="active"): ?>
                                     <button
