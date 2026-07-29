@@ -320,12 +320,15 @@ AND contractor_company='$company_name'
                                         Resign
                                     </button>
                                     <?php else: ?>
+                                        <a href="employee_status_detail.php?id=<?= $row['id']; ?>"
+                                        class="btn-action-emp detail-btn">
 
-                                    <span class="badge bg-danger">
-                                        Resigned
-                                    </span>
+                                            <i class="fas fa-eye"></i>
+                                            Detail
 
-                                    <?php endif; ?>
+                                        </a>
+
+                                        <?php endif; ?>
 
                                     </td>
                               </tr>
