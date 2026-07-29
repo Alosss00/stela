@@ -796,6 +796,9 @@ document.addEventListener("DOMContentLoaded", function () {
     content: none !important;
 }
 
+.btn-action-emp detail-btn {
+    color : #ef4444
+}
 
 .badge-status {
     display: inline-block;
