@@ -797,7 +797,8 @@ document.addEventListener("DOMContentLoaded", function () {
 }
 
 .btn-action-emp detail-btn {
-    color : #ef4444
+    background: #fef3c7;
+    color: #f59e0b;
 }
 
 .badge-status {
