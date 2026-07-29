@@ -446,7 +446,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         <div class="card-body-report">
             <?php if ($report_data && $report_data->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-report">
+                    <table class="table-report datatable">
                         <thead>
                             <tr>
                                 <th class="col-num">#</th>
@@ -556,7 +556,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
 
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report" id="acceptedRequestTable">
+                <table class="table-report datatable" id="acceptedRequestTable">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
@@ -698,7 +698,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
 
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report" id="rejectedRequestTable">
+                <table class="table-report datatable" id="rejectedRequestTable">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
@@ -848,7 +848,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
 
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report" id="waitingRequestTable">
+                <table class="table-report datatable" id="waitingRequestTable">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
@@ -937,7 +937,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-approved table-with-filters" id="approvedTable">
+                <table class="table-report table-approved table-with-filters datatable" id="approvedTable">
                     <thead>
                         <tr class="header-row">
                             <th class="col-num">No</th>
@@ -1161,7 +1161,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-rejected" id="rejectedTable">
+                <table class="table-report table-rejected datatable" id="rejectedTable">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
