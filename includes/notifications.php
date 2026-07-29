@@ -20,11 +20,11 @@ class NotificationService {
     private $db;
     
     // Email Configuration - Gmail SMTP
-    private $smtp_host = 'smtp-legacy.office365.com';
-private $smtp_port = 587;
-private $smtp_username = 'archi.info@archimining.com';
-private $smtp_password = 'V!074968784470ax';
-private $email_from = 'tosar@archimining.com';
+    private $smtp_host = 'smtp.hostinger.com';
+private $smtp_port = 465;
+private $smtp_username = 'sentry@tokaguard.com';
+private $smtp_password = 'Tosar123@';
+private $email_from = 'sentry@tokaguard.com';
 private $email_from_name = 'Mining Appointment System';
 
     // Fonnte WhatsApp Configuration
