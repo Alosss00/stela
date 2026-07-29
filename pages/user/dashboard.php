@@ -327,7 +327,7 @@ $recent_appointments = $db->query("
             </div>
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover datatable">
                         <thead>
                             <tr>
                                 <th data-lang="registration-no">Registration No.</th>

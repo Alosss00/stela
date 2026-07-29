@@ -81,11 +81,21 @@ function getWorkflowStatus(array $cert): array
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | WAITING KTT
-    |--------------------------------------------------------------------------
-    */
+	 if (
+        $status === 'pending' &&
+        $verification === 'rejected'
+    ) {
+        return [
+            'class' => 'critical',
+            'label' => 'REJECT'
+        ];
+    }
+
+
+    // |--------------------------------------------------------------------------
+    // | WAITING KTT
+    // |--------------------------------------------------------------------------
+    // */
 
     if (
         $status === 'pending' &&
@@ -485,7 +495,7 @@ require_once '../../includes/header.php';
 		<div class="card-body cert-card-body">
 			<?php if (!empty($certificates)): ?>
 				<div class="table-responsive">
-					<table class="table cert-table">
+					<table class="table cert-table datatable">
 						<thead>
 							<tr>
 								<th>Employee</th>
@@ -544,6 +554,16 @@ require_once '../../includes/header.php';
 												<i class="fas fa-upload"></i>
 												Resubmit
 											</a>
+											<?php elseif (
+											$cert['status'] == 'pending' &&
+											$cert['verification_status'] == 'rejected'
+										) : ?>
+
+											<a href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>"
+											class="btn btn-warning btn-sm">
+												<i class="fas fa-upload"></i>
+												Resubmit
+											</a>
 
 										<?php elseif (
 											$cert['status'] == 'pending' &&
@@ -553,6 +573,8 @@ require_once '../../includes/header.php';
 											<span class="badge badge-warning">
 												Waiting Reviewer
 											</span>
+
+
 
 										<?php elseif (
 											$cert['status'] == 'pending' &&

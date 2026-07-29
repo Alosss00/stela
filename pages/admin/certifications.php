@@ -122,7 +122,7 @@ require_once '../../includes/header.php';
         <div class="card-body-cert">
             <?php if ($certifications->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-cert">
+                    <table class="table-cert datatable">
                         <thead>
                             <tr>
                                 <th class="col-name" data-lang="certification-name">Certification Name</th>

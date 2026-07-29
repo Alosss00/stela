@@ -197,7 +197,7 @@ WHERE is_active=0
         <div class="card-body-emp">
             <?php if ($employees->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-emp" id="employeesTable">
+                    <table class="table-emp datatable" id="employeesTable">
                         <thead>
                             <tr>
                                 <th class="col-code" data-lang="id-badge">ID BADGE</th>
@@ -250,14 +250,31 @@ WHERE is_active=0
                                     <?php else: ?>
                                     <span class="badge-status badge-danger">RESIGNED</span>
                                     <?php endif; ?>
-                                    </td>
-                                <td>
-                                    <div class="action-buttons-emp">
-                                    <button class="btn-action-emp edit-status-btn" data-id="<?= $row['id']?>" data-status="<?= $row['employee_status']?>" title="Change Status">
-                                    <i class="fas fa-user-edit"></i>
+                                    </td>   
+                                <td class="text-center">
+                                    <?php if($row['employee_status']=="active"): ?>
+                                    <button
+                                        type="button"
+                                        class="btn btn-danger btn-sm resign-btn"
+                                        data-id="<?= $row['id']; ?>"
+                                        data-name="<?= htmlspecialchars($row['full_name']); ?>"
+                                        data-company="<?= htmlspecialchars($row['contractor_company']); ?>"
+                                        data-appointment="<?= htmlspecialchars($row['appointment_number']); ?>">
+                                        <i class="fas fa-user-times"></i>
+                                        Resign
                                     </button>
-                                    </div>
-                                </td>
+                                    <?php else: ?>
+                                        <a href="employee_status_detail.php?id=<?= $row['id']; ?>"
+                                        class="btn-action-emp detail-btn">
+
+                                            <i class="fas fa-eye"></i>
+                                            Detail
+
+                                        </a>
+
+                                        <?php endif; ?>
+
+                                    </td>
                               </tr>
                             <?php endwhile; ?>
                         </tbody>
@@ -273,6 +290,171 @@ WHERE is_active=0
     </div>
 </div>
 
+<div class="modal fade" id="employeeStatusModal">
+
+    <div class="modal-dialog">
+
+        <div class="modal-content">
+
+            <div class="modal-header">
+
+                <h5 class="modal-title">
+
+                    Employee Resignation
+
+                </h5>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
+            </div>
+
+            <div class="modal-body">
+
+                <input type="hidden" id="employee_id">
+
+                <div class="mb-3">
+
+                    <label>Employee</label>
+
+                    <input
+                        type="text"
+                        id="employee_name"
+                        class="form-control"
+                        readonly>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>Company</label>
+
+                    <input
+                        type="text"
+                        id="employee_company"
+                        class="form-control"
+                        readonly>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>Appointment Number</label>
+
+                    <input
+                        type="text"
+                        id="appointment_number"
+                        class="form-control"
+                        readonly>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>Resign Date</label>
+
+                    <input
+                        type="date"
+                        id="resign_date"
+                        class="form-control">
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>Resign Reason</label>
+
+                    <textarea
+                        id="resign_reason"
+                        rows="4"
+                        class="form-control"></textarea>
+
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+
+                <button
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    class="btn btn-danger"
+                    id="saveStatusBtn">
+
+                    Confirm Resign
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modal = new bootstrap.Modal(
+        document.getElementById("employeeStatusModal")
+    );
+
+    document.querySelectorAll(".resign-btn").forEach(function(button){
+
+        button.addEventListener("click", function(){
+
+            console.log("Button Clicked");
+
+            document.getElementById("employee_id").value = this.dataset.id;
+            document.getElementById("employee_name").value = this.dataset.name;
+            document.getElementById("employee_company").value = this.dataset.company;
+            document.getElementById("appointment_number").value = this.dataset.appointment;
+
+            document.getElementById("resign_date").value = "";
+            document.getElementById("resign_reason").value = "";
+
+            modal.show();
+
+        });
+
+    });
+
+    document.getElementById("saveStatusBtn").addEventListener("click", function(){
+
+        let resignDate = document.getElementById("resign_date").value;
+        let resignReason = document.getElementById("resign_reason").value.trim();
+
+        if(resignDate==""){
+            alert("Please select resign date.");
+            return;
+        }
+
+        if(resignReason==""){
+            alert("Please enter resign reason.");
+            return;
+        }
+
+        if(!confirm("Are you sure this employee has resigned?")){
+            return;
+        }
+
+        console.log("Save Clicked");
+
+    });
+
+}); 
+</script>
 
 <style>
 .employees-admin-container {

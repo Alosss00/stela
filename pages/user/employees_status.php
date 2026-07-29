@@ -27,6 +27,47 @@ if (!empty($filter)) {
     $where_clause .= " AND e.employee_status = '$filter'";
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resign_employee') {
+
+    $id = (int)$_POST['employee_id'];
+
+    $date = $_POST['resign_date'];
+
+    $reason = trim($_POST['resign_reason']);
+
+    $stmt = $db->prepare("
+        UPDATE employees
+        SET
+            employee_status='resigned',
+            resign_date=?,
+            resign_reason=?
+        WHERE id=?
+    ");
+
+    $stmt->bind_param(
+        "ssi",
+        $date,
+        $reason,
+        $id
+    );
+
+    if($stmt->execute()){
+
+        echo json_encode([
+            "success"=>true
+        ]);
+
+    }else{
+
+        echo json_encode([
+            "success"=>false
+        ]);
+
+    }
+
+    exit;
+
+}
 // Get all employees with verification status and KTT rejection awareness
 $employees = $db->query("
 SELECT
@@ -212,7 +253,7 @@ AND contractor_company='$company_name'
         <div class="card-body-emp">
             <?php if ($employees->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-emp" id="employeesTable">
+                    <table class="table-emp datatable" id="employeesTable">
                         <thead>
                             <tr>
                                 <th class="col-code" data-lang="id-badge">ID BADGE</th>
@@ -266,26 +307,30 @@ AND contractor_company='$company_name'
                                     <span class="badge-status badge-danger">RESIGNED</span>
                                     <?php endif; ?>
                                     </td>
-                                <td>
-                                    <?php if ($row['employee_status'] == 'active'): ?>
-                                        <button
-                                            type="button"
-                                            class="btn-action-emp resign-btn"
-                                            data-id="<?= $row['id'] ?>"
-                                            data-name="<?= htmlspecialchars($row['full_name']) ?>"
-                                            data-company="<?= htmlspecialchars($row['contractor_company']) ?>"
-                                            data-appointment="<?= htmlspecialchars($row['appointment_number']) ?>">
-                                            <i class="fas fa-user-times"></i>
-                                        </button>
+                                <td class="text-center">
+                                    <?php if($row['employee_status']=="active"): ?>
+                                    <button
+                                        type="button"
+                                        class="btn btn-danger btn-sm resign-btn"
+                                        data-id="<?= $row['id']; ?>"
+                                        data-name="<?= htmlspecialchars($row['full_name']); ?>"
+                                        data-company="<?= htmlspecialchars($row['contractor_company']); ?>"
+                                        data-appointment="<?= htmlspecialchars($row['appointment_number']); ?>">
+                                        <i class="fas fa-user-times"></i>
+                                        Resign
+                                    </button>
+                                    <?php else: ?>
+                                        <a href="employee_status_detail.php?id=<?= $row['id']; ?>"
+                                        class="btn-action-emp detail-btn">
 
-                                        <?php else: ?>
+                                            <i class="fas fa-eye"></i>
+                                            Detail
 
-                                        <span class="badge-status badge-danger">
-                                            RESIGNED
-                                        </span>
+                                        </a>
 
                                         <?php endif; ?>
-                                </td>
+
+                                    </td>
                               </tr>
                             <?php endwhile; ?>
                         </tbody>
@@ -302,52 +347,110 @@ AND contractor_company='$company_name'
 </div>
 
 
-<div class="modal fade" id="employeeStatusModal" tabindex="-1">
-    <div class="modal-dialog modal-lg">
+<div class="modal fade" id="employeeStatusModal">
+
+    <div class="modal-dialog">
+
         <div class="modal-content">
+
             <div class="modal-header">
+
                 <h5 class="modal-title">
-                    <i class="fas fa-user-edit"></i>Change Employee Status
+
+                    Employee Resignation
+
                 </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+
+                <button
+                    type="button"
+                    class="btn-close"
+                    data-bs-dismiss="modal">
+                </button>
+
             </div>
 
             <div class="modal-body">
+
                 <input type="hidden" id="employee_id">
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label>Employee</label>
-                        <input type="text" id="employee_name" class="form-control" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label>Company</label>
-                        <input type="text" id="employee_company" class="form-control" readonly>
-                    </div>
-                </div>
 
-                <div class="row mb-3">
-                    <div class="col-md-6">
-                        <label>Appointment Number</label>
-                        <input type="text" id="appointment_number" class="form-control" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label>Current Status</label>
-                        <input type="text" id="current_status"class="form-control" readonly>
-                    </div>
+                <div class="mb-3">
+
+                    <label>Employee</label>
+
+                    <input
+                        type="text"
+                        id="employee_name"
+                        class="form-control"
+                        readonly>
 
                 </div>
-                <div class="mb-3" id="resign_date_container" style="display:none;">
+
+                <div class="mb-3">
+
+                    <label>Company</label>
+
+                    <input
+                        type="text"
+                        id="employee_company"
+                        class="form-control"
+                        readonly>
+
+                </div>
+
+                <div class="mb-3">
+
+                    <label>Appointment Number</label>
+
+                    <input
+                        type="text"
+                        id="appointment_number"
+                        class="form-control"
+                        readonly>
+
+                </div>
+
+                <div class="mb-3">
+
                     <label>Resign Date</label>
-                    <input type="date" id="resign_date" class="form-control">
+
+                    <input
+                        type="date"
+                        id="resign_date"
+                        class="form-control">
+
                 </div>
-                <div class="mb-3" id="reason_container" style="display:none;">
+
+                <div class="mb-3">
+
                     <label>Resign Reason</label>
-                    <textarea id="resign_reason" class="form-control" rows="3"></textarea>
+
+                    <textarea
+                        id="resign_reason"
+                        rows="4"
+                        class="form-control"></textarea>
+
                 </div>
+
             </div>
+
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button class="btn btn-primary" id="saveStatusBtn">Save</button>
+
+                <button
+                    class="btn btn-secondary"
+                    data-bs-dismiss="modal">
+
+                    Cancel
+
+                </button>
+
+                <button
+                    class="btn btn-danger"
+                    id="saveStatusBtn">
+
+                    Confirm Resign
+
+                </button>
+
             </div>
 
         </div>
@@ -357,55 +460,57 @@ AND contractor_company='$company_name'
 </div>
 
 <script>
-
-    if (document.getElementById('resign_reason').value.trim() == "") {
-    alert("Please enter resign reason.");
-    return;
-}
-
-if (document.getElementById('resign_date').value == "") {
-    alert("Please select resign date.");
-    return;
-}
-    document.querySelectorAll('.resign-btn').forEach(button => {
-    button.addEventListener('click', function () {
-
-        document.getElementById('employee_id').value = this.dataset.id;
-        document.getElementById('employee_name').value = this.dataset.name;
-        document.getElementById('employee_company').value = this.dataset.company;
-        document.getElementById('appointment_number').value = this.dataset.appointment;
-
-        document.getElementById('resign_date_container').style.display = 'block';
-        document.getElementById('reason_container').style.display = 'block';
-
-        new bootstrap.Modal(
-            document.getElementById('employeeStatusModal')
-        ).show();
-
-    })
-});
-
-document
-.getElementById('new_status')
-.addEventListener('change',function(){
-
-    if(this.value==="resigned"){
-
-        document
-        .getElementById('reason_container')
-        .style.display='block';
-
-    }else{
-
-        document
-        .getElementById('reason_container')
-        .style.display='none';
-
-    }
-
-});
-
     
+document.addEventListener("DOMContentLoaded", function () {
+
+    const modal = new bootstrap.Modal(
+        document.getElementById("employeeStatusModal")
+    );
+
+    document.querySelectorAll(".resign-btn").forEach(function(button){
+
+        button.addEventListener("click", function(){
+
+            console.log("Button Clicked");
+
+            document.getElementById("employee_id").value = this.dataset.id;
+            document.getElementById("employee_name").value = this.dataset.name;
+            document.getElementById("employee_company").value = this.dataset.company;
+            document.getElementById("appointment_number").value = this.dataset.appointment;
+
+            document.getElementById("resign_date").value = "";
+            document.getElementById("resign_reason").value = "";
+
+            modal.show();
+
+        });
+
+    });
+
+    document.getElementById("saveStatusBtn").addEventListener("click", function(){
+
+        let resignDate = document.getElementById("resign_date").value;
+        let resignReason = document.getElementById("resign_reason").value.trim();
+
+        if(resignDate==""){
+            alert("Please select resign date.");
+            return;
+        }
+
+        if(resignReason==""){
+            alert("Please enter resign reason.");
+            return;
+        }
+
+        if(!confirm("Are you sure this employee has resigned?")){
+            return;
+        }
+
+        console.log("Save Clicked");
+
+    });
+
+}); 
 </script>
 
 <style>
@@ -691,6 +796,10 @@ document
     content: none !important;
 }
 
+.btn-action-emp detail-btn {
+    background: #fef3c7;
+    color: #f59e0b;
+}
 
 .badge-status {
     display: inline-block;
@@ -744,12 +853,12 @@ document
     transform: translateY(-1px);
 }
 
-.edit-status-btn{
+.resign-btn{
     background:#F57C00;
     color:#fff;
 }
 
-.edit-status-btn:hover{
+.resign-btn:hover{
     background:#E65100;
 }
 /* Rejected Alert Banner */

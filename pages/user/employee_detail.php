@@ -556,7 +556,7 @@ $competency_type_labels = [
         </div>
         
         <div class="table-responsive">
-            <table class="cert-table">
+            <table class="cert-table datatable">
                 <thead>
                     <tr>
                         <th data-lang="certificate-name">Certificate Name</th>

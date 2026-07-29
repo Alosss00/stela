@@ -201,7 +201,7 @@ require_once '../../includes/header.php';
         <div class="card-body-sa">
             <?php if ($areas && $areas->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-sa">
+                    <table class="table-sa datatable">
                         <thead>
                             <tr>
                                 <th style="width: 5%;">No</th>

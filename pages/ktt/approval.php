@@ -432,7 +432,9 @@ require_once '../../includes/header.php';
     </div>
     <?php endif; ?>
     
-    <?php if ($pending->num_rows > 0): ?>
+    <?php if ($pending === false) {
+    die("SQL Error: " . $db->getConnection()->error);
+} ?>
     <!-- Pending Approvals Section -->
     <div class="approval-section">
         <div class="section-header">
