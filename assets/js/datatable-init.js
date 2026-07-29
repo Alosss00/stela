@@ -1,32 +1,12 @@
 $(document).ready(function () {
 
-    $('.datatable').DataTable({
+    console.log("JQUERY =", typeof $);
 
-        responsive: true,
+    console.log("DATATABLE =", typeof $.fn.DataTable);
 
-        pageLength: 10,
-
-        lengthMenu: [
-            [10,25,50,100],
-            [10,25,50,100]
-        ],
-
-        ordering: true,
-
-        searching: true,
-
-        autoWidth: false,
-
-        language:{
-            search:"Search:",
-            lengthMenu:"Show _MENU_ entries",
-            info:"Showing _START_ to _END_ of _TOTAL_ entries",
-            paginate:{
-                previous:"Previous",
-                next:"Next"
-            }
-        }
-  
+    $('#employeesTable').DataTable({
+        pageLength:10,
+        responsive:true
     });
 
 });
