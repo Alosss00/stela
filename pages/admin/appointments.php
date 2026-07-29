@@ -608,7 +608,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
         <div class="card-body-appt-admin">
             <?php if ($total_appointments > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-appt-admin">
+                    <table class="table-appt-admin datatable">
                         <thead>
                             <tr>
                                 <th class="col-number" data-lang="letter-number">Letter Number</th>
