@@ -215,7 +215,7 @@ require_once '../../includes/header.php';
         <div class="card-body">
             <?php if ($competencies->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table table-positions">
+                    <table class="table table-positions datatable">
                         <thead>
                             <tr>
                                 <th class="col-name" data-lang="competency">Competency</th>
