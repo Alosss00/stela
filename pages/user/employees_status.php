@@ -253,7 +253,7 @@ AND contractor_company='$company_name'
         <div class="card-body-emp">
             <?php if ($employees->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-emp" id="employeesTable">
+                    <table class="table-emp datatable" id="employeesTable">
                         <thead>
                             <tr>
                                 <th class="col-code" data-lang="id-badge">ID BADGE</th>

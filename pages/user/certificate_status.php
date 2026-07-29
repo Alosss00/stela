@@ -495,7 +495,7 @@ require_once '../../includes/header.php';
 		<div class="card-body cert-card-body">
 			<?php if (!empty($certificates)): ?>
 				<div class="table-responsive">
-					<table class="table cert-table">
+					<table class="table cert-table datatable">
 						<thead>
 							<tr>
 								<th>Employee</th>
