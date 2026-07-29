@@ -251,13 +251,30 @@ WHERE is_active=0
                                     <span class="badge-status badge-danger">RESIGNED</span>
                                     <?php endif; ?>
                                     </td>
-                                <td>
-                                    <div class="action-buttons-emp">
-                                    <button class="btn-action-emp edit-status-btn" data-id="<?= $row['id']?>" data-status="<?= $row['employee_status']?>" title="Change Status">
-                                    <i class="fas fa-user-edit"></i>
+                                <td class="text-center">
+                                    <?php if($row['employee_status']=="active"): ?>
+                                    <button
+                                        type="button"
+                                        class="btn btn-danger btn-sm resign-btn"
+                                        data-id="<?= $row['id']; ?>"
+                                        data-name="<?= htmlspecialchars($row['full_name']); ?>"
+                                        data-company="<?= htmlspecialchars($row['contractor_company']); ?>"
+                                        data-appointment="<?= htmlspecialchars($row['appointment_number']); ?>">
+                                        <i class="fas fa-user-times"></i>
+                                        Resign
                                     </button>
-                                    </div>
-                                </td>
+                                    <?php else: ?>
+                                        <a href="employee_status_detail.php?id=<?= $row['id']; ?>"
+                                        class="btn-action-emp detail-btn">
+
+                                            <i class="fas fa-eye"></i>
+                                            Detail
+
+                                        </a>
+
+                                        <?php endif; ?>
+
+                                    </td>
                               </tr>
                             <?php endwhile; ?>
                         </tbody>
