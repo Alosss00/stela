@@ -531,6 +531,56 @@ $companies = $db->query("
     </div>
     
     <!-- Elasticsearch Search Section -->
+    <style>
+    .es-autocomplete-dropdown {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        z-index: 9999;
+        max-height: 320px;
+        overflow-y: auto;
+        display: none;
+    }
+    .es-suggestion-item {
+        padding: 10px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s ease;
+    }
+    .es-suggestion-item:last-child {
+        border-bottom: none;
+    }
+    .es-suggestion-item:hover, .es-suggestion-item.active {
+        background-color: #f1f5f9;
+    }
+    .es-sug-name {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 14px;
+    }
+    .es-sug-sub {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+    .es-sug-badge {
+        font-size: 11px;
+        font-weight: 600;
+        background: #e2e8f0;
+        color: #334155;
+        padding: 3px 8px;
+        border-radius: 6px;
+    }
+    </style>
+
     <div class="card-emp" style="margin-bottom: 24px; padding: 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
         <form method="GET" action="employees.php" class="es-search-form" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
             <?php if (!empty($filter)): ?>
@@ -538,13 +588,17 @@ $companies = $db->query("
             <?php endif; ?>
             
             <div style="flex: 1; min-width: 280px; position: relative;">
-                <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 15px;"></i>
+                <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 15px; z-index: 2;"></i>
                 <input type="text" 
+                       id="esSearchInput"
                        name="q" 
                        value="<?php echo htmlspecialchars($search_query); ?>" 
                        class="form-control" 
-                       placeholder="Pencarian Cepat: Cari Nama, ID Badge, Perusahaan (Company), atau Posisi..." 
+                       placeholder="Ketik untuk mencari langsung (Nama, ID Badge, Perusahaan, atau Posisi)..." 
+                       autocomplete="off"
                        style="padding-left: 42px; height: 44px; border-radius: 8px; border: 1px solid #ced4da; font-size: 14px; width: 100%;">
+                
+                <div id="esSuggestionsDropdown" class="es-autocomplete-dropdown"></div>
             </div>
             
             <button type="submit" class="btn btn-primary" style="height: 44px; padding: 0 24px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; background-color: #0d6efd; border: none; cursor: pointer;">
@@ -581,6 +635,126 @@ $companies = $db->query("
             </div>
         <?php endif; ?>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('esSearchInput');
+        const dropdown = document.getElementById('esSuggestionsDropdown');
+        const searchForm = document.querySelector('.es-search-form');
+        let debounceTimer = null;
+        let selectedIndex = -1;
+
+        if (!searchInput || !dropdown) return;
+
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            clearTimeout(debounceTimer);
+            selectedIndex = -1;
+
+            if (query.length < 1) {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+                return;
+            }
+
+            debounceTimer = setTimeout(() => {
+                fetch('../../api/search_elasticsearch.php?q=' + encodeURIComponent(query) + '&limit=8')
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success' && data.items && data.items.length > 0) {
+                            renderSuggestions(data.items, query);
+                        } else {
+                            dropdown.style.display = 'none';
+                            dropdown.innerHTML = '';
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Autocomplete error:', err);
+                        dropdown.style.display = 'none';
+                    });
+            }, 180);
+        });
+
+        function renderSuggestions(items, currentQuery) {
+            dropdown.innerHTML = '';
+            items.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = 'es-suggestion-item';
+                div.dataset.index = index;
+                div.dataset.value = item.full_name || item.employee_code || '';
+
+                const leftDiv = document.createElement('div');
+                const nameEl = document.createElement('div');
+                nameEl.className = 'es-sug-name';
+                nameEl.textContent = item.full_name || '-';
+
+                const subEl = document.createElement('div');
+                subEl.className = 'es-sug-sub';
+                subEl.textContent = (item.contractor_company ? item.contractor_company + ' • ' : '') + (item.position || '');
+
+                leftDiv.appendChild(nameEl);
+                leftDiv.appendChild(subEl);
+
+                const badgeEl = document.createElement('div');
+                badgeEl.className = 'es-sug-badge';
+                badgeEl.textContent = item.employee_code || 'ID';
+
+                div.appendChild(leftDiv);
+                div.appendChild(badgeEl);
+
+                div.addEventListener('click', function() {
+                    searchInput.value = item.full_name || item.employee_code;
+                    dropdown.style.display = 'none';
+                    if (searchForm) searchForm.submit();
+                });
+
+                dropdown.appendChild(div);
+            });
+
+            dropdown.style.display = 'block';
+        }
+
+        // Keyboard navigation (Arrow keys, Enter, Escape)
+        searchInput.addEventListener('keydown', function(e) {
+            const items = dropdown.querySelectorAll('.es-suggestion-item');
+            if (dropdown.style.display === 'none' || items.length === 0) return;
+
+            if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex + 1) % items.length;
+                updateSelection(items);
+            } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
+                updateSelection(items);
+            } else if (e.key === 'Enter') {
+                if (selectedIndex >= 0 && items[selectedIndex]) {
+                    e.preventDefault();
+                    items[selectedIndex].click();
+                }
+            } else if (e.key === 'Escape') {
+                dropdown.style.display = 'none';
+            }
+        });
+
+        function updateSelection(items) {
+            items.forEach((item, idx) => {
+                if (idx === selectedIndex) {
+                    item.classList.add('active');
+                    item.scrollIntoView({ block: 'nearest' });
+                } else {
+                    item.classList.remove('active');
+                }
+            });
+        }
+
+        document.addEventListener('click', function(e) {
+            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+                dropdown.style.display = 'none';
+            }
+        });
+    });
+    </script>
 
     <!-- Employees Table -->
     <div class="card-emp">

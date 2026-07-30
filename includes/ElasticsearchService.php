@@ -299,21 +299,45 @@ class ElasticsearchService {
             $filterQueries = [];
 
             if (!empty($queryText)) {
+                $cleanQuery = strtolower(trim($queryText));
                 $mustQueries[] = [
-                    'multi_match' => [
-                        'query' => $queryText,
-                        'fields' => [
-                            'employee_code^3',
-                            'full_name^2',
-                            'position',
-                            'department',
-                            'contractor_company^2',
-                            'ruang_lingkup',
-                            'sub_competency',
-                            'supervision_area'
+                    'bool' => [
+                        'should' => [
+                            [
+                                'multi_match' => [
+                                    'query' => $queryText,
+                                    'type' => 'phrase_prefix',
+                                    'fields' => [
+                                        'employee_code.text^4',
+                                        'full_name^3',
+                                        'contractor_company^2',
+                                        'position',
+                                        'department'
+                                    ]
+                                ]
+                            ],
+                            [
+                                'multi_match' => [
+                                    'query' => $queryText,
+                                    'fields' => [
+                                        'employee_code^3',
+                                        'full_name^2',
+                                        'position',
+                                        'department',
+                                        'contractor_company^2'
+                                    ],
+                                    'fuzziness' => 'AUTO',
+                                    'operator' => 'or'
+                                ]
+                            ],
+                            [
+                                'query_string' => [
+                                    'query' => '*' . addcslashes($cleanQuery, '+-&&||!(){}[]^"~*?:\\/') . '*',
+                                    'fields' => ['full_name', 'employee_code', 'contractor_company', 'position']
+                                ]
+                            ]
                         ],
-                        'fuzziness' => 'AUTO',
-                        'operator' => 'or'
+                        'minimum_should_match' => 1
                     ]
                 ];
             } else {
