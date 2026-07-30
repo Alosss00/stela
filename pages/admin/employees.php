@@ -579,6 +579,11 @@ $companies = $db->query("
         padding: 3px 8px;
         border-radius: 6px;
     }
+    /* Hide default DataTables search box since Elasticsearch live search is active */
+    .dataTables_filter, 
+    #employeesTable_filter {
+        display: none !important;
+    }
     </style>
 
     <div class="card-emp" style="margin-bottom: 24px; padding: 18px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
