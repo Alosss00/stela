@@ -14,7 +14,7 @@ define('SITE_NAME', 'Expertise Appointment Letter System');
 define('APP_VERSION', '2.0.0');
 
 // Konfigurasi Elasticsearch
-define('ELASTICSEARCH_HOST', getenv('ELASTICSEARCH_HOST') ?: 'http://localhost:9200');
+define('ELASTICSEARCH_HOST', getenv('ELASTICSEARCH_HOST') ?: 'http://127.0.0.1:9200');
 define('ELASTICSEARCH_ENABLED', true);
 define('ELASTICSEARCH_INDEX_PREFIX', getenv('ELASTICSEARCH_INDEX_PREFIX') ?: 'stela_');
 

@@ -5,7 +5,7 @@
  */
 
 if (!defined('ELASTICSEARCH_HOST')) {
-    define('ELASTICSEARCH_HOST', 'http://localhost:9200');
+    define('ELASTICSEARCH_HOST', 'http://127.0.0.1:9200');
 }
 if (!defined('ELASTICSEARCH_ENABLED')) {
     define('ELASTICSEARCH_ENABLED', true);
@@ -498,13 +498,23 @@ class ElasticsearchService {
             $count++;
 
             if ($count % 500 === 0) {
-                $this->client->bulk($params);
+                try {
+                    $this->client->bulk($params);
+                } catch (\Throwable $e) {
+                    error_log("Bulk index error: " . $e->getMessage());
+                    return ['success' => false, 'message' => 'Bulk error: ' . $e->getMessage()];
+                }
                 $params = ['body' => []];
             }
         }
 
         if (!empty($params['body'])) {
-            $this->client->bulk($params);
+            try {
+                $this->client->bulk($params);
+            } catch (\Throwable $e) {
+                error_log("Bulk index error: " . $e->getMessage());
+                return ['success' => false, 'message' => 'Bulk error: ' . $e->getMessage()];
+            }
         }
 
         return ['success' => true, 'count' => $count];
