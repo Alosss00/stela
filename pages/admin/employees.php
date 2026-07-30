@@ -616,7 +616,22 @@ $companies = $db->query("
         let debounceTimer = null;
         let selectedIndex = -1;
 
+        const clearBtn = document.getElementById('esClearBtn');
+
         if (!searchInput) return;
+
+        if (clearBtn) {
+            clearBtn.addEventListener('click', function() {
+                searchInput.value = '';
+                filterTableLive('');
+                clearBtn.style.display = 'none';
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                    dropdown.innerHTML = '';
+                }
+                searchInput.focus();
+            });
+        }
 
         // Instant Live Table Filter function (No button click needed)
         function filterTableLive(query, matchingIds = null) {
@@ -650,6 +665,10 @@ $companies = $db->query("
             const query = this.value.trim();
             clearTimeout(debounceTimer);
             selectedIndex = -1;
+
+            if (clearBtn) {
+                clearBtn.style.display = query.length > 0 ? 'block' : 'none';
+            }
 
             // 1. Instant 0ms client-side filter feedback while typing
             filterTableLive(query);
