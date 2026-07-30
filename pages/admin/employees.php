@@ -641,41 +641,81 @@ $companies = $db->query("
         const searchInput = document.getElementById('esSearchInput');
         const dropdown = document.getElementById('esSuggestionsDropdown');
         const searchForm = document.querySelector('.es-search-form');
+        const empRows = document.querySelectorAll('#employeesTable tbody tr.emp-row');
         let debounceTimer = null;
         let selectedIndex = -1;
 
-        if (!searchInput || !dropdown) return;
+        if (!searchInput) return;
+
+        // Instant Live Table Filter function (No button click needed)
+        function filterTableLive(query, matchingIds = null) {
+            const cleanQ = query.toLowerCase().trim();
+
+            empRows.forEach(row => {
+                const rowId = row.dataset.id;
+                const textContent = row.textContent.toLowerCase();
+
+                let isMatch = false;
+
+                if (cleanQ === '') {
+                    isMatch = true;
+                } else if (matchingIds !== null && matchingIds.size > 0) {
+                    // Match by Elasticsearch returned IDs or fallback text match
+                    isMatch = matchingIds.has(rowId) || textContent.includes(cleanQ);
+                } else {
+                    // Instant text match fallback
+                    isMatch = textContent.includes(cleanQ);
+                }
+
+                if (isMatch) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+        }
 
         searchInput.addEventListener('input', function() {
             const query = this.value.trim();
             clearTimeout(debounceTimer);
             selectedIndex = -1;
 
+            // 1. Instant 0ms client-side filter feedback while typing
+            filterTableLive(query);
+
             if (query.length < 1) {
-                dropdown.style.display = 'none';
-                dropdown.innerHTML = '';
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                    dropdown.innerHTML = '';
+                }
                 return;
             }
 
+            // 2. Fetch Elasticsearch fast search results for instant accuracy & dropdown
             debounceTimer = setTimeout(() => {
-                fetch('../../api/search_elasticsearch.php?q=' + encodeURIComponent(query) + '&limit=8')
+                fetch('../../api/search_elasticsearch.php?q=' + encodeURIComponent(query) + '&limit=100')
                     .then(res => res.json())
                     .then(data => {
-                        if (data.status === 'success' && data.items && data.items.length > 0) {
-                            renderSuggestions(data.items, query);
-                        } else {
-                            dropdown.style.display = 'none';
-                            dropdown.innerHTML = '';
+                        if (data.status === 'success' && data.items) {
+                            const matchingIds = new Set(data.items.map(item => String(item.id)));
+                            filterTableLive(query, matchingIds);
+
+                            if (dropdown && data.items.length > 0) {
+                                renderSuggestions(data.items.slice(0, 8), query);
+                            } else if (dropdown) {
+                                dropdown.style.display = 'none';
+                                dropdown.innerHTML = '';
+                            }
                         }
                     })
                     .catch(err => {
-                        console.error('Autocomplete error:', err);
-                        dropdown.style.display = 'none';
+                        console.error('Elasticsearch live search error:', err);
                     });
-            }, 180);
+            }, 150);
         });
 
         function renderSuggestions(items, currentQuery) {
+            if (!dropdown) return;
             dropdown.innerHTML = '';
             items.forEach((item, index) => {
                 const div = document.createElement('div');
@@ -704,6 +744,7 @@ $companies = $db->query("
 
                 div.addEventListener('click', function() {
                     searchInput.value = item.full_name || item.employee_code;
+                    filterTableLive(searchInput.value);
                     dropdown.style.display = 'none';
                     if (searchForm) searchForm.submit();
                 });
@@ -716,6 +757,7 @@ $companies = $db->query("
 
         // Keyboard navigation (Arrow keys, Enter, Escape)
         searchInput.addEventListener('keydown', function(e) {
+            if (!dropdown) return;
             const items = dropdown.querySelectorAll('.es-suggestion-item');
             if (dropdown.style.display === 'none' || items.length === 0) return;
 
@@ -749,7 +791,7 @@ $companies = $db->query("
         }
 
         document.addEventListener('click', function(e) {
-            if (!searchInput.contains(e.target) && !dropdown.contains(e.target)) {
+            if (dropdown && !searchInput.contains(e.target) && !dropdown.contains(e.target)) {
                 dropdown.style.display = 'none';
             }
         });
@@ -785,7 +827,7 @@ $companies = $db->query("
                             while ($row = $employees->fetch_assoc()): 
                                 $company_name = htmlspecialchars($row['contractor_company']);
                             ?>
-                            <tr class="emp-row" data-company="<?php echo $company_name; ?>" data-status="<?php echo htmlspecialchars($row['verification_status']); ?>">
+                            <tr class="emp-row" data-id="<?php echo $row['id']; ?>" data-company="<?php echo $company_name; ?>" data-status="<?php echo htmlspecialchars($row['verification_status']); ?>">
                                 <td class="col-code">
                                     <span class="code-badge"><?php echo htmlspecialchars($row['employee_code']); ?></span>
                                 </td>
