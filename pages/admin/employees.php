@@ -262,13 +262,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 }
 
-// Get filter from URL
+// Get filter and search query from URL
 $filter = isset($_GET['filter']) ? $db->escapeString($_GET['filter']) : '';
+$search_query = isset($_GET['q']) ? trim($_GET['q']) : (isset($_GET['search']) ? trim($_GET['search']) : '');
 
-// Build WHERE clause for filter
+// Build WHERE clause for filter & search
 $where_clause = "e.is_active = 1";
 if (!empty($filter)) {
     $where_clause .= " AND e.verification_status = '$filter'";
+}
+
+$esService = class_exists('ElasticsearchService') ? ElasticsearchService::getInstance() : null;
+$es_used = false;
+$es_total = 0;
+$order_clause = "ORDER BY e.verification_status, e.created_at DESC";
+
+if (!empty($search_query)) {
+    if ($esService && $esService->isAvailable()) {
+        $filters = [];
+        if (!empty($filter)) {
+            $filters['approval_status'] = $filter;
+        }
+        $esResult = $esService->searchEmployees($search_query, $filters, 0, 500);
+        if ($esResult !== false && !empty($esResult['items'])) {
+            $es_used = true;
+            $es_total = $esResult['total'];
+            $matching_ids = array_column($esResult['items'], 'id');
+            $matching_ids_str = implode(',', array_map('intval', $matching_ids));
+            $where_clause .= " AND e.id IN ($matching_ids_str)";
+            $order_clause = "ORDER BY FIELD(e.id, $matching_ids_str)";
+        } else {
+            // Fallback MySQL search if no ES hits
+            $safe_search = $db->escapeString($search_query);
+            $where_clause .= " AND (e.full_name LIKE '%$safe_search%' OR e.employee_code LIKE '%$safe_search%' OR e.contractor_company LIKE '%$safe_search%' OR e.position LIKE '%$safe_search%')";
+        }
+    } else {
+        // Fallback MySQL search if ES is unavailable
+        $safe_search = $db->escapeString($search_query);
+        $where_clause .= " AND (e.full_name LIKE '%$safe_search%' OR e.employee_code LIKE '%$safe_search%' OR e.contractor_company LIKE '%$safe_search%' OR e.position LIKE '%$safe_search%')";
+    }
 }
 
 // Get all employees with verification status and KTT rejection awareness
@@ -303,7 +335,7 @@ $employees = $db->query("
     LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
     WHERE $where_clause
     GROUP BY e.id
-    ORDER BY e.verification_status, e.created_at DESC
+    $order_clause
 ");
 
 // Get certifications for dropdown
@@ -498,6 +530,58 @@ $companies = $db->query("
         </div>
     </div>
     
+    <!-- Elasticsearch Search Section -->
+    <div class="card-emp" style="margin-bottom: 24px; padding: 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
+        <form method="GET" action="employees.php" class="es-search-form" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+            <?php if (!empty($filter)): ?>
+                <input type="hidden" name="filter" value="<?php echo htmlspecialchars($filter); ?>">
+            <?php endif; ?>
+            
+            <div style="flex: 1; min-width: 280px; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 15px;"></i>
+                <input type="text" 
+                       name="q" 
+                       value="<?php echo htmlspecialchars($search_query); ?>" 
+                       class="form-control" 
+                       placeholder="Pencarian Cepat: Cari Nama, ID Badge, Perusahaan (Company), atau Posisi..." 
+                       style="padding-left: 42px; height: 44px; border-radius: 8px; border: 1px solid #ced4da; font-size: 14px; width: 100%;">
+            </div>
+            
+            <button type="submit" class="btn btn-primary" style="height: 44px; padding: 0 24px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; background-color: #0d6efd; border: none; cursor: pointer;">
+                <i class="fas fa-search"></i> Cari Data
+            </button>
+
+            <?php if (!empty($search_query)): ?>
+                <a href="employees.php<?php echo !empty($filter) ? '?filter=' . urlencode($filter) : ''; ?>" class="btn btn-secondary" style="height: 44px; padding: 0 18px; border-radius: 8px; display: flex; align-items: center; gap: 6px; text-decoration: none; background-color: #6c757d; color: #fff;">
+                    <i class="fas fa-times"></i> Reset
+                </a>
+            <?php endif; ?>
+
+            <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
+                <?php if ($esService && $esService->isAvailable()): ?>
+                    <span class="badge" style="background-color: #00bfb2; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-bolt"></i> Elasticsearch Active
+                    </span>
+                <?php else: ?>
+                    <span class="badge" style="background-color: #ffc107; color: #212529; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                        <i class="fas fa-database"></i> MySQL Fallback
+                    </span>
+                <?php endif; ?>
+            </div>
+        </form>
+
+        <?php if (!empty($search_query)): ?>
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f3f5; font-size: 13px; color: #495057; display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                    Menampilkan hasil pencarian untuk kata kunci: <strong style="color: #0d6efd;">"<?php echo htmlspecialchars($search_query); ?>"</strong>
+                </div>
+                <div style="font-weight: 500;">
+                    Total: <strong><?php echo $employees ? $employees->num_rows : 0; ?></strong> data ditemukan (Mode: <em><?php echo $es_used ? 'Elasticsearch Engine' : 'MySQL Database'; ?></em>)
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+
     <!-- Employees Table -->
     <div class="card-emp">
         <div class="card-header-emp">

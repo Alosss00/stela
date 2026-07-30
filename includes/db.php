@@ -5,15 +5,31 @@ class Database {
     private $conn;
     
     public function __construct() {
+        @mysqli_report(MYSQLI_REPORT_OFF);
         try {
-            $this->conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
+            $this->conn = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
             
-            if ($this->conn->connect_error) {
-                throw new Exception("Koneksi database gagal: " . $this->conn->connect_error);
+            if (!$this->conn || $this->conn->connect_error) {
+                // Try fallback to local XAMPP root credentials
+                $this->conn = @new mysqli('127.0.0.1', 'root', '', 'mining_appointment');
+                if (!$this->conn || $this->conn->connect_error) {
+                    $this->conn = @new mysqli('127.0.0.1', 'root', '', 'u136581265_Toka_STELA');
+                }
+                if (!$this->conn || $this->conn->connect_error) {
+                    throw new Exception("Koneksi database gagal: " . ($this->conn ? $this->conn->connect_error : 'Unknown DB error'));
+                }
             }
             
             $this->conn->set_charset("utf8mb4");
-        } catch (Exception $e) {
+        } catch (\Throwable $e) {
+            // Try emergency fallback to root
+            try {
+                $this->conn = @new mysqli('127.0.0.1', 'root', '', 'mining_appointment');
+                if (!$this->conn->connect_error) {
+                    $this->conn->set_charset("utf8mb4");
+                    return;
+                }
+            } catch (\Throwable $ex) {}
             die("Error: " . $e->getMessage());
         }
     }
