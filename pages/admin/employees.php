@@ -3,6 +3,7 @@ $page_title = 'Contractor Workforce Data';
 require_once '../../includes/auth.php';
 require_once '../../includes/db.php';
 require_once '../../includes/notifications.php';
+require_once '../../includes/ElasticsearchService.php';
 
 $db = new Database();
 $message = '';
@@ -176,6 +177,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             if ($db->query($sql)) {
                 $employee_id = $db->lastInsertId();
+                
+                // Sync to Elasticsearch
+                if (class_exists('ElasticsearchService')) {
+                    ElasticsearchService::getInstance()->indexEmployee([
+                        'id' => $employee_id,
+                        'employee_code' => $_POST['employee_code'] ?? '',
+                        'full_name' => $_POST['full_name'] ?? '',
+                        'position' => $_POST['position'] ?? '',
+                        'department' => $_POST['department'] ?? '',
+                        'contractor_company' => $_POST['contractor_company'] ?? '',
+                        'competency_type' => $_POST['competency_type'] ?? '',
+                        'ruang_lingkup' => $_POST['ruang_lingkup'] ?? '',
+                        'sub_competency' => $_POST['sub_competency'] ?? '',
+                        'supervision_area' => $_POST['supervision_area'] ?? '',
+                        'approval_status' => 'pending',
+                        'is_active' => 1,
+                        'created_at' => date('Y-m-d H:i:s')
+                    ]);
+                }
                 
                 // Handle multiple certification uploads
                 if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
