@@ -4,10 +4,10 @@
  */
 
 // Konfigurasi Database
-define('DB_HOST', '127.0.0.1');
-define('DB_USER', 'u136581265_Toka_STELA');
-define('DB_PASS', 'Hse_Stela01');
-define('DB_NAME', 'u136581265_Toka_STELA');
+define('DB_HOST', getenv('DB_HOST') ?: '127.0.0.1');
+define('DB_USER', getenv('DB_USER') ?: 'root');
+define('DB_PASS', getenv('DB_PASS') !== false ? getenv('DB_PASS') : '');
+define('DB_NAME', getenv('DB_NAME') ?: 'mining_appointment');
 
 // Konfigurasi Aplikasi
 define('SITE_NAME', 'Expertise Appointment Letter System');
