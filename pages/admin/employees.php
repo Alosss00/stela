@@ -581,59 +581,30 @@ $companies = $db->query("
     }
     </style>
 
-    <div class="card-emp" style="margin-bottom: 24px; padding: 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
-        <form method="GET" action="employees.php" class="es-search-form" style="display: flex; gap: 12px; align-items: center; flex-wrap: wrap;">
+    <div class="card-emp" style="margin-bottom: 24px; padding: 18px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
+        <form method="GET" action="employees.php" class="es-search-form" onsubmit="return false;" style="display: flex; gap: 12px; align-items: center; width: 100%;">
             <?php if (!empty($filter)): ?>
                 <input type="hidden" name="filter" value="<?php echo htmlspecialchars($filter); ?>">
             <?php endif; ?>
             
-            <div style="flex: 1; min-width: 280px; position: relative;">
+            <div style="flex: 1; position: relative;">
                 <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 15px; z-index: 2;"></i>
                 <input type="text" 
                        id="esSearchInput"
                        name="q" 
                        value="<?php echo htmlspecialchars($search_query); ?>" 
                        class="form-control" 
-                       placeholder="Ketik untuk mencari langsung (Nama, ID Badge, Perusahaan, atau Posisi)..." 
+                       placeholder="Ketik untuk mencari secara instan (Nama, ID Badge, Perusahaan, atau Posisi)..." 
                        autocomplete="off"
-                       style="padding-left: 42px; height: 44px; border-radius: 8px; border: 1px solid #ced4da; font-size: 14px; width: 100%;">
+                       style="padding-left: 44px; padding-right: 44px; height: 46px; border-radius: 10px; border: 1px solid #ced4da; font-size: 14px; width: 100%;">
                 
+                <button type="button" id="esClearBtn" title="Bersihkan Pencarian" style="display: <?php echo !empty($search_query) ? 'block' : 'none'; ?>; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 18px; padding: 0; z-index: 2; transition: color 0.15s ease;">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+
                 <div id="esSuggestionsDropdown" class="es-autocomplete-dropdown"></div>
             </div>
-            
-            <button type="submit" class="btn btn-primary" style="height: 44px; padding: 0 24px; border-radius: 8px; font-weight: 600; display: flex; align-items: center; gap: 8px; background-color: #0d6efd; border: none; cursor: pointer;">
-                <i class="fas fa-search"></i> Cari Data
-            </button>
-
-            <?php if (!empty($search_query)): ?>
-                <a href="employees.php<?php echo !empty($filter) ? '?filter=' . urlencode($filter) : ''; ?>" class="btn btn-secondary" style="height: 44px; padding: 0 18px; border-radius: 8px; display: flex; align-items: center; gap: 6px; text-decoration: none; background-color: #6c757d; color: #fff;">
-                    <i class="fas fa-times"></i> Reset
-                </a>
-            <?php endif; ?>
-
-            <div style="margin-left: auto; display: flex; align-items: center; gap: 8px;">
-                <?php if ($esService && $esService->isAvailable()): ?>
-                    <span class="badge" style="background-color: #00bfb2; color: #fff; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-bolt"></i> Elasticsearch Active
-                    </span>
-                <?php else: ?>
-                    <span class="badge" style="background-color: #ffc107; color: #212529; padding: 8px 14px; border-radius: 20px; font-size: 12px; font-weight: 600; display: flex; align-items: center; gap: 6px;">
-                        <i class="fas fa-database"></i> MySQL Fallback
-                    </span>
-                <?php endif; ?>
-            </div>
         </form>
-
-        <?php if (!empty($search_query)): ?>
-            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid #f1f3f5; font-size: 13px; color: #495057; display: flex; justify-content: space-between; align-items: center;">
-                <div>
-                    Menampilkan hasil pencarian untuk kata kunci: <strong style="color: #0d6efd;">"<?php echo htmlspecialchars($search_query); ?>"</strong>
-                </div>
-                <div style="font-weight: 500;">
-                    Total: <strong><?php echo $employees ? $employees->num_rows : 0; ?></strong> data ditemukan (Mode: <em><?php echo $es_used ? 'Elasticsearch Engine' : 'MySQL Database'; ?></em>)
-                </div>
-            </div>
-        <?php endif; ?>
     </div>
 
     <script>
