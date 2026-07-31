@@ -2,7 +2,7 @@
 /**
  * Auth Login View
  */
-require_once dirname(__DIR__, 2) . '/bootstrap/app.php';
+require_once dirname(__DIR__, 3) . '/bootstrap/app.php';
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
