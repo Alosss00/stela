@@ -112,6 +112,8 @@ if ($role === 'department_user' && $department !== '') {
 } else {
 	// Failsafe: never expose cross-scope data when session scope is incomplete.
 	$scope_sql = ' AND 1 = 0';
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resubmit_expired_cert') {
 	if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
 		http_response_code(403);
@@ -562,10 +564,19 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 											}
 
 											// EXPIRED
-											elseif ($cert['status'] === 'expired') {
+											elseif ($cert['days_left'] <= 0 || $cert['status'] === 'expired') {
 											?>
-											<a class="btn btn-primary btn-sm" href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id'];?>">
-											<i class="fas fa-upload"></i>Resubmit</a>
+												<button type="button" class="btn btn-sm btn-primary btn-resubmit-modal" 
+														data-bs-toggle="modal" 
+														data-bs-target="#resubmitCertModal"
+														data-cert-id="<?php echo (int)$cert['employee_certification_id']; ?>"
+														data-cert-number="<?php echo htmlspecialchars($cert['cert_number'] ?: ''); ?>"
+														data-issue-date="<?php echo htmlspecialchars($cert['issue_date'] ?: ''); ?>"
+														data-expiry-date="<?php echo htmlspecialchars($cert['expiry_date'] ?: ''); ?>"
+														data-employee-name="<?php echo htmlspecialchars($cert['full_name']); ?>"
+														data-cert-name="<?php echo htmlspecialchars($cert['cert_name'] ?: 'Sertifikat'); ?>">
+													<i class="fas fa-upload"></i> <span data-lang="resubmit">Resubmit</span>
+												</button>
 										<?php
 												}
 											?>
@@ -584,5 +595,84 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 		</div>
 	</div>
 </div>
+
+<!-- Modal Resubmit Certificate -->
+<div class="modal fade" id="resubmitCertModal" tabindex="-1" aria-labelledby="resubmitCertModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="resubmitCertModalLabel">
+                    <i class="fas fa-upload"></i> Pengajuan Ulang Sertifikat (Resubmit)
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form method="POST" action="" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                    <input type="hidden" name="action" value="resubmit_expired_cert">
+                    <input type="hidden" name="cert_id" id="modal_cert_id" value="">
+
+                    <div class="alert alert-info py-2" style="font-size: 13px;">
+                        <i class="fas fa-info-circle"></i> <span id="modal_cert_info">Unggah sertifikat baru untuk memperbarui sertifikat yang kedaluwarsa.</span>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Nomor Sertifikat</label>
+                        <input type="text" name="cert_number" id="modal_cert_number" class="form-control" placeholder="Contoh: CERT-2026-001" required>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Tanggal Terbit</label>
+                            <input type="date" name="issue_date" id="modal_issue_date" class="form-control">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label fw-bold" style="font-size: 13px;">Tanggal Kedaluwarsa <span class="text-danger">*</span></label>
+                            <input type="date" name="expiry_date" id="modal_expiry_date" class="form-control" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-bold" style="font-size: 13px;">Upload Dokumen Sertifikat Terbaru <span class="text-danger">*</span></label>
+                        <input type="file" name="document_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
+                        <small class="text-muted d-block mt-1" style="font-size: 11.5px;">Format yang diperbolehkan: PDF, JPG, JPEG, PNG (Maksimal 5MB).</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Kirim Resubmit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    var resubmitButtons = document.querySelectorAll('.btn-resubmit-modal');
+    resubmitButtons.forEach(function(btn) {
+        btn.addEventListener('click', function() {
+            var certId = this.getAttribute('data-cert-id');
+            var certNumber = this.getAttribute('data-cert-number');
+            var issueDate = this.getAttribute('data-issue-date');
+            var expiryDate = this.getAttribute('data-expiry-date');
+            var empName = this.getAttribute('data-employee-name');
+            var certName = this.getAttribute('data-cert-name');
+
+            var modalCertId = document.getElementById('modal_cert_id');
+            var modalCertNum = document.getElementById('modal_cert_number');
+            var modalIssue = document.getElementById('modal_issue_date');
+            var modalExpiry = document.getElementById('modal_expiry_date');
+            var modalInfo = document.getElementById('modal_cert_info');
+
+            if (modalCertId) modalCertId.value = certId || '';
+            if (modalCertNum) modalCertNum.value = certNumber || '';
+            if (modalIssue) modalIssue.value = issueDate || '';
+            if (modalExpiry) modalExpiry.value = expiryDate || '';
+            if (modalInfo) modalInfo.textContent = 'Resubmit ' + certName + ' untuk karyawan: ' + empName;
+        });
+    });
+});
+</script>
 
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
