@@ -339,3 +339,111 @@ table.dataTable thead .sorting_desc {
         min-width: 0 !important;
     }
 }
+
+/* ==========================================================================
+   STELA CUSTOM BADGE & ACTION BUTTON COLOR OVERRIDES
+   ========================================================================== */
+
+/* 1. Certificate Number - Crisp Black Text */
+.badge-cert,
+span.badge-cert,
+td .badge-cert,
+table.dataTable tbody td .badge-cert {
+    background-color: #f1f5f9 !important;
+    color: #000000 !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    border: 1px solid #cbd5e1 !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    display: inline-block !important;
+}
+
+/* 2. Certification Badge (e.g. 0/1) - Crisp Dark Text */
+.badge-info,
+span.badge-info,
+td .badge-info,
+table.dataTable tbody td .badge-info {
+    background-color: #e2e8f0 !important;
+    color: #0f172a !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    border: 1px solid #94a3b8 !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    display: inline-block !important;
+}
+
+/* 3. Status Badges */
+/* Pending / Menunggu */
+.badge-warning,
+span.badge-warning,
+td .badge-warning,
+table.dataTable tbody td .badge-warning {
+    background-color: #ffedd5 !important;
+    color: #c2410c !important;
+    border: 1px solid #fdba74 !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    display: inline-block !important;
+}
+
+/* Disetujui / Verified */
+.badge-success,
+span.badge-success,
+td .badge-success,
+table.dataTable tbody td .badge-success {
+    background-color: #dcfce7 !important;
+    color: #15803d !important;
+    border: 1px solid #86efac !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    display: inline-block !important;
+}
+
+/* Tidak Disetujui / Rejected */
+.badge-danger,
+span.badge-danger,
+td .badge-danger,
+table.dataTable tbody td .badge-danger {
+    background-color: #fee2e2 !important;
+    color: #b91c1c !important;
+    border: 1px solid #fca5a5 !important;
+    font-weight: 700 !important;
+    font-size: 13px !important;
+    padding: 6px 12px !important;
+    border-radius: 6px !important;
+    display: inline-block !important;
+}
+
+/* 4. Action "View" Button - Change Cyan/Blue to STELA Orange */
+.btn-info,
+a.btn-info,
+button.btn-info,
+.action-buttons .btn-info,
+.table .btn-info {
+    background: linear-gradient(135deg, #FF8C00 0%, #FF9800 100%) !important;
+    background-color: #FF8C00 !important;
+    border-color: #FF8C00 !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    box-shadow: 0 2px 6px rgba(255, 140, 0, 0.3) !important;
+    transition: all 0.2s ease !important;
+}
+
+.btn-info:hover,
+a.btn-info:hover,
+button.btn-info:hover,
+.action-buttons .btn-info:hover,
+.table .btn-info:hover {
+    background: linear-gradient(135deg, #E67E00 0%, #FF8C00 100%) !important;
+    background-color: #E67E00 !important;
+    border-color: #E67E00 !important;
+    color: #ffffff !important;
+    transform: translateY(-1px) !important;
+    box-shadow: 0 4px 10px rgba(230, 126, 0, 0.4) !important;
+}
