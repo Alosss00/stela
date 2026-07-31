@@ -69,9 +69,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
         $error = 'Akses ditolak: Token keamanan tidak valid atau telah kedaluwarsa. Silakan coba kirim ulang formulir.';
-    } else {
+    }
 
-    $employee_code = $db->escapeString(trim($_POST['employee_code']));
+    if (!$error) {
+        $employee_code = $db->escapeString(trim($_POST['employee_code']));
     $full_name = $db->escapeString(trim($_POST['full_name']));
     $position = $db->escapeString(trim($_POST['position']));
     // Department is automatically set from session for department_user
