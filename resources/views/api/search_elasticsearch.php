@@ -5,8 +5,10 @@
  */
 
 header('Content-Type: application/json; charset=utf-8');
-require_once __DIR__ . '/../init.php';
-require_once __DIR__ . '/../includes/ElasticsearchService.php';
+require_once dirname(__DIR__, 2) . '/bootstrap/app.php';
+if (file_exists(dirname(__DIR__, 2) . '/app/Services/ElasticsearchService.php')) {
+    require_once dirname(__DIR__, 2) . '/app/Services/ElasticsearchService.php';
+}
 
 // Authentication check
 if (!is_logged_in()) {

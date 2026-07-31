@@ -2,7 +2,6 @@
 $page_title = 'Verifikasi Tenaga Kerja';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
-require_once '../../includes/i18n.php';
 
 if (!isset($_GET['id'])) {
     header('Location: employees.php');

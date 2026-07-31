@@ -3,7 +3,6 @@ $page_title = 'Competency Management';
 $page_title_lang = 'competency-management';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
-require_once '../../includes/i18n.php';
 
 $db = new Database();
 $message = '';
