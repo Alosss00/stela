@@ -1,8 +1,8 @@
 <?php
-require_once 'includes/config.php';
+/**
+ * Logout Handler
+ */
+require_once __DIR__ . '/bootstrap/app.php';
 
 session_destroy();
-header('Location: index.php');
-exit();
-?>
-
+redirect(BASE_URL . '/index.php');
