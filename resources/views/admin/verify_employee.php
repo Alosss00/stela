@@ -557,7 +557,7 @@ if ($position_id > 0) {
     $position = $db->query("SELECT * FROM positions WHERE id = $position_id")->fetch_assoc();
 }
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <?php if (isset($_SESSION['success_message'])): ?>
@@ -1282,7 +1282,7 @@ function submitVerification(status) {
 }
 </script>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

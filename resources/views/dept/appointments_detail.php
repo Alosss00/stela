@@ -9,7 +9,7 @@ if (!hasDepartment() && $_SESSION['role'] != 'department_user') {
     exit();
 }
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 
 $db = new Database();
 $department = $_SESSION['department'] ?? '';
@@ -633,7 +633,7 @@ function getKttType($user_id) {
     </div>
 </div>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

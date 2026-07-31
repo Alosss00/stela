@@ -364,7 +364,7 @@ if ($positions && $positions->num_rows > 0) {
 // Get supervision areas from database
 $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_name");
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 
 // Get unique companies for filter (moved here before statistics calculation)
 $companies = $db->query("
@@ -2914,7 +2914,7 @@ input[readonly] {
 }
 </style>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

@@ -102,7 +102,7 @@ $expiring_certs = $db->query("
 
 $expiring_certs_count = $expiring_certs ? $expiring_certs->num_rows : 0;
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 
 // Get all supervision areas for filter
 $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active = 1 ORDER BY area_name");
@@ -1513,7 +1513,7 @@ function exportToExcel(tableId, filename) {
 }
 </script>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

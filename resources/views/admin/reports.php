@@ -308,7 +308,7 @@ if ($expiring_certs && $expiring_certs->num_rows > 0) {
     $expiring_certs->data_seek(0);
 }
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 
 // Get unique companies for filter
 $companies = $db->query("
@@ -3202,7 +3202,7 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

@@ -9,7 +9,7 @@ if (!hasDepartment() && $_SESSION['role'] != 'department_user' && $_SESSION['rol
     exit();
 }
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 
 $db = new Database();
 $is_superadmin = isSuperadmin();
@@ -885,7 +885,7 @@ $recent_appointments = $db->query("
 }
 </style>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

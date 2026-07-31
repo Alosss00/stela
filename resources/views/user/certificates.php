@@ -87,7 +87,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Get all certifications
 $certifications = $db->query("SELECT id, cert_name, cert_type, issuing_authority, is_active FROM certifications WHERE is_active = 1 ORDER BY cert_type, cert_name");
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="certificates-container">
@@ -692,7 +692,7 @@ function deleteCertification(id) {
 }
 </style>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

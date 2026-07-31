@@ -320,7 +320,7 @@ if ($monitor_stmt) {
 	}
 }
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="certificate-status-page">
@@ -519,4 +519,4 @@ require_once dirname(__DIR__, 2) . '/layouts/header.php';
 	</div>
 </div>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>

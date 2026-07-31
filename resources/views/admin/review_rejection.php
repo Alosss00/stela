@@ -234,7 +234,7 @@ $admin_reviewed = $db->query("
     LIMIT 20
 ");
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="approval-admin-container">
@@ -1227,4 +1227,4 @@ function confirmReject(form) {
 }
 </script>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>

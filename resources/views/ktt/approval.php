@@ -372,7 +372,7 @@ $companies_history = $db->query("
     ORDER BY e.contractor_company
 ");
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="approval-container">
@@ -442,6 +442,7 @@ require_once dirname(__DIR__, 2) . '/layouts/header.php';
         </div>
         
         <div class="approvals-grid">
+            <?php if ($pending && $pending->num_rows > 0): ?>
             <?php while ($row = $pending->fetch_assoc()):
                 // Check if this is a resubmitted letter
                 // Resubmit only when employee resubmitted data after being returned by admin
@@ -2505,7 +2506,7 @@ if (!window.__approvalFormFallbackAttached) {
 }
 </script>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

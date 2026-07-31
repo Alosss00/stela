@@ -148,7 +148,7 @@ $areas = $db->query("
     ORDER BY sa.is_active DESC, sa.area_name ASC
 ");
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="supervision-areas-container">
@@ -764,7 +764,7 @@ textarea.form-control-modal {
 }
 </style>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

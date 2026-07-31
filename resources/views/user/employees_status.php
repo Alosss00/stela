@@ -97,7 +97,7 @@ WHERE
 ORDER BY e.full_name ASC
 ");
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 
 // Get statistics
 $total_employees =
@@ -1359,4 +1359,4 @@ input[readonly] {
 }
 </style>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>

@@ -68,7 +68,7 @@ $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 O
 // Get statistics
 $total_certifications = $certifications->num_rows;
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="certifications-container">
@@ -937,7 +937,7 @@ function editCertification(data) {
 }
 </style>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

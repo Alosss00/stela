@@ -7,7 +7,7 @@ require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Only USER role can access this page
 checkPageAccess(['user']);
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
@@ -787,7 +787,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

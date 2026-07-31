@@ -166,7 +166,7 @@ if ($competencies_table_exists && $sub_competencies_table_exists) {
     }
 }
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="positions-container">
@@ -1161,7 +1161,7 @@ textarea.form-control-enhanced {
 }
 </style>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

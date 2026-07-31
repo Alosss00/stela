@@ -80,7 +80,7 @@ if ($competencies_table_exists) {
     $competencies = $db->query("SELECT * FROM competencies WHERE is_active = 1 ORDER BY position_type, competency_name");
 }
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="competencies-container">
@@ -613,7 +613,7 @@ function editCompetency(data) {
 }
 </style>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 
 

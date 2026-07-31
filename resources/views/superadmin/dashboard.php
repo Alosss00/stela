@@ -191,7 +191,7 @@ $hide_sidebar = true;
 // Hide language selector from superadmin dashboard header
 $hide_language_selector = true;
 
-require_once dirname(__DIR__, 2) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="dashboard-modern">
@@ -887,4 +887,4 @@ body {
 }
 </style>
 
-<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
