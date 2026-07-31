@@ -344,19 +344,21 @@ table.dataTable thead .sorting_desc {
    STELA ELEGANT VISIBILITY STYLES - BADGES, STATUS & ACTION BUTTONS
    ========================================================================== */
 
-/* 1. Certificate Number - Soft Clean Slate Pill with Dark Text */
+/* 1. Certificate Number - Inherits default table cell styling */
 .badge-cert,
 span.badge-cert,
 td .badge-cert,
 table.dataTable tbody td .badge-cert {
-    background-color: #f1f5f9 !important;
-    color: #1e293b !important;
-    font-weight: 600 !important;
-    font-size: 12.5px !important;
-    border: 1px solid #cbd5e1 !important;
-    padding: 5px 10px !important;
-    border-radius: 6px !important;
-    display: inline-block !important;
+    background: transparent !important;
+    background-color: transparent !important;
+    color: inherit !important;
+    font-weight: inherit !important;
+    font-size: inherit !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+    display: inline !important;
 }
 
 /* 2. Certification Badge (e.g. 0/1) - Clear Slate Pill */

@@ -245,11 +245,7 @@ $rejected_count = $db->query("
                                 <td><?php echo htmlspecialchars($row['position']); ?></td>
                                 <td><?php echo htmlspecialchars($type_label); ?></td>
                                 <td><?php echo htmlspecialchars($row['competency_name'] ?? '-'); ?></td>
-                                <td>
-                                    <span class="badge badge-cert">
-                                        <?php echo htmlspecialchars($row['cert_numbers'] ?? '-'); ?>
-                                    </span>
-                                </td>
+                                <td><?php echo htmlspecialchars($row['cert_numbers'] ?? '-'); ?></td>
                                 <td>
                                     <span class="badge badge-info">
                                         <?php echo ($row['verified_cert_count'] ?? 0) . '/' . ($row['cert_count'] ?? 0); ?>
