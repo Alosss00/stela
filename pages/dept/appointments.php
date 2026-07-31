@@ -2,6 +2,7 @@
 $page_title = 'Appointment Letters';
 require_once '../../includes/auth.php';
 require_once '../../includes/db.php';
+require_once '../../includes/ElasticsearchService.php';
 
 // Only department_user role or user with department can access this page
 if (!hasDepartment() && $_SESSION['role'] != 'department_user') {
@@ -125,6 +126,82 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
         </form>
     </div>
     
+    <!-- Elasticsearch Search Section -->
+    <style>
+    .es-autocomplete-dropdown {
+        position: absolute;
+        top: calc(100% + 6px);
+        left: 0;
+        right: 0;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+        z-index: 9999;
+        max-height: 320px;
+        overflow-y: auto;
+        display: none;
+    }
+    .es-suggestion-item {
+        padding: 10px 16px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        cursor: pointer;
+        border-bottom: 1px solid #f1f5f9;
+        transition: background 0.15s ease;
+    }
+    .es-suggestion-item:last-child {
+        border-bottom: none;
+    }
+    .es-suggestion-item:hover, .es-suggestion-item.active {
+        background-color: #f1f5f9;
+    }
+    .es-sug-name {
+        font-weight: 600;
+        color: #1e293b;
+        font-size: 14px;
+    }
+    .es-sug-sub {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 2px;
+    }
+    .es-sug-badge {
+        font-size: 11px;
+        font-weight: 600;
+        background: #e2e8f0;
+        color: #334155;
+        padding: 3px 8px;
+        border-radius: 6px;
+    }
+    .dataTables_filter, #appointmentsTable_filter {
+        display: none !important;
+    }
+    </style>
+
+    <div class="card-appt" style="margin-bottom: 24px; padding: 18px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
+        <form method="GET" action="appointments.php" class="es-search-form" onsubmit="return false;" style="display: flex; gap: 12px; align-items: center; width: 100%;">
+            <div style="flex: 1; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 15px; z-index: 2;"></i>
+                <input type="text" 
+                       id="esSearchInput"
+                       name="q" 
+                       value="" 
+                       class="form-control" 
+                       placeholder="Cari Surat Penunjukan dengan Elasticsearch (No. Registrasi, ID Badge, Nama Karyawan)..." 
+                       autocomplete="off"
+                       style="padding-left: 44px; padding-right: 44px; height: 46px; border-radius: 10px; border: 1px solid #ced4da; font-size: 14px; width: 100%;">
+                
+                <button type="button" id="esClearBtn" title="Bersihkan" style="display: none; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 18px; padding: 0; z-index: 2;">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+
+                <div id="esSuggestionsDropdown" class="es-autocomplete-dropdown"></div>
+            </div>
+        </form>
+    </div>
+
     <!-- Appointments Table Card -->
     <div class="card-appt">
         <div class="card-header-appt">
@@ -133,7 +210,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
         <div class="card-body-appt">
             <?php if ($appointments->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-appt datatable">
+                    <table class="table-appt datatable" id="appointmentsTable">
                         <thead>
                             <tr>
                                 <th class="col-number" data-lang="registration-no">No. Registrastion</th>
@@ -149,7 +226,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                         </thead>
                         <tbody>
                             <?php while ($row = $appointments->fetch_assoc()): ?>
-                            <tr class="appt-row">
+                            <tr class="appt-row" data-id="<?php echo $row['id']; ?>">
                                 <td class="col-number">
                                     <strong><?php echo htmlspecialchars($row['appointment_number'] ?? '-'); ?></strong>
                                 </td>
@@ -604,6 +681,121 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
     }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('esSearchInput');
+    const dropdown = document.getElementById('esSuggestionsDropdown');
+    const apptRows = document.querySelectorAll('#appointmentsTable tbody tr.appt-row');
+    const clearBtn = document.getElementById('esClearBtn');
+    let debounceTimer = null;
+
+    if (!searchInput) return;
+
+    if (clearBtn) {
+        clearBtn.addEventListener('click', function() {
+            searchInput.value = '';
+            filterTableLive('');
+            clearBtn.style.display = 'none';
+            if (dropdown) {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+            }
+            searchInput.focus();
+        });
+    }
+
+    function filterTableLive(query, matchingIds = null) {
+        const cleanQ = query.toLowerCase().trim();
+        apptRows.forEach(row => {
+            const rowId = row.dataset.id;
+            const textContent = row.textContent.toLowerCase();
+            let isMatch = false;
+
+            if (cleanQ === '') {
+                isMatch = true;
+            } else if (matchingIds !== null && matchingIds.size > 0) {
+                isMatch = matchingIds.has(rowId) || textContent.includes(cleanQ);
+            } else {
+                isMatch = textContent.includes(cleanQ);
+            }
+
+            row.style.display = isMatch ? '' : 'none';
+        });
+    }
+
+    searchInput.addEventListener('input', function() {
+        const query = this.value.trim();
+        clearTimeout(debounceTimer);
+
+        if (clearBtn) {
+            clearBtn.style.display = query.length > 0 ? 'block' : 'none';
+        }
+
+        filterTableLive(query);
+
+        if (query.length < 1) {
+            if (dropdown) {
+                dropdown.style.display = 'none';
+                dropdown.innerHTML = '';
+            }
+            return;
+        }
+
+        debounceTimer = setTimeout(() => {
+            fetch('../../api/search_elasticsearch.php?target=appointments&q=' + encodeURIComponent(query) + '&limit=100')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success' && data.items) {
+                        const matchingIds = new Set(data.items.map(item => String(item.id)));
+                        filterTableLive(query, matchingIds);
+
+                        if (dropdown && data.items.length > 0) {
+                            renderSuggestions(data.items.slice(0, 8));
+                        } else if (dropdown) {
+                            dropdown.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(err => console.error('Elasticsearch appointments search error:', err));
+        }, 150);
+    });
+
+    function renderSuggestions(items) {
+        if (!dropdown) return;
+        dropdown.innerHTML = '';
+        items.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'es-suggestion-item';
+            div.innerHTML = `
+                <div>
+                    <div class="es-sug-name">${escapeHtml(item.appointment_number || item.employee_name)}</div>
+                    <div class="es-sug-sub">${escapeHtml(item.employee_name || '')} &bull; ${escapeHtml(item.contractor_company || '')}</div>
+                </div>
+                <span class="es-sug-badge">${escapeHtml(item.status || '')}</span>
+            `;
+            div.addEventListener('click', function() {
+                searchInput.value = item.appointment_number || item.employee_name;
+                filterTableLive(searchInput.value);
+                dropdown.style.display = 'none';
+            });
+            dropdown.appendChild(div);
+        });
+        dropdown.style.display = 'block';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+
+    document.addEventListener('click', function(e) {
+        if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
+            dropdown.style.display = 'none';
+        }
+    });
+});
+</script>
 
 <?php require_once '../../includes/footer.php'; ?>
 
