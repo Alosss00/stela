@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/config.php';
+require_once dirname(__DIR__, 2) . '/config/app.php';
 
 // Calculate base URL dynamically for redirects
 $script_path = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));

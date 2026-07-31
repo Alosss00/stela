@@ -4,11 +4,11 @@
  * Email notifications only
  */
 
-require_once __DIR__ . '/config.php';
-require_once __DIR__ . '/db.php';
+require_once dirname(__DIR__, 2) . '/config/app.php';
+require_once dirname(__DIR__) . '/Models/Database.php';
 
 // Check if autoload file exists before requiring it
-$autoload_path = __DIR__ . '/../vendor/autoload.php';
+$autoload_path = dirname(__DIR__, 2) . '/vendor/autoload.php';
 if (file_exists($autoload_path)) {
     require_once $autoload_path;
 }
