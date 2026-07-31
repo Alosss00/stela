@@ -112,6 +112,72 @@ if ($role === 'department_user' && $department !== '') {
 } else {
 	// Failsafe: never expose cross-scope data when session scope is incomplete.
 	$scope_sql = ' AND 1 = 0';
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resubmit_expired_cert') {
+	if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+		http_response_code(403);
+		die('CSRF token mismatch');
+	}
+
+	$cert_id = isset($_POST['cert_id']) ? intval($_POST['cert_id']) : 0;
+	$cert_number = trim($_POST['cert_number'] ?? '');
+	$issue_date = trim($_POST['issue_date'] ?? '');
+	$expiry_date = trim($_POST['expiry_date'] ?? '');
+
+	if ($cert_id <= 0 || empty($expiry_date)) {
+		$error = 'Nomor sertifikat dan tanggal kedaluwarsa wajib diisi!';
+	} elseif (!isset($_FILES['document_file']) || $_FILES['document_file']['error'] !== 0) {
+		$error = 'Silakan pilih file sertifikat baru untuk diunggah.';
+	} else {
+		$allowed_extensions = ['pdf', 'jpg', 'jpeg', 'png'];
+		$file_size = $_FILES['document_file']['size'];
+		$max_size = 5 * 1024 * 1024;
+		$file_extension = strtolower(pathinfo($_FILES['document_file']['name'], PATHINFO_EXTENSION));
+
+		if (!in_array($file_extension, $allowed_extensions, true)) {
+			$error = 'Format file tidak diperbolehkan! Gunakan format PDF, JPG, JPEG, atau PNG.';
+		} elseif ($file_size > $max_size) {
+			$error = 'Ukuran file terlalu besar! Maksimal 5MB.';
+		} else {
+			$upload_dir = '../../assets/uploads/certifications/';
+			if (!is_dir($upload_dir)) {
+				mkdir($upload_dir, 0775, true);
+			}
+
+			$new_filename = 'cert_resubmit_' . $cert_id . '_' . time() . '.' . $file_extension;
+			$upload_path = $upload_dir . $new_filename;
+
+			if (move_uploaded_file($_FILES['document_file']['tmp_name'], $upload_path)) {
+				$document_file = 'uploads/certifications/' . $new_filename;
+				
+				$stmt_upd = $db->prepare("
+					UPDATE employee_certifications 
+					SET cert_number = ?,
+						issue_date = NULLIF(?, ''),
+						expiry_date = ?,
+						document_file = ?,
+						verification_status = 'pending',
+						status = 'pending',
+						updated_at = NOW() 
+					WHERE id = ?
+				");
+				
+				if ($stmt_upd) {
+					$stmt_upd->bind_param("ssssi", $cert_number, $issue_date, $expiry_date, $document_file, $cert_id);
+					if ($stmt_upd->execute()) {
+						$db->query("UPDATE employees e JOIN employee_certifications ec ON ec.employee_id = e.id SET e.resubmit_type = 'certificate', e.resubmit_date = NOW(), e.resubmit_count = e.resubmit_count + 1 WHERE ec.id = {$cert_id}");
+						
+						$message = 'Sertifikat berhasil diajukan ulang (resubmit) dan siap untuk diverifikasi!';
+					} else {
+						$error = 'Gagal memperbarui data sertifikat di database.';
+					}
+				} else {
+					$error = 'Gagal memproses query update sertifikat.';
+				}
+			} else {
+				$error = 'Gagal mengunggah file sertifikat ke server.';
+			}
+		}
+	}
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resubmit_file') {
