@@ -50,7 +50,7 @@ $current_page = get_current_page();
     href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/datatable-custom.css">
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/datatable-custom.css?v=<?php echo time(); ?>">
 
 </head>
 <body>

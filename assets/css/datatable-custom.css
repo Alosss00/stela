@@ -1,52 +1,56 @@
 /* Custom Modern Layout & Styling for DataTables Controls Across STELA App */
 
+div.dataTables_wrapper .dt-controls-top,
 .dt-controls-top {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 20px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-bottom: none;
-    border-radius: 12px 12px 0 0;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-bottom: 0;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 14px 20px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-bottom: none !important;
+    border-radius: 12px 12px 0 0 !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    margin-bottom: 0 !important;
 }
 
+div.dataTables_wrapper .dt-controls-bottom,
 .dt-controls-bottom {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 14px 20px;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-top: 1px solid #e2e8f0;
-    border-radius: 0 0 12px 12px;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 0;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    padding: 14px 20px !important;
+    background: #f8fafc !important;
+    border: 1px solid #e2e8f0 !important;
+    border-top: 1px solid #e2e8f0 !important;
+    border-radius: 0 0 12px 12px !important;
+    flex-wrap: wrap !important;
+    gap: 12px !important;
+    margin-top: 0 !important;
 }
 
 /* Container wrapper for tables */
 .dataTables_wrapper {
-    width: 100%;
-    margin: 0 auto;
+    width: 100% !important;
+    margin: 0 auto !important;
 }
 
 .dataTables_wrapper .table-responsive {
     margin-bottom: 0 !important;
-    border-left: 1px solid #e2e8f0;
-    border-right: 1px solid #e2e8f0;
+    border-left: 1px solid #e2e8f0 !important;
+    border-right: 1px solid #e2e8f0 !important;
 }
 
 /* Page Length Selector ("Tampilkan X data" / "Show X entries") */
+div.dataTables_wrapper div.dataTables_length,
 .dataTables_length {
     margin-bottom: 0 !important;
-    display: flex;
-    align-items: center;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 
+div.dataTables_wrapper div.dataTables_length label,
 .dataTables_length label {
     font-size: 13.5px !important;
     font-weight: 500 !important;
@@ -60,21 +64,23 @@
 }
 
 /* Select Box fix for overlapping text & custom SVG caret arrow */
+div.dataTables_wrapper div.dataTables_length select,
 .dataTables_length select,
 .dataTables_length select.form-select,
-.dataTables_length select.form-select-sm {
+.dataTables_length select.form-select-sm,
+select[name$="_length"] {
     display: inline-block !important;
     width: auto !important;
-    min-width: 72px !important;
-    height: 36px !important;
-    padding: 6px 32px 6px 12px !important; /* 32px right padding prevents overlap with caret */
-    font-size: 13px !important;
+    min-width: 80px !important;
+    height: 38px !important;
+    padding: 6px 36px 6px 14px !important; /* 36px right padding guarantees no overlap with caret */
+    font-size: 13.5px !important;
     font-weight: 600 !important;
     color: #1e293b !important;
     background-color: #ffffff !important;
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%3c475569' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e") !important;
     background-repeat: no-repeat !important;
-    background-position: right 10px center !important;
+    background-position: right 12px center !important;
     background-size: 12px 12px !important;
     border: 1px solid #cbd5e1 !important;
     border-radius: 8px !important;
@@ -86,16 +92,18 @@
     transition: all 0.2s ease !important;
     cursor: pointer !important;
     line-height: 1.4 !important;
-    margin: 0 4px !important;
+    margin: 0 6px !important;
     vertical-align: middle !important;
 }
 
+div.dataTables_wrapper div.dataTables_length select:hover,
 .dataTables_length select:hover,
 .dataTables_length select.form-select:hover {
     border-color: #94a3b8 !important;
     background-color: #ffffff !important;
 }
 
+div.dataTables_wrapper div.dataTables_length select:focus,
 .dataTables_length select:focus,
 .dataTables_length select.form-select:focus {
     border-color: #3b82f6 !important;
@@ -103,12 +111,14 @@
 }
 
 /* DataTables Filter (Search Box) */
+div.dataTables_wrapper div.dataTables_filter,
 .dataTables_filter {
     margin-bottom: 0 !important;
-    display: flex;
-    align-items: center;
+    display: inline-flex !important;
+    align-items: center !important;
 }
 
+div.dataTables_wrapper div.dataTables_filter label,
 .dataTables_filter label {
     font-size: 13.5px !important;
     font-weight: 500 !important;
@@ -120,6 +130,7 @@
     white-space: nowrap !important;
 }
 
+div.dataTables_wrapper div.dataTables_filter input,
 .dataTables_filter input,
 .dataTables_filter input.form-control,
 .dataTables_filter input.form-control-sm {
@@ -132,11 +143,12 @@
     outline: none !important;
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05) !important;
     transition: all 0.2s ease !important;
-    height: 36px !important;
+    height: 38px !important;
     min-width: 220px !important;
     margin-left: 4px !important;
 }
 
+div.dataTables_wrapper div.dataTables_filter input:focus,
 .dataTables_filter input:focus,
 .dataTables_filter input.form-control:focus {
     border-color: #3b82f6 !important;
@@ -144,6 +156,7 @@
 }
 
 /* DataTables Info Text */
+div.dataTables_wrapper div.dataTables_info,
 .dataTables_info {
     font-size: 13px !important;
     font-weight: 500 !important;
@@ -153,6 +166,7 @@
 }
 
 /* DataTables Pagination Wrapper & Buttons */
+div.dataTables_wrapper div.dataTables_paginate,
 .dataTables_paginate {
     display: flex !important;
     align-items: center !important;
@@ -300,20 +314,25 @@ table.dataTable thead .sorting_desc {
 @media (max-width: 768px) {
     .dt-controls-top,
     .dt-controls-bottom {
-        flex-direction: column;
-        align-items: stretch;
-        text-align: center;
-        gap: 10px;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        text-align: center !important;
+        gap: 10px !important;
     }
 
+    div.dataTables_wrapper div.dataTables_length,
+    div.dataTables_wrapper div.dataTables_filter,
+    div.dataTables_wrapper div.dataTables_info,
+    div.dataTables_wrapper div.dataTables_paginate,
     .dataTables_length,
     .dataTables_filter,
     .dataTables_info,
     .dataTables_paginate {
-        justify-content: center;
-        width: 100%;
+        justify-content: center !important;
+        width: 100% !important;
     }
 
+    div.dataTables_wrapper div.dataTables_filter input,
     .dataTables_filter input,
     .dataTables_filter input.form-control {
         width: 100% !important;
