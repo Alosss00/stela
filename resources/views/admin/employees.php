@@ -689,9 +689,14 @@ $companies = $db->query("
             // 2. Fetch Elasticsearch fast search results for instant accuracy & dropdown
             debounceTimer = setTimeout(() => {
                 fetch('../../api/search_elasticsearch.php?q=' + encodeURIComponent(query) + '&limit=100')
-                    .then(res => res.json())
+                    .then(res => {
+                        if (!res.ok) throw new Error('HTTP ' + res.status);
+                        const ct = res.headers.get('content-type') || '';
+                        if (!ct.includes('application/json')) throw new Error('Non-JSON response');
+                        return res.json();
+                    })
                     .then(data => {
-                        if (data.status === 'success' && data.items) {
+                        if (data && data.status === 'success' && data.items) {
                             const matchingIds = new Set(data.items.map(item => String(item.id)));
                             filterTableLive(query, matchingIds);
 
@@ -703,9 +708,7 @@ $companies = $db->query("
                             }
                         }
                     })
-                    .catch(err => {
-                        console.error('Elasticsearch live search error:', err);
-                    });
+                    .catch(err => console.warn('Elasticsearch live search notice:', err.message));
             }, 150);
         });
 
