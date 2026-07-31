@@ -1,7 +1,7 @@
 <?php
 $page_title = 'Upload Employee Correction' ;
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 // Only USER role can access this page
 checkPageAccess(['user']);
@@ -443,7 +443,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $message = 'Data correction successfully uploaded!';
                     }
 
-                    require_once '../../includes/notifications.php';
+                    // Included via bootstrap/app.php
                     try {
                         set_time_limit(60);
                         $notificationService = new NotificationService();
@@ -461,7 +461,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } // Akhir dari else CSRF
 }
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 
 
 ?>
@@ -2011,7 +2011,7 @@ select[disabled] {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

@@ -1,5 +1,5 @@
 <?php
-require_once '../includes/db.php';
+// Included via bootstrap/app.php
 
 header('Content-Type: application/json');
 

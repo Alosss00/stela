@@ -1,7 +1,7 @@
 <?php
 $page_title = 'Certificate Status';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 checkPageAccess(['user', 'department_user']);
 
@@ -401,7 +401,7 @@ if ($monitor_stmt) {
 	}
 }
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="certificate-status-page">
@@ -611,4 +611,4 @@ require_once '../../includes/header.php';
 	</div>
 </div>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>

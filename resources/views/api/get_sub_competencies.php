@@ -4,8 +4,8 @@
  * Returns sub-competencies for a selected competency in JSON format
  */
 
-require_once '../includes/auth.php';
-require_once '../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 header('Content-Type: application/json');
 

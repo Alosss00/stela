@@ -1,7 +1,7 @@
 <?php
 $page_title = 'Competency Management';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 // Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
 if (session_status() === PHP_SESSION_NONE) {
@@ -80,7 +80,7 @@ if ($competencies_table_exists) {
     $competencies = $db->query("SELECT * FROM competencies WHERE is_active = 1 ORDER BY position_type, competency_name");
 }
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="competencies-container">
@@ -613,7 +613,7 @@ function editCompetency(data) {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

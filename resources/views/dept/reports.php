@@ -1,7 +1,7 @@
 <?php
 $page_title = 'Reports - ' . ($_SESSION['department'] ?? 'Department');
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 // Only department_user role or user with department can access this page
 if (!hasDepartment() && $_SESSION['role'] != 'department_user') {
@@ -102,7 +102,7 @@ $expiring_certs = $db->query("
 
 $expiring_certs_count = $expiring_certs ? $expiring_certs->num_rows : 0;
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 
 // Get all supervision areas for filter
 $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active = 1 ORDER BY area_name");
@@ -1513,7 +1513,7 @@ function exportToExcel(tableId, filename) {
 }
 </script>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

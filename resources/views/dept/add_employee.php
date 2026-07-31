@@ -1,8 +1,8 @@
 <?php
 $page_title = 'Add Employee - ' . ($_SESSION['department'] ?? 'Department');
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
-require_once '../../includes/notifications.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
+// Included via bootstrap/app.php
 
 // Only department_user role or user with department can access this page
 if (!hasDepartment() && $_SESSION['role'] != 'department_user') {
@@ -288,7 +288,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 }
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="add-employee-container">
@@ -1786,7 +1786,7 @@ select[disabled] {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

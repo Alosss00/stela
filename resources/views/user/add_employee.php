@@ -1,8 +1,8 @@
 <?php
 $page_title = 'User Add Employee';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
-require_once '../../includes/notifications.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
+// Included via bootstrap/app.php
 
 // Only USER role can access this page
 checkPageAccess(['user']);
@@ -330,7 +330,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 }
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="add-employee-container">
@@ -1798,7 +1798,7 @@ select[disabled] {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

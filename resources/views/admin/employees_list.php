@@ -1,7 +1,7 @@
 <?php
 $page_title = 'Contractor Workforce Data';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 $db = new Database();
 $message = '';
@@ -149,7 +149,7 @@ $employees = $db->query("
 $certifications = $db->query("SELECT * FROM certifications ORDER BY cert_name");
 $positions = $db->query("SELECT * FROM positions ORDER BY position_type, position_name");
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 
 // Get statistics
 $total_employees = $employees->num_rows;
@@ -1413,7 +1413,7 @@ function updateTableInfo(message) {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

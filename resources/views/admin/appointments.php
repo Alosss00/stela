@@ -1,10 +1,10 @@
 <?php
 ob_start();
 $page_title = 'Appointment Letters';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 require_once '../../includes/i18n.php';
-require_once '../../includes/ElasticsearchService.php';
+// Included via bootstrap/app.php
 
 
 // Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     if ($db->query($update_sql)) {
                         // Send email notification to KTT
                         try {
-                            require_once '../../includes/notifications.php';
+                            // Included via bootstrap/app.php
                             $notifService = new NotificationService();
                             $notifService->notifyKttForApproval($id, $requires_ktt_msm == 1, $requires_ktt_ttn == 1);
                         } catch (Exception $e) {
@@ -338,7 +338,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 // Send email notification to KTT
                 try {
-                    require_once '../../includes/notifications.php';
+                    // Included via bootstrap/app.php
                     $notifService = new NotificationService();
                     // Notify only the KTTs that need to review
                     $notify_msm = !$is_resubmit || $appt['requires_ktt_msm_review'] == 1;
@@ -475,7 +475,7 @@ $rejected_by_ktt_query = "
 
 $rejected_by_ktt = $db->query($rejected_by_ktt_query);
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ob_end_flush();
 
 // Get statistics
@@ -3337,7 +3337,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

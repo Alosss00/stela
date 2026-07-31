@@ -1,12 +1,12 @@
 <?php
 $page_title = 'Dashboard';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 // Only USER role can access this page
 checkPageAccess(['user', 'superadmin']);
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 
 $db = new Database();
 $is_superadmin = isSuperadmin();
@@ -951,7 +951,7 @@ $recent_appointments = $db->query("
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

@@ -1,8 +1,8 @@
 <?php
 $page_title = 'KTT Approval';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
-require_once '../../includes/notifications.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
+// Included via bootstrap/app.php
 
 // Check if user is KTT only, or superadmin for read access
 if ($_SESSION['role'] != 'ktt' && $_SESSION['role'] != 'superadmin') {
@@ -246,7 +246,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$is_superadmin) {
 
                             // Send notification to admin about rejection that needs review
                             try {
-                                require_once '../../includes/notifications.php';
+                                // Included via bootstrap/app.php
                                 set_time_limit(60);
                                 $notificationService = new NotificationService();
                                 $notificationService->notifyAppointmentRejectedForReview($id);
@@ -372,7 +372,7 @@ $companies_history = $db->query("
     ORDER BY e.contractor_company
 ");
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="approval-container">
@@ -2505,7 +2505,7 @@ if (!window.__approvalFormFallbackAttached) {
 }
 </script>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

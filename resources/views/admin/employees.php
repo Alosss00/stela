@@ -1,9 +1,9 @@
 <?php
 $page_title = 'Contractor Workforce Data';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
-require_once '../../includes/notifications.php';
-require_once '../../includes/ElasticsearchService.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
+// Included via bootstrap/app.php
+// Included via bootstrap/app.php
 
 $db = new Database();
 $message = '';
@@ -364,7 +364,7 @@ if ($positions && $positions->num_rows > 0) {
 // Get supervision areas from database
 $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_name");
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 
 // Get unique companies for filter (moved here before statistics calculation)
 $companies = $db->query("
@@ -2914,7 +2914,7 @@ input[readonly] {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

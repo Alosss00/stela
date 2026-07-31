@@ -1,7 +1,7 @@
 <?php
 $page_title = 'Certification Management';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 // Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
 if (session_status() === PHP_SESSION_NONE) {
@@ -68,7 +68,7 @@ $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 O
 // Get statistics
 $total_certifications = $certifications->num_rows;
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="certifications-container">
@@ -937,7 +937,7 @@ function editCertification(data) {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

@@ -1,7 +1,7 @@
 <?php
 $page_title = 'Review KTT Rejections';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 // Check if user is admin
 if ($_SESSION['role'] != 'admin') {
@@ -94,7 +94,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $message = stela_t('letter-returned-user-correction');
                     // Notify user/dept of the final rejection (KTT rejected + admin also rejected)
                     try {
-                        require_once '../../includes/notifications.php';
+                        // Included via bootstrap/app.php
                         set_time_limit(60);
                         $notifService = new NotificationService();
                         $notifService->notifyAdminFinalRejectionToUserDept($id, $admin_notes);
@@ -172,7 +172,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     // Send email notification to KTT
                     try {
-                        require_once '../../includes/notifications.php';
+                        // Included via bootstrap/app.php
                         $notifService = new NotificationService();
                         $notifService->notifyKttForApproval($id, $requires_ktt_msm == 1, $requires_ktt_ttn == 1);
                     } catch (Exception $e) {
@@ -234,7 +234,7 @@ $admin_reviewed = $db->query("
     LIMIT 20
 ");
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="approval-admin-container">
@@ -1227,4 +1227,4 @@ function confirmReject(form) {
 }
 </script>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>

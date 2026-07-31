@@ -1,8 +1,8 @@
 <?php
 $page_title = 'Employee Status';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
-require_once '../../includes/notifications.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
+// Included via bootstrap/app.php
 
 $db = new Database();
 $message = '';
@@ -52,7 +52,7 @@ WHERE
 ORDER BY e.full_name ASC
 ");
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 
 // Get statistics
 $total_employees =
@@ -1298,4 +1298,4 @@ input[readonly] {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>

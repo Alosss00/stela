@@ -1,7 +1,7 @@
 <?php
 $page_title = 'Verifikasi Tenaga Kerja';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 require_once '../../includes/i18n.php';
 
 if (!isset($_GET['id'])) {
@@ -471,7 +471,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     // Redirect langsung ke halaman appointments dengan ID appointment
                     // Notify user/dept that admin accepted the employee
                     try {
-                        require_once '../../includes/notifications.php';
+                        // Included via bootstrap/app.php
                         set_time_limit(60);
                         $notifService = new NotificationService();
                         $notifService->notifyAdminAcceptedEmployee($employee_id);
@@ -490,7 +490,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     $_SESSION['success_message'] = stela_t('rejected-data');
                     // Notify user/dept that admin rejected the employee
                     try {
-                        require_once '../../includes/notifications.php';
+                        // Included via bootstrap/app.php
                         set_time_limit(60);
                         $notifService = new NotificationService();
                         $notifService->notifyAdminRejectedEmployee($employee_id, $notes);
@@ -557,7 +557,7 @@ if ($position_id > 0) {
     $position = $db->query("SELECT * FROM positions WHERE id = $position_id")->fetch_assoc();
 }
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <?php if (isset($_SESSION['success_message'])): ?>
@@ -1282,7 +1282,7 @@ function submitVerification(status) {
 }
 </script>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

@@ -1,8 +1,8 @@
 <?php
 $page_title = 'Resubmit Certificate';
 
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 checkPageAccess(['user', 'department_user']);
 
@@ -290,7 +290,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
 }
 
 ?>
-<?php include '../../includes/header.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/header.php'; ?>
  
 <div class="add-employee-container">
 
@@ -498,7 +498,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
 
 </form>
 
-<?php include '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 <script>
 

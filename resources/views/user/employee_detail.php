@@ -1,8 +1,8 @@
 <?php
 $page_title = 'Detail Employee';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 
 // Only USER role can access this page
 checkPageAccess(['user']);
@@ -774,7 +774,7 @@ function toggleExpiryField(checkboxElement) {
 }
 </script>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

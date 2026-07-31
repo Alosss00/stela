@@ -1,8 +1,8 @@
 <?php
 $page_title = 'Superadmin Dashboard';
-require_once '../../includes/config.php';
-require_once '../../includes/db.php';
-require_once '../../includes/auth.php';
+require_once dirname(__DIR__, 3) . '/bootstrap/app.php';
+// Included via bootstrap/app.php
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 
 // Check if user is superadmin
 if (!isset($_SESSION['user_id'])) {
@@ -191,7 +191,7 @@ $hide_sidebar = true;
 // Hide language selector from superadmin dashboard header
 $hide_language_selector = true;
 
-include '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="dashboard-modern">
@@ -887,4 +887,4 @@ body {
 }
 </style>
 
-<?php include '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>

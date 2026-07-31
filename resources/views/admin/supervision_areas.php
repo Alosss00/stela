@@ -1,8 +1,8 @@
 <?php
 $page_title = 'Manage Supervision Areas';
 $page_title_lang = 'manage-supervision-areas';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 
 // Only ADMIN can access this page
 checkPageAccess(['admin']);
@@ -148,7 +148,7 @@ $areas = $db->query("
     ORDER BY sa.is_active DESC, sa.area_name ASC
 ");
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="supervision-areas-container">
@@ -764,7 +764,7 @@ textarea.form-control-modal {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

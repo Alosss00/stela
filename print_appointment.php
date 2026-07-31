@@ -1,6 +1,5 @@
 <?php
-require_once 'includes/config.php';
-require_once 'includes/db.php';
+require_once __DIR__ . '/bootstrap/app.php';
 
 if (!isset($_GET['id'])) {
     die('ID tidak valid');

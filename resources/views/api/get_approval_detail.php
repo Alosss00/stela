@@ -1,6 +1,6 @@
 <?php
 session_start();
-require_once '../includes/config.php';
+require_once dirname(__DIR__, 3) . '/bootstrap/app.php';
 
 // Check if user is logged in and is KTT
 if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'ktt') {

@@ -1,8 +1,8 @@
 <?php
 $page_title = 'Employees';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
-require_once '../../includes/ElasticsearchService.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
+// Included via bootstrap/app.php
 
 // Only department_user role or user with department can access this page
 if (!hasDepartment() && $_SESSION['role'] != 'department_user') {
@@ -10,7 +10,7 @@ if (!hasDepartment() && $_SESSION['role'] != 'department_user') {
     exit();
 }
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 
 $db = new Database();
 $department = $_SESSION['department'] ?? '';
@@ -796,7 +796,7 @@ document.addEventListener('DOMContentLoaded', function() {
 });
 </script>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

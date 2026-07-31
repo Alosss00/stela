@@ -1,8 +1,8 @@
 <?php
 $page_title = 'Competency Management';
 $page_title_lang = 'competency-management';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
 require_once '../../includes/i18n.php';
 
 $db = new Database();
@@ -166,7 +166,7 @@ if ($competencies_table_exists && $sub_competencies_table_exists) {
     }
 }
 
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 ?>
 
 <div class="positions-container">
@@ -1161,7 +1161,7 @@ textarea.form-control-enhanced {
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 

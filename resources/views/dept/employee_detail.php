@@ -1,8 +1,8 @@
     <?php
 $page_title = 'Detail Karyawan';
-require_once '../../includes/auth.php';
-require_once '../../includes/db.php';
-require_once '../../includes/header.php';
+require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+// Included via bootstrap/app.php
+require_once dirname(__DIR__, 2) . '/layouts/header.php';
 
 // Check access - only department users
 if (!hasDepartment()) {
@@ -623,7 +623,7 @@ $competency_type_labels = [
 }
 </style>
 
-<?php require_once '../../includes/footer.php'; ?>
+<?php require_once dirname(__DIR__, 2) . '/layouts/footer.php'; ?>
 
 
 
