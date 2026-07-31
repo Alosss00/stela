@@ -1,9 +1,10 @@
 <?php
 $page_title = 'Certificate Status';
+$page_title_lang = 'certificate-status';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-checkPageAccess(['user', 'department_user']);
+checkPageAccess(['admin', 'superadmin']);
 
 $db = new Database();
 $monitor_window_days = 60;
@@ -52,12 +53,6 @@ function getWorkflowStatus(array $cert): array
     $verification = $cert['verification_status'] ?? '';
     $appointment = $cert['appointment_status'] ?? '';
 
-    /*
-    |--------------------------------------------------------------------------
-    | EXPIRED
-    |--------------------------------------------------------------------------
-    */
-
     if ($status === 'expired') {
         return [
             'class' => 'critical',
@@ -65,87 +60,38 @@ function getWorkflowStatus(array $cert): array
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | WAITING REVIEWER
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $status === 'pending' &&
-        $verification === 'pending'
-    ) {
+    if ($status === 'pending' && $verification === 'pending') {
         return [
             'class' => 'pending',
             'label' => 'WAITING REVIEWER'
         ];
     }
 
-	 if (
-        $status === 'pending' &&
-        $verification === 'rejected'
-    ) {
+    if ($status === 'pending' && $verification === 'rejected') {
         return [
             'class' => 'critical',
-            'label' => 'REJECT'
+            'label' => 'REJECTED'
         ];
     }
 
-
-    // |--------------------------------------------------------------------------
-    // | WAITING KTT
-    // |--------------------------------------------------------------------------
-    // */
-
-    if (
-        $status === 'pending' &&
-        $verification === 'verified'
-    ) {
+    if ($status === 'pending' && $verification === 'verified') {
         return [
             'class' => 'warning',
             'label' => 'WAITING KTT'
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | ACTIVE
-    |--------------------------------------------------------------------------
-    */
-
-    if (
-        $status === 'active' &&
-        $verification === 'verified' &&
-        $appointment === 'approved'
-    ) {
+    if ($status === 'active' && $verification === 'verified' && $appointment === 'approved') {
         return [
             'class' => 'success',
             'label' => 'ACTIVE'
         ];
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | DEFAULT
-    |--------------------------------------------------------------------------
-    */
-
     return [
         'class' => 'secondary',
-        'label' => strtoupper($status)
+        'label' => strtoupper($status ?: 'PENDING')
     ];
-}
-
-function buildResubmitUrl(array $cert, string $csrf_token): string
-{
-	return 'appointments.php?' . http_build_query([
-		'action' => 'resubmit_to_ktt',
-		'id' => (int) ($cert['appointment_id'] ?? 0),
-		'employee_id' => (int) ($cert['employee_id'] ?? 0),
-		'certification_id' => (int) ($cert['certification_id'] ?? 0),
-		'employee_certification_id' => (int) ($cert['employee_certification_id'] ?? 0),
-		'csrf_token' => $csrf_token,
-	]);
 }
 
 if (session_status() === PHP_SESSION_NONE) {
@@ -157,125 +103,48 @@ if (empty($_SESSION['csrf_token'])) {
 
 $message = '';
 $error = '';
-$role = $_SESSION['role'] ?? '';
-$company_name = trim((string) ($_SESSION['company_name'] ?? ''));
-$department = trim((string) ($_SESSION['department'] ?? ''));
 
-$scope_sql = '';
-$scope_params = [];
-$scope_types = '';
-
-if ($role === 'department_user' && $department !== '') {
-	$scope_sql = ' AND LOWER(TRIM(e.department)) = LOWER(TRIM(?))';
-	$scope_params[] = $department;
-	$scope_types .= 's';
-} elseif ($role === 'user' && $company_name !== '') {
-	$scope_sql = ' AND LOWER(TRIM(e.contractor_company)) = LOWER(TRIM(?))';
-	$scope_params[] = $company_name;
-	$scope_types .= 's';
-} else {
-	// Failsafe: never expose cross-scope data when session scope is incomplete.
-	$scope_sql = ' AND 1 = 0';
+// Get distinct companies list for Admin filter
+$companies_res = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE contractor_company IS NOT NULL AND TRIM(contractor_company) != '' ORDER BY contractor_company ASC");
+$companies_list = [];
+if ($companies_res) {
+    while ($c_row = $companies_res->fetch_assoc()) {
+        $companies_list[] = $c_row['contractor_company'];
+    }
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resubmit_file') {
-	if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-		http_response_code(403);
-		die('CSRF token mismatch');
-	}
-
-	$cert_id = isset($_POST['cert_id']) ? intval($_POST['cert_id']) : 0;
-	$cert_check_sql = '
-		SELECT ec.id, ec.employee_id, ec.certification_id, ec.document_file, ec.expiry_date, ec.verification_status, ec.status, e.employee_code, e.department, e.contractor_company, e.is_active
-		FROM employee_certifications ec
-		JOIN employees e ON ec.employee_id = e.id
-		WHERE ec.id = ?
-		  AND ec.verification_status = ?
-		  AND e.is_active = 1
-		  AND ec.expiry_date IS NOT NULL
-		  AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 2 MONTH)
-		' . $scope_sql . '
-		LIMIT 1
-	';
-
-	$cert_check_stmt = $db->prepare($cert_check_sql);
-	if ($cert_check_stmt) {
-		$verification_status = 'verified';
-		$excluded_status = 'expired';
-		$cert_params = [$cert_id, $verification_status, $monitor_window_days, $excluded_status];
-		$cert_types = 'isis' . $scope_types;
-		$cert_params = array_merge($cert_params, $scope_params);
-		bindStatementParams($cert_check_stmt, $cert_types, $cert_params);
-		$cert_check_stmt->execute();
-		$cert_check = $cert_check_stmt->get_result();
-	} else {
-		$cert_check = false;
-	}
-
-	if (!$cert_check || $cert_check->num_rows === 0) {
-		$error = 'Certificate record not found or not accessible.';
-	} elseif (!isset($_FILES['document_file']) || $_FILES['document_file']['error'] !== 0) {
-		$error = 'Please choose a certificate file to upload.';
-	} else {
-		$cert_row = $cert_check->fetch_assoc();
-		$document_allowed = $cert_row['verification_status'] === 'verified' && (int) $cert_row['is_active'] === 1 && $cert_row['status'] !== 'expired';
-		$document_in_scope = false;
-		if ($role === 'department_user' && $department !== '') {
-			$document_in_scope = strtolower(trim((string) ($cert_row['department'] ?? ''))) === strtolower($department);
-		} elseif ($role === 'user' && $company_name !== '') {
-			$document_in_scope = strtolower(trim((string) ($cert_row['contractor_company'] ?? ''))) === strtolower($company_name);
-		}
-		$document_in_window = !empty($cert_row['expiry_date']) && $cert_row['expiry_date'] > date('Y-m-d') && $cert_row['expiry_date'] <= date('Y-m-d', strtotime('+' . $monitor_window_days . ' days'));
-
-		if (!$document_allowed || !$document_in_scope || !$document_in_window) {
-			$error = 'Certificate record is not eligible for monitoring resubmit.';
-		} else {
-			$allowed_extensions = ['pdf', 'jpg', 'jpeg', 'png'];
-			$file_size = $_FILES['document_file']['size'];
-			$max_size = 5 * 1024 * 1024;
-			$file_extension = strtolower(pathinfo($_FILES['document_file']['name'], PATHINFO_EXTENSION));
-
-			if (!in_array($file_extension, $allowed_extensions, true)) {
-				$error = 'File type not allowed. Use PDF, JPG, JPEG, or PNG.';
-			} elseif ($file_size > $max_size) {
-				$error = 'File size too large. Maximum 5MB.';
-			} else {
-				$upload_dir = '../../assets/uploads/certifications/';
-				if (!is_dir($upload_dir)) {
-					mkdir($upload_dir, 0775, true);
-				}
-
-				$new_filename = 'cert_' . $cert_row['employee_code'] . '_' . time() . '.' . $file_extension;
-				$upload_path = $upload_dir . $new_filename;
-
-				if (move_uploaded_file($_FILES['document_file']['tmp_name'], $upload_path)) {
-					if (!empty($cert_row['document_file']) && file_exists('../../assets/' . $cert_row['document_file'])) {
-						@unlink('../../assets/' . $cert_row['document_file']);
-					}
-
-					$document_file = 'uploads/certifications/' . $new_filename;
-					$update_stmt = $db->prepare('UPDATE employee_certifications SET document_file = ?, verification_status = ?, updated_at = NOW() WHERE id = ? AND employee_id = ?');
-					if ($update_stmt) {
-						$new_status = 'pending';
-						$cert_row_id = (int) $cert_row['id'];
-						$employee_id = (int) $cert_row['employee_id'];
-						$update_stmt->bind_param('ssii', $document_file, $new_status, $cert_row_id, $employee_id);
-						if ($update_stmt->execute()) {
-							$message = 'Certificate file has been resubmitted and is waiting for verification.';
-						} else {
-							$error = 'Failed to update certificate record.';
-						}
-					} else {
-						$error = 'Failed to update certificate record.';
-					}
-				} else {
-					$error = 'Failed to upload certificate file.';
-				}
-			}
-		}
-	}
+// Get distinct departments list for Admin filter
+$depts_res = $db->query("SELECT DISTINCT department FROM employees WHERE department IS NOT NULL AND TRIM(department) != '' ORDER BY department ASC");
+$depts_list = [];
+if ($depts_res) {
+    while ($d_row = $depts_res->fetch_assoc()) {
+        $depts_list[] = $d_row['department'];
+    }
 }
 
+// Selected filters
+$selected_company = trim($_GET['company'] ?? '');
+$selected_dept = trim($_GET['department'] ?? '');
+$selected_status_filter = trim($_GET['status_filter'] ?? '');
+
+$filter_sql = "";
+$filter_params = [];
+$filter_types = "";
+
+if ($selected_company !== '') {
+    $filter_sql .= " AND LOWER(TRIM(e.contractor_company)) = LOWER(TRIM(?))";
+    $filter_params[] = $selected_company;
+    $filter_types .= "s";
+}
+
+if ($selected_dept !== '') {
+    $filter_sql .= " AND LOWER(TRIM(e.department)) = LOWER(TRIM(?))";
+    $filter_params[] = $selected_dept;
+    $filter_types .= "s";
+}
+
+// Fetch all monitoring certificates across companies & departments
+$all_certificates = [];
 $certificates = [];
 $total_certificates = 0;
 $critical_count = 0;
@@ -283,112 +152,78 @@ $warning_count = 0;
 $info_count = 0;
 
 $monitor_sql = "
-
 SELECT
-
-    ec.id AS employee_certification_id,
-    ec.employee_id,
-    ec.certification_id,
-    ec.cert_number,
-    ec.cert_type,
-    ec.cert_issuer,
-    ec.issue_date,
-    ec.expiry_date,
-    ec.document_file,
-    ec.status,
-    ec.verification_status,
-    ec.notes,
-
-    e.employee_code,
-    e.full_name,
-    e.position,
-    e.department,
-    e.contractor_company,
-    e.resubmit_type,
-
-    c.cert_name,
-
-    a.id AS appointment_id,
-    a.appointment_number,
-    a.status AS appointment_status,
-
-    DATEDIFF(ec.expiry_date,CURDATE()) AS days_left
+       ec.id as employee_certification_id,
+       ec.employee_id,
+       ec.certification_id,
+       ec.cert_number,
+       ec.cert_issuer,
+       ec.issue_date,
+       ec.expiry_date,
+       ec.document_file,
+       ec.status,
+       ec.verification_status,
+       ec.updated_at,
+       e.full_name,
+       e.employee_code,
+       e.position,
+       e.department,
+       e.contractor_company,
+       e.is_active,
+	   e.resubmit_type,
+       c.cert_name,
+       c.cert_type,
+       c.issuing_authority,
+       a.id as appointment_id,
+       a.status as appointment_status,
+       a.ktt_msm_status,
+       a.ktt_ttn_status,
+       DATEDIFF(ec.expiry_date, CURDATE()) as days_left
 
 FROM employee_certifications ec
 
-INNER JOIN employees e
-ON e.id = ec.employee_id
+JOIN employees e
+ON ec.employee_id = e.id
 
 LEFT JOIN certifications c
-ON c.id = ec.certification_id
+ON ec.certification_id = c.id
 
 LEFT JOIN appointments a
-ON a.id =
-(
+ON a.id = (
     SELECT MAX(ap.id)
     FROM appointments ap
     WHERE ap.employee_id = e.id
 )
 
-WHERE
-
-ec.id =
-(
-    SELECT ec2.id
-    FROM employee_certifications ec2
-
-    WHERE ec2.employee_id = ec.employee_id
-
-    ORDER BY
-
-    FIELD
-    (
-        ec2.status,
-        'pending',
-        'verified',
-        'active',
-        'expired'
-    ),
-
-    ec2.id DESC
-
-    LIMIT 1
-)
-
-AND e.is_active = 1
-
-".$scope_sql."
-
-ORDER BY
-
-CASE ec.status
-
-WHEN 'expired' THEN 1
-WHEN 'pending' THEN 2
-WHEN 'verified' THEN 3
-WHEN 'active' THEN 4
-
-END,
-
-ec.expiry_date ASC
-
+WHERE e.is_active = 1
+  AND (
+      (ec.status = 'expired' AND e.resubmit_type IS NULL)
+      OR
+      (e.resubmit_type = 'certificate' AND ec.id = (
+          SELECT MAX(ec3.id)
+          FROM employee_certifications ec3
+          WHERE ec3.employee_id = ec.employee_id
+      ))
+      OR
+      (ec.expiry_date IS NOT NULL AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 2 MONTH))
+  )
+  {$filter_sql}
+ORDER BY ec.updated_at DESC
 ";
 
 $monitor_stmt = $db->prepare($monitor_sql);
 if ($monitor_stmt) {
-	$verified_status = 'verified';
-	$monitor_params = [];
-	$monitor_types = '';
-	$monitor_params = array_merge($monitor_params, $scope_params);
-	$monitor_types .= $scope_types;
-	bindStatementParams($monitor_stmt, $monitor_types, $monitor_params);
+    if (!empty($filter_params)) {
+        bindStatementParams($monitor_stmt, $filter_types, $filter_params);
+    }
 	$monitor_stmt->execute();
 	$monitor_result = $monitor_stmt->get_result();
 	if ($monitor_result) {
 		while ($row = $monitor_result->fetch_assoc()) {
 			$row['days_left'] = (int) $row['days_left'];
-			$row['monitoring_badge'] = getWorkflowStatus($row);
-			$certificates[] = $row;
+			$row['monitoring_badge'] = getMonitoringBadge($row['days_left']);
+			$row['workflow_badge'] = getWorkflowStatus($row);
+			
 			$total_certificates++;
 			if ($row['days_left'] <= 14) {
 				$critical_count++;
@@ -397,6 +232,16 @@ if ($monitor_stmt) {
 			} else {
 				$info_count++;
 			}
+
+            // Apply status filter if selected
+            if ($selected_status_filter !== '') {
+                if ($selected_status_filter === 'critical' && $row['days_left'] > 14) continue;
+                if ($selected_status_filter === 'warning' && ($row['days_left'] <= 14 || $row['days_left'] > 30)) continue;
+                if ($selected_status_filter === 'info' && $row['days_left'] <= 30) continue;
+                if ($selected_status_filter === 'expired' && $row['days_left'] > 0) continue;
+            }
+
+			$certificates[] = $row;
 		}
 	}
 }
@@ -407,11 +252,11 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 <div class="certificate-status-page">
 	<div class="page-hero">
 		<div>
-			<p class="eyebrow">Certificate Status</p>
-			<h2><i class="fas fa-id-card"></i> Status Sertifikat</h2>
+			<p class="eyebrow" data-lang="certificate-status">Certificate Status</p>
+			<h2><i class="fas fa-id-card"></i> <span data-lang="certificate-status">Status Sertifikat</span></h2>
 		</div>
 		<div class="hero-actions">
-			<span class="btn btn-secondary" style="pointer-events:none;">Monitoring; 2 Bulan</span>
+			<span class="btn btn-secondary" style="pointer-events:none;"><i class="fas fa-shield-alt"></i> Admin View (All Companies & Departments)</span>
 		</div>
 	</div>
 
@@ -429,10 +274,11 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 		</div>
 	<?php endif; ?>
 
+	<!-- Statistics Cards -->
 	<div class="stats-grid">
 		<div class="stat-card">
 			<span class="stat-number"><?php echo $total_certificates; ?></span>
-			<span class="stat-label">Monitoring Certificates</span>
+			<span class="stat-label" data-lang="all-employees">Monitoring Certificates</span>
 		</div>
 		<div class="stat-card stat-expired">
 			<span class="stat-number"><?php echo $critical_count; ?></span>
@@ -447,6 +293,146 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 			<span class="stat-label">Warning (&gt; 30 Hari)</span>
 		</div>
 	</div>
+
+	<!-- Admin Filters Form -->
+	<div class="card cert-card mb-4" style="margin-bottom: 20px;">
+		<div class="card-body" style="padding: 16px 20px;">
+			<form method="GET" action="certificate_status.php" class="row g-3 align-items-center">
+				<div class="col-md-3">
+					<label class="form-label fw-bold" style="font-size: 12.5px; color: #475569;" data-lang="company">Company</label>
+					<select name="company" class="form-select form-select-sm" onchange="this.form.submit()">
+						<option value="" data-lang="showing-all-data-all-companies">-- All Companies --</option>
+						<?php foreach ($companies_list as $comp): ?>
+							<option value="<?php echo htmlspecialchars($comp); ?>" <?php echo $selected_company === $comp ? 'selected' : ''; ?>>
+								<?php echo htmlspecialchars($comp); ?>
+							</option>
+						<?php endforeach; ?>
+					</select>
+				</div>
+				<div class="col-md-3">
+					<label class="form-label fw-bold" style="font-size: 12.5px; color: #475569;" data-lang="department">Department</label>
+					<select name="department" class="form-select form-select-sm" onchange="this.form.submit()">
+						<option value="" data-lang="all-data">-- All Departments --</option>
+						<?php foreach ($depts_list as $d_name): ?>
+							<option value="<?php echo htmlspecialchars($d_name); ?>" <?php echo $selected_dept === $d_name ? 'selected' : ''; ?>>
+								<?php echo htmlspecialchars($d_name); ?>
+							</option>
+						<?php endforeach; ?>
+					</select>
+				</div>
+				<div class="col-md-3">
+					<label class="form-label fw-bold" style="font-size: 12.5px; color: #475569;" data-lang="status">Status Filter</label>
+					<select name="status_filter" class="form-select form-select-sm" onchange="this.form.submit()">
+						<option value="">-- All Statuses --</option>
+						<option value="critical" <?php echo $selected_status_filter === 'critical' ? 'selected' : ''; ?>>Very Urgent (&le; 14 Hari)</option>
+						<option value="warning" <?php echo $selected_status_filter === 'warning' ? 'selected' : ''; ?>>Urgent (15 - 30 Hari)</option>
+						<option value="info" <?php echo $selected_status_filter === 'info' ? 'selected' : ''; ?>>Warning (&gt; 30 Hari)</option>
+						<option value="expired" <?php echo $selected_status_filter === 'expired' ? 'selected' : ''; ?>>Expired (&le; 0 Hari)</option>
+					</select>
+				</div>
+				<div class="col-md-3 d-flex align-items-end gap-2" style="margin-top: 28px;">
+					<button type="submit" class="btn btn-sm btn-primary"><i class="fas fa-filter"></i> Filter</button>
+					<a href="certificate_status.php" class="btn btn-sm btn-outline-secondary"><i class="fas fa-undo"></i> Reset</a>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<!-- Main Certificate Data Table -->
+	<div class="card cert-card">
+		<div class="card-header cert-card-header">
+			<h3><i class="fas fa-list"></i> <span data-lang="certificate-status">Daftar Sertifikat</span></h3>
+			<span class="badge bg-secondary"><?php echo count($certificates); ?> Data</span>
+		</div>
+		<div class="card-body cert-card-body">
+			<?php if (!empty($certificates)): ?>
+				<div class="table-responsive">
+					<table class="table cert-table datatable" id="adminCertificatesTable">
+						<thead>
+							<tr>
+								<th data-lang="employee">Employee</th>
+								<th data-lang="company">Company & Dept</th>
+								<th data-lang="certification">Certification</th>
+								<th data-lang="certificate-number">Certificate No.</th>
+								<th data-lang="expiry">Expiry</th>
+								<th>Monitoring</th>
+								<th data-lang="document">Document</th>
+								<th data-lang="action">Workflow / Action</th>
+							</tr>
+						</thead>
+						<tbody>
+							<?php foreach ($certificates as $cert): ?>
+								<tr>
+									<td>	
+										<strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><br>
+										<small class="text-muted"><?php echo htmlspecialchars($cert['employee_code']); ?></small>
+									</td>
+									<td>
+										<strong><?php echo htmlspecialchars($cert['contractor_company'] ?: '-'); ?></strong><br>
+										<small class="text-muted"><?php echo htmlspecialchars($cert['department'] ?: '-'); ?></small>
+									</td>
+									<td>
+										<strong><?php echo htmlspecialchars($cert['cert_name'] ?: '-'); ?></strong><br>
+										<small class="text-muted"><?php echo htmlspecialchars($cert['cert_type'] ?: '-'); ?></small>
+									</td>
+									<td><?php echo htmlspecialchars($cert['cert_number'] ?: '-'); ?></td>
+									<td>
+										<?php echo $cert['expiry_date'] ? date('d M Y', strtotime($cert['expiry_date'])) : '-'; ?><br>
+										<small class="text-muted">
+											<?php if ((int) $cert['days_left'] >= 0): ?>
+												<?php echo $cert['days_left'] . ' hari lagi'; ?> 
+											<?php else: ?>
+												Lewat <?php echo abs((int) $cert['days_left']); ?> hari
+											<?php endif; ?>
+										</small>
+									</td>
+									<td>
+										<span class="status-badge status-<?php echo htmlspecialchars($cert['monitoring_badge']['class']); ?>">
+											<?php echo htmlspecialchars($cert['monitoring_badge']['label']); ?>
+										</span>
+									</td>
+									<td>
+										<?php if (!empty($cert['document_file'])): ?>
+											<a class="btn btn-sm btn-info" href="../../assets/<?php echo htmlspecialchars($cert['document_file']); ?>" target="_blank" rel="noopener noreferrer">
+												<i class="fas fa-eye"></i> <span data-lang="view">View</span>
+											</a>
+										<?php else: ?>
+											-
+										<?php endif; ?>
+									</td>
+									<td>
+										<?php
+										$w_class = $cert['workflow_badge']['class'] ?? 'secondary';
+										$w_label = $cert['workflow_badge']['label'] ?? 'PENDING';
+										
+										if ($w_label === 'ACTIVE') {
+											echo '<span class="badge badge-success" data-lang="active">ACTIVE</span>';
+										} elseif ($w_label === 'WAITING REVIEWER') {
+											echo '<a href="verify_employee.php?id=' . (int)$cert['employee_id'] . '" class="btn btn-sm btn-warning"><i class="fas fa-user-check"></i> Verify</a>';
+										} elseif ($w_label === 'WAITING KTT') {
+											echo '<span class="badge badge-warning">WAITING KTT</span>';
+										} elseif ($w_label === 'EXPIRED') {
+											echo '<span class="badge badge-danger">EXPIRED</span>';
+										} else {
+											echo '<span class="badge badge-secondary">' . htmlspecialchars($w_label) . '</span>';
+										}
+										?>
+									</td>
+								</tr>
+							<?php endforeach; ?>
+						</tbody>
+					</table>
+				</div>
+			<?php else: ?>
+				<div class="empty-state">
+					<i class="fas fa-folder-open"></i>
+					<p data-lang="no-requests-data">No monitoring certificate records found for the selected filter.</p>
+				</div>
+			<?php endif; ?>
+		</div>
+	</div>
+</div>
+
 <style>
 .stats-grid {
 	display: grid;
@@ -466,9 +452,11 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 .stat-pending { border-left-color: #f59e0b; }
 .stat-verified { border-left-color: #16a34a; }
 
-.status-critical { background: #fee2e2; color: #b91c1c; }
-.status-urgent { background: #ffedd5; color: #9a3412; }
-.status-warning { background: #fef3c7; color: #92400e; }
+.status-critical { background: #fee2e2; color: #b91c1c; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+.status-urgent { background: #ffedd5; color: #9a3412; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+.status-warning { background: #fef3c7; color: #92400e; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+.status-info { background: #e0f2fe; color: #0369a1; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; }
+.status-pending { background: #f3e8ff; color: #6b21a8; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: inline-block; }
 
 .stat-number {
 	display: block;
@@ -486,129 +474,6 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 	text-transform: uppercase;
 	letter-spacing: .08em;
 }
-   
-	</style>
-	<div class="card cert-card">
-		<div class="card-header cert-card-header">
-			<h3><i class="fas fa-list"></i> Daftar Sertifikat</h3> <span>status</span>
-		</div>
-		<div class="card-body cert-card-body">
-			<?php if (!empty($certificates)): ?>
-				<div class="table-responsive">
-					<table class="table cert-table datatable">
-						<thead>
-							<tr>
-								<th>Employee</th>
-								<th>Certification</th>
-								<th>Certificate No.</th>
-								<th>Expiry</th>
-								<th>Monitoring</th>
-								<th>Document</th>
-								<th>Action</th>
-							</tr>
-						</thead>
-						<tbody>
-							<?php foreach ($certificates as $cert): ?>
-								<tr>
-									<td>	
-										<strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><br>
-										<small><?php echo htmlspecialchars($cert['employee_code']); ?></small>
-									</td>
-									<td>
-										<?php echo htmlspecialchars($cert['cert_name'] ?: '-'); ?><br>
-										<small><?php echo htmlspecialchars($cert['cert_type'] ?: '-'); ?></small>
-									</td>
-									<td><?php echo htmlspecialchars($cert['cert_number'] ?: '-'); ?></td>
-									<td>
-										<?php echo $cert['expiry_date'] ? date('d M Y', strtotime($cert['expiry_date'])) : '-'; ?><br>
-										<small class="text-muted">
-											<?php if ((int) $cert['days_left'] >= 0): ?>
-												<?php
-													echo $cert['days_left'] < 0
-														? abs($cert['days_left']) . ' hari yang lalu'
-														: $cert['days_left'] . ' hari';
-													?> 
-											<?php else: ?>
-												Lewat <?php echo abs((int) $cert['days_left']); ?> hari
-											<?php endif; ?>
-										</small>
-									</td>
-									<td>
-										<span class="status-badge status-<?php echo htmlspecialchars($cert['monitoring_badge']['class']); ?>">
-											<?php echo htmlspecialchars($cert['monitoring_badge']['label']); ?>
-										</span>
-									</td>
-									<td>
-										<?php if (!empty($cert['document_file'])): ?>
-											<a class="btn btn-sm btn-info" href="../../assets/<?php echo htmlspecialchars($cert['document_file']); ?>" target="_blank" rel="noopener noreferrer">
-												<i class="fas fa-eye"></i> View
-											</a>
-										<?php else: ?>
-											-
-										<?php endif; ?>
-									</td>
-										<td>
-											<?php if ($cert['status'] == 'expired') : ?>
-											<a href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>"
-											class="btn btn-warning btn-sm">
-												<i class="fas fa-upload"></i>
-												Resubmit
-											</a>
-											<?php elseif (
-											$cert['status'] == 'pending' &&
-											$cert['verification_status'] == 'rejected'
-										) : ?>
-
-											<a href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>"
-											class="btn btn-warning btn-sm">
-												<i class="fas fa-upload"></i>
-												Resubmit
-											</a>
-
-										<?php elseif (
-											$cert['status'] == 'pending' &&
-											$cert['verification_status'] == 'pending'
-										) : ?>
-
-											<span class="badge badge-warning">
-												Waiting Reviewer
-											</span>
-
-
-
-										<?php elseif (
-											$cert['status'] == 'pending' &&
-											$cert['verification_status'] == 'verified'
-										) : ?>
-
-											<span class="badge badge-info">
-												Waiting KTT
-											</span>
-
-										<?php elseif (
-											$cert['status'] == 'active' &&
-											$cert['appointment_status'] == 'approved'
-										) : ?>
-
-											<span class="badge badge-success">
-												Completed
-											</span>
-
-										<?php endif; ?>
-											</td>
-								</tr>
-							<?php endforeach; ?>
-						</tbody>
-					</table>
-				</div>
-			<?php else: ?>
-				<div class="empty-state">
-					<i class="fas fa-folder-open"></i>
-					<p>No active certificates expiring within 60 days were found for this scope.</p>
-				</div>
-			<?php endif; ?>
-		</div>
-	</div>
-</div>
+</style>
 
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
