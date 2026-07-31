@@ -66,10 +66,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // ==========================================
     // PERBAIKAN KEAMANAN: Validasi Token CSRF
     // ==========================================
-    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-        http_response_code(403);
-        die("Error: Validasi keamanan (CSRF) gagal. Permintaan ditolak.");
-    }
+    if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        $error = 'Akses ditolak: Token keamanan tidak valid atau telah kedaluwarsa. Silakan coba kirim ulang formulir.';
+    } else {
 
     $employee_code = $db->escapeString(trim($_POST['employee_code']));
     $full_name = $db->escapeString(trim($_POST['full_name']));
@@ -273,6 +273,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     // PERBAIKAN OPTIONAL: Hapus token setelah sukses submit 
                     // Ini mencegah pengiriman ganda jika user me-refresh halaman sukses (Double Submit)
                     unset($_SESSION['csrf_token']);
+                    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 
                     // Redirect after 2 seconds
                     header("refresh:2;url=employees.php");
@@ -283,6 +284,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
     }
+}
 }
 
 require_once '../../includes/header.php';

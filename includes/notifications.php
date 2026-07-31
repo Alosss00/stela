@@ -397,12 +397,16 @@ private $email_from_name = 'Mining Appointment System';
             $mail->SMTPAuth   = true;
             $mail->Username   = $this->smtp_username;
             $mail->Password   = $this->smtp_password;
-            $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            if ($this->smtp_port == 465) {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_SMTPS;
+            } else {
+                $mail->SMTPSecure = PHPMailer::ENCRYPTION_STARTTLS;
+            }
             $mail->Port       = $this->smtp_port;
             $mail->CharSet    = 'UTF-8';
             
             // Set timeouts to prevent hanging
-            $mail->Timeout    = 10; // Connection timeout (seconds)
+            $mail->Timeout    = 5; // Connection timeout (seconds)
             $mail->SMTPOptions = array(
                 'ssl' => array(
                     'verify_peer' => false,
