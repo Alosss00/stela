@@ -1,13 +1,24 @@
 <?php
 /**
- * Minimal server-side i18n helper for flash/messages.
- * Language source is a cookie synced by the client switcher.
+ * Server-side i18n helper for flash messages, validation, and layout strings.
+ * Language source is synced with client cookie & session ('language' or 'lang').
  */
 
 if (!function_exists('stela_get_server_language')) {
     function stela_get_server_language() {
-        $lang = isset($_COOKIE['language']) ? strtolower(trim($_COOKIE['language'])) : 'id';
-        return in_array($lang, ['id', 'en'], true) ? $lang : 'id';
+        if (isset($_SESSION['language']) && in_array(strtolower(trim($_SESSION['language'])), ['id', 'en'], true)) {
+            return strtolower(trim($_SESSION['language']));
+        }
+        if (isset($_SESSION['lang']) && in_array(strtolower(trim($_SESSION['lang'])), ['id', 'en'], true)) {
+            return strtolower(trim($_SESSION['lang']));
+        }
+        if (isset($_COOKIE['language']) && in_array(strtolower(trim($_COOKIE['language'])), ['id', 'en'], true)) {
+            return strtolower(trim($_COOKIE['language']));
+        }
+        if (isset($_COOKIE['lang']) && in_array(strtolower(trim($_COOKIE['lang'])), ['id', 'en'], true)) {
+            return strtolower(trim($_COOKIE['lang']));
+        }
+        return 'id';
     }
 }
 
@@ -33,6 +44,7 @@ if (!function_exists('stela_t')) {
                 'competency-added' => 'Competency successfully added!',
                 'competency-updated' => 'Competency successfully updated!',
                 'competency-deleted' => 'Competency successfully deleted!',
+                'failed-delete-competency' => 'Failed to delete competency!',
                 'password-changed' => 'Password successfully changed!',
                 'certification-added' => 'Certification added successfully!',
                 'certification-updated' => 'Certification updated successfully!',
@@ -87,7 +99,8 @@ if (!function_exists('stela_t')) {
                 'failed-add-supervision-area' => 'Failed to add supervision area!',
                 'failed-update-supervision-area' => 'Failed to update supervision area!',
                 'failed-update-status' => 'Failed to update status!',
-                'failed-delete-supervision-area' => 'Failed to delete supervision area!'
+                'failed-delete-supervision-area' => 'Failed to delete supervision area!',
+                'csrf-validation-failed' => 'CSRF validation failed! Please refresh the page and try again.'
             ],
             'id' => [
                 'employee-added-waiting-verification' => 'Karyawan berhasil ditambahkan! Menunggu verifikasi.',
@@ -108,6 +121,7 @@ if (!function_exists('stela_t')) {
                 'competency-added' => 'Kompetensi berhasil ditambahkan!',
                 'competency-updated' => 'Kompetensi berhasil diperbarui!',
                 'competency-deleted' => 'Kompetensi berhasil dihapus!',
+                'failed-delete-competency' => 'Gagal menghapus kompetensi!',
                 'password-changed' => 'Password berhasil diubah!',
                 'certification-added' => 'Sertifikasi berhasil ditambahkan!',
                 'certification-updated' => 'Sertifikasi berhasil diperbarui!',
@@ -162,7 +176,8 @@ if (!function_exists('stela_t')) {
                 'failed-add-supervision-area' => 'Gagal menambahkan area pengawasan!',
                 'failed-update-supervision-area' => 'Gagal memperbarui area pengawasan!',
                 'failed-update-status' => 'Gagal memperbarui status!',
-                'failed-delete-supervision-area' => 'Gagal menghapus area pengawasan!'
+                'failed-delete-supervision-area' => 'Gagal menghapus area pengawasan!',
+                'csrf-validation-failed' => 'Validasi CSRF gagal! Silakan refresh halaman dan coba lagi.'
             ]
         ];
 
@@ -176,4 +191,11 @@ if (!function_exists('stela_t')) {
         return $text;
     }
 }
+
+if (!function_exists('__')) {
+    function __($key, $params = [], $fallback = null) {
+        return stela_t($key, $params, $fallback);
+    }
+}
+
 

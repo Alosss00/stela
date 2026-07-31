@@ -386,11 +386,10 @@ $current_page = get_current_page();
         <div class="main-content">
             <div class="topbar">
                 <div class="topbar-left">
-                        <?php if (isset($page_title_lang)): ?>
-                            <h2 data-lang="<?php echo htmlspecialchars($page_title_lang); ?>"><?php echo isset($page_title) ? htmlspecialchars($page_title) : 'Dashboard'; ?></h2>
-                        <?php else: ?>
-                            <h2><?php echo isset($page_title) ? htmlspecialchars($page_title) : 'Dashboard'; ?></h2>
-                        <?php endif; ?>
+                        <?php 
+                        $effective_lang_key = isset($page_title_lang) ? $page_title_lang : strtolower(trim(preg_replace('/[^a-zA-Z0-9]+/', '-', $page_title ?? 'dashboard'), '-'));
+                        ?>
+                        <h2 data-lang="<?php echo htmlspecialchars($effective_lang_key); ?>"><?php echo isset($page_title) ? htmlspecialchars($page_title) : 'Dashboard'; ?></h2>
                 </div>
                 <div class="topbar-right topbar-meta-group">
                     <div class="topbar-meta-chip topbar-date-chip" aria-label="Current date">
