@@ -133,7 +133,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
         <div class="card-body-appt">
             <?php if ($appointments->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-appt">
+                    <table class="table-appt datatable">
                         <thead>
                             <tr>
                                 <th class="col-number" data-lang="registration-no">No. Registrastion</th>

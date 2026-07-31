@@ -42,7 +42,7 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/dataTables.responsive.min.js"></script>
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 
-    <script src="../../assets/js/datatable-init.js"></script>
+    <script src="<?php echo BASE_URL; ?>/assets/js/datatable-init.js"></script>
 </body>
 </html>
 

@@ -134,7 +134,7 @@ $rejected_count = $db->query("
         <div class="card-body">
             <?php if ($employees->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table table-employees">
+                    <table class="table table-employees datatable">
                         <thead>
                             <tr>
                                 <th data-lang="id-badge">ID BADGE</th>
