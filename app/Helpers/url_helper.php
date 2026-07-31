@@ -54,7 +54,11 @@ if (!defined('AUTH_BASE_URL')) {
 // Helper function to get URL for assets
 if (!function_exists('asset_url')) {
     function asset_url($path) {
-        return BASE_URL . '/assets/' . ltrim($path, '/');
+        $clean_path = ltrim($path, '/');
+        if (file_exists(PUBLIC_PATH . '/assets/' . $clean_path)) {
+            return BASE_URL . '/public/assets/' . $clean_path;
+        }
+        return BASE_URL . '/assets/' . $clean_path;
     }
 }
 
