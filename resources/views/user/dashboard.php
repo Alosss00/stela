@@ -401,20 +401,6 @@ $recent_appointments = $db->query("
             </div>
         </div>
     </section>
-    
-    <!-- Action Buttons -->
-    <section class="action-section">
-        <div class="btn-group-custom">
-            <a href="employees.php" class="btn btn-primary btn-lg">
-                <i class="fas fa-users"></i>
-                <span data-lang="view-all-employees">View All Employees</span>
-            </a>
-            <a href="appointments.php" class="btn btn-info btn-lg">
-                <i class="fas fa-file-alt"></i>
-                <span data-lang="view-all-letters">View All Letters</span>
-            </a>
-        </div>
-    </section>
 </div>
 
 <style>
