@@ -283,7 +283,7 @@ $rejected_count = $db->query("
                             <td>${item.full_name || '-'}</td>
                             <td>${item.position || '-'}</td>
                             <td>${compLabel}</td>
-                            <td>${item.competency_name || '-'}</td>
+                            <td>${item.competency_name || item.sub_competency || '-'}</td>
                             <td>${badge}</td>
                             <td>
                                 <div class="action-buttons">

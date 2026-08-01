@@ -710,13 +710,15 @@ $companies = $db->query("
                         const resubmitBtn = (status === 'rejected')
                             ? `<a href="resubmit_employee.php?id=${item.id}" class="btn-action-emp resubmit-btn" title="Resubmit"><i class="fas fa-upload"></i></a>`
                             : '';
+                        const compVal = item.competency_name || item.sub_competency || '';
+                        const compDisplay = compVal ? `<span class="competency-tag">${compVal}</span>` : '<span class="text-muted">-</span>';
                         return `<tr class="emp-row" data-id="${item.id}">
                             <td class="col-code"><span class="code-badge">${item.employee_code || '-'}</span></td>
                             <td class="col-name"><strong>${item.full_name || '-'}</strong></td>
                             <td class="col-position"><span class="position-tag-emp">${item.position || '-'}</span></td>
                             <td class="col-company"><span class="company-tag-emp">${item.contractor_company || '-'}</span></td>
                             <td class="col-competency-type"><span class="competency-type-badge competency-${compType}">${compLabel}</span></td>
-                            <td class="col-competency">${item.competency_name ? `<span class="competency-tag">${item.competency_name}</span>` : '<span class="text-muted">-</span>'}</td>
+                            <td class="col-competency">${compDisplay}</td>
                             <td class="col-status"><span class="badge-status badge-${statusClass}">${status.toUpperCase()}</span></td>
                             <td class="col-verified-by">${verifiedBy}</td>
                             <td class="col-action">
