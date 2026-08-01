@@ -323,7 +323,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     </div>
     <?php endif; ?>
     
-    <form method="POST" action="" enctype="multipart/form-data" class="form-container">
+    <form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate>
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
         <!-- Section 1: Data Identitas & Kompetensi -->
         <div class="form-section">
@@ -1122,42 +1122,85 @@ function updateFileName(area, file) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    const initialCertItem = document.querySelector('.certification-item');
-    if (initialCertItem) {
-        const certTypeSelect = initialCertItem.querySelector('.cert-type-select');
-        certTypeSelect.onchange = function() { toggleOtherType(this); };
+    // Re-initialize event listeners for all certification items
+    document.querySelectorAll('.certification-item').forEach(item => {
+        const certTypeSelect = item.querySelector('.cert-type-select');
+        if (certTypeSelect) certTypeSelect.onchange = function() { toggleOtherType(this); };
         
-        const certNameSelect = initialCertItem.querySelector('.cert-name-select');
-        certNameSelect.onchange = function() { updateIssuer(this); };
-        
-        if (certNameSelect.value) {
-            updateIssuer(certNameSelect);
+        const certNameSelect = item.querySelector('.cert-name-select');
+        if (certNameSelect) {
+            certNameSelect.onchange = function() { updateIssuer(this); };
+            if (certNameSelect.value) updateIssuer(certNameSelect);
         }
         
-        const issueDate = initialCertItem.querySelector('input[name="issue_dates[]"]');
-        issueDate.onchange = function() { calculateExpiryDate(this); };
+        const issueDate = item.querySelector('input[name="issue_dates[]"]');
+        if (issueDate) issueDate.onchange = function() { calculateExpiryDate(this); };
         
-        const validityYears = initialCertItem.querySelector('input[name="validity_years[]"]');
-        validityYears.onchange = function() { calculateExpiryDate(this); };
+        const validityYears = item.querySelector('input[name="validity_years[]"]');
+        if (validityYears) validityYears.onchange = function() { calculateExpiryDate(this); };
         
-        const noExpiryCheck = initialCertItem.querySelector('input[name="no_expiry[]"]');
-        noExpiryCheck.onchange = function() { toggleExpiryField(this); };
-    }
+        const noExpiryCheck = item.querySelector('input[name="no_expiry[]"]');
+        if (noExpiryCheck) {
+            noExpiryCheck.onchange = function() { toggleExpiryField(this); };
+            if (noExpiryCheck.checked) toggleExpiryField(noExpiryCheck);
+        }
+    });
     
-    if (document.getElementById('competency_type').value) {
+    // Trigger toggleCompetencyField if competency_type has a value on page load
+    const compTypeEl = document.getElementById('competency_type');
+    if (compTypeEl && compTypeEl.value) {
         toggleCompetencyField();
-        // Load sub-competencies if competency_name is already selected (after POST error)
-        if (document.getElementById('competency_name').value) {
+        const compNameEl = document.getElementById('competency_name');
+        if (compNameEl && compNameEl.value) {
             loadSubCompetencies();
         }
     }
 
-    // Wire company -> ruang_lingkup auto-selection
-    const companySelect = document.getElementById('contractor_company');
-    if (companySelect) {
-        companySelect.addEventListener('change', setRuangLingkupFromCompany);
-        // Run once on load to restore selection after POST or initial state
-        setRuangLingkupFromCompany();
+    // Client-side form validation before submit
+    const formEl = document.getElementById('addEmployeeForm') || document.querySelector('form.form-container');
+    if (formEl) {
+        formEl.addEventListener('submit', function(e) {
+            let isValid = true;
+            let firstInvalid = null;
+
+            // Clear previous invalid highlights
+            formEl.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            formEl.querySelectorAll('.file-upload-area').forEach(el => el.style.borderColor = '');
+
+            // Check required fields
+            const requiredFields = formEl.querySelectorAll('input[required], select[required], textarea[required]');
+            requiredFields.forEach(field => {
+                const group = field.closest('.form-group');
+                const isVisible = group ? (group.style.display !== 'none' && group.offsetHeight > 0) : true;
+                
+                if (isVisible) {
+                    if (field.type === 'file') {
+                        if (field.files.length === 0 && !field.dataset.hasExisting) {
+                            isValid = false;
+                            const area = field.closest('.file-upload-area');
+                            if (area) area.style.borderColor = '#ef4444';
+                            if (!firstInvalid) firstInvalid = field;
+                        }
+                    } else if (!field.value || field.value.trim() === '') {
+                        isValid = false;
+                        field.classList.add('is-invalid');
+                        field.style.borderColor = '#ef4444';
+                        if (!firstInvalid) firstInvalid = field;
+                    }
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                alert('Mohon lengkapi semua data dan berkas yang wajib diisi (*) terlebih dahulu!');
+                return false;
+            }
+        });
     }
 });
 </script>
