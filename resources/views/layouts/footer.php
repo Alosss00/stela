@@ -9,15 +9,15 @@
         function toggleSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.querySelector('.sidebar-overlay');
-            sidebar.classList.toggle('show');
-            overlay.classList.toggle('show');
+            if (sidebar) sidebar.classList.toggle('show');
+            if (overlay) overlay.classList.toggle('show');
         }
         
         function closeSidebar() {
             const sidebar = document.getElementById('sidebar');
             const overlay = document.querySelector('.sidebar-overlay');
-            sidebar.classList.remove('show');
-            overlay.classList.remove('show');
+            if (sidebar) sidebar.classList.remove('show');
+            if (overlay) overlay.classList.remove('show');
         }
         
         // Close sidebar when clicking on a menu item (mobile)
