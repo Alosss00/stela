@@ -70,6 +70,37 @@ try {
                 
                 // If ES has hits OR if user is explicitly searching with a keyword, return ES result
                 if ($totalHits > 0 || !empty($queryText)) {
+                    $items = $result['items'] ?? [];
+                    if ($target === 'employees' && !empty($items) && class_exists('Database')) {
+                        try {
+                            $dbHydrate = new Database();
+                            $ids = array_filter(array_map(function($i) { return (int)($i['id'] ?? 0); }, $items));
+                            if (!empty($ids)) {
+                                $idsStr = implode(',', $ids);
+                                $dbRes = $dbHydrate->query("SELECT e.id, e.competency_name, e.sub_competency, e.verified_date, u.full_name as verified_by_name 
+                                                     FROM employees e 
+                                                     LEFT JOIN users u ON e.verified_by = u.id 
+                                                     WHERE e.id IN ($idsStr)");
+                                $metaMap = [];
+                                if ($dbRes) {
+                                    while ($row = $dbRes->fetch_assoc()) {
+                                        $metaMap[$row['id']] = $row;
+                                    }
+                                }
+                                foreach ($items as &$item) {
+                                    $id = (int)($item['id'] ?? 0);
+                                    if (isset($metaMap[$id])) {
+                                        if (empty($item['competency_name'])) $item['competency_name'] = $metaMap[$id]['competency_name'] ?? '';
+                                        if (empty($item['sub_competency'])) $item['sub_competency'] = $metaMap[$id]['sub_competency'] ?? '';
+                                        if (empty($item['verified_by_name'])) $item['verified_by_name'] = $metaMap[$id]['verified_by_name'] ?? '';
+                                        if (empty($item['verified_date'])) $item['verified_date'] = $metaMap[$id]['verified_date'] ?? '';
+                                    }
+                                }
+                                unset($item);
+                            }
+                        } catch (\Throwable $t) {}
+                    }
+
                     $totalPages = $limit > 0 ? (int)ceil($totalHits / $limit) : 1;
                     echo json_encode([
                         'status' => 'success',
@@ -79,7 +110,7 @@ try {
                         'limit' => $limit,
                         'total' => $totalHits,
                         'total_pages' => max(1, $totalPages),
-                        'items' => $result['items'] ?? []
+                        'items' => $items
                     ]);
                     exit();
                 }
@@ -116,36 +147,34 @@ try {
     $total = 0;
 
     if ($target === 'employees') {
-        $where = ["is_active = 1"];
+        $where = ["e.is_active = 1"];
         
         if (!empty($queryText)) {
             $safeQ = $db->escapeString($queryText);
-            $where[] = "(employee_code LIKE '%$safeQ%' OR full_name LIKE '%$safeQ%' OR position LIKE '%$safeQ%' OR contractor_company LIKE '%$safeQ%' OR department LIKE '%$safeQ%')";
+            $where[] = "(e.employee_code LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.position LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%' OR e.department LIKE '%$safeQ%')";
         }
         
         if (!empty($company)) {
             $safeCompany = $db->escapeString($company);
-            $where[] = "contractor_company = '$safeCompany'";
+            $where[] = "e.contractor_company = '$safeCompany'";
         }
 
         if (!empty($competencyType)) {
             $safeType = $db->escapeString($competencyType);
-            $where[] = "competency_type = '$safeType'";
+            $where[] = "e.competency_type = '$safeType'";
         }
 
         if (!empty($department)) {
             $safeDept = $db->escapeString($department);
-            $where[] = "department = '$safeDept'";
+            $where[] = "e.department = '$safeDept'";
         }
 
         if (!empty($status)) {
             $safeStatus = $db->escapeString($status);
-            $where[] = "(verification_status = '$safeStatus')";
+            $where[] = "(e.verification_status = '$safeStatus')";
         }
 
-        $whereClause = implode(' AND ', array_map(function($w) {
-            return str_replace(['verification_status', 'approval_status', 'contractor_company', 'department', 'competency_type'], ['e.verification_status', 'e.verification_status', 'e.contractor_company', 'e.department', 'e.competency_type'], $w);
-        }, $where));
+        $whereClause = implode(' AND ', $where);
 
         // Count
         $countRes = $db->query("SELECT COUNT(*) as cnt FROM employees e WHERE $whereClause");
@@ -153,10 +182,10 @@ try {
             $total = (int)($countRes->fetch_assoc()['cnt'] ?? 0);
         }
 
-        // Query items with competency_name and verified_by_name
+        // Query items with competency_name, sub_competency, verified_date and verified_by_name
         $sql = "SELECT e.id, e.employee_code, e.full_name, e.position, e.department, e.contractor_company, 
                        e.competency_type, e.competency_name, e.ruang_lingkup, e.sub_competency, e.supervision_area, 
-                       e.verification_status as approval_status, e.verification_status, e.created_at,
+                       e.verification_status as approval_status, e.verification_status, e.verified_date, e.created_at,
                        u.full_name as verified_by_name
                 FROM employees e 
                 LEFT JOIN users u ON e.verified_by = u.id 
