@@ -251,7 +251,7 @@ WHERE is_active=0
                                     <span class="badge-status badge-danger">RESIGNED</span>
                                     <?php endif; ?>
                                     </td>   
-                                <td class="text-center">
+                                <td class="col-action text-center">
                                     <?php if($row['employee_status']=="active"): ?>
                                     <button
                                         type="button"
@@ -403,55 +403,76 @@ WHERE is_active=0
 </div>
 
 <script>
-    
 document.addEventListener("DOMContentLoaded", function () {
 
-    const modal = new bootstrap.Modal(
-        document.getElementById("employeeStatusModal")
-    );
+    // Event Delegation for .resign-btn (works across all zoom levels and DataTables redraws)
+    document.addEventListener("click", function(e) {
+        const button = e.target.closest(".resign-btn");
+        if (button) {
+            e.preventDefault();
+            e.stopPropagation();
 
-    document.querySelectorAll(".resign-btn").forEach(function(button){
-
-        button.addEventListener("click", function(){
-
-            console.log("Button Clicked");
-
-            document.getElementById("employee_id").value = this.dataset.id;
-            document.getElementById("employee_name").value = this.dataset.name;
-            document.getElementById("employee_company").value = this.dataset.company;
-            document.getElementById("appointment_number").value = this.dataset.appointment;
+            document.getElementById("employee_id").value = button.dataset.id || "";
+            document.getElementById("employee_name").value = button.dataset.name || "";
+            document.getElementById("employee_company").value = button.dataset.company || "";
+            document.getElementById("appointment_number").value = button.dataset.appointment || "";
 
             document.getElementById("resign_date").value = "";
             document.getElementById("resign_reason").value = "";
 
-            modal.show();
+            const modalEl = document.getElementById("employeeStatusModal");
+            if (modalEl) {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.show();
+            }
+        }
+    });
 
+    const saveBtn = document.getElementById("saveStatusBtn");
+    if (saveBtn) {
+        saveBtn.addEventListener("click", function(){
+            const employeeId = document.getElementById("employee_id").value;
+            const resignDate = document.getElementById("resign_date").value;
+            const resignReason = document.getElementById("resign_reason").value.trim();
+
+            if (!resignDate) {
+                alert("Please select resign date.");
+                return;
+            }
+
+            if (!resignReason) {
+                alert("Please enter resign reason.");
+                return;
+            }
+
+            if (!confirm("Are you sure this employee has resigned?")) {
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("action", "resign_employee");
+            formData.append("employee_id", employeeId);
+            formData.append("resign_date", resignDate);
+            formData.append("resign_reason", resignReason);
+
+            fetch(window.location.href, {
+                method: "POST",
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.success) {
+                    alert("Employee status updated to Resigned!");
+                    location.reload();
+                } else {
+                    alert("Failed to update status.");
+                }
+            })
+            .catch(err => {
+                alert("An error occurred. Please try again.");
+            });
         });
-
-    });
-
-    document.getElementById("saveStatusBtn").addEventListener("click", function(){
-
-        let resignDate = document.getElementById("resign_date").value;
-        let resignReason = document.getElementById("resign_reason").value.trim();
-
-        if(resignDate==""){
-            alert("Please select resign date.");
-            return;
-        }
-
-        if(resignReason==""){
-            alert("Please enter resign reason.");
-            return;
-        }
-
-        if(!confirm("Are you sure this employee has resigned?")){
-            return;
-        }
-
-        console.log("Save Clicked");
-
-    });
+    }
 
 }); 
 </script>
@@ -700,7 +721,20 @@ document.addEventListener("DOMContentLoaded", function () {
 .col-competency { width: 15%; }
 .col-status { width: 9%; }
 .col-employee-status { width: 10%; }
-.col-action { width: 7%; }
+.col-action {
+    width: 90px;
+    min-width: 90px;
+    position: relative;
+    z-index: 10;
+}
+
+.resign-btn {
+    position: relative;
+    z-index: 20;
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    white-space: nowrap;
+}
 
 .code-badge {
     background: #ECEFF1;
