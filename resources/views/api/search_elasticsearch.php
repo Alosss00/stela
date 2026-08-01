@@ -105,6 +105,43 @@ try {
                         } catch (\Throwable $t) {}
                     }
 
+                    if ($target === 'appointments' && !empty($items) && class_exists('Database')) {
+                        try {
+                            $dbHydrate = new Database();
+                            $ids = array_filter(array_map(function($i) { return (int)($i['id'] ?? 0); }, $items));
+                            if (!empty($ids)) {
+                                $idsStr = implode(',', $ids);
+                                $dbRes = $dbHydrate->query("SELECT a.id, a.appointment_number, a.effective_date, a.expiry_date, 
+                                                            e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
+                                                     FROM appointments a 
+                                                     LEFT JOIN employees e ON a.employee_id = e.id 
+                                                     LEFT JOIN positions p ON a.position_id = p.id 
+                                                     WHERE a.id IN ($idsStr)");
+                                $metaMap = [];
+                                if ($dbRes) {
+                                    while ($row = $dbRes->fetch_assoc()) {
+                                        $metaMap[$row['id']] = $row;
+                                    }
+                                }
+                                foreach ($items as &$item) {
+                                    $id = (int)($item['id'] ?? 0);
+                                    if (isset($metaMap[$id])) {
+                                        if (empty($item['appointment_number'])) $item['appointment_number'] = $metaMap[$id]['appointment_number'] ?? '';
+                                        if (empty($item['employee_code'])) $item['employee_code'] = $metaMap[$id]['employee_code'] ?? '';
+                                        if (empty($item['employee_name'])) $item['employee_name'] = $metaMap[$id]['employee_name'] ?? '';
+                                        if (empty($item['position'])) $item['position'] = $metaMap[$id]['position'] ?? '';
+                                        if (empty($item['department'])) $item['department'] = $metaMap[$id]['department'] ?? '';
+                                        if (empty($item['contractor_company'])) $item['contractor_company'] = $metaMap[$id]['contractor_company'] ?? '';
+                                        if (empty($item['competency_name'])) $item['competency_name'] = $metaMap[$id]['competency_name'] ?? '';
+                                        if (empty($item['effective_date'])) $item['effective_date'] = $metaMap[$id]['effective_date'] ?? null;
+                                        if (empty($item['expiry_date'])) $item['expiry_date'] = $metaMap[$id]['expiry_date'] ?? null;
+                                    }
+                                }
+                                unset($item);
+                            }
+                        } catch (\Throwable $t) {}
+                    }
+
                     $totalPages = $limit > 0 ? (int)ceil($totalHits / $limit) : 1;
                     echo json_encode([
                         'status' => 'success',

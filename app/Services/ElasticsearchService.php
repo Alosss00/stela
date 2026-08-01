@@ -208,10 +208,16 @@ class ElasticsearchService {
                                     'fields' => ['text' => ['type' => 'text']]
                                 ],
                                 'employee_id' => ['type' => 'integer'],
+                                'employee_code' => ['type' => 'keyword'],
                                 'employee_name' => ['type' => 'text'],
+                                'position' => ['type' => 'text'],
+                                'department' => ['type' => 'text'],
                                 'contractor_company' => ['type' => 'text'],
                                 'competency_type' => ['type' => 'keyword'],
+                                'competency_name' => ['type' => 'text'],
                                 'status' => ['type' => 'keyword'],
+                                'effective_date' => ['type' => 'date', 'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||strict_date_optional_time'],
+                                'expiry_date' => ['type' => 'date', 'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||strict_date_optional_time'],
                                 'created_at' => ['type' => 'date', 'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||strict_date_optional_time']
                             ]
                         ]
@@ -299,10 +305,16 @@ class ElasticsearchService {
                     'id' => (int)$data['id'],
                     'appointment_number' => $data['appointment_number'] ?? '',
                     'employee_id' => (int)($data['employee_id'] ?? 0),
+                    'employee_code' => $data['employee_code'] ?? '',
                     'employee_name' => $data['employee_name'] ?? ($data['full_name'] ?? ''),
+                    'position' => $data['position'] ?? '',
+                    'department' => $data['department'] ?? '',
                     'contractor_company' => $data['contractor_company'] ?? ($data['company'] ?? ''),
                     'competency_type' => $data['competency_type'] ?? '',
+                    'competency_name' => $data['competency_name'] ?? ($data['position_name'] ?? ''),
                     'status' => $data['status'] ?? 'draft',
+                    'effective_date' => $data['effective_date'] ?? null,
+                    'expiry_date' => $data['expiry_date'] ?? null,
                     'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s')
                 ]
             ];
@@ -619,9 +631,10 @@ class ElasticsearchService {
 
         $this->setupIndices();
 
-        $query = "SELECT a.*, e.full_name as employee_name, e.contractor_company 
+        $query = "SELECT a.*, e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
                   FROM appointments a 
-                  LEFT JOIN employees e ON a.employee_id = e.id";
+                  LEFT JOIN employees e ON a.employee_id = e.id
+                  LEFT JOIN positions p ON a.position_id = p.id";
         $result = $dbConnection->query($query);
 
         if (!$result) {
@@ -643,10 +656,16 @@ class ElasticsearchService {
                 'id' => (int)$row['id'],
                 'appointment_number' => $row['appointment_number'] ?? '',
                 'employee_id' => (int)($row['employee_id'] ?? 0),
+                'employee_code' => $row['employee_code'] ?? '',
                 'employee_name' => $row['employee_name'] ?? '',
+                'position' => $row['position'] ?? '',
+                'department' => $row['department'] ?? '',
                 'contractor_company' => $row['contractor_company'] ?? '',
                 'competency_type' => $row['competency_type'] ?? '',
+                'competency_name' => $row['competency_name'] ?? '',
                 'status' => $row['status'] ?? 'draft',
+                'effective_date' => $row['effective_date'] ?? null,
+                'expiry_date' => $row['expiry_date'] ?? null,
                 'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s')
             ];
 
@@ -663,5 +682,34 @@ class ElasticsearchService {
         }
 
         return ['success' => true, 'count' => $count];
+    }
+
+    /**
+     * Helper to sync single employee record from DB by ID
+     */
+    public function syncEmployeeById($dbConnection, $employeeId) {
+        if (!$this->isAvailable() || empty($employeeId)) return false;
+        $res = $dbConnection->query("SELECT e.*, u.full_name as verified_by_name FROM employees e LEFT JOIN users u ON e.verified_by = u.id WHERE e.id = " . intval($employeeId));
+        if ($res && $row = $res->fetch_assoc()) {
+            return $this->indexEmployee($row);
+        }
+        return false;
+    }
+
+    /**
+     * Helper to sync single appointment record from DB by ID
+     */
+    public function syncAppointmentById($dbConnection, $appointmentId) {
+        if (!$this->isAvailable() || empty($appointmentId)) return false;
+        $res = $dbConnection->query("SELECT a.*, e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
+                                     FROM appointments a 
+                                     LEFT JOIN employees e ON a.employee_id = e.id 
+                                     LEFT JOIN positions p ON a.position_id = p.id 
+                                     WHERE a.id = " . intval($appointmentId));
+        if ($res && $row = $res->fetch_assoc()) {
+            return $this->indexAppointment($row);
+        }
+        return false;
+    }
     }
 }
