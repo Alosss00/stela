@@ -387,15 +387,31 @@ class ElasticsearchService {
                                     'operator' => 'or'
                                 ]
                             ],
-                            [
-                                'query_string' => [
-                                    'query' => '*' . addcslashes($cleanQuery, '+-&&||!(){}[]^"~*?:\\/') . '*',
-                                    'fields' => ['full_name', 'employee_code', 'contractor_company', 'position']
-                                ]
-                            ]
-                        ],
-                        'minimum_should_match' => 1
-                    ]
+                             [
+                                 'query_string' => [
+                                     'query' => '*' . addcslashes($cleanQuery, '+-&&||!(){}[]^"~*?:\\/') . '*',
+                                     'fields' => ['full_name', 'employee_code', 'contractor_company', 'position']
+                                 ]
+                             ],
+                             [
+                                 'wildcard' => [
+                                     'full_name.raw' => [
+                                         'value' => '*' . $cleanQuery . '*',
+                                         'case_insensitive' => true
+                                     ]
+                                 ]
+                             ],
+                             [
+                                 'prefix' => [
+                                     'full_name' => [
+                                         'value' => $cleanQuery,
+                                         'case_insensitive' => true
+                                     ]
+                                 ]
+                             ]
+                         ],
+                         'minimum_should_match' => 1
+                     ]
                 ];
             } else {
                 $mustQueries[] = ['match_all' => new \stdClass()];

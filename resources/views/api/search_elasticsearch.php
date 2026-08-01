@@ -68,8 +68,8 @@ try {
             if ($result !== false) {
                 $totalHits = (int)($result['total'] ?? 0);
                 
-                // If ES has hits OR if user is explicitly searching with a keyword, return ES result
-                if ($totalHits > 0 || !empty($queryText)) {
+                // If ES has hits, return ES result. If 0 hits, fall through to MySQL fallback search
+                if ($totalHits > 0) {
                     $items = $result['items'] ?? [];
                     if ($target === 'employees' && !empty($items) && class_exists('Database')) {
                         try {
