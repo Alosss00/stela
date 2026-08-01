@@ -711,5 +711,4 @@ class ElasticsearchService {
         }
         return false;
     }
-    }
 }
