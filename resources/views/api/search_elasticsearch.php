@@ -33,6 +33,10 @@ try {
         exit();
     }
 
+    if (session_status() === PHP_SESSION_NONE) {
+        session_start();
+    }
+
     $queryText = trim($_GET['q'] ?? $_GET['query'] ?? '');
     $target = trim($_GET['target'] ?? 'employees'); // 'employees' or 'appointments'
     $company = trim($_GET['company'] ?? '');
@@ -42,6 +46,15 @@ try {
     $page = max(1, (int)($_GET['page'] ?? 1));
     $limit = min(100, max(1, (int)($_GET['limit'] ?? 10)));
     $from = ($page - 1) * $limit;
+
+    // Strict Role-based Company Scope Enforcement:
+    // Non-admin roles (User & Dept) can ONLY see data from their own company.
+    // Admin roles can search across ALL companies (or filter by specific company if selected).
+    $userRole = $_SESSION['role'] ?? '';
+    $userCompany = $_SESSION['company_name'] ?? '';
+    if (!empty($userRole) && $userRole !== 'admin' && !empty($userCompany)) {
+        $company = $userCompany;
+    }
 
     // 1. Try Elasticsearch Search first if class exists
     if (class_exists('ElasticsearchService')) {

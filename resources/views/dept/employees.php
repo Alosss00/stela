@@ -226,6 +226,7 @@ $rejected_count = $db->query("
                 window.deptEmpPagination = new BonsaiPagination({
                     apiUrl: '../../api/search_elasticsearch.php',
                     target: 'employees',
+                    company: companyName,
                     tableSelector: '#employeesTable',
                     tbodySelector: '#deptEmpTbody',
                     searchInputSelector: '#esSearchInput',
@@ -350,7 +351,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         debounceTimer = setTimeout(() => {
-            fetch('../../api/search_elasticsearch.php?target=employees&q=' + encodeURIComponent(query) + '&limit=100')
+            fetch('../../api/search_elasticsearch.php?target=employees&company=' + encodeURIComponent(companyName) + '&q=' + encodeURIComponent(query) + '&limit=100')
                 .then(res => {
                     if (!res.ok) throw new Error('HTTP ' + res.status);
                     const ct = res.headers.get('content-type') || '';
