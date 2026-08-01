@@ -668,7 +668,7 @@ $companies = $db->query("
                 <div id="bonsaiPaginationContainer"></div>
             </div>
 
-            <script src="../../assets/js/bonsai_pagination.js"></script>
+            <script src="../../assets/js/bonsai_pagination.js?v=<?php echo time(); ?>"></script>
             <script>
             (function() {
                 const currentUserId = <?php echo intval($_SESSION['user_id'] ?? 0); ?>;

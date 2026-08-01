@@ -240,7 +240,7 @@ $rejected_count = $db->query("
                 <div id="deptEmpPaginationContainer"></div>
             </div>
 
-            <script src="../../assets/js/bonsai_pagination.js"></script>
+            <script src="../../assets/js/bonsai_pagination.js?v=<?php echo time(); ?>"></script>
             <script>
             (function() {
                 const deptName = <?php echo json_encode($_SESSION['department'] ?? ''); ?>;

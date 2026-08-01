@@ -53,8 +53,9 @@ class BonsaiPagination {
             this.setupAutocompleteDropdown(searchInput);
 
             searchInput.value = this.query;
-            searchInput.addEventListener('input', function() {
-                self.query = this.value.trim();
+
+            const triggerSuggest = () => {
+                self.query = searchInput.value.trim();
                 self.page = 1; // Reset to page 1 on new search
 
                 const clearBtn = document.querySelector(self.clearBtnSelector);
@@ -65,7 +66,18 @@ class BonsaiPagination {
                 clearTimeout(self.debounceTimer);
                 self.debounceTimer = setTimeout(() => {
                     self.fetchData(true); // true = update autocomplete suggestions
-                }, 200);
+                }, 150);
+            };
+
+            searchInput.addEventListener('input', triggerSuggest);
+            searchInput.addEventListener('focus', function() {
+                if (self.query.length > 0) {
+                    if (self.lastItems && self.lastItems.length > 0) {
+                        self.renderAutocompleteSuggestions(self.lastItems);
+                    } else {
+                        triggerSuggest();
+                    }
+                }
             });
 
             // Keyboard navigation in search input
@@ -157,25 +169,25 @@ class BonsaiPagination {
                 top: calc(100% + 4px);
                 left: 0;
                 right: 0;
-                z-index: 9999;
+                z-index: 999999 !important;
                 background: #ffffff;
                 border-radius: 10px;
-                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.08);
-                border: 1px solid #e2e8f0;
-                max-height: 320px;
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18), 0 4px 10px rgba(0, 0, 0, 0.1);
+                border: 1px solid #cbd5e1;
+                max-height: 340px;
                 overflow-y: auto;
                 display: none;
                 padding: 6px 0;
             }
             .bonsai-suggest-header {
-                padding: 6px 14px;
+                padding: 7px 14px;
                 font-size: 11px;
                 font-weight: 700;
                 text-transform: uppercase;
                 letter-spacing: 0.6px;
-                color: #94a3b8;
+                color: #64748b;
                 background: #f8fafc;
-                border-bottom: 1px solid #f1f5f9;
+                border-bottom: 1px solid #e2e8f0;
             }
             .bonsai-suggest-item {
                 padding: 10px 14px;
@@ -184,7 +196,7 @@ class BonsaiPagination {
                 gap: 12px;
                 cursor: pointer;
                 border-bottom: 1px solid #f1f5f9;
-                transition: background 0.15s ease, transform 0.1s ease;
+                transition: background 0.15s ease;
             }
             .bonsai-suggest-item:last-child {
                 border-bottom: none;
@@ -245,6 +257,8 @@ class BonsaiPagination {
         const parent = searchInput.parentElement;
         if (parent) {
             parent.style.position = 'relative';
+            parent.style.overflow = 'visible';
+            if (parent.parentElement) parent.parentElement.style.overflow = 'visible';
         }
 
         this.dropdownEl = document.createElement('div');

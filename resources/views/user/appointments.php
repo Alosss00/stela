@@ -306,7 +306,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                 <div id="userApptPaginationContainer"></div>
             </div>
 
-            <script src="../../assets/js/bonsai_pagination.js"></script>
+            <script src="../../assets/js/bonsai_pagination.js?v=<?php echo time(); ?>"></script>
             <script>
             (function() {
                 const companyName = <?php echo json_encode($_SESSION['company_name'] ?? ''); ?>;

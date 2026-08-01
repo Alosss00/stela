@@ -723,7 +723,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                 <div id="apptBonsaiPaginationContainer"></div>
             </div>
 
-            <script src="../../assets/js/bonsai_pagination.js"></script>
+            <script src="../../assets/js/bonsai_pagination.js?v=<?php echo time(); ?>"></script>
             <script>
             (function() {
                 const csrfToken = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
