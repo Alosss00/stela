@@ -3,7 +3,7 @@ $page_title = 'Certificate Status';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-checkPageAccess(['user', 'department_user']);
+checkPageAccess(['user', 'department_user', 'dept']);
 
 $db = new Database();
 $monitor_window_days = 60;
@@ -48,28 +48,92 @@ function getMonitoringBadge(int $days_left): array
 
 function getWorkflowStatus(array $cert): array
 {
+    $status = $cert['status'] ?? '';
+    $verification = $cert['verification_status'] ?? '';
+    $appointment = $cert['appointment_status'] ?? '';
 
-    // Sedang menunggu Admin
-    if ($cert['resubmit_type'] == 'certificate' &&
-        $cert['status'] == 'pending') {
-        return ['class'=>'pending','label'=>'WAITING REVIEWER'];
+    /*
+    |--------------------------------------------------------------------------
+    | EXPIRED
+    |--------------------------------------------------------------------------
+    */
+
+    if ($status === 'expired') {
+        return [
+            'class' => 'critical',
+            'label' => 'EXPIRED'
+        ];
     }
 
-    // Sudah diverifikasi Admin
-    if ($cert['resubmit_type'] == 'certificate' &&
-        $cert['status'] == 'verified' &&
-        $cert['appointment_status'] == 'pending') {
-        return ['class'=>'warning','label'=>'WAITING KTT'];
+    /*
+    |--------------------------------------------------------------------------
+    | WAITING REVIEWER
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $status === 'pending' &&
+        $verification === 'pending'
+    ) {
+        return [
+            'class' => 'pending',
+            'label' => 'WAITING REVIEWER'
+        ];
     }
 
-    // Workflow selesai
-    if ($cert['resubmit_type'] == 'certificate' &&
-        $cert['appointment_status'] == 'approved' &&
-        $cert['status'] == 'active') {
-        return ['class'=>'success','label'=>'ACTIVE'];
+	 if (
+        $status === 'pending' &&
+        $verification === 'rejected'
+    ) {
+        return [
+            'class' => 'critical',
+            'label' => 'REJECT'
+        ];
     }
 
-    return ['class'=>'critical','label'=>'EXPIRED'];
+
+    // |--------------------------------------------------------------------------
+    // | WAITING KTT
+    // |--------------------------------------------------------------------------
+    // */
+
+    if (
+        $status === 'pending' &&
+        $verification === 'verified'
+    ) {
+        return [
+            'class' => 'warning',
+            'label' => 'WAITING KTT'
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | ACTIVE
+    |--------------------------------------------------------------------------
+    */
+
+    if (
+        $status === 'active' &&
+        $verification === 'verified' &&
+        $appointment === 'approved'
+    ) {
+        return [
+            'class' => 'success',
+            'label' => 'ACTIVE'
+        ];
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | DEFAULT
+    |--------------------------------------------------------------------------
+    */
+
+    return [
+        'class' => 'secondary',
+        'label' => strtoupper($status)
+    ];
 }
 
 function buildResubmitUrl(array $cert, string $csrf_token): string
@@ -101,85 +165,13 @@ $scope_sql = '';
 $scope_params = [];
 $scope_types = '';
 
-if ($role === 'department_user' && $department !== '') {
+if ($department !== '') {
 	$scope_sql = ' AND LOWER(TRIM(e.department)) = LOWER(TRIM(?))';
 	$scope_params[] = $department;
 	$scope_types .= 's';
-} elseif ($role === 'user' && $company_name !== '') {
-	$scope_sql = ' AND LOWER(TRIM(e.contractor_company)) = LOWER(TRIM(?))';
-	$scope_params[] = $company_name;
-	$scope_types .= 's';
 } else {
-	// Failsafe: never expose cross-scope data when session scope is incomplete.
+	// Failsafe: never expose cross-scope data when session department is incomplete.
 	$scope_sql = ' AND 1 = 0';
-}
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resubmit_expired_cert') {
-	if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-		http_response_code(403);
-		die('CSRF token mismatch');
-	}
-
-	$cert_id = isset($_POST['cert_id']) ? intval($_POST['cert_id']) : 0;
-	$cert_number = trim($_POST['cert_number'] ?? '');
-	$issue_date = trim($_POST['issue_date'] ?? '');
-	$expiry_date = trim($_POST['expiry_date'] ?? '');
-
-	if ($cert_id <= 0 || empty($expiry_date)) {
-		$error = 'Nomor sertifikat dan tanggal kedaluwarsa wajib diisi!';
-	} elseif (!isset($_FILES['document_file']) || $_FILES['document_file']['error'] !== 0) {
-		$error = 'Silakan pilih file sertifikat baru untuk diunggah.';
-	} else {
-		$allowed_extensions = ['pdf', 'jpg', 'jpeg', 'png'];
-		$file_size = $_FILES['document_file']['size'];
-		$max_size = 5 * 1024 * 1024;
-		$file_extension = strtolower(pathinfo($_FILES['document_file']['name'], PATHINFO_EXTENSION));
-
-		if (!in_array($file_extension, $allowed_extensions, true)) {
-			$error = 'Format file tidak diperbolehkan! Gunakan format PDF, JPG, JPEG, atau PNG.';
-		} elseif ($file_size > $max_size) {
-			$error = 'Ukuran file terlalu besar! Maksimal 5MB.';
-		} else {
-			$upload_dir = '../../assets/uploads/certifications/';
-			if (!is_dir($upload_dir)) {
-				mkdir($upload_dir, 0775, true);
-			}
-
-			$new_filename = 'cert_resubmit_' . $cert_id . '_' . time() . '.' . $file_extension;
-			$upload_path = $upload_dir . $new_filename;
-
-			if (move_uploaded_file($_FILES['document_file']['tmp_name'], $upload_path)) {
-				$document_file = 'uploads/certifications/' . $new_filename;
-				
-				$stmt_upd = $db->prepare("
-					UPDATE employee_certifications 
-					SET cert_number = ?,
-						issue_date = NULLIF(?, ''),
-						expiry_date = ?,
-						document_file = ?,
-						verification_status = 'pending',
-						status = 'pending',
-						updated_at = NOW() 
-					WHERE id = ?
-				");
-				
-				if ($stmt_upd) {
-					$stmt_upd->bind_param("ssssi", $cert_number, $issue_date, $expiry_date, $document_file, $cert_id);
-					if ($stmt_upd->execute()) {
-						$db->query("UPDATE employees e JOIN employee_certifications ec ON ec.employee_id = e.id SET e.resubmit_type = 'certificate', e.resubmit_date = NOW(), e.resubmit_count = e.resubmit_count + 1 WHERE ec.id = {$cert_id}");
-						
-						$message = 'Sertifikat berhasil diajukan ulang (resubmit) dan siap untuk diverifikasi!';
-					} else {
-						$error = 'Gagal memperbarui data sertifikat di database.';
-					}
-				} else {
-					$error = 'Gagal memproses query update sertifikat.';
-				}
-			} else {
-				$error = 'Gagal mengunggah file sertifikat ke server.';
-			}
-		}
-	}
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'resubmit_file') {
@@ -223,12 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 	} else {
 		$cert_row = $cert_check->fetch_assoc();
 		$document_allowed = $cert_row['verification_status'] === 'verified' && (int) $cert_row['is_active'] === 1 && $cert_row['status'] !== 'expired';
-		$document_in_scope = false;
-		if ($role === 'department_user' && $department !== '') {
-			$document_in_scope = strtolower(trim((string) ($cert_row['department'] ?? ''))) === strtolower($department);
-		} elseif ($role === 'user' && $company_name !== '') {
-			$document_in_scope = strtolower(trim((string) ($cert_row['contractor_company'] ?? ''))) === strtolower($company_name);
-		}
+		$document_in_scope = strtolower(trim((string) ($cert_row['department'] ?? ''))) === strtolower($department);
 		$document_in_window = !empty($cert_row['expiry_date']) && $cert_row['expiry_date'] > date('Y-m-d') && $cert_row['expiry_date'] <= date('Y-m-d', strtotime('+' . $monitor_window_days . ' days'));
 
 		if (!$document_allowed || !$document_in_scope || !$document_in_window) {
@@ -287,78 +274,95 @@ $warning_count = 0;
 $info_count = 0;
 
 $monitor_sql = "
+
 SELECT
-       ec.id as employee_certification_id,
-       ec.employee_id,
-       ec.certification_id,
-       ec.cert_number,
-       ec.cert_issuer,
-       ec.issue_date,
-       ec.expiry_date,
-       ec.document_file,
-       ec.status,
-       ec.verification_status,
-       ec.updated_at,
-       e.full_name,
-       e.employee_code,
-       e.position,
-       e.department,
-       e.contractor_company,
-       e.is_active,
-	   e.resubmit_type,
-       c.cert_name,
-       c.cert_type,
-       c.issuing_authority,
-       a.id as appointment_id,
-       a.status as appointment_status,
-       a.ktt_msm_status,
-       a.ktt_ttn_status,
-       DATEDIFF(ec.expiry_date, CURDATE()) as days_left
+
+    ec.id AS employee_certification_id,
+    ec.employee_id,
+    ec.certification_id,
+    ec.cert_number,
+    ec.cert_type,
+    ec.cert_issuer,
+    ec.issue_date,
+    ec.expiry_date,
+    ec.document_file,
+    ec.status,
+    ec.verification_status,
+    ec.notes,
+
+    e.employee_code,
+    e.full_name,
+    e.position,
+    e.department,
+    e.contractor_company,
+    e.resubmit_type,
+
+    c.cert_name,
+
+    a.id AS appointment_id,
+    a.appointment_number,
+    a.status AS appointment_status,
+
+    DATEDIFF(ec.expiry_date,CURDATE()) AS days_left
 
 FROM employee_certifications ec
 
-JOIN employees e
-ON ec.employee_id=e.id
+INNER JOIN employees e
+ON e.id = ec.employee_id
 
 LEFT JOIN certifications c
-ON ec.certification_id=c.id
+ON c.id = ec.certification_id
 
 LEFT JOIN appointments a
-ON a.id=
+ON a.id =
 (
     SELECT MAX(ap.id)
     FROM appointments ap
-    WHERE ap.employee_id=e.id
+    WHERE ap.employee_id = e.id
 )
 
-WHERE e.is_active = 1
+WHERE
 
-AND
+ec.id =
 (
-    /* Employee BELUM resubmit */
+    SELECT ec2.id
+    FROM employee_certifications ec2
+
+    WHERE ec2.employee_id = ec.employee_id
+
+    ORDER BY
+
+    FIELD
     (
-        ec.status = 'expired'
-        AND e.resubmit_type IS NULL
-    )
+        ec2.status,
+        'pending',
+        'verified',
+        'active',
+        'expired'
+    ),
 
-    OR
+    ec2.id DESC
 
-    /* Employee SUDAH resubmit */
-    (
-        e.resubmit_type = 'certificate'
-
-        AND ec.id =
-        (
-            SELECT MAX(ec3.id)
-            FROM employee_certifications ec3
-            WHERE ec3.employee_id = ec.employee_id
-        )
-    )
+    LIMIT 1
 )
+
+AND e.is_active = 1
 
 ".$scope_sql."
 
-ORDER BY ec.updated_at DESC
+ORDER BY
+
+CASE ec.status
+
+WHEN 'expired' THEN 1
+WHEN 'pending' THEN 2
+WHEN 'verified' THEN 3
+WHEN 'active' THEN 4
+
+END,
+
+ec.expiry_date ASC
+
 ";
 
 $monitor_stmt = $db->prepare($monitor_sql);
@@ -482,7 +486,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 		<div class="card-body cert-card-body">
 			<?php if (!empty($certificates)): ?>
 				<div class="table-responsive">
-					<table class="table cert-table">
+					<table class="table cert-table datatable">
 						<thead>
 							<tr>
 								<th>Employee</th>
@@ -535,51 +539,51 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 										<?php endif; ?>
 									</td>
 										<td>
-											<?php
-											// ACTIVE
-											if ($cert['status'] == 'active'
-												&& $cert['appointment_status'] == 'approved') {
-												echo '<span class="badge badge-success">Completed</span>';
+											<?php if ($cert['status'] == 'expired') : ?>
+											<a href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>"
+											class="btn btn-warning btn-sm">
+												<i class="fas fa-upload"></i>
+												Resubmit
+											</a>
+											<?php elseif (
+											$cert['status'] == 'pending' &&
+											$cert['verification_status'] == 'rejected'
+										) : ?>
 
-											}
+											<a href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>"
+											class="btn btn-warning btn-sm">
+												<i class="fas fa-upload"></i>
+												Resubmit
+											</a>
 
-											// WAITING REVIEWER
-											elseif ($cert['status'] == 'pending') {
-												echo '<span class="badge badge-secondary">
-														Waiting Reviewer
-													</span>';
+										<?php elseif (
+											$cert['status'] == 'pending' &&
+											$cert['verification_status'] == 'pending'
+										) : ?>
 
-											}
+											<span class="badge badge-warning">
+												Waiting Reviewer
+											</span>
 
-											// WAITING KTT
-											elseif (
-												$cert['status'] == 'verified'
-												&&
-												in_array($cert['appointment_status'],['draft','pending'])
-											) {
-												echo '<span class="badge badge-warning">
-														Waiting KTT
-													</span>';
+										<?php elseif (
+											$cert['status'] == 'pending' &&
+											$cert['verification_status'] == 'verified'
+										) : ?>
 
-											}
+											<span class="badge badge-info">
+												Waiting KTT
+											</span>
 
-											// EXPIRED
-											elseif ($cert['days_left'] <= 0 || $cert['status'] === 'expired') {
-											?>
-												<button type="button" class="btn btn-sm btn-primary btn-resubmit-modal" 
-														data-bs-toggle="modal" 
-														data-bs-target="#resubmitCertModal"
-														data-cert-id="<?php echo (int)$cert['employee_certification_id']; ?>"
-														data-cert-number="<?php echo htmlspecialchars($cert['cert_number'] ?: ''); ?>"
-														data-issue-date="<?php echo htmlspecialchars($cert['issue_date'] ?: ''); ?>"
-														data-expiry-date="<?php echo htmlspecialchars($cert['expiry_date'] ?: ''); ?>"
-														data-employee-name="<?php echo htmlspecialchars($cert['full_name']); ?>"
-														data-cert-name="<?php echo htmlspecialchars($cert['cert_name'] ?: 'Sertifikat'); ?>">
-													<i class="fas fa-upload"></i> <span data-lang="resubmit">Resubmit</span>
-												</button>
-										<?php
-												}
-											?>
+										<?php elseif (
+											$cert['status'] == 'active' &&
+											$cert['appointment_status'] == 'approved'
+										) : ?>
+
+											<span class="badge badge-success">
+												Completed
+											</span>
+
+										<?php endif; ?>
 											</td>
 								</tr>
 							<?php endforeach; ?>
@@ -595,84 +599,5 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 		</div>
 	</div>
 </div>
-
-<!-- Modal Resubmit Certificate -->
-<div class="modal fade" id="resubmitCertModal" tabindex="-1" aria-labelledby="resubmitCertModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="resubmitCertModalLabel">
-                    <i class="fas fa-upload"></i> Pengajuan Ulang Sertifikat (Resubmit)
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <form method="POST" action="" enctype="multipart/form-data">
-                <div class="modal-body">
-                    <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
-                    <input type="hidden" name="action" value="resubmit_expired_cert">
-                    <input type="hidden" name="cert_id" id="modal_cert_id" value="">
-
-                    <div class="alert alert-info py-2" style="font-size: 13px;">
-                        <i class="fas fa-info-circle"></i> <span id="modal_cert_info">Unggah sertifikat baru untuk memperbarui sertifikat yang kedaluwarsa.</span>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 13px;">Nomor Sertifikat</label>
-                        <input type="text" name="cert_number" id="modal_cert_number" class="form-control" placeholder="Contoh: CERT-2026-001" required>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold" style="font-size: 13px;">Tanggal Terbit</label>
-                            <input type="date" name="issue_date" id="modal_issue_date" class="form-control">
-                        </div>
-                        <div class="col-md-6 mb-3">
-                            <label class="form-label fw-bold" style="font-size: 13px;">Tanggal Kedaluwarsa <span class="text-danger">*</span></label>
-                            <input type="date" name="expiry_date" id="modal_expiry_date" class="form-control" required>
-                        </div>
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label fw-bold" style="font-size: 13px;">Upload Dokumen Sertifikat Terbaru <span class="text-danger">*</span></label>
-                        <input type="file" name="document_file" class="form-control" accept=".pdf,.jpg,.jpeg,.png" required>
-                        <small class="text-muted d-block mt-1" style="font-size: 11.5px;">Format yang diperbolehkan: PDF, JPG, JPEG, PNG (Maksimal 5MB).</small>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
-                    <button type="submit" class="btn btn-primary"><i class="fas fa-paper-plane"></i> Kirim Resubmit</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    var resubmitButtons = document.querySelectorAll('.btn-resubmit-modal');
-    resubmitButtons.forEach(function(btn) {
-        btn.addEventListener('click', function() {
-            var certId = this.getAttribute('data-cert-id');
-            var certNumber = this.getAttribute('data-cert-number');
-            var issueDate = this.getAttribute('data-issue-date');
-            var expiryDate = this.getAttribute('data-expiry-date');
-            var empName = this.getAttribute('data-employee-name');
-            var certName = this.getAttribute('data-cert-name');
-
-            var modalCertId = document.getElementById('modal_cert_id');
-            var modalCertNum = document.getElementById('modal_cert_number');
-            var modalIssue = document.getElementById('modal_issue_date');
-            var modalExpiry = document.getElementById('modal_expiry_date');
-            var modalInfo = document.getElementById('modal_cert_info');
-
-            if (modalCertId) modalCertId.value = certId || '';
-            if (modalCertNum) modalCertNum.value = certNumber || '';
-            if (modalIssue) modalIssue.value = issueDate || '';
-            if (modalExpiry) modalExpiry.value = expiryDate || '';
-            if (modalInfo) modalInfo.textContent = 'Resubmit ' + certName + ' untuk karyawan: ' + empName;
-        });
-    });
-});
-</script>
 
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
