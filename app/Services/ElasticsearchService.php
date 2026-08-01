@@ -5,7 +5,7 @@
  */
 
 if (!defined('ELASTICSEARCH_HOST')) {
-    define('ELASTICSEARCH_HOST', 'http://127.0.0.1:9200');
+    define('ELASTICSEARCH_HOST', 'https://df6c4bcf7e:b1bdce1e5fcf15ae0dca@focused-holly-1rb12wdt.ap-southeast-2.bonsaisearch.net:443');
 }
 if (!defined('ELASTICSEARCH_ENABLED')) {
     define('ELASTICSEARCH_ENABLED', true);
@@ -28,24 +28,63 @@ class ElasticsearchService {
             return;
         }
 
-        if (!class_exists('\Elastic\Elasticsearch\ClientBuilder')) {
-            $this->available = false;
-            return;
+        $host = ELASTICSEARCH_HOST;
+        // If host is HTTPS without explicit port, append :443 so client doesn't default to :9200
+        if (strpos($host, 'https://') === 0 && strrpos(parse_url($host, PHP_URL_HOST) ?? '', ':') === false) {
+            $parsed = parse_url($host);
+            if (empty($parsed['port'])) {
+                $scheme = $parsed['scheme'] ?? 'https';
+                $user = isset($parsed['user']) ? $parsed['user'] : '';
+                $pass = isset($parsed['pass']) ? ':' . $parsed['pass'] : '';
+                $auth = ($user || $pass) ? "$user$pass@" : '';
+                $hostName = $parsed['host'] ?? '';
+                $path = $parsed['path'] ?? '';
+                $host = "{$scheme}://{$auth}{$hostName}:443{$path}";
+            }
         }
 
-        try {
-            $this->client = \Elastic\Elasticsearch\ClientBuilder::create()
-                ->setHosts([ELASTICSEARCH_HOST])
-                ->setRetries(0)
-                ->build();
+        // 1. Try OpenSearch Client (compatible with Bonsai.io & OpenSearch clusters)
+        if (class_exists('\OpenSearch\ClientBuilder')) {
+            try {
+                $builder = \OpenSearch\ClientBuilder::create()
+                    ->setHosts([$host])
+                    ->setRetries(0);
 
-            // Fast ping with 1s timeout for instant MySQL fallback if offline
-            $this->available = $this->client->ping([
-                'client' => ['timeout' => 2, 'connect_timeout' => 1]
-            ])->asBool();
-        } catch (\Throwable $e) {
-            $this->available = false;
-            error_log('Elasticsearch Connection Warning: ' . $e->getMessage());
+                if (strpos($host, 'https://') === 0) {
+                    $builder->setSSLVerification(false);
+                }
+
+                $this->client = $builder->build();
+                $ping = $this->client->ping();
+                $this->available = is_bool($ping) ? $ping : (method_exists($ping, 'asBool') ? $ping->asBool() : (bool)$ping);
+                if ($this->available) {
+                    return;
+                }
+            } catch (\Throwable $e) {
+                error_log('OpenSearch Connection Warning: ' . $e->getMessage());
+            }
+        }
+
+        // 2. Fallback to Elasticsearch Client (for standard Elasticsearch 8/7 clusters)
+        if (class_exists('\Elastic\Elasticsearch\ClientBuilder')) {
+            try {
+                $builder = \Elastic\Elasticsearch\ClientBuilder::create()
+                    ->setHosts([$host])
+                    ->setRetries(0);
+
+                if (method_exists($builder, 'setSSLVerification') && strpos($host, 'https://') === 0) {
+                    $builder->setSSLVerification(false);
+                }
+
+                $this->client = $builder->build();
+                $ping = $this->client->ping([
+                    'client' => ['timeout' => 2, 'connect_timeout' => 1]
+                ]);
+                $this->available = is_bool($ping) ? $ping : (method_exists($ping, 'asBool') ? $ping->asBool() : (bool)$ping);
+            } catch (\Throwable $e) {
+                $this->available = false;
+                error_log('Elasticsearch Connection Warning: ' . $e->getMessage());
+            }
         }
     }
 
@@ -81,7 +120,8 @@ class ElasticsearchService {
         // Index Employees
         $employeeIndex = $this->getIndexName('employees');
         try {
-            $exists = $this->client->indices()->exists(['index' => $employeeIndex])->asBool();
+            $existsRes = $this->client->indices()->exists(['index' => $employeeIndex]);
+            $exists = is_bool($existsRes) ? $existsRes : (method_exists($existsRes, 'asBool') ? $existsRes->asBool() : (bool)$existsRes);
             if (!$exists) {
                 $this->client->indices()->create([
                     'index' => $employeeIndex,
@@ -148,7 +188,8 @@ class ElasticsearchService {
         // Index Appointments
         $appointmentIndex = $this->getIndexName('appointments');
         try {
-            $exists = $this->client->indices()->exists(['index' => $appointmentIndex])->asBool();
+            $existsRes = $this->client->indices()->exists(['index' => $appointmentIndex]);
+            $exists = is_bool($existsRes) ? $existsRes : (method_exists($existsRes, 'asBool') ? $existsRes->asBool() : (bool)$existsRes);
             if (!$exists) {
                 $this->client->indices()->create([
                     'index' => $appointmentIndex,

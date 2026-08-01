@@ -5,7 +5,9 @@
  */
 
 require_once __DIR__ . '/../init.php';
-require_once __DIR__ . '/../includes/ElasticsearchService.php';
+if (file_exists(__DIR__ . '/../app/Services/ElasticsearchService.php')) {
+    require_once __DIR__ . '/../app/Services/ElasticsearchService.php';
+}
 
 $isCli = (php_sapi_name() === 'cli');
 

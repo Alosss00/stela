@@ -16,7 +16,7 @@ if (!defined('APP_VERSION')) {
 
 // Konfigurasi Elasticsearch
 if (!defined('ELASTICSEARCH_HOST')) {
-    define('ELASTICSEARCH_HOST', getenv('ELASTICSEARCH_HOST') ?: 'http://127.0.0.1:9200');
+    define('ELASTICSEARCH_HOST', getenv('ELASTICSEARCH_HOST') ?: 'https://df6c4bcf7e:b1bdce1e5fcf15ae0dca@focused-holly-1rb12wdt.ap-southeast-2.bonsaisearch.net:443');
 }
 if (!defined('ELASTICSEARCH_ENABLED')) {
     define('ELASTICSEARCH_ENABLED', true);
