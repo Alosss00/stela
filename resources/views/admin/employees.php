@@ -533,7 +533,7 @@ $companies = $db->query("
     <!-- Bonsai.io Pagination Search Section -->
     
 
-    <div class="card-emp" style="margin-bottom: 16px; padding: 16px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
+    <div class="card-emp es-search-card" style="margin-bottom: 16px; padding: 16px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef; position: relative; z-index: 1050; overflow: visible;">
         <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
             <!-- Search Input -->
             <div style="flex: 1; min-width: 220px; position: relative;">
