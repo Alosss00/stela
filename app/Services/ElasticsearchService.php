@@ -387,7 +387,13 @@ class ElasticsearchService {
 
             if (!empty($filters['contractor_company'])) {
                 $filterQueries[] = [
-                    'term' => ['contractor_company.raw' => $filters['contractor_company']]
+                    'match' => ['contractor_company' => $filters['contractor_company']]
+                ];
+            }
+
+            if (!empty($filters['department'])) {
+                $filterQueries[] = [
+                    'match' => ['department' => $filters['department']]
                 ];
             }
 
@@ -430,7 +436,7 @@ class ElasticsearchService {
             ]);
 
             $hits = $response['hits']['hits'] ?? [];
-            $total = $response['hits']['total']['value'] ?? 0;
+            $total = $response['hits']['total']['value'] ?? (is_numeric($response['hits']['total'] ?? null) ? $response['hits']['total'] : 0);
 
             $items = array_map(function($hit) {
                 $source = $hit['_source'];
@@ -439,7 +445,7 @@ class ElasticsearchService {
             }, $hits);
 
             return [
-                'total' => $total,
+                'total' => (int)$total,
                 'items' => $items,
                 'source' => 'elasticsearch'
             ];
@@ -483,6 +489,18 @@ class ElasticsearchService {
                 ];
             }
 
+            if (!empty($filters['contractor_company'])) {
+                $filterQueries[] = [
+                    'match' => ['contractor_company' => $filters['contractor_company']]
+                ];
+            }
+
+            if (!empty($filters['competency_type'])) {
+                $filterQueries[] = [
+                    'term' => ['competency_type' => $filters['competency_type']]
+                ];
+            }
+
             $body = [
                 'from' => $from,
                 'size' => $size,
@@ -500,14 +518,14 @@ class ElasticsearchService {
             ]);
 
             $hits = $response['hits']['hits'] ?? [];
-            $total = $response['hits']['total']['value'] ?? 0;
+            $total = $response['hits']['total']['value'] ?? (is_numeric($response['hits']['total'] ?? null) ? $response['hits']['total'] : 0);
 
             $items = array_map(function($hit) {
                 return $hit['_source'];
             }, $hits);
 
             return [
-                'total' => $total,
+                'total' => (int)$total,
                 'items' => $items,
                 'source' => 'elasticsearch'
             ];

@@ -38,8 +38,9 @@ try {
     $company = trim($_GET['company'] ?? '');
     $competencyType = trim($_GET['competency_type'] ?? '');
     $status = trim($_GET['status'] ?? '');
+    $department = trim($_GET['department'] ?? '');
     $page = max(1, (int)($_GET['page'] ?? 1));
-    $limit = min(100, max(1, (int)($_GET['limit'] ?? 20)));
+    $limit = min(100, max(1, (int)($_GET['limit'] ?? 10)));
     $from = ($page - 1) * $limit;
 
     // 1. Try Elasticsearch Search first if class exists
@@ -49,6 +50,7 @@ try {
             $filters = [];
             if (!empty($company)) $filters['contractor_company'] = $company;
             if (!empty($competencyType)) $filters['competency_type'] = $competencyType;
+            if (!empty($department)) $filters['department'] = $department;
             if (!empty($status)) {
                 if ($target === 'employees') {
                     $filters['approval_status'] = $status;
@@ -64,14 +66,17 @@ try {
             }
 
             if ($result !== false) {
+                $totalHits = (int)($result['total'] ?? 0);
+                $totalPages = $limit > 0 ? (int)ceil($totalHits / $limit) : 1;
                 echo json_encode([
                     'status' => 'success',
                     'source' => 'elasticsearch',
                     'query' => $queryText,
                     'page' => $page,
                     'limit' => $limit,
-                    'total' => $result['total'],
-                    'items' => $result['items']
+                    'total' => $totalHits,
+                    'total_pages' => max(1, $totalPages),
+                    'items' => $result['items'] ?? []
                 ]);
                 exit();
             }
@@ -105,6 +110,11 @@ try {
             $where[] = "competency_type = '$safeType'";
         }
 
+        if (!empty($department)) {
+            $safeDept = $db->escapeString($department);
+            $where[] = "department = '$safeDept'";
+        }
+
         if (!empty($status)) {
             $safeStatus = $db->escapeString($status);
             $where[] = "approval_status = '$safeStatus'";
@@ -135,6 +145,16 @@ try {
             $where[] = "(a.appointment_number LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%')";
         }
 
+        if (!empty($company)) {
+            $safeCompany = $db->escapeString($company);
+            $where[] = "e.contractor_company = '$safeCompany'";
+        }
+
+        if (!empty($competencyType)) {
+            $safeType = $db->escapeString($competencyType);
+            $where[] = "a.competency_type = '$safeType'";
+        }
+
         if (!empty($status)) {
             $safeStatus = $db->escapeString($status);
             $where[] = "a.status = '$safeStatus'";
@@ -159,6 +179,8 @@ try {
         }
     }
 
+    $totalPages = $limit > 0 ? (int)ceil($total / $limit) : 1;
+
     echo json_encode([
         'status' => 'success',
         'source' => 'mysql_fallback',
@@ -166,6 +188,7 @@ try {
         'page' => $page,
         'limit' => $limit,
         'total' => $total,
+        'total_pages' => max(1, $totalPages),
         'items' => $items
     ]);
 
