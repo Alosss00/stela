@@ -99,20 +99,32 @@ $rejected_count = $db->query("
     <!-- Statistics Cards -->
     <div class="stats-cards-row">
         <div class="stat-box stat-box-total">
-            <div class="stat-number"><?php echo $total_employees; ?></div>
-            <div class="stat-label" data-lang="all-employees">Seluruh Karyawan</div>
+            <div class="stat-icon-wrapper stat-icon-total"><i class="fas fa-users"></i></div>
+            <div class="stat-content">
+                <div class="stat-number"><?php echo $total_employees; ?></div>
+                <div class="stat-label" data-lang="all-employees">ALL EMPLOYEES</div>
+            </div>
         </div>
         <div class="stat-box stat-box-verified">
-            <div class="stat-number"><?php echo $verified_count; ?></div>
-            <div class="stat-label" data-lang="accept">Disetujui</div>
+            <div class="stat-icon-wrapper stat-icon-verified"><i class="fas fa-user-check"></i></div>
+            <div class="stat-content">
+                <div class="stat-number"><?php echo $verified_count; ?></div>
+                <div class="stat-label" data-lang="accept">ACCEPT</div>
+            </div>
         </div>
         <div class="stat-box stat-box-pending">
-            <div class="stat-number"><?php echo $pending_count; ?></div>
-            <div class="stat-label" data-lang="pending">Menunggu</div>
+            <div class="stat-icon-wrapper stat-icon-pending"><i class="fas fa-hourglass-half"></i></div>
+            <div class="stat-content">
+                <div class="stat-number"><?php echo $pending_count; ?></div>
+                <div class="stat-label" data-lang="pending">PENDING</div>
+            </div>
         </div>
         <div class="stat-box stat-box-rejected">
-            <div class="stat-number"><?php echo $rejected_count_stat; ?></div>
-            <div class="stat-label" data-lang="reject">Tidak disetujui</div>
+            <div class="stat-icon-wrapper stat-icon-rejected"><i class="fas fa-user-times"></i></div>
+            <div class="stat-content">
+                <div class="stat-number"><?php echo $rejected_count_stat; ?></div>
+                <div class="stat-label" data-lang="reject">REJECT</div>
+            </div>
         </div>
     </div>
     
