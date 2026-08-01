@@ -124,7 +124,7 @@ $rejected_count = $db->query("
         </div>
     </div>
     
-    <!-- Elasticsearch Search Section -->
+    <!-- Bonsai.io Pagination Search Section -->
     <style>
     .es-autocomplete-dropdown {
         position: absolute;
@@ -178,118 +178,136 @@ $rejected_count = $db->query("
     }
     </style>
 
-    <div class="card" style="margin-bottom: 24px; padding: 18px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
-        <form method="GET" action="employees.php" class="es-search-form" onsubmit="return false;" style="display: flex; gap: 12px; align-items: center; width: 100%;">
-            <div style="flex: 1; position: relative;">
-                <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 15px; z-index: 2;"></i>
-                <input type="text" 
-                       id="esSearchInput"
-                       name="q" 
-                       value="" 
-                       class="form-control" 
-                       placeholder="Cari Karyawan dengan Elasticsearch (Nama, ID Badge, Perusahaan, Posisi)..." 
-                       autocomplete="off"
-                       style="padding-left: 44px; padding-right: 44px; height: 46px; border-radius: 10px; border: 1px solid #ced4da; font-size: 14px; width: 100%;">
-                
-                <button type="button" id="esClearBtn" title="Bersihkan" style="display: none; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 18px; padding: 0; z-index: 2;">
+    <div class="card" style="margin-bottom: 16px; padding: 14px 18px; background: #ffffff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 14px; z-index: 2;"></i>
+                <input type="text" id="esSearchInput" autocomplete="off"
+                       placeholder="Cari Nama, ID Badge, Posisi..."
+                       style="width:100%; padding-left: 38px; padding-right: 36px; height: 40px; border-radius: 8px; border: 1px solid #ced4da; font-size: 14px;">
+                <button type="button" id="esClearBtn" title="Bersihkan"
+                        style="display:none; position: absolute; right: 9px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 16px; padding: 0; z-index: 2;">
                     <i class="fas fa-times-circle"></i>
                 </button>
-
-                <div id="esSuggestionsDropdown" class="es-autocomplete-dropdown"></div>
             </div>
-        </form>
+            <select id="filterDeptEmpStatus" style="height:40px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:130px;">
+                <option value="">Semua Status</option>
+                <option value="pending">Pending</option>
+                <option value="verified">Verified</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <select id="filterDeptCompetencyType" style="height:40px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:170px;">
+                <option value="">Semua Kompetensi</option>
+                <option value="pengawas_operasional">Pengawas Operasional</option>
+                <option value="pengawas_teknis">Pengawas Teknis</option>
+                <option value="tenaga_teknis">Tenaga Teknis</option>
+            </select>
+            <select id="deptEmpPageLimit" style="height:40px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:90px;">
+                <option value="10">10 / hal</option>
+                <option value="25">25 / hal</option>
+                <option value="50">50 / hal</option>
+            </select>
+        </div>
+        <div id="deptEmpInfoContainer" style="margin-top:8px; font-size:13px; color:#6c757d;"></div>
     </div>
 
     <!-- Employees Table Card -->
     <div class="card">
         <div class="card-header-custom">
             <h3><i class="fas fa-list"></i> <span data-lang="complete-employee-list">Complete Employee List</span></h3>
-            <div class="header-info">
-                <span class="info-badge"><span data-lang="all-employees-label">All employees:</span> <?php echo $total_employees; ?></span>
-            </div>
         </div>
         <div class="card-body">
-            <?php if ($employees->num_rows > 0): ?>
-                <div class="table-responsive">
-                    <table class="table table-employees datatable" id="employeesTable">
-                        <thead>
-                            <tr>
-                                <th data-lang="id-badge">ID BADGE</th>
-                                <th data-lang="name">Name</th>
-                                <th data-lang="position">Position</th>
-                                <th data-lang="competency-type">Competency Type</th>
-                                <th data-lang="competency">Competency</th>
-                                <th data-lang="certificate-number">Certificate Number</th>
-                                <th data-lang="certification">Certification</th>
-                                <th data-lang="status">Status</th>
-                                <th data-lang="action">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php 
-                            $type_labels = [
-                                'pengawas_operasional' => 'Pengawas Operasional',
-                                'pengawas_teknis' => 'Pengawas Teknis',
-                                'tenaga_teknis' => 'Tenaga Teknis'
-                            ];
-                            
-                            $employees->data_seek(0);
-                            while ($row = $employees->fetch_assoc()): 
-                                $type_key = $row['competency_type'] ?? '';
-                                $type_label = $type_labels[$type_key] ?? $type_key;
-                                $final_status = $row['combined_status'];
-                            ?>
-                            <tr class="emp-row" data-id="<?php echo $row['id']; ?>">
-                                <td><strong><?php echo htmlspecialchars($row['employee_code']); ?></strong></td>
-                                <td><?php echo htmlspecialchars($row['full_name']); ?></td>
-                                <td><?php echo htmlspecialchars($row['position']); ?></td>
-                                <td><?php echo htmlspecialchars($type_label); ?></td>
-                                <td><?php echo htmlspecialchars($row['competency_name'] ?? '-'); ?></td>
-                                <td><?php echo htmlspecialchars($row['cert_numbers'] ?? '-'); ?></td>
-                                <td>
-                                    <span class="badge badge-info">
-                                        <?php echo ($row['verified_cert_count'] ?? 0) . '/' . ($row['cert_count'] ?? 0); ?>
-                                    </span>
-                                </td>
-                                <td>
-                                    <?php
-                                    $final_status = $row['combined_status'];
-                                    $status_badges = [
-                                        'verified' => '<span class="badge badge-success" data-lang="accept">Disetujui</span>',
-                                        'pending' => '<span class="badge badge-warning" data-lang="pending">Menunggu</span>',
-                                        'rejected' => '<span class="badge badge-danger" data-lang="reject">Tidak disetujui</span>'
-                                    ];
-                                    echo $status_badges[$final_status] ?? '';
-                                    
-                                    // Show rejection source
-                                    if ($final_status == 'rejected' && !empty($row['ktt_rejection_notes'])) {
-                                        echo '<br><small class="text-muted" data-lang="rejected-by-ktt">Rejected by KTT</small>';
-                                    }
-                                    ?>
-                                </td>
-                                <td>
-                                    <div class="action-buttons">
-                                        <a href="employee_detail.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-info" title="View Details" data-lang-title="view-details">
-                                            <i class="fas fa-eye"></i> <span data-lang="view">View</span>
-                                        </a>
-                                        <?php if ($final_status == 'rejected'): ?>
-                                        <a href="resubmit_employee.php?id=<?php echo $row['id']; ?>" class="btn btn-sm btn-warning" title="Upload Correction" data-lang-title="upload-correction">
-                                            <i class="fas fa-upload"></i> <span data-lang="resubmit">Resubmit</span>
-                                        </a>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="empty-state">
-                    <i class="fas fa-inbox"></i>
-                    <p data-lang="no-employee-data">No employee data</p>
-                </div>
-            <?php endif; ?>
+            <div class="table-responsive">
+                <table class="table table-employees" id="employeesTable">
+                    <thead>
+                        <tr>
+                            <th data-lang="id-badge">ID BADGE</th>
+                            <th data-lang="name">Name</th>
+                            <th data-lang="position">Position</th>
+                            <th data-lang="competency-type">Competency Type</th>
+                            <th data-lang="competency">Competency</th>
+                            <th data-lang="status">Status</th>
+                            <th data-lang="action">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deptEmpTbody">
+                        <tr><td colspan="7" style="text-align:center;padding:28px;color:#a0aec0;"><i class="fas fa-circle-notch fa-spin"></i> Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:8px;">
+                <div id="deptEmpInfoContainerTable" style="font-size:13px; color:#6c757d;"></div>
+                <div id="deptEmpPaginationContainer"></div>
+            </div>
+
+            <script src="../../assets/js/bonsai_pagination.js"></script>
+            <script>
+            (function() {
+                const deptName = <?php echo json_encode($_SESSION['department'] ?? ''); ?>;
+                const competencyLabels = {
+                    'pengawas_operasional': 'Pengawas Operasional',
+                    'pengawas_teknis': 'Pengawas Teknis',
+                    'tenaga_teknis': 'Tenaga Teknis'
+                };
+                const statusBadges = {
+                    'verified': '<span class="badge badge-success" data-lang="accept">Disetujui</span>',
+                    'pending': '<span class="badge badge-warning" data-lang="pending">Menunggu</span>',
+                    'rejected': '<span class="badge badge-danger" data-lang="reject">Tidak disetujui</span>'
+                };
+
+                window.deptEmpPagination = new BonsaiPagination({
+                    apiUrl: '../../api/search_elasticsearch.php',
+                    target: 'employees',
+                    tableSelector: '#employeesTable',
+                    tbodySelector: '#deptEmpTbody',
+                    searchInputSelector: '#esSearchInput',
+                    clearBtnSelector: '#esClearBtn',
+                    paginationContainerSelector: '#deptEmpPaginationContainer',
+                    infoContainerSelector: '#deptEmpInfoContainer',
+                    limitSelector: '#deptEmpPageLimit',
+                    filterSelectors: {
+                        status: '#filterDeptEmpStatus',
+                        competency_type: '#filterDeptCompetencyType'
+                    },
+                    defaultLimit: 10,
+                    renderRow: function(item, index, rowNum) {
+                        const status = item.approval_status || 'pending';
+                        const compType = item.competency_type || '';
+                        const compLabel = competencyLabels[compType] || compType;
+                        const badge = statusBadges[status] || `<span class="badge">${status}</span>`;
+                        const resubmitBtn = status === 'rejected'
+                            ? `<a href="resubmit_employee.php?id=${item.id}" class="btn btn-sm btn-warning" title="Resubmit"><i class="fas fa-upload"></i> <span data-lang="resubmit">Resubmit</span></a>`
+                            : '';
+                        return `<tr class="emp-row" data-id="${item.id}">
+                            <td><strong>${item.employee_code || '-'}</strong></td>
+                            <td>${item.full_name || '-'}</td>
+                            <td>${item.position || '-'}</td>
+                            <td>${compLabel}</td>
+                            <td>${item.competency_name || '-'}</td>
+                            <td>${badge}</td>
+                            <td>
+                                <div class="action-buttons">
+                                    <a href="employee_detail.php?id=${item.id}" class="btn btn-sm btn-info" title="View Details"><i class="fas fa-eye"></i> <span data-lang="view">View</span></a>
+                                    ${resubmitBtn}
+                                </div>
+                            </td>
+                        </tr>`;
+                    }
+                });
+
+                // Pre-set department filter
+                window.deptEmpPagination.filters['department'] = deptName;
+
+                // Sync info
+                const origInfo = window.deptEmpPagination.renderInfo.bind(window.deptEmpPagination);
+                window.deptEmpPagination.renderInfo = function() {
+                    origInfo();
+                    const src = document.querySelector('#deptEmpInfoContainer');
+                    const dest = document.querySelector('#deptEmpInfoContainerTable');
+                    if (src && dest) dest.innerHTML = src.innerHTML;
+                };
+            })();
+            </script>
         </div>
     </div>
     

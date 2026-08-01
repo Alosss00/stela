@@ -598,7 +598,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
         <?php endif; ?>
     </div>
     
-    <!-- Elasticsearch Search Section -->
+    <!-- Bonsai.io Pagination Search Section -->
     <style>
     .es-autocomplete-dropdown {
         position: absolute;
@@ -652,149 +652,163 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
     }
     </style>
 
-    <div class="card-appt-admin" style="margin-bottom: 24px; padding: 18px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
-        <form method="GET" action="appointments.php" class="es-search-form" onsubmit="return false;" style="display: flex; gap: 12px; align-items: center; width: 100%;">
-            <div style="flex: 1; position: relative;">
-                <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 15px; z-index: 2;"></i>
-                <input type="text" 
-                       id="esSearchInput"
-                       name="q" 
-                       value="" 
-                       class="form-control" 
-                       placeholder="Cari Surat Penunjukan dengan Elasticsearch (No. Surat, Nama Karyawan, Perusahaan)..." 
-                       autocomplete="off"
-                       style="padding-left: 44px; padding-right: 44px; height: 46px; border-radius: 10px; border: 1px solid #ced4da; font-size: 14px; width: 100%;">
-                
-                <button type="button" id="esClearBtn" title="Bersihkan" style="display: none; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 18px; padding: 0; z-index: 2;">
+    <div class="card-appt-admin" style="margin-bottom: 16px; padding: 16px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <!-- Search Input -->
+            <div style="flex: 1; min-width: 220px; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 14px; z-index: 2;"></i>
+                <input type="text" id="esSearchInput" autocomplete="off"
+                       placeholder="Cari No. Surat, Nama Karyawan, Perusahaan..."
+                       style="width:100%; padding-left: 40px; padding-right: 38px; height: 42px; border-radius: 8px; border: 1px solid #ced4da; font-size: 14px;">
+                <button type="button" id="esClearBtn" title="Bersihkan"
+                        style="display:none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 17px; padding: 0; z-index: 2;">
                     <i class="fas fa-times-circle"></i>
                 </button>
-
-                <div id="esSuggestionsDropdown" class="es-autocomplete-dropdown"></div>
             </div>
-        </form>
+            <!-- Status Filter -->
+            <select id="filterApptStatus" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:140px;">
+                <option value="">Semua Status</option>
+                <option value="draft">Draft</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="rejected_by_ktt">Rejected by KTT</option>
+            </select>
+            <!-- Company Filter -->
+            <select id="filterApptCompany" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:160px;">
+                <option value="">Semua Perusahaan</option>
+                <?php
+                $apptCompanies = $db->query("SELECT DISTINCT e.contractor_company FROM appointments a JOIN employees e ON a.employee_id = e.id ORDER BY e.contractor_company");
+                if ($apptCompanies) { while ($ac = $apptCompanies->fetch_assoc()): ?>
+                <option value="<?php echo htmlspecialchars($ac['contractor_company']); ?>"><?php echo htmlspecialchars($ac['contractor_company']); ?></option>
+                <?php endwhile; } ?>
+            </select>
+            <!-- Page Size -->
+            <select id="apptBonsaiPageLimit" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:90px;">
+                <option value="10">10 / hal</option>
+                <option value="25">25 / hal</option>
+                <option value="50">50 / hal</option>
+                <option value="100">100 / hal</option>
+            </select>
+        </div>
+        <!-- Result info -->
+        <div id="apptBonsaiInfoContainer" style="margin-top: 10px; font-size: 13px; color: #6c757d;"></div>
     </div>
 
     <!-- Tab Content: All Appointments -->
-    <div class="tab-content active" id="tab-all-appointments"  >
+    <div class="tab-content active" id="tab-all-appointments">
     <div class="card-appt-admin">
         <div class="card-header-appt-admin">
             <h3><i class="fas fa-list"></i> <span data-lang="appointment-letter-list">Appointment Letter List</span></h3>
         </div>
         <div class="card-body-appt-admin">
-            <?php if ($total_appointments > 0): ?>
-                <div class="table-responsive">
-                    <table class="table-appt-admin datatable" id="appointmentsTable">
-                        <thead>
-                            <tr>
-                                <th class="col-number" data-lang="letter-number">Letter Number</th>
-                                <th class="col-employee" data-lang="employee">Employee</th>
-                                <th class="col-status" data-lang="status">Status</th>
-                                <th class="col-action" data-lang="actions">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php 
-                            $appointments->data_seek(0);
-                            while ($row = $appointments->fetch_assoc()): 
-                            ?>
-                            <tr class="appt-admin-row <?php echo (isset($_GET['highlight']) && $_GET['highlight'] == $row['id']) ? 'highlight-row' : ''; ?>" data-id="<?php echo $row['id']; ?>">
-                                <td class="col-number">
-                                    <strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong>
-                                    <div style="font-size: 11px; color: #999; margin-top: 3px;">
-                                        <?php echo date('d M Y', strtotime($row['appointment_date'])); ?>
-                                    </div>
-                                </td>
-                                <td class="col-employee">
-                                    <div class="employee-info">
-                                        <strong><?php echo htmlspecialchars($row['employee_name']); ?></strong>
-                                        <span class="emp-code"><?php echo htmlspecialchars($row['employee_code']); ?></span>
-                                    </div>
-                                </td>
-                                <td class="col-status">
-                                    <?php if ($row['status'] == 'approved'): ?>
-                                        <span class="badge-appt-admin badge-success">
-                                            <i class="fas fa-check-circle"></i> Approved
-                                        </span>
-                                    <?php elseif ($row['status'] == 'pending'): ?>
-                                        <span class="badge-appt-admin badge-warning">
-                                            <i class="fas fa-clock"></i> Pending
-                                        </span>
-                                    <?php elseif ($row['status'] == 'rejected_by_ktt'): ?>
-                                        <span class="badge-appt-admin badge-danger">
-                                            <i class="fas fa-ban"></i> Rejected by KTT
-                                        </span>
-                                    <?php elseif ($row['status'] == 'rejected'): ?>
-                                        <span class="badge-appt-admin badge-danger">
-                                            <i class="fas fa-times-circle"></i> Rejected
-                                        </span>
-                                    <?php else: ?>
-                                        <span class="badge-appt-admin badge-secondary">
-                                            <i class="fas fa-file"></i> Draft
-                                        </span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="col-action">
-                                    <div class="action-buttons-appt-admin">
-                                        <?php if ($row['status'] != 'rejected_by_ktt'): ?>
-                                        <!-- View Detail Button -->
-                                        <button class="btn-action-appt view-btn" 
-                                                onclick="showAppointmentDetail(<?php echo $row['id']; ?>)"
-                                                title="View Details" data-lang-title="view-details">
-                                            <i class="fas fa-eye"></i> Detail
-                                        </button>
-                                        <?php endif; ?>
-                                        
-                                        <?php if ($row['status'] == 'draft'): ?>
-                                            <!-- Modif Button for Draft -->
-                                            <a href="../../print_appointment.php?id=<?php echo $row['id']; ?>"
-                                               target="_blank" class="btn-action-appt edit-btn"
-                                               title="Modify Letter" data-lang-title="modify-letter">
-                                                <i class="fas fa-edit"></i>
-                                            </a>
-                                            
-                                            <!-- Submit for KTT approval -->
-                                            <form method="POST" style="display: inline;">
-                                                <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
-                                                <input type="hidden" name="action" value="submit">
-                                                <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
-                                                <button type="submit" class="btn-action-appt ajukan-btn"
-                                                        onclick="return confirm(window.getLanguageText(''))"
-                                                        title="Submit to KTT" data-lang-title="submit-to-ktt">
-                                                    <i class="fas fa-paper-plane"></i>
-                                                </button>
-                                            </form>
-                                        <?php elseif ($row['status'] == 'approved'): ?>
-                                            <!-- Print Button for Approved -->
-                                            <a href="../../print_appointment_pdf.php?id=<?php echo $row['id']; ?>"
-                                               target="_blank" class="btn-action-appt cetak-btn"
-                                               title="Print Appointment Letter" data-lang-title="print-appointment-letter">
-                                                <i class="fas fa-print"></i> Print
-                                            </a>
-                                        <?php elseif ($row['status'] == 'rejected_by_ktt'): ?>
-                                            <!-- Review Button for Rejected by KTT -->
-                                            <button type="button"
-                                                    class="btn-action-appt review-detail-btn"
-                                                    onclick="showRejectionDetailModal(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['employee_name'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($row['appointment_number'], ENT_QUOTES); ?>', '<?php echo htmlspecialchars($row['ktt_rejection_notes'] ?? 'No notes', ENT_QUOTES); ?>')"
-                                                    title="View Rejection Details" data-lang-title="view-rejection-details">
-                                                <i class="fas fa-clipboard-check"></i> Review
-                                            </button>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="empty-state-appt-admin">
-                    <i class="fas fa-inbox"></i>
-                    <p>No appointment letters yet</p>
-                    <button class="btn btn-primary" onclick="openModal('addModal')">
-                        <i class="fas fa-plus"></i> Create First Appointment Letter
-                    </button>
-                </div>
-            <?php endif; ?>
+            <div class="table-responsive">
+                <table class="table-appt-admin" id="appointmentsTable">
+                    <thead>
+                        <tr>
+                            <th class="col-number" data-lang="letter-number">Letter Number</th>
+                            <th class="col-employee" data-lang="employee">Employee</th>
+                            <th class="col-status" data-lang="status">Status</th>
+                            <th class="col-action" data-lang="actions">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="apptTbody">
+                        <tr><td colspan="4" style="text-align:center;padding:32px;color:#a0aec0;"><i class="fas fa-circle-notch fa-spin"></i> Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination controls -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; flex-wrap:wrap; gap:8px;">
+                <div id="apptBonsaiInfoContainerTable" style="font-size:13px; color:#6c757d;"></div>
+                <div id="apptBonsaiPaginationContainer"></div>
+            </div>
+
+            <script src="../../assets/js/bonsai_pagination.js"></script>
+            <script>
+            (function() {
+                const csrfToken = '<?php echo $_SESSION['csrf_token'] ?? ''; ?>';
+
+                function getStatusBadge(status) {
+                    const map = {
+                        'approved': '<span class="badge-appt-admin badge-success"><i class="fas fa-check-circle"></i> Approved</span>',
+                        'pending':  '<span class="badge-appt-admin badge-warning"><i class="fas fa-clock"></i> Pending</span>',
+                        'rejected_by_ktt': '<span class="badge-appt-admin badge-danger"><i class="fas fa-ban"></i> Rejected by KTT</span>',
+                        'rejected': '<span class="badge-appt-admin badge-danger"><i class="fas fa-times-circle"></i> Rejected</span>',
+                        'draft':    '<span class="badge-appt-admin badge-secondary"><i class="fas fa-file"></i> Draft</span>'
+                    };
+                    return map[status] || `<span class="badge-appt-admin badge-secondary">${status}</span>`;
+                }
+
+                function getActionButtons(item) {
+                    const id = item.id;
+                    const status = item.status;
+                    const empName = (item.employee_name||'').replace(/'/g,"\\'");
+                    const apptNum = (item.appointment_number||'').replace(/'/g,"\\'");
+                    let btns = '';
+                    if (status !== 'rejected_by_ktt') {
+                        btns += `<button class="btn-action-appt view-btn" onclick="showAppointmentDetail(${id})" title="View Details"><i class="fas fa-eye"></i> Detail</button>`;
+                    }
+                    if (status === 'draft') {
+                        btns += `<a href="../../print_appointment.php?id=${id}" target="_blank" class="btn-action-appt edit-btn" title="Modify Letter"><i class="fas fa-edit"></i></a>`;
+                        btns += `<form method="POST" style="display:inline;">
+                            <input type="hidden" name="csrf_token" value="${csrfToken}">
+                            <input type="hidden" name="action" value="submit">
+                            <input type="hidden" name="id" value="${id}">
+                            <button type="submit" class="btn-action-appt ajukan-btn" onclick="return confirm('Submit this appointment letter to KTT for approval?')" title="Submit to KTT"><i class="fas fa-paper-plane"></i></button>
+                        </form>`;
+                    } else if (status === 'approved') {
+                        btns += `<a href="../../print_appointment_pdf.php?id=${id}" target="_blank" class="btn-action-appt cetak-btn" title="Print"><i class="fas fa-print"></i> Print</a>`;
+                    } else if (status === 'rejected_by_ktt') {
+                        btns += `<button type="button" class="btn-action-appt review-detail-btn" onclick="showRejectionDetailModal(${id}, '${empName}', '${apptNum}', 'See details')" title="Review"><i class="fas fa-clipboard-check"></i> Review</button>`;
+                    }
+                    return btns;
+                }
+
+                window.apptPagination = new BonsaiPagination({
+                    apiUrl: '../../api/search_elasticsearch.php',
+                    target: 'appointments',
+                    tableSelector: '#appointmentsTable',
+                    tbodySelector: '#apptTbody',
+                    searchInputSelector: '#esSearchInput',
+                    clearBtnSelector: '#esClearBtn',
+                    paginationContainerSelector: '#apptBonsaiPaginationContainer',
+                    infoContainerSelector: '#apptBonsaiInfoContainer',
+                    limitSelector: '#apptBonsaiPageLimit',
+                    filterSelectors: {
+                        status: '#filterApptStatus',
+                        company: '#filterApptCompany'
+                    },
+                    defaultLimit: 10,
+                    renderRow: function(item, index, rowNum) {
+                        const apptDate = item.created_at ? item.created_at.substring(0,10) : '';
+                        return `<tr class="appt-admin-row" data-id="${item.id}">
+                            <td class="col-number">
+                                <strong>${item.appointment_number || '-'}</strong>
+                                <div style="font-size:11px;color:#999;margin-top:3px;">${apptDate}</div>
+                            </td>
+                            <td class="col-employee">
+                                <div class="employee-info">
+                                    <strong>${item.employee_name || '-'}</strong>
+                                </div>
+                            </td>
+                            <td class="col-status">${getStatusBadge(item.status)}</td>
+                            <td class="col-action">
+                                <div class="action-buttons-appt-admin">${getActionButtons(item)}</div>
+                            </td>
+                        </tr>`;
+                    }
+                });
+
+                // Sync info to table-level container
+                const origInfo = window.apptPagination.renderInfo.bind(window.apptPagination);
+                window.apptPagination.renderInfo = function() {
+                    origInfo();
+                    const src = document.querySelector('#apptBonsaiInfoContainer');
+                    const dest = document.querySelector('#apptBonsaiInfoContainerTable');
+                    if (src && dest) dest.innerHTML = src.innerHTML;
+                };
+            })();
+            </script>
         </div>
     </div>
     </div> <!-- End Tab Content: All Appointments -->

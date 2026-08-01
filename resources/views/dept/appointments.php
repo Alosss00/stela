@@ -126,7 +126,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
         </form>
     </div>
     
-    <!-- Elasticsearch Search Section -->
+    <!-- Bonsai.io Pagination Search Section -->
     <style>
     .es-autocomplete-dropdown {
         position: absolute;
@@ -180,26 +180,32 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
     }
     </style>
 
-    <div class="card-appt" style="margin-bottom: 24px; padding: 18px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
-        <form method="GET" action="appointments.php" class="es-search-form" onsubmit="return false;" style="display: flex; gap: 12px; align-items: center; width: 100%;">
-            <div style="flex: 1; position: relative;">
-                <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 15px; z-index: 2;"></i>
-                <input type="text" 
-                       id="esSearchInput"
-                       name="q" 
-                       value="" 
-                       class="form-control" 
-                       placeholder="Cari Surat Penunjukan dengan Elasticsearch (No. Registrasi, ID Badge, Nama Karyawan)..." 
-                       autocomplete="off"
-                       style="padding-left: 44px; padding-right: 44px; height: 46px; border-radius: 10px; border: 1px solid #ced4da; font-size: 14px; width: 100%;">
-                
-                <button type="button" id="esClearBtn" title="Bersihkan" style="display: none; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 18px; padding: 0; z-index: 2;">
+    <div class="card-appt" style="margin-bottom: 16px; padding: 14px 18px; background: #ffffff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 14px; z-index: 2;"></i>
+                <input type="text" id="esSearchInput" autocomplete="off"
+                       placeholder="Cari No. Registrasi, ID Badge, Nama Karyawan..."
+                       style="width:100%; padding-left: 38px; padding-right: 36px; height: 40px; border-radius: 8px; border: 1px solid #ced4da; font-size: 14px;">
+                <button type="button" id="esClearBtn" title="Bersihkan"
+                        style="display:none; position: absolute; right: 9px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 16px; padding: 0; z-index: 2;">
                     <i class="fas fa-times-circle"></i>
                 </button>
-
-                <div id="esSuggestionsDropdown" class="es-autocomplete-dropdown"></div>
             </div>
-        </form>
+            <select id="filterDeptApptStatus" style="height:40px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:130px;">
+                <option value="">Semua Status</option>
+                <option value="pending">Pending</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+                <option value="draft">Draft</option>
+            </select>
+            <select id="deptApptPageLimit" style="height:40px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:90px;">
+                <option value="10">10 / hal</option>
+                <option value="25">25 / hal</option>
+                <option value="50">50 / hal</option>
+            </select>
+        </div>
+        <div id="deptApptInfoContainer" style="margin-top:8px; font-size:13px; color:#6c757d;"></div>
     </div>
 
     <!-- Appointments Table Card -->
@@ -208,96 +214,90 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
             <h3><i class="fas fa-list"></i> <span data-lang="assign-letter-list">Assign Letter List</span></h3>
         </div>
         <div class="card-body-appt">
-            <?php if ($appointments->num_rows > 0): ?>
-                <div class="table-responsive">
-                    <table class="table-appt datatable" id="appointmentsTable">
-                        <thead>
-                            <tr>
-                                <th class="col-number" data-lang="registration-no">No. Registrastion</th>
-                                <th class="col-code" data-lang="id-badge">ID Badge</th>
-                                <th class="col-name" data-lang="name">Name</th>
-                                <th class="col-dept" data-lang="position">Position</th>
-                                <th class="col-position" data-lang="competency">Competency</th>
-                                <th class="col-date" data-lang="effective-date">Effective Date</th>
-                                <th class="col-expiry" data-lang="expiry">Expiry</th>
-                                <th class="col-status" data-lang="status">Status</th>
-                                <th class="col-action" data-lang="action">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php while ($row = $appointments->fetch_assoc()): ?>
-                            <tr class="appt-row" data-id="<?php echo $row['id']; ?>">
-                                <td class="col-number">
-                                    <strong><?php echo htmlspecialchars($row['appointment_number'] ?? '-'); ?></strong>
-                                </td>
-                                <td class="col-code">
-                                    <span class="code-badge"><?php echo htmlspecialchars($row['employee_code']); ?></span>
-                                </td>
-                                <td class="col-name">
-                                    <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
-                                </td>
-                                <td class="col-dept">
-                                    <?php echo htmlspecialchars($row['position'] ?? '-'); ?>
-                                </td>
-                                <td class="col-position">
-                                    <span class="position-badge"><?php echo htmlspecialchars($row['position_name'] ?? '-'); ?></span>
-                                </td>
-                                <td class="col-date">
-                                    <i class="fas fa-calendar"></i> <?php echo date('d/m/Y', strtotime($row['effective_date'])); ?>
-                                </td>
-                                <td class="col-expiry">
-                                    <?php 
-                                    if (!empty($row['expiry_date'])) {
-                                        echo '<i class="fas fa-calendar-times"></i> ' . date('d/m/Y', strtotime($row['expiry_date']));
-                                    } else {
-                                        echo '<span class="text-muted">-</span>';
-                                    }
-                                    ?>
-                                </td>
-                                <td class="col-status">
-                                    <?php
-                                    $status_label = [
-                                        'draft' => 'Draft',
-                                        'pending' => 'Menunggu',
-                                        'approved' => 'Disetujui',
-                                        'rejected' => 'Tidak disetujui',
-                                        'expired' => 'Expired'
-                                    ];
-                                    $status_lang_keys = [
-                                        'draft' => 'draft',
-                                        'pending' => 'pending',
-                                        'approved' => 'approved',
-                                        'rejected' => 'rejected',
-                                        'expired' => 'expired'
-                                    ];
-                                    ?>
-                                    <span class="badge-status badge-<?php echo $row['status_class']; ?>" <?php echo isset($status_lang_keys[$row['status']]) ? 'data-lang="' . htmlspecialchars($status_lang_keys[$row['status']]) . '"' : ''; ?>>
-                                        <?php echo $status_label[$row['status']] ?? strtoupper($row['status']); ?>
-                                    </span>
-                                </td>
-                                <td class="col-action">
-                                    <div class="action-buttons-appt">
-                                        <?php if ($row['status'] == 'approved'): ?>
-                                        <a href="../../print_appointment.php?id=<?php echo $row['id']; ?>" class="btn-print-appt" target="_blank" title="Cetak" data-lang-title="print">
-                                            <i class="fas fa-print"></i>
-                                        </a>
-                                        <?php endif; ?>
-                                            <a href="appointments_detail.php?id=<?php echo $row['id']; ?>" class="btn-detail-appt">
-                                                <i class="fas fa-eye"></i> View
-                                        </a>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="empty-state-appt">
-                    <i class="fas fa-inbox"></i>
-                    <p data-lang="no-assign-letters">No assign letters</p>
-                </div>
-            <?php endif; ?>
+            <div class="table-responsive">
+                <table class="table-appt" id="appointmentsTable">
+                    <thead>
+                        <tr>
+                            <th class="col-number" data-lang="registration-no">No. Registration</th>
+                            <th class="col-code" data-lang="id-badge">ID Badge</th>
+                            <th class="col-name" data-lang="name">Name</th>
+                            <th class="col-dept" data-lang="position">Position</th>
+                            <th class="col-position" data-lang="competency">Competency</th>
+                            <th class="col-status" data-lang="status">Status</th>
+                            <th class="col-action" data-lang="action">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="deptApptTbody">
+                        <tr><td colspan="7" style="text-align:center;padding:28px;color:#a0aec0;"><i class="fas fa-circle-notch fa-spin"></i> Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:8px;">
+                <div id="deptApptInfoContainerTable" style="font-size:13px; color:#6c757d;"></div>
+                <div id="deptApptPaginationContainer"></div>
+            </div>
+
+            <script src="../../assets/js/bonsai_pagination.js"></script>
+            <script>
+            (function() {
+                const deptName = <?php echo json_encode($_SESSION['department'] ?? ''); ?>;
+                const statusClasses = {
+                    'approved': 'success',
+                    'pending': 'warning',
+                    'rejected': 'danger',
+                    'draft': 'secondary'
+                };
+
+                window.deptApptPagination = new BonsaiPagination({
+                    apiUrl: '../../api/search_elasticsearch.php',
+                    target: 'appointments',
+                    tableSelector: '#appointmentsTable',
+                    tbodySelector: '#deptApptTbody',
+                    searchInputSelector: '#esSearchInput',
+                    clearBtnSelector: '#esClearBtn',
+                    paginationContainerSelector: '#deptApptPaginationContainer',
+                    infoContainerSelector: '#deptApptInfoContainer',
+                    limitSelector: '#deptApptPageLimit',
+                    filterSelectors: {
+                        status: '#filterDeptApptStatus'
+                    },
+                    defaultLimit: 10,
+                    renderRow: function(item, index, rowNum) {
+                        const status = item.status || 'pending';
+                        const sClass = statusClasses[status] || 'secondary';
+                        const printBtn = status === 'approved'
+                            ? `<a href="../../print_appointment.php?id=${item.id}" class="btn-print-appt" target="_blank" title="Print"><i class="fas fa-print"></i></a>`
+                            : '';
+                        return `<tr class="appt-row" data-id="${item.id}">
+                            <td class="col-number"><strong>${item.appointment_number || '-'}</strong></td>
+                            <td class="col-code"><span class="code-badge">${item.employee_code || '-'}</span></td>
+                            <td class="col-name"><strong>${item.employee_name || item.full_name || '-'}</strong></td>
+                            <td class="col-dept">${item.position || '-'}</td>
+                            <td class="col-position"><span class="position-badge">${item.competency_name || '-'}</span></td>
+                            <td class="col-status"><span class="badge-status badge-${sClass}">${status.toUpperCase()}</span></td>
+                            <td class="col-action">
+                                <div class="action-buttons-appt">
+                                    ${printBtn}
+                                    <a href="appointments_detail.php?id=${item.id}" class="btn-detail-appt"><i class="fas fa-eye"></i> View</a>
+                                </div>
+                            </td>
+                        </tr>`;
+                    }
+                });
+
+                // Pre-set department filter
+                window.deptApptPagination.filters['department'] = deptName;
+
+                // Sync info
+                const origInfo = window.deptApptPagination.renderInfo.bind(window.deptApptPagination);
+                window.deptApptPagination.renderInfo = function() {
+                    origInfo();
+                    const src = document.querySelector('#deptApptInfoContainer');
+                    const dest = document.querySelector('#deptApptInfoContainerTable');
+                    if (src && dest) dest.innerHTML = src.innerHTML;
+                };
+            })();
+            </script>
         </div>
     </div>
 </div>

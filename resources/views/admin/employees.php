@@ -530,7 +530,7 @@ $companies = $db->query("
         </div>
     </div>
     
-    <!-- Elasticsearch Search Section -->
+    <!-- Bonsai.io Pagination Search Section -->
     <style>
     .es-autocomplete-dropdown {
         position: absolute;
@@ -586,215 +586,54 @@ $companies = $db->query("
     }
     </style>
 
-    <div class="card-emp" style="margin-bottom: 24px; padding: 18px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
-        <form method="GET" action="employees.php" class="es-search-form" onsubmit="return false;" style="display: flex; gap: 12px; align-items: center; width: 100%;">
-            <?php if (!empty($filter)): ?>
-                <input type="hidden" name="filter" value="<?php echo htmlspecialchars($filter); ?>">
-            <?php endif; ?>
-            
-            <div style="flex: 1; position: relative;">
-                <i class="fas fa-search" style="position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 15px; z-index: 2;"></i>
-                <input type="text" 
-                       id="esSearchInput"
-                       name="q" 
-                       value="<?php echo htmlspecialchars($search_query); ?>" 
-                       class="form-control" 
-                       placeholder="Ketik untuk mencari secara instan (Nama, ID Badge, Perusahaan, atau Posisi)..." 
-                       autocomplete="off"
-                       style="padding-left: 44px; padding-right: 44px; height: 46px; border-radius: 10px; border: 1px solid #ced4da; font-size: 14px; width: 100%;">
-                
-                <button type="button" id="esClearBtn" title="Bersihkan Pencarian" style="display: <?php echo !empty($search_query) ? 'block' : 'none'; ?>; position: absolute; right: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 18px; padding: 0; z-index: 2; transition: color 0.15s ease;">
+    <div class="card-emp" style="margin-bottom: 16px; padding: 16px 20px; background: #ffffff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <!-- Search Input -->
+            <div style="flex: 1; min-width: 220px; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 14px; z-index: 2;"></i>
+                <input type="text" id="esSearchInput" autocomplete="off"
+                       placeholder="Cari Nama, ID Badge, Perusahaan, Posisi..."
+                       style="width:100%; padding-left: 40px; padding-right: 38px; height: 42px; border-radius: 8px; border: 1px solid #ced4da; font-size: 14px;">
+                <button type="button" id="esClearBtn" title="Bersihkan"
+                        style="display:none; position: absolute; right: 10px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 17px; padding: 0; z-index: 2;">
                     <i class="fas fa-times-circle"></i>
                 </button>
-
-                <div id="esSuggestionsDropdown" class="es-autocomplete-dropdown"></div>
             </div>
-        </form>
+            <!-- Company Filter -->
+            <select id="filterCompany" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:160px;">
+                <option value="">Semua Perusahaan</option>
+                <?php
+                $companiesOpt = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE is_active = 1 ORDER BY contractor_company");
+                if ($companiesOpt) { while ($co = $companiesOpt->fetch_assoc()): ?>
+                <option value="<?php echo htmlspecialchars($co['contractor_company']); ?>"><?php echo htmlspecialchars($co['contractor_company']); ?></option>
+                <?php endwhile; } ?>
+            </select>
+            <!-- Competency Type Filter -->
+            <select id="filterCompetencyType" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:180px;">
+                <option value="">Semua Kompetensi</option>
+                <option value="pengawas_operasional">Pengawas Operasional</option>
+                <option value="pengawas_teknis">Pengawas Teknis</option>
+                <option value="tenaga_teknis">Tenaga Teknis</option>
+            </select>
+            <!-- Status Filter -->
+            <select id="filterStatus" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:130px;">
+                <option value="">Semua Status</option>
+                <option value="pending">Pending</option>
+                <option value="verified">Verified</option>
+                <option value="rejected">Rejected</option>
+            </select>
+            <!-- Page Size -->
+            <select id="bonsaiPageLimit" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:90px;">
+                <option value="10">10 / hal</option>
+                <option value="25">25 / hal</option>
+                <option value="50">50 / hal</option>
+                <option value="100">100 / hal</option>
+            </select>
+        </div>
+        <!-- Result info -->
+        <div id="bonsaiInfoContainer" style="margin-top: 10px; font-size: 13px; color: #6c757d;"></div>
     </div>
 
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const searchInput = document.getElementById('esSearchInput');
-        const dropdown = document.getElementById('esSuggestionsDropdown');
-        const searchForm = document.querySelector('.es-search-form');
-        const empRows = document.querySelectorAll('#employeesTable tbody tr.emp-row');
-        let debounceTimer = null;
-        let selectedIndex = -1;
-
-        const clearBtn = document.getElementById('esClearBtn');
-
-        if (!searchInput) return;
-
-        if (clearBtn) {
-            clearBtn.addEventListener('click', function() {
-                searchInput.value = '';
-                filterTableLive('');
-                clearBtn.style.display = 'none';
-                if (dropdown) {
-                    dropdown.style.display = 'none';
-                    dropdown.innerHTML = '';
-                }
-                searchInput.focus();
-            });
-        }
-
-        // Instant Live Table Filter function (No button click needed)
-        function filterTableLive(query, matchingIds = null) {
-            const cleanQ = query.toLowerCase().trim();
-
-            empRows.forEach(row => {
-                const rowId = row.dataset.id;
-                const textContent = row.textContent.toLowerCase();
-
-                let isMatch = false;
-
-                if (cleanQ === '') {
-                    isMatch = true;
-                } else if (matchingIds !== null && matchingIds.size > 0) {
-                    // Match by Elasticsearch returned IDs or fallback text match
-                    isMatch = matchingIds.has(rowId) || textContent.includes(cleanQ);
-                } else {
-                    // Instant text match fallback
-                    isMatch = textContent.includes(cleanQ);
-                }
-
-                if (isMatch) {
-                    row.style.display = '';
-                } else {
-                    row.style.display = 'none';
-                }
-            });
-        }
-
-        searchInput.addEventListener('input', function() {
-            const query = this.value.trim();
-            clearTimeout(debounceTimer);
-            selectedIndex = -1;
-
-            if (clearBtn) {
-                clearBtn.style.display = query.length > 0 ? 'block' : 'none';
-            }
-
-            // 1. Instant 0ms client-side filter feedback while typing
-            filterTableLive(query);
-
-            if (query.length < 1) {
-                if (dropdown) {
-                    dropdown.style.display = 'none';
-                    dropdown.innerHTML = '';
-                }
-                return;
-            }
-
-            // 2. Fetch Elasticsearch fast search results for instant accuracy & dropdown
-            debounceTimer = setTimeout(() => {
-                fetch('../../api/search_elasticsearch.php?q=' + encodeURIComponent(query) + '&limit=100')
-                    .then(res => {
-                        if (!res.ok) throw new Error('HTTP ' + res.status);
-                        const ct = res.headers.get('content-type') || '';
-                        if (!ct.includes('application/json')) throw new Error('Non-JSON response');
-                        return res.json();
-                    })
-                    .then(data => {
-                        if (data && data.status === 'success' && data.items) {
-                            const matchingIds = new Set(data.items.map(item => String(item.id)));
-                            filterTableLive(query, matchingIds);
-
-                            if (dropdown && data.items.length > 0) {
-                                renderSuggestions(data.items.slice(0, 8), query);
-                            } else if (dropdown) {
-                                dropdown.style.display = 'none';
-                                dropdown.innerHTML = '';
-                            }
-                        }
-                    })
-                    .catch(err => console.warn('Elasticsearch live search notice:', err.message));
-            }, 150);
-        });
-
-        function renderSuggestions(items, currentQuery) {
-            if (!dropdown) return;
-            dropdown.innerHTML = '';
-            items.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = 'es-suggestion-item';
-                div.dataset.index = index;
-                div.dataset.value = item.full_name || item.employee_code || '';
-
-                const leftDiv = document.createElement('div');
-                const nameEl = document.createElement('div');
-                nameEl.className = 'es-sug-name';
-                nameEl.textContent = item.full_name || '-';
-
-                const subEl = document.createElement('div');
-                subEl.className = 'es-sug-sub';
-                subEl.textContent = (item.contractor_company ? item.contractor_company + ' • ' : '') + (item.position || '');
-
-                leftDiv.appendChild(nameEl);
-                leftDiv.appendChild(subEl);
-
-                const badgeEl = document.createElement('div');
-                badgeEl.className = 'es-sug-badge';
-                badgeEl.textContent = item.employee_code || 'ID';
-
-                div.appendChild(leftDiv);
-                div.appendChild(badgeEl);
-
-                div.addEventListener('click', function() {
-                    searchInput.value = item.full_name || item.employee_code;
-                    filterTableLive(searchInput.value);
-                    dropdown.style.display = 'none';
-                    if (searchForm) searchForm.submit();
-                });
-
-                dropdown.appendChild(div);
-            });
-
-            dropdown.style.display = 'block';
-        }
-
-        // Keyboard navigation (Arrow keys, Enter, Escape)
-        searchInput.addEventListener('keydown', function(e) {
-            if (!dropdown) return;
-            const items = dropdown.querySelectorAll('.es-suggestion-item');
-            if (dropdown.style.display === 'none' || items.length === 0) return;
-
-            if (e.key === 'ArrowDown') {
-                e.preventDefault();
-                selectedIndex = (selectedIndex + 1) % items.length;
-                updateSelection(items);
-            } else if (e.key === 'ArrowUp') {
-                e.preventDefault();
-                selectedIndex = (selectedIndex - 1 + items.length) % items.length;
-                updateSelection(items);
-            } else if (e.key === 'Enter') {
-                if (selectedIndex >= 0 && items[selectedIndex]) {
-                    e.preventDefault();
-                    items[selectedIndex].click();
-                }
-            } else if (e.key === 'Escape') {
-                dropdown.style.display = 'none';
-            }
-        });
-
-        function updateSelection(items) {
-            items.forEach((item, idx) => {
-                if (idx === selectedIndex) {
-                    item.classList.add('active');
-                    item.scrollIntoView({ block: 'nearest' });
-                } else {
-                    item.classList.remove('active');
-                }
-            });
-        }
-
-        document.addEventListener('click', function(e) {
-            if (dropdown && !searchInput.contains(e.target) && !dropdown.contains(e.target)) {
-                dropdown.style.display = 'none';
-            }
-        });
-    });
-    </script>
 
     <!-- Employees Table -->
     <div class="card-emp">
@@ -803,101 +642,103 @@ $companies = $db->query("
         </div>
 
         <div class="card-body-emp">
-            <?php if ($employees->num_rows > 0): ?>
-                <div class="table-responsive">
-                    <table class="table-emp datatable" id="employeesTable">
-                        <thead>
-                            <tr>
-                                <th class="col-code" data-lang="id-badge">ID BADGE</th>
-                                <th class="col-name" data-lang="name">Name</th>
-                                <th class="col-position no-required-marker" data-lang="position">Position</th>
-                                <th class="col-company no-required-marker" data-lang="company">Company</th>
-                                <th class="col-competency-type no-required-marker" data-lang="competency-type">Competency Type</th>
-                                <th class="col-competency no-required-marker" data-lang="competency">Competency</th>
-                                <th class="col-status" data-lang="status">Status</th>
-                                <th class="col-verified-by" data-lang="verified-by">Verified By</th>
-                                <th class="col-action" data-lang="action">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php 
-                            $employees->data_seek(0);
-                            while ($row = $employees->fetch_assoc()): 
-                                $company_name = htmlspecialchars($row['contractor_company']);
-                            ?>
-                            <tr class="emp-row" data-id="<?php echo $row['id']; ?>" data-company="<?php echo $company_name; ?>" data-status="<?php echo htmlspecialchars($row['verification_status']); ?>">
-                                <td class="col-code">
-                                    <span class="code-badge"><?php echo htmlspecialchars($row['employee_code']); ?></span>
-                                </td>
-                                <td class="col-name">
-                                    <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
-                                </td>
-                                <td class="col-position">
-                                    <span class="position-tag-emp"><?php echo htmlspecialchars($row['position']); ?></span>
-                                </td>
-                                <td class="col-company">
-                                    <span class="company-tag-emp"><?php echo $company_name; ?></span>
-                                </td>
-                                <td class="col-competency-type">
-                                    <span class="competency-type-badge competency-<?php echo $row['competency_type']; ?>">
-                                        <?php echo htmlspecialchars($row['competency_type_display'] ?? ''); ?>
-                                    </span>
-                                </td>
-                                <td class="col-competency">
-                                    <?php if (!empty($row['competency_name'])): ?>
-                                        <span class="competency-tag"><?php echo htmlspecialchars($row['competency_name']); ?></span>
-                                    <?php else: ?>
-                                        <span class="text-muted">-</span>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="col-status">
-                                    <?php
-                                    $final_status = $row['combined_status'] ?? $row['verification_status'];
-                                    $final_class = $row['status_class'];
-                                    if ($final_status == 'rejected') $final_class = 'danger';
-                                    ?>
-                                    <span class="badge-status badge-<?php echo $final_class; ?>">
-                                        <?php echo strtoupper($final_status); ?>
-                                    </span>
-                                    <?php if ($final_status == 'rejected' && !empty($row['ktt_rejection_notes'])): ?>
-                                    <br><small class="text-muted">Ditolak oleh KTT</small>
-                                    <?php endif; ?>
-                                </td>
-                                <td class="col-verified-by">
-                                    <?php 
-                                    if (($row['verification_status'] == 'verified' || $row['verification_status'] == 'rejected') && $row['verified_by_name']) {
-                                        echo '<strong>' . htmlspecialchars($row['verified_by_name']) . '</strong>';
-                                        if ($row['verified_date']) {
-                                            echo '<br><small class="text-muted">' . date('d/m/Y', strtotime($row['verified_date'])) . '</small>';
-                                        }
-                                    } else {
-                                        echo '<span class="text-muted">-</span>';
-                                    }
-                                    ?>
-                                </td>
-                                <td class="col-action">
-                                    <div class="action-buttons-emp">
-                                        <a href="verify_employee.php?id=<?php echo $row['id']; ?>" class="btn-action-emp open-btn" title="Open" data-lang-title="open">
-                                            <i class="fas fa-folder-open"></i>
-                                        </a>
-                                        <?php if ($final_status == 'rejected' && isset($row['created_by']) && $row['created_by'] == $_SESSION['user_id']): ?>
-                                        <a href="resubmit_employee.php?id=<?php echo $row['id']; ?>" class="btn-action-emp resubmit-btn" title="Resubmit" data-lang-title="resubmit">
-                                            <i class="fas fa-upload"></i>
-                                        </a>
-                                        <?php endif; ?>
-                                    </div>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="empty-state-emp">
-                    <i class="fas fa-inbox"></i>
-                    <p data-lang="no-workforce-data">No workforce data yet</p>
-                </div>
-            <?php endif; ?>
+            <div class="table-responsive">
+                <table class="table-emp" id="employeesTable">
+                    <thead>
+                        <tr>
+                            <th class="col-code" data-lang="id-badge">ID BADGE</th>
+                            <th class="col-name" data-lang="name">Name</th>
+                            <th class="col-position no-required-marker" data-lang="position">Position</th>
+                            <th class="col-company no-required-marker" data-lang="company">Company</th>
+                            <th class="col-competency-type no-required-marker" data-lang="competency-type">Competency Type</th>
+                            <th class="col-competency no-required-marker" data-lang="competency">Competency</th>
+                            <th class="col-status" data-lang="status">Status</th>
+                            <th class="col-verified-by" data-lang="verified-by">Verified By</th>
+                            <th class="col-action" data-lang="action">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="empTbody">
+                        <tr><td colspan="9" style="text-align:center;padding:32px;color:#a0aec0;"><i class="fas fa-circle-notch fa-spin"></i> Memuat data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            <!-- Pagination controls -->
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px; flex-wrap:wrap; gap:8px;">
+                <div id="bonsaiInfoContainerTable" style="font-size:13px; color:#6c757d;"></div>
+                <div id="bonsaiPaginationContainer"></div>
+            </div>
+
+            <script src="../../assets/js/bonsai_pagination.js"></script>
+            <script>
+            (function() {
+                const currentUserId = <?php echo intval($_SESSION['user_id'] ?? 0); ?>;
+                const baseUrl = '../../api/search_elasticsearch.php';
+
+                const competencyLabels = {
+                    'pengawas_operasional': 'Pengawas Operasional',
+                    'pengawas_teknis': 'Pengawas Teknis',
+                    'tenaga_teknis': 'Tenaga Teknis'
+                };
+                const statusColors = {
+                    'verified': 'success',
+                    'pending': 'warning',
+                    'rejected': 'danger'
+                };
+
+                window.empPagination = new BonsaiPagination({
+                    apiUrl: baseUrl,
+                    target: 'employees',
+                    tableSelector: '#employeesTable',
+                    tbodySelector: '#empTbody',
+                    searchInputSelector: '#esSearchInput',
+                    clearBtnSelector: '#esClearBtn',
+                    paginationContainerSelector: '#bonsaiPaginationContainer',
+                    infoContainerSelector: '#bonsaiInfoContainer',
+                    limitSelector: '#bonsaiPageLimit',
+                    filterSelectors: {
+                        company: '#filterCompany',
+                        competency_type: '#filterCompetencyType',
+                        status: '#filterStatus'
+                    },
+                    defaultLimit: 10,
+                    renderRow: function(item, index, rowNum) {
+                        const status = item.approval_status || 'pending';
+                        const statusClass = statusColors[status] || 'secondary';
+                        const compType = item.competency_type || '';
+                        const compLabel = competencyLabels[compType] || compType;
+                        const verifiedBy = item.verified_by_name ? `<strong>${item.verified_by_name}</strong>` : '<span class="text-muted">-</span>';
+                        const resubmitBtn = (status === 'rejected')
+                            ? `<a href="resubmit_employee.php?id=${item.id}" class="btn-action-emp resubmit-btn" title="Resubmit"><i class="fas fa-upload"></i></a>`
+                            : '';
+                        return `<tr class="emp-row" data-id="${item.id}">
+                            <td class="col-code"><span class="code-badge">${item.employee_code || '-'}</span></td>
+                            <td class="col-name"><strong>${item.full_name || '-'}</strong></td>
+                            <td class="col-position"><span class="position-tag-emp">${item.position || '-'}</span></td>
+                            <td class="col-company"><span class="company-tag-emp">${item.contractor_company || '-'}</span></td>
+                            <td class="col-competency-type"><span class="competency-type-badge competency-${compType}">${compLabel}</span></td>
+                            <td class="col-competency">${item.competency_name ? `<span class="competency-tag">${item.competency_name}</span>` : '<span class="text-muted">-</span>'}</td>
+                            <td class="col-status"><span class="badge-status badge-${statusClass}">${status.toUpperCase()}</span></td>
+                            <td class="col-verified-by">${verifiedBy}</td>
+                            <td class="col-action">
+                                <div class="action-buttons-emp">
+                                    <a href="verify_employee.php?id=${item.id}" class="btn-action-emp open-btn" title="Open"><i class="fas fa-folder-open"></i></a>
+                                    ${resubmitBtn}
+                                </div>
+                            </td>
+                        </tr>`;
+                    }
+                });
+
+                // Also sync info to table-level container
+                const origRenderInfo = window.empPagination.renderInfo.bind(window.empPagination);
+                window.empPagination.renderInfo = function() {
+                    origRenderInfo();
+                    const src = document.querySelector('#bonsaiInfoContainer');
+                    const dest = document.querySelector('#bonsaiInfoContainerTable');
+                    if (src && dest) dest.innerHTML = src.innerHTML;
+                };
+            })();
+            </script>
         </div>
     </div>
 </div>
