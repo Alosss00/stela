@@ -313,6 +313,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         error_log("Notification Error: " . $e->getMessage());
                     }
 
+                                        // Instantly index new employee to Bonsai.io / Elasticsearch
+                    try {
+                        $esServicePath = dirname(__DIR__, 2) . '/app/Services/ElasticsearchService.php';
+                        if (file_exists($esServicePath)) {
+                            require_once $esServicePath;
+                            if (class_exists('ElasticsearchService')) {
+                                $esService = ElasticsearchService::getInstance();
+                                if ($esService->isAvailable()) {
+                                    $esService->indexEmployee([
+                                        'id' => (int)$employee_id,
+                                        'employee_code' => $employee_code,
+                                        'full_name' => $full_name,
+                                        'position' => $position,
+                                        'department' => $department,
+                                        'contractor_company' => $contractor_company,
+                                        'competency_type' => $competency_type,
+                                        'competency_name' => $competency_name,
+                                        'ruang_lingkup' => $ruang_lingkup,
+                                        'sub_competency' => $sub_competency,
+                                        'supervision_area' => $supervision_area,
+                                        'approval_status' => 'pending',
+                                        'is_active' => 1,
+                                        'created_at' => date('Y-m-d H:i:s')
+                                    ]);
+                                }
+                            }
+                        }
+                    } catch (\Throwable $esEx) {
+                        error_log("Elasticsearch auto-index exception: " . $esEx->getMessage());
+                    }
+
                     $message = 'Employee successfully added! Waiting for Admin verification.';
 
                     // Ini mencegah pengiriman ganda jika user me-refresh halaman sukses (Double Submit)
