@@ -1,6 +1,6 @@
 /**
  * Bonsai.io (Elasticsearch) & MySQL Fallback Server-Side Pagination & Search JS Helper
- * Handles debounced search, active filters, page size limits, and pagination controls.
+ * Features: Live search, Autocomplete Dropdown / Autocorrect Suggestions, Active Filters, Page Size Limits, Pagination Controls.
  */
 
 class BonsaiPagination {
@@ -26,6 +26,11 @@ class BonsaiPagination {
         this.totalPages = 1;
         this.source = 'elasticsearch';
         this.debounceTimer = null;
+        this.lastItems = [];
+
+        // Autocomplete Dropdown State
+        this.dropdownEl = null;
+        this.selectedIndex = -1;
 
         this.init();
     }
@@ -39,9 +44,14 @@ class BonsaiPagination {
         if (urlParams.has('page')) this.page = parseInt(urlParams.get('page'), 10) || 1;
         if (urlParams.has('limit')) this.limit = parseInt(urlParams.get('limit'), 10) || this.limit;
 
-        // Search Input Listener
+        // Inject Styles for Autocomplete Dropdown
+        this.injectStyles();
+
+        // Setup Autocomplete Container
         const searchInput = document.querySelector(this.searchInputSelector);
         if (searchInput) {
+            this.setupAutocompleteDropdown(searchInput);
+
             searchInput.value = this.query;
             searchInput.addEventListener('input', function() {
                 self.query = this.value.trim();
@@ -54,8 +64,41 @@ class BonsaiPagination {
 
                 clearTimeout(self.debounceTimer);
                 self.debounceTimer = setTimeout(() => {
-                    self.fetchData();
+                    self.fetchData(true); // true = update autocomplete suggestions
                 }, 200);
+            });
+
+            // Keyboard navigation in search input
+            searchInput.addEventListener('keydown', function(e) {
+                if (!self.dropdownEl || self.dropdownEl.style.display === 'none') return;
+                const items = self.dropdownEl.querySelectorAll('.bonsai-suggest-item');
+                if (items.length === 0) return;
+
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    self.selectedIndex = (self.selectedIndex + 1) % items.length;
+                    self.updateHighlightedSuggestion(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    self.selectedIndex = (self.selectedIndex - 1 + items.length) % items.length;
+                    self.updateHighlightedSuggestion(items);
+                } else if (e.key === 'Enter') {
+                    if (self.selectedIndex >= 0 && items[self.selectedIndex]) {
+                        e.preventDefault();
+                        items[self.selectedIndex].click();
+                    } else {
+                        self.hideAutocomplete();
+                    }
+                } else if (e.key === 'Escape') {
+                    self.hideAutocomplete();
+                }
+            });
+
+            // Hide dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!searchInput.contains(e.target) && self.dropdownEl && !self.dropdownEl.contains(e.target)) {
+                    self.hideAutocomplete();
+                }
             });
         }
 
@@ -68,6 +111,7 @@ class BonsaiPagination {
                 self.query = '';
                 self.page = 1;
                 clearBtn.style.display = 'none';
+                self.hideAutocomplete();
                 self.fetchData();
             });
         }
@@ -103,16 +147,121 @@ class BonsaiPagination {
         this.fetchData();
     }
 
-    fetchData() {
+    injectStyles() {
+        if (document.getElementById('bonsai-autocomplete-styles')) return;
+        const style = document.createElement('style');
+        style.id = 'bonsai-autocomplete-styles';
+        style.textContent = `
+            .bonsai-autocomplete-dropdown {
+                position: absolute;
+                top: calc(100% + 4px);
+                left: 0;
+                right: 0;
+                z-index: 9999;
+                background: #ffffff;
+                border-radius: 10px;
+                box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15), 0 4px 10px rgba(0, 0, 0, 0.08);
+                border: 1px solid #e2e8f0;
+                max-height: 320px;
+                overflow-y: auto;
+                display: none;
+                padding: 6px 0;
+            }
+            .bonsai-suggest-header {
+                padding: 6px 14px;
+                font-size: 11px;
+                font-weight: 700;
+                text-transform: uppercase;
+                letter-spacing: 0.6px;
+                color: #94a3b8;
+                background: #f8fafc;
+                border-bottom: 1px solid #f1f5f9;
+            }
+            .bonsai-suggest-item {
+                padding: 10px 14px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                cursor: pointer;
+                border-bottom: 1px solid #f1f5f9;
+                transition: background 0.15s ease, transform 0.1s ease;
+            }
+            .bonsai-suggest-item:last-child {
+                border-bottom: none;
+            }
+            .bonsai-suggest-item:hover, .bonsai-suggest-item.active {
+                background-color: #f0f7ff;
+            }
+            .bonsai-suggest-icon {
+                width: 32px;
+                height: 32px;
+                border-radius: 8px;
+                background: #eef2ff;
+                color: #4f46e5;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 13px;
+                flex-shrink: 0;
+            }
+            .bonsai-suggest-content {
+                flex: 1;
+                min-width: 0;
+            }
+            .bonsai-suggest-title {
+                font-weight: 600;
+                font-size: 13.5px;
+                color: #1e293b;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+            .bonsai-suggest-subtitle {
+                font-size: 12px;
+                color: #64748b;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+                margin-top: 2px;
+            }
+            .bonsai-suggest-badge {
+                font-size: 10.5px;
+                padding: 3px 8px;
+                border-radius: 12px;
+                font-weight: 600;
+                text-transform: uppercase;
+                letter-spacing: 0.3px;
+                flex-shrink: 0;
+            }
+            .bonsai-badge-verified, .bonsai-badge-approved { background: #dcfce7; color: #166534; }
+            .bonsai-badge-pending { background: #fef9c3; color: #854d0e; }
+            .bonsai-badge-rejected { background: #fee2e2; color: #991b1b; }
+            .bonsai-suggest-highlight { background: #fef08a; padding: 0 2px; border-radius: 2px; font-weight: 700; color: #000; }
+        `;
+        document.head.appendChild(style);
+    }
+
+    setupAutocompleteDropdown(searchInput) {
+        const parent = searchInput.parentElement;
+        if (parent) {
+            parent.style.position = 'relative';
+        }
+
+        this.dropdownEl = document.createElement('div');
+        this.dropdownEl.className = 'bonsai-autocomplete-dropdown';
+        if (parent) {
+            parent.appendChild(this.dropdownEl);
+        }
+    }
+
+    fetchData(fromInput = false) {
         const self = this;
         const tbody = document.querySelector(this.tbodySelector);
-        
-        // Show subtle loading state
+
         if (tbody && tbody.children.length > 0) {
             tbody.style.opacity = '0.5';
         }
 
-        // Build Query Parameters
         const params = new URLSearchParams();
         params.append('target', this.target);
         params.append('q', this.query);
@@ -125,7 +274,6 @@ class BonsaiPagination {
             }
         });
 
-        // Update URL Query String without full refresh
         const newUrl = window.location.pathname + '?' + params.toString();
         window.history.replaceState({ path: newUrl }, '', newUrl);
 
@@ -140,9 +288,16 @@ class BonsaiPagination {
                     self.total = data.total || 0;
                     self.totalPages = data.total_pages || 1;
                     self.source = data.source || 'elasticsearch';
-                    self.renderTable(data.items || []);
+                    self.lastItems = data.items || [];
+                    self.renderTable(self.lastItems);
                     self.renderPaginationControls();
                     self.renderInfo();
+
+                    if (fromInput && self.query.length > 0) {
+                        self.renderAutocompleteSuggestions(self.lastItems);
+                    } else {
+                        self.hideAutocomplete();
+                    }
                 } else {
                     console.error('BonsaiPagination API Error:', data.message);
                 }
@@ -151,6 +306,105 @@ class BonsaiPagination {
                 if (tbody) tbody.style.opacity = '1';
                 console.warn('BonsaiPagination Notice:', err.message);
             });
+    }
+
+    renderAutocompleteSuggestions(items) {
+        if (!this.dropdownEl) return;
+        this.dropdownEl.innerHTML = '';
+        this.selectedIndex = -1;
+
+        if (!items || items.length === 0 || this.query.length === 0) {
+            this.hideAutocomplete();
+            return;
+        }
+
+        const header = document.createElement('div');
+        header.className = 'bonsai-suggest-header';
+        header.innerHTML = `<i class="fas fa-magic"></i> Rekomendasi Pencarian (${Math.min(items.length, 6)})`;
+        this.dropdownEl.appendChild(header);
+
+        const self = this;
+        const suggestions = items.slice(0, 6);
+
+        suggestions.forEach((item, index) => {
+            const div = document.createElement('div');
+            div.className = 'bonsai-suggest-item';
+
+            let titleText = '';
+            let subtitleText = '';
+            let status = (item.approval_status || item.verification_status || item.status || 'pending').toLowerCase();
+            let iconClass = 'fa-user';
+
+            if (self.target === 'employees') {
+                titleText = item.full_name || item.employee_code || '';
+                const code = item.employee_code ? `[${item.employee_code}] ` : '';
+                const comp = item.competency_name || item.sub_competency || item.position || '';
+                const company = item.contractor_company ? ` • ${item.contractor_company}` : '';
+                subtitleText = `${code}${comp}${company}`;
+                iconClass = 'fa-user-tie';
+            } else {
+                titleText = item.appointment_number || item.employee_name || '';
+                const empName = item.employee_name ? `${item.employee_name}` : '';
+                const company = item.contractor_company ? ` • ${item.contractor_company}` : '';
+                subtitleText = `${empName}${company}`;
+                iconClass = 'fa-file-signature';
+            }
+
+            const highlightedTitle = self.highlightQuery(titleText, self.query);
+            const badgeClass = 'bonsai-badge-' + status;
+
+            div.innerHTML = `
+                <div class="bonsai-suggest-icon"><i class="fas ${iconClass}"></i></div>
+                <div class="bonsai-suggest-content">
+                    <div class="bonsai-suggest-title">${highlightedTitle}</div>
+                    <div class="bonsai-suggest-subtitle">${subtitleText}</div>
+                </div>
+                <div class="bonsai-suggest-badge ${badgeClass}">${status}</div>
+            `;
+
+            div.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const input = document.querySelector(self.searchInputSelector);
+                if (input) {
+                    input.value = titleText;
+                    self.query = titleText;
+                    self.page = 1;
+                    const clearBtn = document.querySelector(self.clearBtnSelector);
+                    if (clearBtn) clearBtn.style.display = 'block';
+                }
+                self.hideAutocomplete();
+                self.fetchData();
+            });
+
+            self.dropdownEl.appendChild(div);
+        });
+
+        this.dropdownEl.style.display = 'block';
+    }
+
+    highlightQuery(text, query) {
+        if (!query) return text;
+        const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const regex = new RegExp(`(${escaped})`, 'gi');
+        return text.replace(regex, '<span class="bonsai-suggest-highlight">$1</span>');
+    }
+
+    updateHighlightedSuggestion(items) {
+        items.forEach((item, idx) => {
+            if (idx === this.selectedIndex) {
+                item.classList.add('active');
+                item.scrollIntoView({ block: 'nearest' });
+            } else {
+                item.classList.remove('active');
+            }
+        });
+    }
+
+    hideAutocomplete() {
+        if (this.dropdownEl) {
+            this.dropdownEl.style.display = 'none';
+        }
+        this.selectedIndex = -1;
     }
 
     renderTable(items) {
@@ -212,7 +466,6 @@ class BonsaiPagination {
 
         const self = this;
 
-        // Previous Button
         const prevLi = document.createElement('li');
         prevLi.className = 'page-item ' + (this.page <= 1 ? 'disabled' : '');
         prevLi.innerHTML = `<a class="page-link" href="#" aria-label="Previous">&laquo; Prev</a>`;
@@ -225,7 +478,6 @@ class BonsaiPagination {
         });
         ul.appendChild(prevLi);
 
-        // Page Numbers Window
         const maxPagesToShow = 5;
         let startPage = Math.max(1, this.page - 2);
         let endPage = Math.min(this.totalPages, startPage + maxPagesToShow - 1);
@@ -287,7 +539,6 @@ class BonsaiPagination {
             ul.appendChild(lastLi);
         }
 
-        // Next Button
         const nextLi = document.createElement('li');
         nextLi.className = 'page-item ' + (this.page >= this.totalPages ? 'disabled' : '');
         nextLi.innerHTML = `<a class="page-link" href="#" aria-label="Next">Next &raquo;</a>`;
