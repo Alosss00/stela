@@ -167,6 +167,8 @@ class ElasticsearchService {
                                     'fields' => ['raw' => ['type' => 'keyword']]
                                 ],
                                 'competency_type' => ['type' => 'keyword'],
+                                'competency_name' => ['type' => 'text'],
+                                'verified_by_name' => ['type' => 'text'],
                                 'ruang_lingkup' => ['type' => 'text'],
                                 'sub_competency' => ['type' => 'text'],
                                 'supervision_area' => ['type' => 'text'],
@@ -246,6 +248,8 @@ class ElasticsearchService {
                     'department' => $data['department'] ?? '',
                     'contractor_company' => $data['contractor_company'] ?? '',
                     'competency_type' => $data['competency_type'] ?? '',
+                    'competency_name' => $data['competency_name'] ?? '',
+                    'verified_by_name' => $data['verified_by_name'] ?? '',
                     'ruang_lingkup' => $data['ruang_lingkup'] ?? '',
                     'sub_competency' => $data['sub_competency'] ?? '',
                     'supervision_area' => $data['supervision_area'] ?? '',
@@ -544,7 +548,7 @@ class ElasticsearchService {
 
         $this->setupIndices();
 
-        $query = "SELECT * FROM employees";
+        $query = "SELECT e.*, u.full_name as verified_by_name FROM employees e LEFT JOIN users u ON e.verified_by = u.id";
         $result = $dbConnection->query($query);
 
         if (!$result) {
@@ -570,10 +574,12 @@ class ElasticsearchService {
                 'department' => $row['department'] ?? '',
                 'contractor_company' => $row['contractor_company'] ?? '',
                 'competency_type' => $row['competency_type'] ?? '',
+                'competency_name' => $row['competency_name'] ?? '',
+                'verified_by_name' => $row['verified_by_name'] ?? '',
                 'ruang_lingkup' => $row['ruang_lingkup'] ?? '',
                 'sub_competency' => $row['sub_competency'] ?? '',
                 'supervision_area' => $row['supervision_area'] ?? '',
-                'approval_status' => $row['approval_status'] ?? ($row['status'] ?? 'pending'),
+                'approval_status' => $row['approval_status'] ?? ($row['verification_status'] ?? ($row['status'] ?? 'pending')),
                 'is_active' => isset($row['is_active']) ? (int)$row['is_active'] : 1,
                 'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s')
             ];

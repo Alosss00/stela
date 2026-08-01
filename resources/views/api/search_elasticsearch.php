@@ -143,17 +143,24 @@ try {
             $where[] = "(verification_status = '$safeStatus')";
         }
 
-        $whereClause = implode(' AND ', $where);
+        $whereClause = implode(' AND ', array_map(function($w) {
+            return str_replace(['verification_status', 'approval_status', 'contractor_company', 'department', 'competency_type'], ['e.verification_status', 'e.verification_status', 'e.contractor_company', 'e.department', 'e.competency_type'], $w);
+        }, $where));
 
         // Count
-        $countRes = $db->query("SELECT COUNT(*) as cnt FROM employees WHERE $whereClause");
+        $countRes = $db->query("SELECT COUNT(*) as cnt FROM employees e WHERE $whereClause");
         if ($countRes) {
             $total = (int)($countRes->fetch_assoc()['cnt'] ?? 0);
         }
 
-        // Query items
-        $sql = "SELECT id, employee_code, full_name, position, department, contractor_company, competency_type, ruang_lingkup, sub_competency, supervision_area, verification_status as approval_status, verification_status, created_at 
-                FROM employees WHERE $whereClause ORDER BY id DESC LIMIT $from, $limit";
+        // Query items with competency_name and verified_by_name
+        $sql = "SELECT e.id, e.employee_code, e.full_name, e.position, e.department, e.contractor_company, 
+                       e.competency_type, e.competency_name, e.ruang_lingkup, e.sub_competency, e.supervision_area, 
+                       e.verification_status as approval_status, e.verification_status, e.created_at,
+                       u.full_name as verified_by_name
+                FROM employees e 
+                LEFT JOIN users u ON e.verified_by = u.id 
+                WHERE $whereClause ORDER BY e.id DESC LIMIT $from, $limit";
         $res = $db->query($sql);
         if ($res) {
             while ($row = $res->fetch_assoc()) {
