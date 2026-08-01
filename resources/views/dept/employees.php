@@ -104,35 +104,42 @@ $rejected_count = $db->query("
     </div>
     <?php endif; ?>
     
-    <!-- Statistics Cards -->
-    <div class="stats-cards-row">
-        <div class="stat-box stat-box-total">
-            <div class="stat-icon-wrapper stat-icon-total"><i class="fas fa-users"></i></div>
-            <div class="stat-content">
-                <div class="stat-number"><?php echo $total_employees; ?></div>
-                <div class="stat-label" data-lang="all-employees">ALL EMPLOYEES</div>
+    <!-- Statistics Cards (Image 2 DaisyUI Style) -->
+    <div class="stats-daisy-container">
+        <div class="daisy-stat stat-total">
+            <div class="daisy-stat-title" data-lang="all-employees">ALL EMPLOYEES</div>
+            <div class="daisy-stat-row">
+                <div class="daisy-stat-value val-total"><?php echo $total_employees; ?></div>
+                <div class="daisy-stat-figure fig-total"><i class="fas fa-users"></i></div>
             </div>
+            <div class="daisy-stat-desc">Total registered workforce</div>
         </div>
-        <div class="stat-box stat-box-verified">
-            <div class="stat-icon-wrapper stat-icon-verified"><i class="fas fa-user-check"></i></div>
-            <div class="stat-content">
-                <div class="stat-number"><?php echo $verified_count; ?></div>
-                <div class="stat-label" data-lang="accepted">ACCEPT</div>
+
+        <div class="daisy-stat stat-verified">
+            <div class="daisy-stat-title" data-lang="accepted">ACCEPT</div>
+            <div class="daisy-stat-row">
+                <div class="daisy-stat-value val-verified"><?php echo $verified_count; ?></div>
+                <div class="daisy-stat-figure fig-verified"><i class="fas fa-user-check"></i></div>
             </div>
+            <div class="daisy-stat-desc desc-verified">Verified & active</div>
         </div>
-        <div class="stat-box stat-box-pending">
-            <div class="stat-icon-wrapper stat-icon-pending"><i class="fas fa-hourglass-half"></i></div>
-            <div class="stat-content">
-                <div class="stat-number"><?php echo $pending_count; ?></div>
-                <div class="stat-label" data-lang="pending">PENDING</div>
+
+        <div class="daisy-stat stat-pending">
+            <div class="daisy-stat-title" data-lang="pending">PENDING</div>
+            <div class="daisy-stat-row">
+                <div class="daisy-stat-value val-pending"><?php echo $pending_count; ?></div>
+                <div class="daisy-stat-figure fig-pending"><i class="fas fa-hourglass-half"></i></div>
             </div>
+            <div class="daisy-stat-desc desc-pending">Awaiting review</div>
         </div>
-        <div class="stat-box stat-box-rejected">
-            <div class="stat-icon-wrapper stat-icon-rejected"><i class="fas fa-user-times"></i></div>
-            <div class="stat-content">
-                <div class="stat-number"><?php echo $rejected_count_stat; ?></div>
-                <div class="stat-label" data-lang="rejected">REJECT</div>
+
+        <div class="daisy-stat stat-rejected">
+            <div class="daisy-stat-title" data-lang="rejected">REJECT</div>
+            <div class="daisy-stat-row">
+                <div class="daisy-stat-value val-rejected"><?php echo $rejected_count_stat; ?></div>
+                <div class="daisy-stat-figure fig-rejected"><i class="fas fa-user-times"></i></div>
             </div>
+            <div class="daisy-stat-desc desc-rejected">Needs correction</div>
         </div>
     </div>
     
