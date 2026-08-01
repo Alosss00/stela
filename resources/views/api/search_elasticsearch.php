@@ -89,7 +89,11 @@ try {
                                 }
                                 foreach ($items as &$item) {
                                     $id = (int)($item['id'] ?? 0);
-                                    if (isset($metaMap[$id])) {
+                                    $status = strtolower($item['approval_status'] ?? $item['verification_status'] ?? 'pending');
+                                    if ($status === 'pending') {
+                                        $item['verified_by_name'] = null;
+                                        $item['verified_date'] = null;
+                                    } else if (isset($metaMap[$id])) {
                                         if (empty($item['competency_name'])) $item['competency_name'] = $metaMap[$id]['competency_name'] ?? '';
                                         if (empty($item['sub_competency'])) $item['sub_competency'] = $metaMap[$id]['sub_competency'] ?? '';
                                         if (empty($item['verified_by_name'])) $item['verified_by_name'] = $metaMap[$id]['verified_by_name'] ?? '';
@@ -182,11 +186,13 @@ try {
             $total = (int)($countRes->fetch_assoc()['cnt'] ?? 0);
         }
 
-        // Query items with competency_name, sub_competency, verified_date and verified_by_name
+        // Query items: NULL for verified_by_name and verified_date if status is pending
         $sql = "SELECT e.id, e.employee_code, e.full_name, e.position, e.department, e.contractor_company, 
                        e.competency_type, e.competency_name, e.ruang_lingkup, e.sub_competency, e.supervision_area, 
-                       e.verification_status as approval_status, e.verification_status, e.verified_date, e.created_at,
-                       u.full_name as verified_by_name
+                       e.verification_status as approval_status, e.verification_status, 
+                       CASE WHEN e.verification_status = 'pending' THEN NULL ELSE e.verified_date END as verified_date, 
+                       e.created_at,
+                       CASE WHEN e.verification_status = 'pending' THEN NULL ELSE u.full_name END as verified_by_name
                 FROM employees e 
                 LEFT JOIN users u ON e.verified_by = u.id 
                 WHERE $whereClause ORDER BY e.id DESC LIMIT $from, $limit";

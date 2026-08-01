@@ -706,8 +706,26 @@ $companies = $db->query("
                         const statusClass = statusColors[status] || 'secondary';
                         const compType = item.competency_type || '';
                         const compLabel = competencyLabels[compType] || compType;
-                        const verifiedBy = item.verified_by_name ? `<strong>${item.verified_by_name}</strong>` : '<span class="text-muted">-</span>';
-                        const resubmitBtn = (status === 'rejected')
+                        function formatVerifiedDateTime(dateStr) {
+                            if (!dateStr) return '';
+                            const d = new Date(dateStr);
+                            if (isNaN(d.getTime())) return dateStr;
+                            const day = String(d.getDate()).padStart(2, '0');
+                            const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                            const month = months[d.getMonth()];
+                            const year = d.getFullYear();
+                            const hours = String(d.getHours()).padStart(2, '0');
+                            const mins = String(d.getMinutes()).padStart(2, '0');
+                            return `${day} ${month} ${year}, ${hours}:${mins} WIB`;
+                        }
+
+                        let verifiedBy = '<span class="text-muted">-</span>';
+                        if (status.toLowerCase() !== 'pending' && item.verified_by_name) {
+                            const dateFormatted = formatVerifiedDateTime(item.verified_date);
+                            verifiedBy = `<strong>${item.verified_by_name}</strong>${dateFormatted ? `<br><small class="text-muted">${dateFormatted}</small>` : ''}`;
+                        }
+
+                        const resubmitBtn = (status.toLowerCase() === 'rejected')
                             ? `<a href="resubmit_employee.php?id=${item.id}" class="btn-action-emp resubmit-btn" title="Resubmit"><i class="fas fa-upload"></i></a>`
                             : '';
                         const compVal = item.competency_name || item.sub_competency || '';
