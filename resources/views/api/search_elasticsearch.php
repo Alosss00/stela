@@ -67,28 +67,51 @@ try {
 
             if ($result !== false) {
                 $totalHits = (int)($result['total'] ?? 0);
-                $totalPages = $limit > 0 ? (int)ceil($totalHits / $limit) : 1;
-                echo json_encode([
-                    'status' => 'success',
-                    'source' => 'elasticsearch',
-                    'query' => $queryText,
-                    'page' => $page,
-                    'limit' => $limit,
-                    'total' => $totalHits,
-                    'total_pages' => max(1, $totalPages),
-                    'items' => $result['items'] ?? []
-                ]);
-                exit();
+                
+                // If ES has hits OR if user is explicitly searching with a keyword, return ES result
+                if ($totalHits > 0 || !empty($queryText)) {
+                    $totalPages = $limit > 0 ? (int)ceil($totalHits / $limit) : 1;
+                    echo json_encode([
+                        'status' => 'success',
+                        'source' => 'elasticsearch',
+                        'query' => $queryText,
+                        'page' => $page,
+                        'limit' => $limit,
+                        'total' => $totalHits,
+                        'total_pages' => max(1, $totalPages),
+                        'items' => $result['items'] ?? []
+                    ]);
+                    exit();
+                }
+                // If totalHits is 0 and queryText is empty, Bonsai index is not yet synced!
+                // Fall through to MySQL and auto-sync in background.
             }
         }
     }
 
-    // 2. MySQL Fallback Search if Elasticsearch is unavailable or fails
+    // 2. MySQL Fallback Search if Elasticsearch is unavailable, empty, or fails
     if (!class_exists('Database')) {
         throw new Exception("Database class is missing");
     }
 
     $db = new Database();
+
+    // Auto-sync MySQL data to Bonsai in background if Bonsai was empty
+    if (class_exists('ElasticsearchService')) {
+        try {
+            $esSync = ElasticsearchService::getInstance();
+            if ($esSync && $esSync->isAvailable()) {
+                if ($target === 'appointments') {
+                    $esSync->bulkIndexAppointments($db);
+                } else {
+                    $esSync->bulkIndexEmployees($db);
+                }
+            }
+        } catch (\Throwable $t) {
+            // Ignore background sync errors
+        }
+    }
+
     $items = [];
     $total = 0;
 
@@ -117,7 +140,7 @@ try {
 
         if (!empty($status)) {
             $safeStatus = $db->escapeString($status);
-            $where[] = "approval_status = '$safeStatus'";
+            $where[] = "(verification_status = '$safeStatus')";
         }
 
         $whereClause = implode(' AND ', $where);
@@ -129,7 +152,7 @@ try {
         }
 
         // Query items
-        $sql = "SELECT id, employee_code, full_name, position, department, contractor_company, competency_type, ruang_lingkup, sub_competency, supervision_area, approval_status, created_at 
+        $sql = "SELECT id, employee_code, full_name, position, department, contractor_company, competency_type, ruang_lingkup, sub_competency, supervision_area, verification_status as approval_status, verification_status, created_at 
                 FROM employees WHERE $whereClause ORDER BY id DESC LIMIT $from, $limit";
         $res = $db->query($sql);
         if ($res) {
