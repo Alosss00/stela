@@ -27195,5 +27195,284 @@ textarea.form-control {
   color: #0f172a !important;
 }
 
+/* ==========================================================================
+   PASTEL PERIWINKLE BLUE MOCKUP THEME (MATCHING LATEST ATTACHED IMAGE)
+   ========================================================================== */
+
+/* Page Background */
+body:has(.add-employee-page-bg) {
+  background: #9bb4d8 !important;
+}
+
+.add-employee-page-bg {
+  min-height: 100vh !important;
+  padding: 30px 20px 60px 20px !important;
+  background: #9bb4d8 !important;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Card Container */
+.add-employee-card-wrapper {
+  max-width: 860px !important;
+  margin: 0 auto !important;
+  background: #ffffff !important;
+  border-radius: 28px !important;
+  box-shadow: 0 24px 60px rgba(30, 58, 138, 0.22), 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+  overflow: hidden !important;
+  transition: all 0.3s ease !important;
+}
+
+/* Top Bar (Pill Toggle & Close Button) */
+.card-top-bar {
+  padding: 28px 40px 14px 40px !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.top-pill-toggle {
+  background: #f1f5f9 !important;
+  padding: 4px !important;
+  border-radius: 24px !important;
+  display: inline-flex !important;
+  gap: 4px !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.top-pill-toggle .pill-tab {
+  padding: 8px 22px !important;
+  border-radius: 20px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.top-pill-toggle .pill-tab.active {
+  background: #ffffff !important;
+  color: #1e3a8a !important;
+  font-weight: 700 !important;
+  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08) !important;
+}
+
+.card-close-btn {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  color: #334155 !important;
+  font-size: 18px !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.card-close-btn:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+/* Main Title & Section Status Pills */
+.card-header-main {
+  padding: 0 40px 20px 40px !important;
+}
+
+.card-main-title {
+  font-size: 26px !important;
+  font-weight: 800 !important;
+  color: #0f172a !important;
+  margin: 0 0 18px 0 !important;
+  letter-spacing: -0.5px !important;
+}
+
+.section-pills-row {
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+  flex-wrap: wrap !important;
+}
+
+.status-pill {
+  background: #1e3a8a !important;
+  color: #ffffff !important;
+  padding: 9px 20px !important;
+  border-radius: 24px !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  box-shadow: 0 4px 14px rgba(30, 58, 138, 0.28) !important;
+}
+
+.status-pill i {
+  color: #4ade80 !important;
+  font-size: 14px !important;
+}
+
+.status-pill-empty {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  border: 2px solid #cbd5e1 !important;
+  background: #ffffff !important;
+}
+
+/* Form Body Padding & Section Headers */
+.card-form-body {
+  padding: 0 40px 32px 40px !important;
+}
+
+.card-form-body .form-section {
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  padding: 24px 0 !important;
+  margin-bottom: 20px !important;
+  box-shadow: none !important;
+  border: none !important;
+  border-top: 1px solid #f1f5f9 !important;
+}
+
+.card-form-body .section-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 20px !important;
+  padding-bottom: 12px !important;
+  border-bottom: 1.5px solid #f1f5f9 !important;
+}
+
+.card-form-body .section-header h3 {
+  font-size: 17px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  margin: 0 !important;
+}
+
+/* Capsule / Pill Form Control Inputs (Exact match to mockup inputs) */
+.card-form-body .form-group label {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #475569 !important;
+  margin-bottom: 8px !important;
+  display: block !important;
+}
+
+.card-form-body .form-control,
+.card-form-body select.form-control,
+.card-form-body textarea.form-control {
+  background-color: #f7f7f2 !important;
+  border: 1.5px solid #e8e8e3 !important;
+  border-radius: 28px !important;
+  height: 48px !important;
+  padding: 12px 22px !important;
+  font-size: 13.5px !important;
+  color: #1e293b !important;
+  transition: all 0.25s ease !important;
+}
+
+.card-form-body textarea.form-control {
+  height: auto !important;
+  min-height: 96px !important;
+  border-radius: 20px !important;
+}
+
+.card-form-body .form-control:hover {
+  background-color: #ffffff !important;
+  border-color: #cbd5e1 !important;
+}
+
+.card-form-body .form-control:focus {
+  background-color: #ffffff !important;
+  border-color: #1e3a8a !important;
+  box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.12) !important;
+  outline: none !important;
+}
+
+.card-form-body .certification-item {
+  background: #f7f7f2 !important;
+  border: 1.5px solid #e8e8e3 !important;
+  border-radius: 20px !important;
+  padding: 22px 26px !important;
+  margin-bottom: 16px !important;
+}
+
+/* Bottom Card Footer Banner (Light Blue Background) */
+.card-footer-banner {
+  background: #e6f0fa !important;
+  padding: 24px 40px !important;
+  border-top: 1px solid #dbeafe !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.footer-info .footer-title {
+  font-size: 14.5px !important;
+  color: #1e3a8a !important;
+  font-weight: 700 !important;
+}
+
+.footer-info .footer-badge {
+  font-size: 12.5px !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
+}
+
+.footer-info .footer-desc {
+  font-size: 12.5px !important;
+  color: #475569 !important;
+  margin: 4px 0 0 0 !important;
+}
+
+.footer-actions {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+.btn-cancel-pill {
+  padding: 11px 24px !important;
+  border-radius: 28px !important;
+  background: #ffffff !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #475569 !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-cancel-pill:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+.btn-submit-navy {
+  background: #1e3a8a !important;
+  color: #ffffff !important;
+  border: none !important;
+  border-radius: 28px !important;
+  padding: 12px 34px !important;
+  font-size: 14.5px !important;
+  font-weight: 700 !important;
+  box-shadow: 0 6px 20px rgba(30, 58, 138, 0.35) !important;
+  cursor: pointer !important;
+  transition: all 0.25s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.btn-submit-navy:hover {
+  background: #172554 !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 10px 24px rgba(30, 58, 138, 0.48) !important;
+  color: #ffffff !important;
+}
+
+
 
 

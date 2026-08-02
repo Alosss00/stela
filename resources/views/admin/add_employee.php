@@ -366,69 +366,61 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
-<div class="add-employee-container">
-    <!-- Wizard Stepper & Camera Badge Header (Matching Image 2 Mockup) -->
-    <div class="mockup-wizard-header">
-        <div class="stepper-nav">
-            <div class="step-item active">
-                <div class="step-icon">1</div>
-                <div class="step-label" data-lang="basic-details">Basic Details</div>
+<div class="add-employee-page-bg">
+    <div class="add-employee-card-wrapper">
+        <!-- Top Bar with Pill Toggle and Close Button -->
+        <div class="card-top-bar">
+            <div class="top-pill-toggle">
+                <span class="pill-tab">Admin Request</span>
+                <span class="pill-tab active">Employee Registration</span>
             </div>
-            <div class="step-divider"></div>
-            <div class="step-item">
-                <div class="step-icon">2</div>
-                <div class="step-label" data-lang="position-scope">Position & Scope</div>
-            </div>
-            <div class="step-divider"></div>
-            <div class="step-item">
-                <div class="step-icon">3</div>
-                <div class="step-label" data-lang="certifications-files">Certifications & Files</div>
-            </div>
+            <a href="employees.php" class="card-close-btn" title="Back to Employees">
+                <i class="fas fa-times"></i>
+            </a>
         </div>
 
-        <div class="mockup-title-bar">
-            <div class="title-left">
-                <h2><i class="fas fa-user-plus"></i> <span data-lang="add-new-request-employee">Add New Request Employee</span></h2>
-                <?php if (!empty($current_department)): ?>
-                <p><span data-lang="department">Department</span>: <strong><?php echo htmlspecialchars($current_department); ?></strong></p>
-                <?php else: ?>
-                <p><span data-lang="company">Company</span>: <strong><?php echo htmlspecialchars($company_name); ?></strong></p>
-                <?php endif; ?>
-            </div>
+        <!-- Main Title & Section Status Pills (Deep Navy Blue) -->
+        <div class="card-header-main">
+            <h1 class="card-main-title"><span data-lang="add-new-request-employee">Registration Form – Add Employee</span></h1>
             
-            <div class="title-right">
-                <div class="camera-badge-circle" title="Employee Data">
-                    <i class="fas fa-camera"></i>
+            <div class="section-pills-row">
+                <div class="status-pill active">
+                    <i class="fas fa-check-circle"></i> <span data-lang="identity-competency-data">Identity Data</span>
                 </div>
-                <a href="employees.php" class="btn btn-back-mockup">
-                    <i class="fas fa-arrow-left"></i> <span data-lang="back">Back</span>
-                </a>
+                <div class="status-pill active">
+                    <i class="fas fa-check-circle"></i> <span data-lang="position">Position & Scope</span>
+                </div>
+                <div class="status-pill active">
+                    <i class="fas fa-check-circle"></i> <span data-lang="certification-competency">Certifications & Files</span>
+                </div>
+                <div class="status-pill-empty"></div>
             </div>
         </div>
-    </div>
-    
-    <?php if ($message): ?>
-    <div class="alert alert-success alert-custom-add">
-        <i class="fas fa-check-circle"></i>
-        <div>
-            <strong data-lang="success">Success!</strong>
-            <p><?php echo htmlspecialchars($message); ?></p>
+        
+        <?php if ($message): ?>
+        <div class="alert alert-success alert-custom-add" style="margin: 0 36px 20px 36px;">
+            <i class="fas fa-check-circle"></i>
+            <div>
+                <strong data-lang="success">Success!</strong>
+                <p><?php echo htmlspecialchars($message); ?></p>
+            </div>
         </div>
-    </div>
-    <?php endif; ?>
-    
-    <?php if ($error): ?>
-    <div class="alert alert-error alert-custom-add">
-        <i class="fas fa-exclamation-circle"></i>
-        <div>
-            <strong data-lang="error">Error!</strong>
-            <p><?php echo htmlspecialchars($error); ?></p>
+        <?php endif; ?>
+        
+        <?php if ($error): ?>
+        <div class="alert alert-error alert-custom-add" style="margin: 0 36px 20px 36px;">
+            <i class="fas fa-exclamation-circle"></i>
+            <div>
+                <strong data-lang="error">Error!</strong>
+                <p><?php echo htmlspecialchars($error); ?></p>
+            </div>
         </div>
-    </div>
-    <?php endif; ?>
-    
-<form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate> 
-        <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+        <?php endif; ?>
+        
+        <form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate>
+            <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
+            
+            <div class="card-form-body">
 
         <div class="form-section">
             <div class="section-header">
@@ -726,24 +718,27 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             </button>
         </div>
 
-        <div class="alert alert-info-custom">
-            <i class="fas fa-lightbulb"></i>
-            <div>
-                <strong data-lang="important-notes">Important Notes</strong>
-                <p data-lang="after-employee-data-added-note">After the employee data is added, the status will be "Pending" and awaiting verification from Admin before an Appointment Letter can be created.</p>
+            </div> <!-- end .card-form-body -->
+            
+            <!-- Light Blue Bottom Banner (Matching Image Footer) -->
+            <div class="card-footer-banner">
+                <div class="footer-info">
+                    <div class="footer-title">
+                        <strong>STELA Verification System</strong> <span class="footer-badge">(Official Request)</span>
+                    </div>
+                    <p class="footer-desc" data-lang="after-employee-data-added-note">Submitted data will be reviewed by Department Admin before an Appointment Letter can be created.</p>
+                </div>
+                
+                <div class="footer-actions">
+                    <a href="employees.php" class="btn-cancel-pill" data-lang="cancel">Cancel</a>
+                    <button type="submit" class="btn-submit-navy">
+                        <span data-lang="save-submit-verification">Submit Request</span> <i class="fas fa-paper-plane"></i>
+                    </button>
+                </div>
             </div>
-        </div>
-        
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary btn-lg">
-                <i class="fas fa-save"></i> <span data-lang="save-submit-verification">Save & Submit for Verification</span>
-            </button>
-            <a href="employees.php" class="btn btn-secondary btn-lg">
-                <i class="fas fa-times"></i> <span data-lang="cancel">Cancel</span>
-            </a>
-        </div>
-    </form>
-</div>
+        </form>
+    </div> <!-- end .add-employee-card-wrapper -->
+</div> <!-- end .add-employee-page-bg -->
 
 <script>
 // Data sertifikasi dari server
