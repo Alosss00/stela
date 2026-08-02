@@ -417,7 +417,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             
             <div class="form-row">
                 <div class="form-group col-lg-6">
-                    <label for="employee_code" data-lang="id-badge-required">ID BADGE <span class="text-danger">*</span></label>
+                    <label for="employee_code"><i class="fas fa-id-badge"></i> <span data-lang="id-badge-required">ID BADGE</span> <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="employee_code" name="employee_code"
                            value="<?php echo isset($_POST['employee_code']) ? htmlspecialchars($_POST['employee_code']) : ''; ?>"
                            required placeholder="Example: BADGE001" data-lang-placeholder="badge-example-placeholder">
@@ -425,7 +425,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 </div>
                 
                 <div class="form-group col-lg-6">
-                    <label for="full_name" data-lang="full-name">Full Name<span class="text-danger">*</span></label>
+                    <label for="full_name"><i class="fas fa-user"></i> <span data-lang="full-name">Full Name</span> <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="full_name" name="full_name" 
                            value="<?php echo isset($_POST['full_name']) ? htmlspecialchars($_POST['full_name']) : ''; ?>"
                            required placeholder="Full name of the employee" data-lang-placeholder="full-name-of-employee-placeholder">
@@ -437,14 +437,14 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             
             <div class="form-row">
                 <div class="form-group col-lg-6">
-                    <label for="position" data-lang="position">Position <span class="text-danger">*</span></label>
+                    <label for="position"><i class="fas fa-user-tag"></i> <span data-lang="position">Position</span> <span class="text-danger">*</span></label>
                     <input type="text" class="form-control" id="position" name="position" 
                            value="<?php echo isset($_POST['position']) ? htmlspecialchars($_POST['position']) : ''; ?>"
                            required placeholder="Example: Rigger, HSE Superintendent" data-lang-placeholder="position-example-placeholder">
                 </div>
                 
                 <div class="form-group col-lg-6" id="ruang_lingkup_group" style="display: none;">
-                    <label for="ruang_lingkup" data-lang="scope-of-work">Scope of Work <span class="text-danger">*</span></label>
+                    <label for="ruang_lingkup"><i class="fas fa-globe"></i> <span data-lang="scope-of-work">Scope of Work</span> <span class="text-danger">*</span></label>
                     <select class="form-control" id="ruang_lingkup" name="ruang_lingkup">
                         <option value="" data-lang="select-scope-of-work">-- Select Scope of Work --</option>
                         <option value="PT Meares Soputan Mining (MSM)" data-lang="scope-of-work-msm" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Meares Soputan Mining (MSM)') ? 'selected' : ''; ?>>PT MSM</option>
@@ -455,7 +455,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             
             <div class="form-row">
                 <div class="form-group col-lg-6">
-                    <label for="competency_type" data-lang="competency-type">Competency Type <span class="text-danger">*</span></label>
+                    <label for="competency_type"><i class="fas fa-briefcase"></i> <span data-lang="competency-type">Competency Type</span> <span class="text-danger">*</span></label>
                     <select class="form-control" id="competency_type" name="competency_type" onchange="toggleCompetencyField()" required>
                         <option value="" data-lang="select-competency-type">-- Select Competency Type --</option>
                         <option value="pengawas_operasional" data-lang="competency-type-operational-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_operasional') ? 'selected' : ''; ?>>Pengawas Operasional</option>
@@ -465,7 +465,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 </div>
 
                 <div class="form-group col-lg-6" id="supervision_area_group" style="display: none;">
-                    <label for="supervision_area" data-lang="supervision-area">Supervision Area <span class="text-danger">*</span></label>
+                    <label for="supervision_area"><i class="fas fa-map-marker-alt"></i> <span data-lang="supervision-area">Supervision Area</span> <span class="text-danger">*</span></label>
                     <select class="form-control" id="supervision_area" name="supervision_area">
                         <option value="" data-lang="select-supervision-area">-- Select Supervision Area --</option>
                         <?php
@@ -485,7 +485,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 </div>
 
                 <div class="form-group col-lg-6" id="competency_group" style="display: none;">
-                    <label for="competency_name" data-lang="competency">Competency <span class="text-danger">*</span></label>
+                    <label for="competency_name"><i class="fas fa-star"></i> <span data-lang="competency">Competency</span> <span class="text-danger">*</span></label>
                     <select class="form-control" id="competency_name" name="competency_name" onchange="loadSubCompetencies()">
                         <option value="" data-lang="select-competency">-- Select Competency --</option>
                         <?php
@@ -524,7 +524,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 </div>
 
                 <div class="form-group col-lg-6" id="sub_competency_group" style="display: none;">
-                    <label for="sub_competency" data-lang="sub-competency">Sub Competency</label>
+                    <label for="sub_competency"><i class="fas fa-layer-group"></i> <span data-lang="sub-competency">Sub Competency</span></label>
                     <select class="form-control" id="sub_competency" name="sub_competency">
                         <option value="" data-lang="select-sub-competency">-- Select Sub Competency --</option>
                     </select>
@@ -533,7 +533,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 
             <div class="form-row">
                 <div class="form-group col-lg-6">
-                    <label for="contractor_company">
+                    <label for="contractor_company"><i class="fas fa-building"></i>
                         <?php if (!empty($current_department)): ?>
                             <span data-lang="department">Department</span>
                         <?php else: ?>
