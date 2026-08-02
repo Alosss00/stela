@@ -405,7 +405,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
         
         <?php if ($admin_reviewed->num_rows > 0): ?>
             <div class="table-responsive">
-                <table class="table table-history">
+                <table class="table table-history" style="width: 100% !important; table-layout: fixed !important;">
                     <thead>
                         <tr>
                             <th data-lang="employee-name">Employee Name</th>

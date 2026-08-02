@@ -167,7 +167,7 @@ function getKttType($user_id) {
         </div>
         
         <div class="table-responsive">
-            <table class="approval-table">
+            <table class="approval-table" style="width: 100% !important; table-layout: fixed !important;">
                 <thead>
                     <tr>
                         <th data-lang="step">Step</th>
