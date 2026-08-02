@@ -261,8 +261,8 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                                     <?php endif; ?>
                                 </td>
                                 <td class="col-type" style="width: 32% !important; text-align: left !important;">
-                                    <span class="badge badge-position" data-lang="<?php echo 'competency-type-' . str_replace('_', '-', $type_key); ?>">
-                                        <i class="fas <?php echo $icon; ?>"></i> <?php echo $type_label; ?>
+                                    <span class="badge badge-position" style="color: #0f172a !important; font-weight: 700 !important;" data-lang="<?php echo 'competency-type-' . str_replace('_', '-', $type_key); ?>">
+                                        <i class="fas <?php echo $icon; ?>" style="color: #0f172a !important;"></i> <?php echo $type_label; ?>
                                     </span>
                                 </td>
                                 <td class="col-action" style="width: 18% !important; text-align: center !important;">

@@ -26475,3 +26475,18 @@ table.datatable {
   color: #3730a3 !important;
   border: 1px solid #c7d2fe !important;
 }
+
+
+/* Force Type Badge text color to match Competency text color (#0f172a) */
+.badge-position,
+.badge-position i,
+.badge-position span,
+.badge-position[data-lang*='pengawas-operasional'],
+.badge-position[data-lang*='pengawas-teknis'],
+.badge-position[data-lang*='tenaga-teknis'],
+.badge-position:has(.fa-user-tie),
+.badge-position:has(.fa-helmet-safety),
+.badge-position:has(.fa-user-hard-hat) {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
