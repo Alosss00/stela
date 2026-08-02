@@ -174,6 +174,7 @@ class ElasticsearchService {
                                 'supervision_area' => ['type' => 'text'],
                                 'approval_status' => ['type' => 'keyword'],
                                 'is_active' => ['type' => 'integer'],
+                                'created_by' => ['type' => 'integer'],
                                 'created_at' => ['type' => 'date', 'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||strict_date_optional_time']
                             ]
                         ]
@@ -216,6 +217,7 @@ class ElasticsearchService {
                                 'competency_type' => ['type' => 'keyword'],
                                 'competency_name' => ['type' => 'text'],
                                 'status' => ['type' => 'keyword'],
+                                'created_by' => ['type' => 'integer'],
                                 'effective_date' => ['type' => 'date', 'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||strict_date_optional_time'],
                                 'expiry_date' => ['type' => 'date', 'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||strict_date_optional_time'],
                                 'created_at' => ['type' => 'date', 'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||strict_date_optional_time']
@@ -261,6 +263,7 @@ class ElasticsearchService {
                     'supervision_area' => $data['supervision_area'] ?? '',
                     'approval_status' => $data['approval_status'] ?? ($data['status'] ?? 'pending'),
                     'is_active' => isset($data['is_active']) ? (int)$data['is_active'] : 1,
+                    'created_by' => isset($data['created_by']) && $data['created_by'] !== '' ? (int)$data['created_by'] : null,
                     'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s')
                 ]
             ];
@@ -313,6 +316,7 @@ class ElasticsearchService {
                     'competency_type' => $data['competency_type'] ?? '',
                     'competency_name' => $data['competency_name'] ?? ($data['position_name'] ?? ''),
                     'status' => $data['status'] ?? 'draft',
+                    'created_by' => isset($data['created_by']) && $data['created_by'] !== '' ? (int)$data['created_by'] : null,
                     'effective_date' => $data['effective_date'] ?? null,
                     'expiry_date' => $data['expiry_date'] ?? null,
                     'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s')
@@ -447,6 +451,12 @@ class ElasticsearchService {
                 ];
             }
 
+            if (isset($filters['created_by']) && $filters['created_by'] !== '' && $filters['created_by'] !== null) {
+                $filterQueries[] = [
+                    'term' => ['created_by' => (int)$filters['created_by']]
+                ];
+            }
+
             $body = [
                 'from' => $from,
                 'size' => $size,
@@ -533,6 +543,12 @@ class ElasticsearchService {
                 ];
             }
 
+            if (isset($filters['created_by']) && $filters['created_by'] !== '' && $filters['created_by'] !== null) {
+                $filterQueries[] = [
+                    'term' => ['created_by' => (int)$filters['created_by']]
+                ];
+            }
+
             $body = [
                 'from' => $from,
                 'size' => $size,
@@ -609,6 +625,7 @@ class ElasticsearchService {
                 'supervision_area' => $row['supervision_area'] ?? '',
                 'approval_status' => $row['approval_status'] ?? ($row['verification_status'] ?? ($row['status'] ?? 'pending')),
                 'is_active' => isset($row['is_active']) ? (int)$row['is_active'] : 1,
+                'created_by' => isset($row['created_by']) && $row['created_by'] !== '' ? (int)$row['created_by'] : null,
                 'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s')
             ];
 
@@ -680,6 +697,7 @@ class ElasticsearchService {
                 'competency_type' => $row['competency_type'] ?? '',
                 'competency_name' => $row['competency_name'] ?? '',
                 'status' => $row['status'] ?? 'draft',
+                'created_by' => isset($row['created_by']) && $row['created_by'] !== '' ? (int)$row['created_by'] : null,
                 'effective_date' => $row['effective_date'] ?? null,
                 'expiry_date' => $row['expiry_date'] ?? null,
                 'created_at' => $row['created_at'] ?? date('Y-m-d H:i:s')

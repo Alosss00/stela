@@ -47,13 +47,76 @@ try {
     $limit = min(100, max(1, (int)($_GET['limit'] ?? 10)));
     $from = ($page - 1) * $limit;
 
-    // Strict Role-based Company Scope Enforcement:
-    // Non-admin roles (User & Dept) can ONLY see data from their own company.
-    // Admin roles can search across ALL companies (or filter by specific company if selected).
+    // Role-based Search Scope Enforcement:
+    // Non-admin roles (User, Dept, etc.) can ONLY search data input by the current user.
+    // Admin roles (admin, superadmin) can search across ALL data.
     $userRole = $_SESSION['role'] ?? '';
     $userCompany = $_SESSION['company_name'] ?? '';
-    if (!empty($userRole) && $userRole !== 'admin' && !empty($userCompany)) {
-        $company = $userCompany;
+    $currentUserId = (int)($_SESSION['user_id'] ?? 0);
+    $isAdmin = ($userRole === 'admin' || $userRole === 'superadmin');
+
+    $createdByFilter = null;
+    if (!$isAdmin && $currentUserId > 0) {
+        $createdByFilter = $currentUserId;
+        if (!empty($userCompany)) {
+            $company = $userCompany;
+        }
+    } elseif (isset($_GET['created_by']) && is_numeric($_GET['created_by'])) {
+        $createdByFilter = (int)$_GET['created_by'];
+    }
+
+    // Initialize Database instance
+    $db = class_exists('Database') ? new Database() : null;
+
+    // Auto-sync MySQL employee records for this company to Elasticsearch to guarantee zero missing data
+    if ($db && class_exists('ElasticsearchService')) {
+        try {
+            $esSync = ElasticsearchService::getInstance();
+            if ($esSync && $esSync->isAvailable()) {
+                if ($target === 'employees') {
+                    $syncWhere = ["e.is_active = 1"];
+                    if (!empty($createdByFilter)) {
+                        if (!empty($company)) {
+                            $syncWhere[] = "(e.created_by = " . intval($createdByFilter) . " OR (e.created_by IS NULL AND e.contractor_company = '" . $db->escapeString($company) . "'))";
+                        } else {
+                            $syncWhere[] = "e.created_by = " . intval($createdByFilter);
+                        }
+                    } elseif (!empty($company)) {
+                        $syncWhere[] = "e.contractor_company = '" . $db->escapeString($company) . "'";
+                    }
+                    $syncSql = "SELECT e.*, u.full_name as verified_by_name 
+                                FROM employees e 
+                                LEFT JOIN users u ON e.verified_by = u.id 
+                                WHERE " . implode(' AND ', $syncWhere) . " 
+                                ORDER BY e.id DESC LIMIT 50";
+                    $syncRes = $db->query($syncSql);
+                    if ($syncRes && $syncRes->num_rows > 0) {
+                        while ($empRow = $syncRes->fetch_assoc()) {
+                            $esSync->indexEmployee([
+                                'id' => (int)$empRow['id'],
+                                'employee_code' => $empRow['employee_code'] ?? '',
+                                'full_name' => $empRow['full_name'] ?? '',
+                                'position' => $empRow['position'] ?? '',
+                                'department' => $empRow['department'] ?? '',
+                                'contractor_company' => $empRow['contractor_company'] ?? '',
+                                'competency_type' => $empRow['competency_type'] ?? '',
+                                'competency_name' => $empRow['competency_name'] ?? '',
+                                'verified_by_name' => $empRow['verified_by_name'] ?? '',
+                                'ruang_lingkup' => $empRow['ruang_lingkup'] ?? '',
+                                'sub_competency' => $empRow['sub_competency'] ?? '',
+                                'supervision_area' => $empRow['supervision_area'] ?? '',
+                                'approval_status' => $empRow['verification_status'] ?? ($empRow['status'] ?? 'pending'),
+                                'is_active' => isset($empRow['is_active']) ? (int)$empRow['is_active'] : 1,
+                                'created_by' => isset($empRow['created_by']) ? (int)$empRow['created_by'] : null,
+                                'created_at' => $empRow['created_at'] ?? date('Y-m-d H:i:s')
+                            ]);
+                        }
+                    }
+                }
+            }
+        } catch (\Throwable $t) {
+            // Ignore auto-sync error
+        }
     }
 
     // 1. Try Elasticsearch Search first if class exists
@@ -64,6 +127,7 @@ try {
             if (!empty($company)) $filters['contractor_company'] = $company;
             if (!empty($competencyType)) $filters['competency_type'] = $competencyType;
             if (!empty($department)) $filters['department'] = $department;
+            if (!empty($createdByFilter)) $filters['created_by'] = $createdByFilter;
             if (!empty($status)) {
                 if ($target === 'employees') {
                     $filters['approval_status'] = $status;
@@ -207,8 +271,16 @@ try {
             $safeQ = $db->escapeString($queryText);
             $where[] = "(e.employee_code LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.position LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%' OR e.department LIKE '%$safeQ%')";
         }
-        
-        if (!empty($company)) {
+
+        if (!empty($createdByFilter)) {
+            $safeUserId = intval($createdByFilter);
+            if (!empty($company)) {
+                $safeCompany = $db->escapeString($company);
+                $where[] = "(e.created_by = $safeUserId OR (e.created_by IS NULL AND e.contractor_company = '$safeCompany'))";
+            } else {
+                $where[] = "e.created_by = $safeUserId";
+            }
+        } elseif (!empty($company)) {
             $safeCompany = $db->escapeString($company);
             $where[] = "e.contractor_company = '$safeCompany'";
         }
@@ -260,7 +332,15 @@ try {
             $where[] = "(a.appointment_number LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%')";
         }
 
-        if (!empty($company)) {
+        if (!empty($createdByFilter)) {
+            $safeUserId = intval($createdByFilter);
+            if (!empty($company)) {
+                $safeCompany = $db->escapeString($company);
+                $where[] = "(a.created_by = $safeUserId OR (a.created_by IS NULL AND e.contractor_company = '$safeCompany'))";
+            } else {
+                $where[] = "a.created_by = $safeUserId";
+            }
+        } elseif (!empty($company)) {
             $safeCompany = $db->escapeString($company);
             $where[] = "e.contractor_company = '$safeCompany'";
         }

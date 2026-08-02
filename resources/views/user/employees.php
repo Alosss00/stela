@@ -12,11 +12,14 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 
+$current_user_id = (int)($_SESSION['user_id'] ?? 0);
+$user_filter = "(e.created_by = '$current_user_id' OR (e.created_by IS NULL AND e.contractor_company = '" . $db->escapeString($company_name) . "'))";
+
 // Get statistics
-$total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE contractor_company = '" . $db->escapeString($company_name) . "'")->fetch_assoc()['count'];
-$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE contractor_company = '" . $db->escapeString($company_name) . "' AND verification_status = 'verified'")->fetch_assoc()['count'];
-$pending_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE contractor_company = '" . $db->escapeString($company_name) . "' AND verification_status = 'pending'")->fetch_assoc()['count'];
-$rejected_count_stat = $db->query("SELECT COUNT(*) as count FROM employees WHERE contractor_company = '" . $db->escapeString($company_name) . "' AND verification_status = 'rejected'")->fetch_assoc()['count'];
+$total_employees = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter")->fetch_assoc()['count'];
+$verified_count = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter AND e.verification_status = 'verified'")->fetch_assoc()['count'];
+$pending_count = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter AND e.verification_status = 'pending'")->fetch_assoc()['count'];
+$rejected_count_stat = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter AND e.verification_status = 'rejected'")->fetch_assoc()['count'];
 
 // Get all employees for current company with appointment status
 $employees = $db->query("SELECT e.*, 
@@ -55,7 +58,7 @@ $employees = $db->query("SELECT e.*,
             ) a2 ON a1.id = a2.latest_id
         ) a ON e.id = a.employee_id
     LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
-    WHERE e.is_active = 1 AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    WHERE e.is_active = 1 AND $user_filter
     GROUP BY e.id
     ORDER BY combined_status, e.created_at DESC");
 
@@ -64,7 +67,7 @@ $rejected_count = $db->query("
     SELECT COUNT(DISTINCT e.id) as count 
     FROM employees e
     LEFT JOIN appointments a ON e.id = a.employee_id
-    WHERE e.contractor_company = '" . $db->escapeString($company_name) . "' 
+    WHERE $user_filter 
     AND (
         (e.verification_status = 'rejected' AND (a.admin_approval_action = 'send_to_user' OR a.admin_approval_action IS NULL))
         OR

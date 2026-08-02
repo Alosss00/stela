@@ -201,6 +201,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $insert_fields[] = 'statement_file';
                     $insert_values[] = "'$statement_file'";
                 }
+
+                if (in_array('created_by', $available_columns)) {
+                    $insert_fields[] = 'created_by';
+                    $current_user_id = intval($_SESSION['user_id'] ?? 0);
+                    $insert_values[] = "'$current_user_id'";
+                }
                 
                 $sql = "INSERT INTO employees (" . implode(', ', $insert_fields) . ") 
                         VALUES (" . implode(', ', $insert_values) . ")";
