@@ -577,6 +577,10 @@ class ElasticsearchService {
                         'must' => $mustQueries,
                         'filter' => $filterQueries
                     ]
+                ],
+                'sort' => [
+                    '_score' => ['order' => 'desc'],
+                    'id' => ['order' => 'desc']
                 ]
             ];
 

@@ -426,7 +426,7 @@ $appointments = $db->query("
     LEFT JOIN users ktt1 ON a.ktt1_approved_by = ktt1.id
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
     WHERE $where_clause
-    ORDER BY a.created_at DESC
+    ORDER BY a.created_at DESC, a.id DESC
 ");
 
 // Get employees for form - with competency details

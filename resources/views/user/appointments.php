@@ -114,7 +114,7 @@ $appointments = $db->query("
     JOIN employees e ON a.employee_id = e.id
     LEFT JOIN positions p ON a.position_id = p.id
     WHERE $where_clause
-    ORDER BY a.created_at DESC
+    ORDER BY a.created_at DESC, a.id DESC
 ");
 
 // Get statistics
