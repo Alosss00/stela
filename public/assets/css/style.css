@@ -26490,3 +26490,495 @@ table.datatable {
   color: #0f172a !important;
   font-weight: 700 !important;
 }
+
+
+/* ==========================================================================
+   REPORTS TABLE FIX - ENFORCE NEAT COLUMN LAYOUT & PREVENT OVERLAP/COLLISION
+   ========================================================================== */
+
+.reports-container,
+.card-report {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.card-body-report {
+  padding: 20px !important;
+  overflow: hidden !important;
+}
+
+.card-body-report .table-responsive {
+  width: 100% !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  border-radius: 12px !important;
+}
+
+table.table-report,
+.table-responsive > table.table-report {
+  width: 100% !important;
+  min-width: 100% !important;
+  table-layout: fixed !important; /* Fixed column widths prevent squishing/collision */
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report thead tr {
+  background-color: #f8fafc !important;
+}
+
+table.table-report thead th {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 14px 16px !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  border-top: none !important;
+  vertical-align: middle !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report tbody td {
+  padding: 14px 16px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+  line-height: 1.5 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+table.table-report tbody tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+/* Column Classes Width Definitions */
+
+table.table-report th.col-num,
+table.table-report td.col-num {
+  width: 6% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-employee,
+table.table-report td.col-employee {
+  width: 24% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-code,
+table.table-report td.col-code,
+table.table-report th.col-badge,
+table.table-report td.col-badge {
+  width: 15% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-company,
+table.table-report td.col-company,
+table.table-report th.col-company-detail,
+table.table-report td.col-company-detail {
+  width: 20% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-date,
+table.table-report td.col-date,
+table.table-report th.col-verified-date,
+table.table-report td.col-verified-date,
+table.table-report th.col-request-date,
+table.table-report td.col-request-date,
+table.table-report th.col-approved-date,
+table.table-report td.col-approved-date,
+table.table-report th.col-rejected-date,
+table.table-report td.col-rejected-date,
+table.table-report th.col-expiry-date,
+table.table-report td.col-expiry-date {
+  width: 15% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-status,
+table.table-report td.col-status,
+table.table-report th.col-status-expiry,
+table.table-report td.col-status-expiry {
+  width: 14% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-verified-by,
+table.table-report td.col-verified-by,
+table.table-report th.col-approved-by,
+table.table-report td.col-approved-by,
+table.table-report th.col-rejected-by,
+table.table-report td.col-rejected-by,
+table.table-report th.col-approved-info,
+table.table-report td.col-approved-info {
+  width: 16% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-number,
+table.table-report td.col-number {
+  width: 22% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-position,
+table.table-report td.col-position {
+  width: 18% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-cert-name,
+table.table-report td.col-cert-name {
+  width: 25% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-cert-number,
+table.table-report td.col-cert-number {
+  width: 18% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-days,
+table.table-report td.col-days,
+table.table-report th.col-days-left,
+table.table-report td.col-days-left {
+  width: 12% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-notes,
+table.table-report td.col-notes {
+  width: 14% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-action,
+table.table-report td.col-action {
+  width: 12% !important;
+  text-align: center !important;
+}
+
+table.table-report thead tr.filter-row th {
+  padding: 8px 10px !important;
+  background-color: #f1f5f9 !important;
+}
+
+table.table-report .column-filter {
+  width: 100% !important;
+  height: 34px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  background-color: #ffffff !important;
+}
+
+.employee-detail {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+.employee-detail strong {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.emp-code-detail {
+  font-size: 12px !important;
+  color: #64748b !important;
+}
+
+.position-badge-report,
+.company-tag {
+  display: inline-block !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+
+
+/* ==========================================================================
+   REPORTS TABLE FIX - ENFORCE NEAT COLUMN LAYOUT & PREVENT OVERLAP/COLLISION
+   ========================================================================== */
+
+.reports-container,
+.card-report {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.card-body-report {
+  padding: 20px !important;
+  overflow: hidden !important;
+}
+
+.card-body-report .table-responsive {
+  width: 100% !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  border-radius: 12px !important;
+}
+
+table.table-report,
+.table-responsive > table.table-report {
+  width: 100% !important;
+  min-width: 100% !important;
+  table-layout: fixed !important; /* Fixed column widths prevent squishing/collision */
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report thead tr {
+  background-color: #f8fafc !important;
+}
+
+table.table-report thead th {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 14px 16px !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  border-top: none !important;
+  vertical-align: middle !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report tbody td {
+  padding: 14px 16px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+  line-height: 1.5 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+table.table-report tbody tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+/* Column Classes Width Definitions */
+
+table.table-report th.col-num,
+table.table-report td.col-num {
+  width: 6% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-employee,
+table.table-report td.col-employee {
+  width: 24% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-code,
+table.table-report td.col-code,
+table.table-report th.col-badge,
+table.table-report td.col-badge {
+  width: 15% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-company,
+table.table-report td.col-company,
+table.table-report th.col-company-detail,
+table.table-report td.col-company-detail {
+  width: 20% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-date,
+table.table-report td.col-date,
+table.table-report th.col-verified-date,
+table.table-report td.col-verified-date,
+table.table-report th.col-request-date,
+table.table-report td.col-request-date,
+table.table-report th.col-approved-date,
+table.table-report td.col-approved-date,
+table.table-report th.col-rejected-date,
+table.table-report td.col-rejected-date,
+table.table-report th.col-expiry-date,
+table.table-report td.col-expiry-date {
+  width: 15% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-status,
+table.table-report td.col-status,
+table.table-report th.col-status-expiry,
+table.table-report td.col-status-expiry {
+  width: 14% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-verified-by,
+table.table-report td.col-verified-by,
+table.table-report th.col-approved-by,
+table.table-report td.col-approved-by,
+table.table-report th.col-rejected-by,
+table.table-report td.col-rejected-by,
+table.table-report th.col-approved-info,
+table.table-report td.col-approved-info {
+  width: 16% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-number,
+table.table-report td.col-number {
+  width: 22% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-position,
+table.table-report td.col-position {
+  width: 18% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-cert-name,
+table.table-report td.col-cert-name {
+  width: 25% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-cert-number,
+table.table-report td.col-cert-number {
+  width: 18% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-days,
+table.table-report td.col-days,
+table.table-report th.col-days-left,
+table.table-report td.col-days-left {
+  width: 12% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-notes,
+table.table-report td.col-notes {
+  width: 14% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-action,
+table.table-report td.col-action {
+  width: 12% !important;
+  text-align: center !important;
+}
+
+table.table-report thead tr.filter-row th {
+  padding: 8px 10px !important;
+  background-color: #f1f5f9 !important;
+}
+
+table.table-report .column-filter {
+  width: 100% !important;
+  height: 34px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  background-color: #ffffff !important;
+}
+
+.employee-detail {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+.employee-detail strong {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.emp-code-detail {
+  font-size: 12px !important;
+  color: #64748b !important;
+}
+
+.position-badge-report,
+.company-tag {
+  display: inline-block !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}

@@ -261,7 +261,7 @@ $work_scopes = $db->query("
 
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-compact-request" id="requestsTable">
+                <table class="table-report table-compact-request" style="width: 100% !important; table-layout: fixed !important;" id="requestsTable">
                     <thead>
                         <tr>
                             <th class="col-employee" data-lang="employee">Employee</th>
@@ -369,7 +369,7 @@ $work_scopes = $db->query("
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-approved" id="approvedTable">
+                <table class="table-report table-approved" style="width: 100% !important; table-layout: fixed !important;" id="approvedTable">
                     <thead>
                         <tr>
                             <th class="col-number" data-lang="assign-letter-no">Assign Letter No.</th>
@@ -507,7 +507,7 @@ $work_scopes = $db->query("
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-rejected" id="rejectedTable">
+                <table class="table-report table-rejected" style="width: 100% !important; table-layout: fixed !important;" id="rejectedTable">
                     <thead>
                         <tr>
                             <th class="col-number" data-lang="assign-letter-no">Assign Letter No.</th>
@@ -599,7 +599,7 @@ $work_scopes = $db->query("
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-expiring" id="expiringCertsTable">
+                <table class="table-report table-expiring" style="width: 100% !important; table-layout: fixed !important;" id="expiringCertsTable">
                     <thead>
                         <tr>
                             <th class="col-employee" data-lang="employee">Employee</th>
