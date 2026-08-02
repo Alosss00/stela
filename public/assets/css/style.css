@@ -26705,3 +26705,354 @@ textarea.form-control {
   display: block;
 }
 
+/* ==========================================================================
+   WARM ORANGE MODERN MOCKUP THEME FOR ADD_EMPLOYEE (MATCHING ATTACHED IMAGE)
+   ========================================================================== */
+
+/* Page Background Glow & Container */
+body:has(.add-employee-container) {
+  background: #FFF8F0 !important;
+}
+
+.add-employee-container {
+  max-width: 940px !important;
+  margin: 24px auto 48px auto !important;
+  padding: 0 20px !important;
+  font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+}
+
+/* Header Banner Card */
+.page-header-add {
+  background: linear-gradient(135deg, #F57C00 0%, #E65100 100%) !important;
+  color: #ffffff !important;
+  padding: 26px 32px !important;
+  border-radius: 20px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 10px 25px rgba(245, 124, 0, 0.28) !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  position: relative !important;
+  overflow: hidden !important;
+}
+
+.page-header-add::after {
+  content: '' !important;
+  position: absolute !important;
+  top: -40px !important;
+  right: -40px !important;
+  width: 180px !important;
+  height: 180px !important;
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 50% !important;
+  pointer-events: none !important;
+}
+
+.page-header-add .header-left h2 {
+  margin: 0 0 4px 0 !important;
+  font-size: 22px !important;
+  font-weight: 800 !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 12px !important;
+}
+
+.page-header-add .header-left h2 i {
+  color: #FFE0B2 !important;
+  font-size: 22px !important;
+}
+
+.page-header-add .header-left p {
+  margin: 0 !important;
+  font-size: 13.5px !important;
+  color: rgba(255, 255, 255, 0.92) !important;
+  font-weight: 500 !important;
+}
+
+.page-header-add .btn-outline-secondary {
+  padding: 10px 22px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  color: #ffffff !important;
+  background: rgba(255, 255, 255, 0.15) !important;
+  border-radius: 24px !important;
+  text-decoration: none !important;
+  font-size: 13.5px !important;
+  font-weight: 700 !important;
+  transition: all 0.25s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  backdrop-filter: blur(8px) !important;
+}
+
+.page-header-add .btn-outline-secondary:hover {
+  background: #ffffff !important;
+  color: #E65100 !important;
+  border-color: #ffffff !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Alert Messages */
+.alert-custom-add {
+  border-radius: 14px !important;
+  padding: 16px 20px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.04) !important;
+  font-size: 13.5px !important;
+}
+
+/* Form Container & Section Cards */
+.form-section {
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  padding: 32px 40px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 12px 36px rgba(245, 124, 0, 0.07), 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+  border: 1px solid #f1f5f9 !important;
+  border-top: 4px solid #F57C00 !important;
+  transition: all 0.3s ease !important;
+}
+
+.form-section:hover {
+  box-shadow: 0 16px 44px rgba(245, 124, 0, 0.12) !important;
+}
+
+.section-header {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 24px !important;
+  padding-bottom: 16px !important;
+  border-bottom: 1.5px solid #F1F5F9 !important;
+}
+
+.section-header h3 {
+  margin: 0 !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  color: #1E293B !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.section-header h3 i {
+  color: #F57C00 !important;
+  font-size: 19px !important;
+}
+
+.section-number {
+  background: linear-gradient(135deg, #F57C00 0%, #E65100 100%) !important;
+  color: #ffffff !important;
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 700 !important;
+  font-size: 15px !important;
+  box-shadow: 0 4px 12px rgba(245, 124, 0, 0.35) !important;
+}
+
+/* Smooth Rounded Pill Form Inputs */
+.form-group label {
+  display: block !important;
+  margin-bottom: 8px !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  font-size: 13.5px !important;
+}
+
+.form-control,
+select.form-control,
+textarea.form-control {
+  width: 100% !important;
+  padding: 12px 18px !important;
+  height: 46px !important;
+  border: 1.5px solid #E2E8F0 !important;
+  border-radius: 14px !important;
+  font-size: 13.5px !important;
+  color: #1E293B !important;
+  background-color: #F8FAFC !important;
+  transition: all 0.25s ease !important;
+}
+
+textarea.form-control {
+  height: auto !important;
+  min-height: 90px !important;
+  border-radius: 14px !important;
+}
+
+.form-control:hover {
+  background-color: #ffffff !important;
+  border-color: #CBD5E1 !important;
+}
+
+.form-control:focus {
+  background-color: #ffffff !important;
+  border-color: #F57C00 !important;
+  box-shadow: 0 0 0 4px rgba(245, 124, 0, 0.15) !important;
+  outline: none !important;
+}
+
+.form-control[readonly] {
+  background-color: #F1F5F9 !important;
+  color: #64748B !important;
+  border-color: #E2E8F0 !important;
+  cursor: not-allowed !important;
+}
+
+/* Certification Cards (Matching Education Card in Image) */
+.certification-item,
+.cert-item {
+  background: #F8FAFC !important;
+  border: 1.5px solid #E2E8F0 !important;
+  border-left: 4px solid #F57C00 !important;
+  border-radius: 16px !important;
+  padding: 24px !important;
+  margin-bottom: 18px !important;
+  transition: all 0.25s ease !important;
+}
+
+.certification-item:hover,
+.cert-item:hover {
+  border-color: #CBD5E1 !important;
+  box-shadow: 0 6px 18px rgba(245, 124, 0, 0.08) !important;
+}
+
+.cert-item-header h5 {
+  margin: 0 !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  color: #F57C00 !important;
+}
+
+.btn-remove-cert {
+  background: #FEF2F2 !important;
+  color: #DC2626 !important;
+  border: 1px solid #FECACA !important;
+  border-radius: 8px !important;
+  padding: 6px 14px !important;
+  font-size: 12.5px !important;
+  font-weight: 600 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-remove-cert:hover {
+  background: #DC2626 !important;
+  color: #ffffff !important;
+}
+
+/* Add Another Certification Button (Pill Shape) */
+.btn-outline-primary {
+  background: #FFF7ED !important;
+  border: 1.5px dashed #F57C00 !important;
+  color: #F57C00 !important;
+  padding: 12px 28px !important;
+  border-radius: 24px !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  transition: all 0.25s ease !important;
+  cursor: pointer !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.btn-outline-primary:hover {
+  background: #FFEDD5 !important;
+  color: #E65100 !important;
+  border-color: #E65100 !important;
+  transform: translateY(-1px) !important;
+}
+
+/* File Upload Drag & Drop Zone */
+.file-upload-area {
+  background: #ffffff !important;
+  border: 2px dashed #F57C00 !important;
+  border-radius: 14px !important;
+  padding: 20px 24px !important;
+  text-align: center !important;
+  position: relative !important;
+  transition: all 0.25s ease !important;
+  cursor: pointer !important;
+}
+
+.file-upload-area:hover {
+  border-color: #E65100 !important;
+  background: #FFF7ED !important;
+}
+
+.file-upload-area i {
+  font-size: 26px !important;
+  color: #F57C00 !important;
+  margin-bottom: 6px !important;
+  display: block !important;
+}
+
+.file-upload-area .file-name {
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  color: #F57C00 !important;
+  margin-top: 4px !important;
+  display: block !important;
+}
+
+/* Form Action Buttons (Matching Orange Pill Button in Image) */
+.form-actions {
+  display: flex !important;
+  justify-content: flex-end !important;
+  align-items: center !important;
+  gap: 16px !important;
+  padding-top: 24px !important;
+  margin-top: 28px !important;
+  border-top: 1.5px solid #F1F5F9 !important;
+}
+
+.form-actions .btn-primary {
+  background: linear-gradient(135deg, #F57C00 0%, #E65100 100%) !important;
+  border: none !important;
+  color: #ffffff !important;
+  font-size: 15px !important;
+  font-weight: 700 !important;
+  padding: 14px 42px !important;
+  border-radius: 30px !important;
+  box-shadow: 0 8px 24px rgba(245, 124, 0, 0.35) !important;
+  transition: all 0.25s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.form-actions .btn-primary:hover {
+  background: linear-gradient(135deg, #E65100 0%, #BF360C 100%) !important;
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 28px rgba(245, 124, 0, 0.48) !important;
+  color: #ffffff !important;
+}
+
+.form-actions .btn-secondary {
+  background: #F1F5F9 !important;
+  border: 1.5px solid #CBD5E1 !important;
+  color: #475569 !important;
+  font-size: 14.5px !important;
+  font-weight: 600 !important;
+  padding: 13px 26px !important;
+  border-radius: 30px !important;
+  transition: all 0.25s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  text-decoration: none !important;
+}
+
+.form-actions .btn-secondary:hover {
+  background: #E2E8F0 !important;
+  color: #0F172A !important;
+}
+
+
