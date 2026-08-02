@@ -27605,6 +27605,7 @@ textarea.form-control {
 /* Input Icon Wrapper */
 .stela-input-icon-wrapper {
   position: relative !important;
+  display: block !important;
   width: 100% !important;
 }
 
@@ -27613,15 +27614,18 @@ textarea.form-control {
   left: 16px !important;
   top: 50% !important;
   transform: translateY(-50%) !important;
-  color: #1e3a8a !important;
-  font-size: 14px !important;
-  z-index: 5 !important;
+  color: #4f46e5 !important;
+  font-size: 15px !important;
+  z-index: 10 !important;
   pointer-events: none !important;
-  opacity: 0.85 !important;
+  opacity: 0.9 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
 }
 
 .stela-input-icon-wrapper .stela-pill-input {
-  padding-left: 44px !important;
+  padding-left: 46px !important;
 }
 
 /* Select Dropdown Styling */
@@ -27629,7 +27633,7 @@ select.stela-pill-input {
   appearance: none !important;
   -webkit-appearance: none !important;
   -moz-appearance: none !important;
-  background-image: url("data:image/svg+xml;utf8,<svg fill='%231e3a8a' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") !important;
+  background-image: url("data:image/svg+xml;utf8,<svg fill='%234f46e5' height='16' viewBox='0 0 24 24' width='16' xmlns='http://www.w3.org/2000/svg'><path d='M7 10l5 5 5-5z'/></svg>") !important;
   background-repeat: no-repeat !important;
   background-position: right 16px center !important;
   background-size: 18px !important;
@@ -27640,8 +27644,8 @@ select.stela-pill-input {
 /* Download Template Button */
 .stela-btn-download-template {
   background: #ffffff !important;
-  border: 1.5px solid #1e3a8a !important;
-  color: #1e3a8a !important;
+  border: 1.5px solid #4f46e5 !important;
+  color: #4f46e5 !important;
   font-size: 12.5px !important;
   font-weight: 700 !important;
   border-radius: 20px !important;
@@ -27654,7 +27658,7 @@ select.stela-pill-input {
 }
 
 .stela-btn-download-template:hover {
-  background: #1e3a8a !important;
+  background: #4f46e5 !important;
   color: #ffffff !important;
 }
 
@@ -27686,63 +27690,77 @@ select.stela-pill-input {
 
 /* DaisyUI Stepper Bar Component */
 .daisy-steps-wrapper {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin: 18px 0 24px 0;
-  padding: 16px 24px;
-  background: #f8fafc;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin: 18px 0 24px 0 !important;
+  padding: 16px 24px !important;
+  background: #f8fafc !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
 }
 
 .daisy-steps {
-  display: flex;
-  width: 100%;
-  padding: 0;
-  margin: 0;
-  list-style: none;
-  justify-content: space-between;
-  position: relative;
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  list-style: none !important;
+  list-style-type: none !important;
+  justify-content: space-between !important;
+  position: relative !important;
 }
 
 .daisy-steps::before {
-  content: "";
-  position: absolute;
-  top: 50%;
-  left: 40px;
-  right: 40px;
-  height: 3px;
-  background: #cbd5e1;
-  transform: translateY(-50%);
-  z-index: 1;
+  content: "" !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 40px !important;
+  right: 40px !important;
+  height: 3px !important;
+  background: #cbd5e1 !important;
+  transform: translateY(-50%) !important;
+  z-index: 1 !important;
 }
 
+.daisy-steps li,
 .daisy-step {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 8px;
-  position: relative;
-  z-index: 2;
-  background: transparent;
-  flex: 1;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 8px !important;
+  position: relative !important;
+  z-index: 2 !important;
+  background: transparent !important;
+  flex: 1 !important;
+  list-style: none !important;
+  list-style-type: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.daisy-steps li::before,
+.daisy-steps li::after,
+.daisy-step::before,
+.daisy-step::after {
+  display: none !important;
 }
 
 .daisy-step-icon {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: #ffffff;
-  border: 2.5px solid #cbd5e1;
-  color: #64748b;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 13.5px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: #ffffff !important;
+  border: 2.5px solid #cbd5e1 !important;
+  color: #64748b !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 700 !important;
+  font-size: 13.5px !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.04) !important;
 }
 
 .daisy-step.active .daisy-step-icon {
