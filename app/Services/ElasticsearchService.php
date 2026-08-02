@@ -537,6 +537,12 @@ class ElasticsearchService {
                 ];
             }
 
+            if (!empty($filters['department'])) {
+                $filterQueries[] = [
+                    'match' => ['department' => $filters['department']]
+                ];
+            }
+
             if (!empty($filters['competency_type'])) {
                 $filterQueries[] = [
                     'term' => ['competency_type' => $filters['competency_type']]
