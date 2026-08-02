@@ -1345,8 +1345,42 @@ function getCertificationOptions() {
     }
     return options;
 }
+
+// Dynamic File Upload Feedback Listener for DaisyUI File Boxes
+function initFileUploadFeedback() {
+    document.querySelectorAll('.stela-file-box').forEach(box => {
+        const input = box.querySelector('input[type="file"]');
+        const fileNameSpan = box.querySelector('.file-name');
+        const icon = box.querySelector('i');
+        
+        if (!input || input.dataset.listenerAttached) return;
+        input.dataset.listenerAttached = 'true';
+        
+        input.addEventListener('change', function() {
+            if (this.files && this.files.length > 0) {
+                const file = this.files[0];
+                box.classList.add('has-file');
+                if (icon) {
+                    icon.className = 'fas fa-check-circle text-success';
+                }
+                if (fileNameSpan) {
+                    fileNameSpan.style.display = 'inline-flex';
+                    fileNameSpan.innerHTML = `<i class="fas fa-file-pdf"></i> ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)`;
+                }
+            } else {
+                box.classList.remove('has-file');
+                if (icon) {
+                    icon.className = 'fas fa-file-pdf';
+                }
+                if (fileNameSpan) {
+                    fileNameSpan.style.display = 'none';
+                    fileNameSpan.innerHTML = '';
+                }
+            }
+        });
+    });
+}
+document.addEventListener('DOMContentLoaded', initFileUploadFeedback);
 </script>
-
-
 
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
