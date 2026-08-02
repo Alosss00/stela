@@ -26180,3 +26180,91 @@ div:has(> #esSearchInput) {
     max-height: 380px !important;
     overflow-y: auto !important;
 }
+
+/* ==========================================================================
+   HIGH-CONTRAST DARK TEXT STYLING FOR ADMIN DASHBOARD & WELCOME CARD
+   ========================================================================== */
+.dashboard-modern {
+  color: #0f172a !important;
+}
+
+.welcome-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 24px 28px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
+}
+
+.welcome-content {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
+}
+
+.welcome-text h1,
+.welcome-text h1 span {
+  color: #0f172a !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  margin: 0 0 6px 0 !important;
+  letter-spacing: -0.4px !important;
+}
+
+.welcome-text p {
+  color: #334155 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
+}
+
+.welcome-date {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  padding: 8px 16px !important;
+  border-radius: 10px !important;
+  color: #0f172a !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+}
+
+.welcome-date i {
+  color: #4f46e5 !important;
+}
+
+.section-title h2 {
+  color: #0f172a !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 16px !important;
+}
+
+.stat-box {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03) !important;
+}
+
+.stat-label {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
+}
+
+.stat-number {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  font-size: 26px !important;
+}
+
+.recent-header h3 {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}

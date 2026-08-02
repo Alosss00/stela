@@ -116,14 +116,14 @@ if ($check_email_logs_table && $check_email_logs_table->num_rows > 0) {
 
 <div class="dashboard-modern">
     <!-- Welcome Section -->
-    <div class="welcome-card">
-        <div class="welcome-content">
+    <div class="welcome-card" style="background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 16px !important; padding: 24px 28px !important; box-shadow: 0 4px 12px rgba(0,0,0,0.03) !important;">
+        <div class="welcome-content" style="display: flex !important; justify-content: space-between !important; align-items: center !important; flex-wrap: wrap !important; gap: 16px !important;">
             <div class="welcome-text">
-                <h1><span data-lang="welcome-user">Welcome</span>, <?php echo htmlspecialchars($_SESSION['full_name']); ?></h1>
-                <p data-lang="manage-appointments">Manage and monitor all appointment letters easily</p>
+                <h1 style="color: #0f172a !important; font-size: 24px !important; font-weight: 800 !important; margin: 0 0 6px 0 !important; letter-spacing: -0.4px !important;"><span data-lang="welcome-user" style="color: #0f172a !important;">Welcome</span>, <?php echo htmlspecialchars($_SESSION['full_name']); ?></h1>
+                <p data-lang="manage-appointments" style="color: #334155 !important; font-size: 14px !important; font-weight: 500 !important; margin: 0 !important;">Manage and monitor all appointment letters easily</p>
             </div>
-            <div class="welcome-date">
-                <i class="fas fa-calendar-alt"></i>
+            <div class="welcome-date" style="display: inline-flex !important; align-items: center !important; gap: 8px !important; background: #f8fafc !important; border: 1px solid #cbd5e1 !important; padding: 8px 16px !important; border-radius: 10px !important; color: #0f172a !important; font-size: 13.5px !important; font-weight: 600 !important;">
+                <i class="fas fa-calendar-alt" style="color: #4f46e5 !important;"></i>
                 <span><?php echo date('d F Y'); ?></span>
             </div>
         </div>
