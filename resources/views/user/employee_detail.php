@@ -300,7 +300,7 @@ $competency_type_labels = [
         </div>
         
         <div class="table-responsive">
-            <table class="cert-table" style="width: 100% !important; table-layout: fixed !important;">
+            <table class="cert-table" style="width: 100% !important; table-layout: fixed !important; width: 100% !important; table-layout: fixed !important;">
                 <thead>
                     <tr>
                         <th data-lang="certificate-name">Certificate Name</th>
