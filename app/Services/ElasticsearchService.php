@@ -423,13 +423,13 @@ class ElasticsearchService {
 
             if (!empty($filters['contractor_company'])) {
                 $filterQueries[] = [
-                    'match' => ['contractor_company' => $filters['contractor_company']]
+                    'match_phrase' => ['contractor_company' => $filters['contractor_company']]
                 ];
             }
 
             if (!empty($filters['department'])) {
                 $filterQueries[] = [
-                    'match' => ['department' => $filters['department']]
+                    'match_phrase' => ['department' => $filters['department']]
                 ];
             }
 
@@ -533,13 +533,13 @@ class ElasticsearchService {
 
             if (!empty($filters['contractor_company'])) {
                 $filterQueries[] = [
-                    'match' => ['contractor_company' => $filters['contractor_company']]
+                    'match_phrase' => ['contractor_company' => $filters['contractor_company']]
                 ];
             }
 
             if (!empty($filters['department'])) {
                 $filterQueries[] = [
-                    'match' => ['department' => $filters['department']]
+                    'match_phrase' => ['department' => $filters['department']]
                 ];
             }
 
