@@ -12,8 +12,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 
-$current_user_id = (int)($_SESSION['user_id'] ?? 0);
-$user_filter = "(e.created_by = '$current_user_id' OR (e.created_by IS NULL AND e.contractor_company = '" . $db->escapeString($company_name) . "'))";
+$user_filter = "e.contractor_company = '" . $db->escapeString($company_name) . "'";
 
 // Get statistics
 $total_employees = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter")->fetch_assoc()['count'];
