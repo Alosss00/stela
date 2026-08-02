@@ -177,7 +177,31 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                         </tr>
                     </thead>
                     <tbody id="deptApptTbody">
-                        <tr><td colspan="7" style="text-align:center;padding:28px;color:#a0aec0;"><i class="fas fa-circle-notch fa-spin"></i> Memuat data...</td></tr>
+                        <?php if ($appointments && $appointments->num_rows > 0): ?>
+                            <?php 
+                            if ($appointments->num_rows > 0) $appointments->data_seek(0);
+                            while ($apt = $appointments->fetch_assoc()): 
+                            ?>
+                            <tr class="appt-row" data-id="<?php echo $apt['id']; ?>">
+                                <td class="col-number"><strong><?php echo htmlspecialchars($apt['appointment_number'] ?? '-'); ?></strong></td>
+                                <td class="col-code"><span class="code-badge"><?php echo htmlspecialchars($apt['employee_code'] ?? '-'); ?></span></td>
+                                <td class="col-name"><strong><?php echo htmlspecialchars($apt['full_name'] ?? '-'); ?></strong></td>
+                                <td class="col-dept"><?php echo htmlspecialchars($apt['position'] ?? '-'); ?></td>
+                                <td class="col-position"><span class="position-badge"><?php echo htmlspecialchars($apt['position_name'] ?? '-'); ?></span></td>
+                                <td class="col-status"><span class="badge-status badge-<?php echo $apt['status_class']; ?>"><?php echo strtoupper($apt['status']); ?></span></td>
+                                <td class="col-action">
+                                    <div class="action-buttons-appt">
+                                        <?php if ($apt['status'] === 'approved'): ?>
+                                        <a href="../../print_appointment.php?id=<?php echo $apt['id']; ?>" class="btn-print-appt" target="_blank" title="Print"><i class="fas fa-print"></i></a>
+                                        <?php endif; ?>
+                                        <a href="appointments_detail.php?id=<?php echo $apt['id']; ?>" class="btn-detail-appt"><i class="fas fa-eye"></i> View</a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr><td colspan="7" style="text-align:center;padding:28px;color:#a0aec0;">Tidak ada data yang ditemukan.</td></tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -207,6 +231,9 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                     paginationContainerSelector: '#deptApptPaginationContainer',
                     infoContainerSelector: '#deptApptInfoContainer',
                     limitSelector: '#deptApptPageLimit',
+                    filters: {
+                        department: deptName
+                    },
                     filterSelectors: {
                         status: '#filterDeptApptStatus'
                     },
@@ -233,9 +260,6 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                         </tr>`;
                     }
                 });
-
-                // Pre-set department filter
-                window.deptApptPagination.filters['department'] = deptName;
 
                 // Sync info
                 const origInfo = window.deptApptPagination.renderInfo.bind(window.deptApptPagination);

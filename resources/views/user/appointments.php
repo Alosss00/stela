@@ -246,7 +246,28 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                         </tr>
                     </thead>
                     <tbody id="userApptTbody">
-                        <tr><td colspan="7" style="text-align:center;padding:28px;color:#a0aec0;"><i class="fas fa-circle-notch fa-spin"></i> Memuat data...</td></tr>
+                        <?php if ($appointments && $appointments->num_rows > 0): ?>
+                            <?php while ($appt = $appointments->fetch_assoc()): ?>
+                            <tr class="appt-row" data-id="<?php echo $appt['id']; ?>">
+                                <td class="col-number"><strong><?php echo htmlspecialchars($appt['appointment_number'] ?? '-'); ?></strong></td>
+                                <td class="col-code"><span class="code-badge"><?php echo htmlspecialchars($appt['employee_code'] ?? '-'); ?></span></td>
+                                <td class="col-name"><strong><?php echo htmlspecialchars($appt['employee_name'] ?? '-'); ?></strong></td>
+                                <td class="col-dept"><?php echo htmlspecialchars($appt['position'] ?? '-'); ?></td>
+                                <td class="col-position"><span class="position-badge"><?php echo htmlspecialchars($appt['position_name'] ?? '-'); ?></span></td>
+                                <td class="col-status"><span class="badge-status badge-<?php echo $appt['status_class']; ?>"><?php echo strtoupper($appt['status']); ?></span></td>
+                                <td class="col-action">
+                                    <div class="action-buttons-appt">
+                                        <?php if ($appt['status'] === 'approved'): ?>
+                                        <a href="../../print_appointment.php?id=<?php echo $appt['id']; ?>" class="btn-print-appt" target="_blank" title="Print"><i class="fas fa-print"></i></a>
+                                        <?php endif; ?>
+                                        <a href="appointment_detail.php?id=<?php echo $appt['id']; ?>" class="btn-detail-appt"><i class="fas fa-eye"></i> <span data-lang="view">View</span></a>
+                                    </div>
+                                </td>
+                            </tr>
+                            <?php endwhile; ?>
+                        <?php else: ?>
+                            <tr><td colspan="7" style="text-align:center;padding:28px;color:#a0aec0;">Tidak ada data yang ditemukan.</td></tr>
+                        <?php endif; ?>
                     </tbody>
                 </table>
             </div>
@@ -276,6 +297,9 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                     paginationContainerSelector: '#userApptPaginationContainer',
                     infoContainerSelector: '#userApptInfoContainer',
                     limitSelector: '#userApptPageLimit',
+                    filters: {
+                        company: companyName
+                    },
                     filterSelectors: {
                         status: '#filterUserApptStatus'
                     },
@@ -302,9 +326,6 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                         </tr>`;
                     }
                 });
-
-                // Pre-set company filter
-                window.userApptPagination.filters['company'] = companyName;
 
                 // Sync info
                 const origInfo = window.userApptPagination.renderInfo.bind(window.userApptPagination);
