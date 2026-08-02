@@ -73,7 +73,7 @@ $employees = $db->query("SELECT e.*,
     LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
     WHERE e.is_active = 1 AND $user_filter
     GROUP BY e.id
-    ORDER BY combined_status, e.created_at DESC");
+    ORDER BY e.created_at DESC, e.id DESC");
 
 // Count rejected employees (hanya yang sudah diputuskan admin untuk dikembalikan ke user)
 $rejected_count = $db->query("

@@ -63,7 +63,7 @@ $employees = $db->query("
     LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
     WHERE e.is_active = 1 AND " . str_replace("department =", "e.department =", str_replace("contractor_company =", "e.contractor_company =", $dept_filter)) . "
     GROUP BY e.id
-    ORDER BY combined_status, e.created_at DESC");
+    ORDER BY e.created_at DESC, e.id DESC");
 
 // Update employee status jika appointment sudah approved
 if ($employees && $employees->num_rows > 0) {
@@ -74,7 +74,7 @@ if ($employees && $employees->num_rows > 0) {
         }
     }
     // Refresh employees
-    $employees = $db->query("SELECT e.*, COUNT(ec.id) as cert_count, SUM(CASE WHEN ec.verification_status = 'verified' THEN 1 ELSE 0 END) as verified_cert_count, GROUP_CONCAT(ec.cert_number SEPARATOR ', ') as cert_numbers, u.full_name as verified_by_name, e.resubmit_count, e.resubmit_date, MAX(a.status) as appointment_status, MAX(a.approval_notes) as ktt_rejection_notes, MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) as has_ktt_rejection, CASE WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 AND e.verification_status = 'pending' AND e.resubmit_date IS NOT NULL THEN 'pending' WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 THEN 'rejected' WHEN MAX(a.status) = 'rejected' THEN 'rejected' WHEN e.verification_status = 'rejected' THEN 'rejected' ELSE e.verification_status END as combined_status FROM employees e LEFT JOIN employee_certifications ec ON e.id = ec.employee_id LEFT JOIN users u ON e.verified_by = u.id LEFT JOIN appointments a ON e.id = a.employee_id LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id WHERE e.is_active = 1 AND e.department = '" . $db->escapeString($department) . "' GROUP BY e.id ORDER BY combined_status, e.created_at DESC");
+    $employees = $db->query("SELECT e.*, COUNT(ec.id) as cert_count, SUM(CASE WHEN ec.verification_status = 'verified' THEN 1 ELSE 0 END) as verified_cert_count, GROUP_CONCAT(ec.cert_number SEPARATOR ', ') as cert_numbers, u.full_name as verified_by_name, e.resubmit_count, e.resubmit_date, MAX(a.status) as appointment_status, MAX(a.approval_notes) as ktt_rejection_notes, MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) as has_ktt_rejection, CASE WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 AND e.verification_status = 'pending' AND e.resubmit_date IS NOT NULL THEN 'pending' WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 THEN 'rejected' WHEN MAX(a.status) = 'rejected' THEN 'rejected' WHEN e.verification_status = 'rejected' THEN 'rejected' ELSE e.verification_status END as combined_status FROM employees e LEFT JOIN employee_certifications ec ON e.id = ec.employee_id LEFT JOIN users u ON e.verified_by = u.id LEFT JOIN appointments a ON e.id = a.employee_id LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id WHERE e.is_active = 1 AND e.department = '" . $db->escapeString($department) . "' GROUP BY e.id ORDER BY e.created_at DESC, e.id DESC");
 }
 
 // Count rejected employees (including KTT rejections, but exclude resubmitted ones)
