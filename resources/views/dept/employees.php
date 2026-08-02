@@ -226,7 +226,6 @@ $rejected_count = $db->query("
                 window.deptEmpPagination = new BonsaiPagination({
                     apiUrl: '../../api/search_elasticsearch.php',
                     target: 'employees',
-                    company: companyName,
                     tableSelector: '#employeesTable',
                     tbodySelector: '#deptEmpTbody',
                     searchInputSelector: '#esSearchInput',
@@ -234,6 +233,9 @@ $rejected_count = $db->query("
                     paginationContainerSelector: '#deptEmpPaginationContainer',
                     infoContainerSelector: '#deptEmpInfoContainer',
                     limitSelector: '#deptEmpPageLimit',
+                    filters: {
+                        department: deptName
+                    },
                     filterSelectors: {
                         status: '#filterDeptEmpStatus',
                         competency_type: '#filterDeptCompetencyType'
@@ -289,125 +291,5 @@ $rejected_count = $db->query("
 </div>
 
 
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('esSearchInput');
-    const dropdown = document.getElementById('esSuggestionsDropdown');
-    const empRows = document.querySelectorAll('#employeesTable tbody tr.emp-row');
-    const clearBtn = document.getElementById('esClearBtn');
-    let debounceTimer = null;
-
-    if (!searchInput) return;
-
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            filterTableLive('');
-            clearBtn.style.display = 'none';
-            if (dropdown) {
-                dropdown.style.display = 'none';
-                dropdown.innerHTML = '';
-            }
-            searchInput.focus();
-        });
-    }
-
-    function filterTableLive(query, matchingIds = null) {
-        const cleanQ = query.toLowerCase().trim();
-        empRows.forEach(row => {
-            const rowId = row.dataset.id;
-            const textContent = row.textContent.toLowerCase();
-            let isMatch = false;
-
-            if (cleanQ === '') {
-                isMatch = true;
-            } else if (matchingIds !== null && matchingIds.size > 0) {
-                isMatch = matchingIds.has(rowId) || textContent.includes(cleanQ);
-            } else {
-                isMatch = textContent.includes(cleanQ);
-            }
-
-            row.style.display = isMatch ? '' : 'none';
-        });
-    }
-
-    searchInput.addEventListener('input', function() {
-        const query = this.value.trim();
-        clearTimeout(debounceTimer);
-
-        if (clearBtn) {
-            clearBtn.style.display = query.length > 0 ? 'block' : 'none';
-        }
-
-        filterTableLive(query);
-
-        if (query.length < 1) {
-            if (dropdown) {
-                dropdown.style.display = 'none';
-                dropdown.innerHTML = '';
-            }
-            return;
-        }
-
-        debounceTimer = setTimeout(() => {
-            fetch('../../api/search_elasticsearch.php?target=employees&company=' + encodeURIComponent(companyName) + '&q=' + encodeURIComponent(query) + '&limit=100')
-                .then(res => {
-                    if (!res.ok) throw new Error('HTTP ' + res.status);
-                    const ct = res.headers.get('content-type') || '';
-                    if (!ct.includes('application/json')) throw new Error('Non-JSON response');
-                    return res.json();
-                })
-                .then(data => {
-                    if (data && data.status === 'success' && data.items) {
-                        const matchingIds = new Set(data.items.map(item => String(item.id)));
-                        filterTableLive(query, matchingIds);
-
-                        if (dropdown && data.items.length > 0) {
-                            renderSuggestions(data.items.slice(0, 8));
-                        } else if (dropdown) {
-                            dropdown.style.display = 'none';
-                        }
-                    }
-                })
-                .catch(err => console.warn('Elasticsearch live search notice:', err.message));
-        }, 150);
-    });
-
-    function renderSuggestions(items) {
-        if (!dropdown) return;
-        dropdown.innerHTML = '';
-        items.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'es-suggestion-item';
-            div.innerHTML = `
-                <div>
-                    <div class="es-sug-name">${escapeHtml(item.full_name || item.employee_code)}</div>
-                    <div class="es-sug-sub">${escapeHtml(item.position || '')} &bull; ${escapeHtml(item.contractor_company || '')}</div>
-                </div>
-                <span class="es-sug-badge">${escapeHtml(item.employee_code || '')}</span>
-            `;
-            div.addEventListener('click', function() {
-                searchInput.value = item.full_name || item.employee_code;
-                filterTableLive(searchInput.value);
-                dropdown.style.display = 'none';
-            });
-            dropdown.appendChild(div);
-        });
-        dropdown.style.display = 'block';
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    document.addEventListener('click', function(e) {
-        if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
-            dropdown.style.display = 'none';
-        }
-    });
-});
-</script>
 
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>

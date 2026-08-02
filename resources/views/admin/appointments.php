@@ -1931,123 +1931,201 @@ function formatDate(dateString) {
     if (!dateString) return '-';
     const date = new Date(dateString);
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    if (window.applyCurrentLanguage) {
+        window.applyCurrentLanguage();
+    } else if (window.changeLanguage && window.getCurrentLanguage) {
+        window.changeLanguage(window.getCurrentLanguage());
+    }
+
+    // Show modal
+    openModal('adminReviewModal');
+}
+
+// Show Appointment Detail Modal
+function showAppointmentDetail(appointmentId) {
+    // Fetch appointment details
+    fetch('../../api/get_appointment_details.php?id=' + appointmentId)
+        .then(response => response.json())
+        .then(data => {
+            const t = (key, fallback) => (window.getLanguageText ? window.getLanguageText(key, fallback) : fallback);
+            if (data.success) {
+                const apt = data.appointment || {};
+                const emp = data.employee || {};
+                const pos = data.position || {};
+                const certs = data.certifications || [];
+
+                // -- Letter Information --
+                document.getElementById('detailApptNumber').textContent = apt.appointment_number || '-';
+                document.getElementById('detailApptDate').textContent = apt.appointment_date ? formatDate(apt.appointment_date) : '-';
+                document.getElementById('detailEffectiveDate').textContent = apt.effective_date ? formatDate(apt.effective_date) : '-';
+                document.getElementById('detailExpiryDate').textContent = apt.expiry_date ? formatDate(apt.expiry_date) : t('no-time-limit', 'No time limit');
+                document.getElementById('detailCreatedAt').textContent = apt.created_at ? formatDateTime(apt.created_at) : '-';
+
+                // Status Badge
+                let statusHtml = '';
+                if (apt.status === 'approved') {
+                    statusHtml = '<span class="badge-appt-admin badge-success"><i class="fas fa-check-circle"></i> ' + t('approved', 'Approved') + '</span>';
+                } else if (apt.status === 'pending') {
+                    statusHtml = '<span class="badge-appt-admin badge-warning"><i class="fas fa-clock"></i> ' + t('pending', 'Pending') + '</span>';
+                } else if (apt.status === 'rejected_by_ktt') {
+                    statusHtml = '<span class="badge-appt-admin badge-danger"><i class="fas fa-ban"></i> ' + t('rejected-by-ktt', 'Rejected by KTT') + '</span>';
+                } else if (apt.status === 'rejected') {
+                    statusHtml = '<span class="badge-appt-admin badge-danger"><i class="fas fa-times-circle"></i> ' + t('rejected', 'Rejected') + '</span>';
+                } else {
+                    statusHtml = '<span class="badge-appt-admin badge-secondary"><i class="fas fa-file"></i> ' + t('draft', 'Draft') + '</span>';
+                }
+                document.getElementById('detailStatus').innerHTML = statusHtml;
+
+                // -- Employee Information --
+                document.getElementById('detailEmpName').textContent = emp.full_name || '-';
+                document.getElementById('detailEmpCode').textContent = emp.employee_code || '-';
+                document.getElementById('detailEmpPosition').textContent = emp.position || pos.position_name || '-';
+                document.getElementById('detailEmpCompany').textContent = emp.contractor_company || '-';
+
+                const competencyTypeLabels = {
+                    'pengawas_operasional': 'Pengawas Operasional',
+                    'pengawas_teknis': 'Pengawas Teknis',
+                    'tenaga_teknis': 'Tenaga Teknis'
+                };
+                document.getElementById('detailEmpCompetencyType').textContent = competencyTypeLabels[emp.competency_type] || emp.competency_type || '-';
+                document.getElementById('detailEmpCompetency').textContent = emp.competency_name || '-';
+                document.getElementById('detailEmpScope').textContent = formatWorkScope(emp.ruang_lingkup);
+
+                // -- Certifications --
+                const certSection = document.getElementById('detailCertSection');
+                const certList = document.getElementById('detailCertList');
+                certList.innerHTML = '';
+                if (certs.length > 0) {
+                    certSection.style.display = 'block';
+                    let certHtml = '<table style="width:100%; border-collapse: collapse; font-size: 13px;">';
+                    certHtml += '<thead><tr style="background:#e9ecef; text-align:left;">';
+                    certHtml += '<th style="padding:8px 10px; border-bottom:2px solid #dee2e6;">' + t('certificate-name', 'Certificate Name') + '</th>';
+                    certHtml += '<th style="padding:8px 10px; border-bottom:2px solid #dee2e6;">' + t('certificate-no', 'Certificate No.') + '</th>';
+                    certHtml += '<th style="padding:8px 10px; border-bottom:2px solid #dee2e6;">' + t('issue-date', 'Issue Date') + '</th>';
+                    certHtml += '<th style="padding:8px 10px; border-bottom:2px solid #dee2e6;">' + t('expiry-date', 'Expiry Date') + '</th>';
+                    certHtml += '</tr></thead><tbody>';
+                    certs.forEach(function(cert) {
+                        const isExpired = cert.expiry_date && new Date(cert.expiry_date) < new Date();
+                        const expiryStyle = isExpired ? 'color:#ef4444; font-weight:600;' : '';
+                        certHtml += '<tr style="border-bottom:1px solid #f0f0f0;">';
+                        certHtml += '<td style="padding:8px 10px;">' + (cert.cert_name || '-') + '</td>';
+                        certHtml += '<td style="padding:8px 10px;">' + (cert.cert_number || '-') + '</td>';
+                        certHtml += '<td style="padding:8px 10px;">' + (cert.issue_date ? formatDate(cert.issue_date) : '-') + '</td>';
+                        certHtml += '<td style="padding:8px 10px; ' + expiryStyle + '">' + (cert.expiry_date ? formatDate(cert.expiry_date) : t('no-expiry', 'No Expiry')) + (isExpired ? ' <span style="background:#fee2e2; color:#ef4444; padding:2px 6px; border-radius:4px; font-size:10px;">' + t('expired', 'Expired') + '</span>' : '') + '</td>';
+                        certHtml += '</tr>';
+                    });
+                    certHtml += '</tbody></table>';
+                    certList.innerHTML = certHtml;
+                } else {
+                    certSection.style.display = 'block';
+                    certList.innerHTML = '<p style="color:#999; font-style:italic; margin:0;">' + t('no-certifications-recorded', 'No certifications recorded.') + '</p>';
+                }
+
+                // -- Approval Information --
+                const approvalSection = document.getElementById('detailApprovalSection');
+                const approvalInfo = document.getElementById('detailApprovalInfo');
+                approvalInfo.innerHTML = '';
+
+                if (apt.status !== 'draft') {
+                    approvalSection.style.display = 'block';
+
+                    // KTT MSM Approval
+                    if (apt.ktt_msm_status) {
+                        const kttMsmDiv = document.createElement('div');
+                        kttMsmDiv.className = 'approval-detail-item' + (apt.ktt_msm_status === 'rejected' ? ' rejected-item' : '');
+                        let kttMsmHtml = '<strong>KTT MSM:</strong> ';
+                        if (apt.ktt_msm_status === 'approved') {
+                            kttMsmHtml += '<span class="badge-appt-admin badge-success"><i class="fas fa-check"></i> ' + t('approved', 'Approved') + '</span>';
+                        } else if (apt.ktt_msm_status === 'rejected') {
+                            kttMsmHtml += '<span class="badge-appt-admin badge-danger"><i class="fas fa-times"></i> ' + t('rejected', 'Rejected') + '</span>';
+                        } else {
+                            kttMsmHtml += '<span class="badge-appt-admin badge-warning"><i class="fas fa-clock"></i> ' + t('pending', 'Pending') + '</span>';
+                        }
+                        if (apt.ktt1_approved_by_name) {
+                            kttMsmHtml += '<div class="approval-meta">' + t('by', 'By') + ': ' + apt.ktt1_approved_by_name;
+                            if (apt.ktt1_approved_date) {
+                                kttMsmHtml += ' &mdash; ' + formatDateTime(apt.ktt1_approved_date);
+                            }
+                            kttMsmHtml += '</div>';
+                        }
+                        kttMsmDiv.innerHTML = kttMsmHtml;
+                        approvalInfo.appendChild(kttMsmDiv);
+                    }
+
+                    // KTT TTN Approval
+                    if (apt.ktt_ttn_status) {
+                        const kttTtnDiv = document.createElement('div');
+                        kttTtnDiv.className = 'approval-detail-item' + (apt.ktt_ttn_status === 'rejected' ? ' rejected-item' : '');
+                        let kttTtnHtml = '<strong>KTT TTN:</strong> ';
+                        if (apt.ktt_ttn_status === 'approved') {
+                            kttTtnHtml += '<span class="badge-appt-admin badge-success"><i class="fas fa-check"></i> ' + t('approved', 'Approved') + '</span>';
+                        } else if (apt.ktt_ttn_status === 'rejected') {
+                            kttTtnHtml += '<span class="badge-appt-admin badge-danger"><i class="fas fa-times"></i> ' + t('rejected', 'Rejected') + '</span>';
+                        } else {
+                            kttTtnHtml += '<span class="badge-appt-admin badge-warning"><i class="fas fa-clock"></i> ' + t('pending', 'Pending') + '</span>';
+                        }
+                        if (apt.ktt2_approved_by_name) {
+                            kttTtnHtml += '<div class="approval-meta">' + t('by', 'By') + ': ' + apt.ktt2_approved_by_name;
+                            if (apt.ktt2_approved_date) {
+                                kttTtnHtml += ' &mdash; ' + formatDateTime(apt.ktt2_approved_date);
+                            }
+                            kttTtnHtml += '</div>';
+                        }
+                        kttTtnDiv.innerHTML = kttTtnHtml;
+                        approvalInfo.appendChild(kttTtnDiv);
+                    }
+
+                    // Admin Approval Notes (if any)
+                    if (apt.admin_approval_notes) {
+                        const adminDiv = document.createElement('div');
+                        adminDiv.className = 'approval-detail-item';
+                        adminDiv.style.borderLeftColor = '#37474F';
+                        let adminActionLabel = apt.admin_approval_action === 'send_to_ktt'
+                            ? t('accept-send-back-to-ktt', 'Accept and send back to KTT')
+                            : (apt.admin_approval_action === 'send_to_user'
+                                ? t('reject-and-return-to-user', 'Reject and return to User')
+                                : apt.admin_approval_action || '-');
+                        adminDiv.innerHTML = '<strong><i class="fas fa-user-shield"></i> ' + t('admin-action', 'Admin Action') + ':</strong> <span style="color:#37474F; font-weight:600;">' + adminActionLabel + '</span>'
+                            + '<div class="approval-meta" style="margin-top:5px; white-space:pre-wrap;">' + apt.admin_approval_notes + '</div>'
+                            + (apt.admin_approved_date ? '<div class="approval-meta">' + t('date-label', 'Date:') + ' ' + formatDateTime(apt.admin_approved_date) + '</div>' : '');
+                        approvalInfo.appendChild(adminDiv);
+                    }
+                } else {
+                    approvalSection.style.display = 'none';
+                }
+
+                openModal('appointmentDetailModal');
+            } else {
+                alert(t('failed-load-appointment-details', 'Failed to load appointment details'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(t('error-loading-appointment-details', 'Error loading appointment details'));
+        });
+}
+
+// Helper function to format date with time
+function formatDateTime(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const options = { 
+        year: 'numeric', 
+        month: '2-digit', 
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+    };
+    return date.toLocaleDateString('id-ID', options).replace(/\//g, '/') + ' - ' + 
+           date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', hour12: false });
+}
+
+// Helper function to format date
+function formatDate(dateString) {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     return date.getDate() + ' ' + months[date.getMonth()] + ' ' + date.getFullYear();
 }
-</script>
-
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const searchInput = document.getElementById('esSearchInput');
-    const dropdown = document.getElementById('esSuggestionsDropdown');
-    const apptRows = document.querySelectorAll('#appointmentsTable tbody tr.appt-admin-row');
-    const clearBtn = document.getElementById('esClearBtn');
-    let debounceTimer = null;
-
-    if (!searchInput) return;
-
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function() {
-            searchInput.value = '';
-            filterTableLive('');
-            clearBtn.style.display = 'none';
-            if (dropdown) {
-                dropdown.style.display = 'none';
-                dropdown.innerHTML = '';
-            }
-            searchInput.focus();
-        });
-    }
-
-    function filterTableLive(query, matchingIds = null) {
-        const cleanQ = query.toLowerCase().trim();
-        apptRows.forEach(row => {
-            const rowId = row.dataset.id;
-            const textContent = row.textContent.toLowerCase();
-            let isMatch = false;
-
-            if (cleanQ === '') {
-                isMatch = true;
-            } else if (matchingIds !== null && matchingIds.size > 0) {
-                isMatch = matchingIds.has(rowId) || textContent.includes(cleanQ);
-            } else {
-                isMatch = textContent.includes(cleanQ);
-            }
-
-            row.style.display = isMatch ? '' : 'none';
-        });
-    }
-
-    searchInput.addEventListener('input', function() {
-        const query = this.value.trim();
-        clearTimeout(debounceTimer);
-
-        if (clearBtn) {
-            clearBtn.style.display = query.length > 0 ? 'block' : 'none';
-        }
-
-        filterTableLive(query);
-
-        if (query.length < 1) {
-            if (dropdown) {
-                dropdown.style.display = 'none';
-                dropdown.innerHTML = '';
-            }
-            return;
-        }
-
-        debounceTimer = setTimeout(() => {
-            fetch('../../api/search_elasticsearch.php?target=appointments&q=' + encodeURIComponent(query) + '&limit=100')
-                .then(res => res.json())
-                .then(data => {
-                    if (data.status === 'success' && data.items) {
-                        const matchingIds = new Set(data.items.map(item => String(item.id)));
-                        filterTableLive(query, matchingIds);
-
-                        if (dropdown && data.items.length > 0) {
-                            renderSuggestions(data.items.slice(0, 8));
-                        } else if (dropdown) {
-                            dropdown.style.display = 'none';
-                        }
-                    }
-                })
-                .catch(err => console.error('Elasticsearch appointments search error:', err));
-        }, 150);
-    });
-
-    function renderSuggestions(items) {
-        if (!dropdown) return;
-        dropdown.innerHTML = '';
-        items.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'es-suggestion-item';
-            div.innerHTML = `
-                <div>
-                    <div class="es-sug-name">${escapeHtml(item.appointment_number || item.employee_name)}</div>
-                    <div class="es-sug-sub">${escapeHtml(item.employee_name || '')} &bull; ${escapeHtml(item.contractor_company || '')}</div>
-                </div>
-                <span class="es-sug-badge">${escapeHtml(item.status || '')}</span>
-            `;
-            div.addEventListener('click', function() {
-                searchInput.value = item.appointment_number || item.employee_name;
-                filterTableLive(searchInput.value);
-                dropdown.style.display = 'none';
-            });
-            dropdown.appendChild(div);
-        });
-        dropdown.style.display = 'block';
-    }
-
-    function escapeHtml(text) {
-        if (!text) return '';
-        return String(text).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-    }
-
-    document.addEventListener('click', function(e) {
-        if (dropdown && !dropdown.contains(e.target) && e.target !== searchInput) {
-            dropdown.style.display = 'none';
-        }
-    });
-});
-</script>
-
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
