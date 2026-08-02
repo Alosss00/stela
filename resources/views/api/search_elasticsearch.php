@@ -300,14 +300,17 @@ try {
             $where[] = "(e.employee_code LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.position LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%' OR e.department LIKE '%$safeQ%')";
         }
 
-        if (!empty($createdByFilter)) {
-            $safeUserId = intval($createdByFilter);
-            if (!empty($company)) {
-                $safeCompany = $db->escapeString($company);
-                $where[] = "(e.created_by = $safeUserId OR (e.created_by IS NULL AND e.contractor_company = '$safeCompany'))";
+        if (!$isAdmin && !empty($company)) {
+            $safeCompany = $db->escapeString($company);
+            if (!empty($createdByFilter)) {
+                $safeUserId = intval($createdByFilter);
+                $where[] = "(e.created_by = $safeUserId OR e.contractor_company = '$safeCompany')";
             } else {
-                $where[] = "e.created_by = $safeUserId";
+                $where[] = "e.contractor_company = '$safeCompany'";
             }
+        } elseif (!empty($createdByFilter)) {
+            $safeUserId = intval($createdByFilter);
+            $where[] = "e.created_by = $safeUserId";
         } elseif (!empty($company)) {
             $safeCompany = $db->escapeString($company);
             $where[] = "e.contractor_company = '$safeCompany'";
@@ -360,17 +363,25 @@ try {
             $where[] = "(a.appointment_number LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%')";
         }
 
-        if (!$isAdmin && !empty($createdByFilter)) {
-            $safeUserId = intval($createdByFilter);
-            if (!empty($company)) {
-                $safeCompany = $db->escapeString($company);
-                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId OR (a.created_by IS NULL AND e.contractor_company = '$safeCompany'))";
-            } elseif (!empty($department)) {
-                $safeDept = $db->escapeString($department);
-                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId OR (a.created_by IS NULL AND e.department = '$safeDept'))";
+        if (!$isAdmin && !empty($company)) {
+            $safeCompany = $db->escapeString($company);
+            if (!empty($createdByFilter)) {
+                $safeUserId = intval($createdByFilter);
+                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId OR e.contractor_company = '$safeCompany')";
             } else {
-                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId)";
+                $where[] = "e.contractor_company = '$safeCompany'";
             }
+        } elseif (!$isAdmin && !empty($department)) {
+            $safeDept = $db->escapeString($department);
+            if (!empty($createdByFilter)) {
+                $safeUserId = intval($createdByFilter);
+                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId OR e.department = '$safeDept')";
+            } else {
+                $where[] = "e.department = '$safeDept'";
+            }
+        } elseif (!empty($createdByFilter)) {
+            $safeUserId = intval($createdByFilter);
+            $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId)";
         } elseif (!empty($company)) {
             $safeCompany = $db->escapeString($company);
             $where[] = "e.contractor_company = '$safeCompany'";
@@ -396,9 +407,12 @@ try {
             $total = (int)($countRes->fetch_assoc()['cnt'] ?? 0);
         }
 
-        $sql = "SELECT a.id, a.appointment_number, a.employee_id, e.full_name as employee_name, e.contractor_company, a.competency_type, a.status, a.created_at 
+        $sql = "SELECT a.id, a.appointment_number, a.employee_id, 
+                       e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, 
+                       COALESCE(p.position_name, a.competency_type) as competency_name, a.competency_type, a.status, a.created_at 
                 FROM appointments a 
                 LEFT JOIN employees e ON a.employee_id = e.id 
+                LEFT JOIN positions p ON a.position_id = p.id 
                 WHERE $whereClause ORDER BY a.id DESC LIMIT $from, $limit";
         $res = $db->query($sql);
         if ($res) {
