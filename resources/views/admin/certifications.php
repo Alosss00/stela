@@ -122,11 +122,11 @@ require_once dirname(__DIR__) . '/layouts/header.php';
         <div class="card-body-cert">
             <?php if ($certifications->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-cert datatable">
+                    <table class="table-cert datatable" style="width: 100% !important; table-layout: fixed !important;">
                         <thead>
                             <tr>
-                                <th class="col-name" data-lang="certification-name">Certification Name</th>
-                                <th class="col-action" data-lang="action">Action</th>
+                                <th class="col-name" style="width: 75% !important; text-align: left !important;" data-lang="certification-name">Certification Name</th>
+                                <th class="col-action" style="width: 25% !important; text-align: center !important;" data-lang="action">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -135,10 +135,10 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                             while ($row = $certifications->fetch_assoc()):
                             ?>
                             <tr class="cert-row">
-                                <td class="col-name" data-label="Certification Name">
+                                <td class="col-name" style="width: 75% !important; text-align: left !important;" data-label="Certification Name">
                                     <strong><?php echo htmlspecialchars($row['cert_name']); ?></strong>
                                 </td>
-                                <td class="col-action" data-label="Action">
+                                <td class="col-action" style="width: 25% !important; text-align: center !important;" data-label="Action">
                                     <div class="action-buttons-cert">
                                         <button onclick='editCertification(<?php echo json_encode($row); ?>)' class="btn-action-cert btn-edit-cert" title="Edit" data-lang-title="edit">
                                             <i class="fas fa-edit"></i>

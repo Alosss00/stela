@@ -214,12 +214,12 @@ require_once dirname(__DIR__) . '/layouts/header.php';
         <div class="card-body">
             <?php if ($competencies->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table table-positions datatable">
+                    <table class="table table-positions datatable" style="width: 100% !important; table-layout: fixed !important;">
                         <thead>
                             <tr>
-                                <th class="col-name" data-lang="competency">Competency</th>
-                                <th class="col-type" data-lang="type-label">Type</th>
-                                <th class="col-action" data-lang="actions">Actions</th>
+                                <th class="col-name" style="width: 50% !important; text-align: left !important;" data-lang="competency">Competency</th>
+                                <th class="col-type" style="width: 32% !important; text-align: left !important;" data-lang="type-label">Type</th>
+                                <th class="col-action" style="width: 18% !important; text-align: center !important;" data-lang="actions">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -242,7 +242,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                                 $icon = $type_icons[$type_key] ?? 'fa-briefcase';
                             ?>
                             <tr class="position-row">
-                                <td class="col-name">
+                                <td class="col-name" style="width: 50% !important; text-align: left !important;">
                                     <strong><i class="fas fa-star"></i> <?php echo htmlspecialchars($row['competency_name']); ?></strong>
                                     <?php
                                     $saved_sub_competencies = $sub_competencies_by_competency[$row['id']] ?? [];
@@ -260,12 +260,12 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                                         <div class="sub-competency-empty" data-lang="no-sub-competencies">No sub competencies</div>
                                     <?php endif; ?>
                                 </td>
-                                <td class="col-type">
+                                <td class="col-type" style="width: 32% !important; text-align: left !important;">
                                     <span class="badge badge-position" data-lang="<?php echo 'competency-type-' . str_replace('_', '-', $type_key); ?>">
                                         <i class="fas <?php echo $icon; ?>"></i> <?php echo $type_label; ?>
                                     </span>
                                 </td>
-                                <td class="col-action">
+                                <td class="col-action" style="width: 18% !important; text-align: center !important;">
                                     <div class="action-buttons-positions">
                                         <button onclick='editCompetency(<?php echo json_encode($row); ?>)' class="btn btn-sm btn-warning btn-action-positions" title="Edit" data-lang-title="edit">
                                             <i class="fas fa-edit"></i>
