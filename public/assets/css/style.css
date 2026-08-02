@@ -26534,3 +26534,174 @@ textarea.form-control {
     justify-content: center;
   }
 }
+
+/* Grid Layout Fixes for .form-row */
+.form-row {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  margin-left: -12px !important;
+  margin-right: -12px !important;
+}
+
+.form-row > .form-group,
+.form-row > [class*="col-"] {
+  padding-left: 12px !important;
+  padding-right: 12px !important;
+  box-sizing: border-box !important;
+}
+
+@media (min-width: 768px) {
+  .form-row > .col-lg-6,
+  .form-row > .col-md-6 {
+    flex: 0 0 50% !important;
+    max-width: 50% !important;
+  }
+  .form-row > .col-lg-4,
+  .form-row > .col-md-4 {
+    flex: 0 0 33.333333% !important;
+    max-width: 33.333333% !important;
+  }
+  .form-row > .col-lg-12,
+  .form-row > .col-md-12 {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Validity Input Group & Checkbox */
+.validity-input-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.validity-input-group .validity-years {
+  flex: 1;
+}
+
+.validity-input-group .checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  font-size: 13px;
+  color: #475569;
+  font-weight: 600;
+  margin-bottom: 0;
+  cursor: pointer;
+}
+
+/* Add Another Certification Button */
+.btn-outline-primary {
+  background: #eff6ff;
+  border: 1.5px dashed #1E3A8A;
+  color: #1E3A8A;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 13.5px;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-outline-primary:hover {
+  background: #dbeafe;
+  color: #1D4ED8;
+  border-color: #1D4ED8;
+}
+
+/* Certification Cards & Upload Field */
+.certification-item {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-left: 4px solid #1E3A8A;
+  border-radius: 10px;
+  padding: 24px;
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.cert-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 18px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.cert-item-header h5 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1E3A8A;
+}
+
+.btn-remove-cert {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.btn-remove-cert:hover {
+  background: #dc2626;
+  color: #ffffff;
+}
+
+.file-upload-area {
+  background: #ffffff;
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 18px 24px;
+  text-align: center;
+  position: relative;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.file-upload-area:hover {
+  border-color: #1E3A8A;
+  background: #f0f9ff;
+}
+
+.file-upload-area i {
+  font-size: 24px;
+  color: #1E3A8A;
+  margin-bottom: 6px;
+  display: block;
+}
+
+.file-upload-area .file-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.file-upload-area .file-text {
+  font-size: 13px;
+  color: #64748b;
+  font-weight: 500;
+  display: block;
+}
+
+.file-upload-area .file-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #1E3A8A;
+  margin-top: 4px;
+  display: block;
+}
+
