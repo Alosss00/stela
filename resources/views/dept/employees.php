@@ -13,13 +13,29 @@ if (!hasDepartment() && $_SESSION['role'] != 'department_user') {
 require_once dirname(__DIR__) . '/layouts/header.php';
 
 $db = new Database();
+$company_name = $_SESSION['company_name'] ?? '';
 $department = $_SESSION['department'] ?? '';
 
+$safeCompany = $db->escapeString($company_name);
+$safeDept = $db->escapeString($department);
+
+$filter_parts = [];
+if (!empty($safeDept)) {
+    $filter_parts[] = "department = '$safeDept'";
+    $filter_parts[] = "contractor_company = '$safeDept'";
+}
+if (!empty($safeCompany) && $safeCompany !== $safeDept) {
+    $filter_parts[] = "contractor_company = '$safeCompany'";
+    $filter_parts[] = "department = '$safeCompany'";
+}
+
+$dept_filter = !empty($filter_parts) ? "(" . implode(" OR ", array_unique($filter_parts)) . ")" : "1=1";
+
 // Get statistics for current department
-$total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE department = '" . $db->escapeString($department) . "' AND is_active = 1")->fetch_assoc()['count'];
-$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE department = '" . $db->escapeString($department) . "' AND verification_status = 'verified' AND is_active = 1")->fetch_assoc()['count'];
-$pending_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE department = '" . $db->escapeString($department) . "' AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
-$rejected_count_stat = $db->query("SELECT COUNT(*) as count FROM employees WHERE department = '" . $db->escapeString($department) . "' AND verification_status = 'rejected' AND is_active = 1")->fetch_assoc()['count'];
+$total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $dept_filter AND is_active = 1")->fetch_assoc()['count'];
+$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE $dept_filter AND verification_status = 'verified' AND is_active = 1")->fetch_assoc()['count'];
+$pending_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE $dept_filter AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
+$rejected_count_stat = $db->query("SELECT COUNT(*) as count FROM employees WHERE $dept_filter AND verification_status = 'rejected' AND is_active = 1")->fetch_assoc()['count'];
 
 // Get all employees for current department with appointment status
 $employees = $db->query("
@@ -45,10 +61,9 @@ $employees = $db->query("
     LEFT JOIN users u ON e.verified_by = u.id
     LEFT JOIN appointments a ON e.id = a.employee_id
     LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
-    WHERE e.is_active = 1 AND e.department = '" . $db->escapeString($department) . "'
+    WHERE e.is_active = 1 AND " . str_replace("department =", "e.department =", str_replace("contractor_company =", "e.contractor_company =", $dept_filter)) . "
     GROUP BY e.id
-    ORDER BY combined_status, e.created_at DESC
-");
+    ORDER BY combined_status, e.created_at DESC");
 
 // Update employee status jika appointment sudah approved
 if ($employees && $employees->num_rows > 0) {

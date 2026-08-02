@@ -11,8 +11,22 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
+$department = $_SESSION['department'] ?? '';
 
-$user_filter = "e.contractor_company = '" . $db->escapeString($company_name) . "'";
+$safeCompany = $db->escapeString($company_name);
+$safeDept = $db->escapeString($department);
+
+$filter_parts = [];
+if (!empty($safeCompany)) {
+    $filter_parts[] = "e.contractor_company = '$safeCompany'";
+    $filter_parts[] = "e.department = '$safeCompany'";
+}
+if (!empty($safeDept) && $safeDept !== $safeCompany) {
+    $filter_parts[] = "e.department = '$safeDept'";
+    $filter_parts[] = "e.contractor_company = '$safeDept'";
+}
+
+$user_filter = !empty($filter_parts) ? "(" . implode(" OR ", array_unique($filter_parts)) . ")" : "1=1";
 
 // Get statistics
 $total_employees = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter")->fetch_assoc()['count'];

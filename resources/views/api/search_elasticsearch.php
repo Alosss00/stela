@@ -305,17 +305,25 @@ try {
             $where[] = "(e.employee_code LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.position LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%' OR e.department LIKE '%$safeQ%')";
         }
 
-        if (!$isAdmin && !empty($company)) {
-            $safeCompany = $db->escapeString($company);
+        if (!$isAdmin) {
+            $scopeConds = [];
+            if (!empty($company)) {
+                $safeCompany = $db->escapeString($company);
+                $scopeConds[] = "e.contractor_company = '$safeCompany'";
+                $scopeConds[] = "e.department = '$safeCompany'";
+            }
+            if (!empty($department)) {
+                $safeDept = $db->escapeString($department);
+                $scopeConds[] = "e.department = '$safeDept'";
+                $scopeConds[] = "e.contractor_company = '$safeDept'";
+            }
             if (!empty($createdByFilter)) {
                 $safeUserId = intval($createdByFilter);
-                $where[] = "(e.created_by = $safeUserId OR e.contractor_company = '$safeCompany')";
-            } else {
-                $where[] = "e.contractor_company = '$safeCompany'";
+                $scopeConds[] = "e.created_by = $safeUserId";
             }
-        } elseif (!empty($createdByFilter)) {
-            $safeUserId = intval($createdByFilter);
-            $where[] = "e.created_by = $safeUserId";
+            if (!empty($scopeConds)) {
+                $where[] = "(" . implode(' OR ', array_unique($scopeConds)) . ")";
+            }
         } elseif (!empty($company)) {
             $safeCompany = $db->escapeString($company);
             $where[] = "e.contractor_company = '$safeCompany'";
@@ -326,7 +334,7 @@ try {
             $where[] = "e.competency_type = '$safeType'";
         }
 
-        if (!empty($department)) {
+        if ($isAdmin && !empty($department)) {
             $safeDept = $db->escapeString($department);
             $where[] = "e.department = '$safeDept'";
         }
@@ -368,25 +376,25 @@ try {
             $where[] = "(a.appointment_number LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%')";
         }
 
-        if (!$isAdmin && !empty($company)) {
-            $safeCompany = $db->escapeString($company);
+        if (!$isAdmin) {
+            $scopeConds = [];
+            if (!empty($company)) {
+                $safeCompany = $db->escapeString($company);
+                $scopeConds[] = "e.contractor_company = '$safeCompany'";
+                $scopeConds[] = "e.department = '$safeCompany'";
+            }
+            if (!empty($department)) {
+                $safeDept = $db->escapeString($department);
+                $scopeConds[] = "e.department = '$safeDept'";
+                $scopeConds[] = "e.contractor_company = '$safeDept'";
+            }
             if (!empty($createdByFilter)) {
                 $safeUserId = intval($createdByFilter);
-                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId OR e.contractor_company = '$safeCompany')";
-            } else {
-                $where[] = "e.contractor_company = '$safeCompany'";
+                $scopeConds[] = "a.created_by = $safeUserId OR e.created_by = $safeUserId";
             }
-        } elseif (!$isAdmin && !empty($department)) {
-            $safeDept = $db->escapeString($department);
-            if (!empty($createdByFilter)) {
-                $safeUserId = intval($createdByFilter);
-                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId OR e.department = '$safeDept')";
-            } else {
-                $where[] = "e.department = '$safeDept'";
+            if (!empty($scopeConds)) {
+                $where[] = "(" . implode(' OR ', array_unique($scopeConds)) . ")";
             }
-        } elseif (!empty($createdByFilter)) {
-            $safeUserId = intval($createdByFilter);
-            $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId)";
         } elseif (!empty($company)) {
             $safeCompany = $db->escapeString($company);
             $where[] = "e.contractor_company = '$safeCompany'";
