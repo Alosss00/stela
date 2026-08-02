@@ -379,21 +379,33 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             </a>
         </div>
 
-        <!-- 2. Header: Title & Navy Blue Section Pills -->
+        <!-- 2. Header: Title & DaisyUI Stepper Bar -->
         <div class="stela-card-header">
-            <h2 class="stela-card-title"><span data-lang="add-new-request-employee">Registration Form – Add Employee</span></h2>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h2 class="stela-card-title m-0"><span data-lang="add-new-request-employee">Registration Form – Add Employee</span></h2>
+                <span class="daisy-badge daisy-badge-primary">DaisyUI Stepper</span>
+            </div>
             
-            <div class="stela-section-pills">
-                <div class="stela-pill-navy active">
-                    <i class="fas fa-check"></i> <span data-lang="identity-competency-data">Identity Data</span>
-                </div>
-                <div class="stela-pill-navy active">
-                    <i class="fas fa-check"></i> <span data-lang="position">Position & Scope</span>
-                </div>
-                <div class="stela-pill-navy active">
-                    <i class="fas fa-check"></i> <span data-lang="certification-competency">Certifications & Files</span>
-                </div>
-                <div class="stela-pill-circle-empty"></div>
+            <!-- DaisyUI Horizontal Steps Component -->
+            <div class="daisy-steps-wrapper">
+                <ul class="daisy-steps">
+                    <li class="daisy-step active">
+                        <div class="daisy-step-icon"><i class="fas fa-id-card"></i></div>
+                        <span class="daisy-step-text" data-lang="identity-competency-data">Identitas</span>
+                    </li>
+                    <li class="daisy-step active">
+                        <div class="daisy-step-icon"><i class="fas fa-layer-group"></i></div>
+                        <span class="daisy-step-text" data-lang="competency">Kompetensi</span>
+                    </li>
+                    <li class="daisy-step active">
+                        <div class="daisy-step-icon"><i class="fas fa-file-upload"></i></div>
+                        <span class="daisy-step-text" data-lang="upload-docs-title">Berkas</span>
+                    </li>
+                    <li class="daisy-step">
+                        <div class="daisy-step-icon"><i class="fas fa-certificate"></i></div>
+                        <span class="daisy-step-text" data-lang="certification-competency">Sertifikasi</span>
+                    </li>
+                </ul>
             </div>
         </div>
 
