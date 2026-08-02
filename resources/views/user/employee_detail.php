@@ -5,13 +5,15 @@ require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 require_once dirname(__DIR__) . '/layouts/header.php';
 
 // Only USER role can access this page
-checkPageAccess(['user']);
+checkPageAccess(['user', 'admin', 'superadmin', 'department_user']);
 
 // Initialize database and variables early (before POST handler)
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 $message = '';
 $error = '';
+$userRole = $_SESSION['role'] ?? '';
+$isAdmin = ($userRole === 'admin' || $userRole === 'superadmin');
 
 // Handle form submission for adding certificate
 // Pastikan session sudah dimulai di bagian paling atas file PHP Anda
@@ -99,14 +101,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Get employee details - ensure it belongs to this company
+$whereClauseDetail = "e.id = $id";
+if (!$isAdmin && !empty($company_name)) {
+    $whereClauseDetail .= " AND e.contractor_company = '" . $db->escapeString($company_name) . "'";
+}
+
+// Get employee details
 $employee_result = $db->query("
     SELECT e.*,
            u.full_name as verified_by_name,
            u.username as verified_by_username
     FROM employees e
     LEFT JOIN users u ON e.verified_by = u.id
-    WHERE e.id = $id AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    WHERE $whereClauseDetail
 ");
 
 if (!$employee_result) {
@@ -293,7 +300,7 @@ $competency_type_labels = [
         </div>
         
         <div class="table-responsive">
-            <table class="cert-table datatable">
+            <table class="cert-table">
                 <thead>
                     <tr>
                         <th data-lang="certificate-name">Certificate Name</th>
