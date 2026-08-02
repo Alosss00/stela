@@ -112,6 +112,34 @@ try {
                             ]);
                         }
                     }
+                } else {
+                    $syncWhere = ["1=1"];
+                    if (!empty($createdByFilter)) {
+                        if (!empty($company)) {
+                            $syncWhere[] = "(a.created_by = " . intval($createdByFilter) . " OR e.created_by = " . intval($createdByFilter) . " OR (a.created_by IS NULL AND e.contractor_company = '" . $db->escapeString($company) . "'))";
+                        } elseif (!empty($department)) {
+                            $syncWhere[] = "(a.created_by = " . intval($createdByFilter) . " OR e.created_by = " . intval($createdByFilter) . " OR (a.created_by IS NULL AND e.department = '" . $db->escapeString($department) . "'))";
+                        } else {
+                            $syncWhere[] = "(a.created_by = " . intval($createdByFilter) . " OR e.created_by = " . intval($createdByFilter) . ")";
+                        }
+                    } elseif (!empty($company)) {
+                        $syncWhere[] = "e.contractor_company = '" . $db->escapeString($company) . "'";
+                    } elseif (!empty($department)) {
+                        $syncWhere[] = "e.department = '" . $db->escapeString($department) . "'";
+                    }
+
+                    $syncSql = "SELECT a.*, e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
+                                FROM appointments a 
+                                LEFT JOIN employees e ON a.employee_id = e.id 
+                                LEFT JOIN positions p ON a.position_id = p.id 
+                                WHERE " . implode(' AND ', $syncWhere) . " 
+                                ORDER BY a.id DESC LIMIT 50";
+                    $syncRes = $db->query($syncSql);
+                    if ($syncRes && $syncRes->num_rows > 0) {
+                        while ($apptRow = $syncRes->fetch_assoc()) {
+                            $esSync->indexAppointment($apptRow);
+                        }
+                    }
                 }
             }
         } catch (\Throwable $t) {
@@ -332,17 +360,23 @@ try {
             $where[] = "(a.appointment_number LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%')";
         }
 
-        if (!empty($createdByFilter)) {
+        if (!$isAdmin && !empty($createdByFilter)) {
             $safeUserId = intval($createdByFilter);
             if (!empty($company)) {
                 $safeCompany = $db->escapeString($company);
-                $where[] = "(a.created_by = $safeUserId OR (a.created_by IS NULL AND e.contractor_company = '$safeCompany'))";
+                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId OR (a.created_by IS NULL AND e.contractor_company = '$safeCompany'))";
+            } elseif (!empty($department)) {
+                $safeDept = $db->escapeString($department);
+                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId OR (a.created_by IS NULL AND e.department = '$safeDept'))";
             } else {
-                $where[] = "a.created_by = $safeUserId";
+                $where[] = "(a.created_by = $safeUserId OR e.created_by = $safeUserId)";
             }
         } elseif (!empty($company)) {
             $safeCompany = $db->escapeString($company);
             $where[] = "e.contractor_company = '$safeCompany'";
+        } elseif (!empty($department)) {
+            $safeDept = $db->escapeString($department);
+            $where[] = "e.department = '$safeDept'";
         }
 
         if (!empty($competencyType)) {

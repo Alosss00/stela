@@ -19,11 +19,8 @@ if (session_status() === PHP_SESSION_NONE) {
 // Filter
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
-$current_user_id = (int)($_SESSION['user_id'] ?? 0);
-$user_filter = "(a.created_by = '$current_user_id' OR (a.created_by IS NULL AND e.contractor_company = '" . $db->escapeString($company_name) . "'))";
-
 // Build query with filter
-$where_clause = $user_filter;
+$where_clause = "e.contractor_company = '" . $db->escapeString($company_name) . "'";
 if ($status_filter != 'all') {
     $where_clause .= " AND a.status = '" . $db->escapeString($status_filter) . "'";
 }
@@ -121,10 +118,10 @@ $appointments = $db->query("
 ");
 
 // Get statistics
-$all_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE $user_filter")->fetch_assoc()['count'];
-$pending_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE $user_filter AND a.status = 'pending'")->fetch_assoc()['count'];
-$approved_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE $user_filter AND a.status = 'approved'")->fetch_assoc()['count'];
-$rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE $user_filter AND a.status = 'rejected'")->fetch_assoc()['count'];
+$all_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE e.contractor_company = '" . $db->escapeString($company_name) . "'")->fetch_assoc()['count'];
+$pending_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE e.contractor_company = '" . $db->escapeString($company_name) . "' AND a.status = 'pending'")->fetch_assoc()['count'];
+$approved_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE e.contractor_company = '" . $db->escapeString($company_name) . "' AND a.status = 'approved'")->fetch_assoc()['count'];
+$rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE e.contractor_company = '" . $db->escapeString($company_name) . "' AND a.status = 'rejected'")->fetch_assoc()['count'];
 ?>
 
 <div class="appointments-container">
