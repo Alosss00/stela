@@ -421,15 +421,22 @@ class ElasticsearchService {
                 $mustQueries[] = ['match_all' => new \stdClass()];
             }
 
+            $scopeShould = [];
             if (!empty($filters['contractor_company'])) {
-                $filterQueries[] = [
-                    'match_phrase' => ['contractor_company' => $filters['contractor_company']]
-                ];
+                $scopeShould[] = ['match_phrase' => ['contractor_company' => $filters['contractor_company']]];
+                $scopeShould[] = ['match_phrase' => ['department' => $filters['contractor_company']]];
+            }
+            if (!empty($filters['department']) && $filters['department'] !== ($filters['contractor_company'] ?? '')) {
+                $scopeShould[] = ['match_phrase' => ['department' => $filters['department']]];
+                $scopeShould[] = ['match_phrase' => ['contractor_company' => $filters['department']]];
             }
 
-            if (!empty($filters['department'])) {
+            if (!empty($scopeShould)) {
                 $filterQueries[] = [
-                    'match_phrase' => ['department' => $filters['department']]
+                    'bool' => [
+                        'should' => $scopeShould,
+                        'minimum_should_match' => 1
+                    ]
                 ];
             }
 
@@ -531,15 +538,22 @@ class ElasticsearchService {
                 ];
             }
 
+            $scopeShould = [];
             if (!empty($filters['contractor_company'])) {
-                $filterQueries[] = [
-                    'match_phrase' => ['contractor_company' => $filters['contractor_company']]
-                ];
+                $scopeShould[] = ['match_phrase' => ['contractor_company' => $filters['contractor_company']]];
+                $scopeShould[] = ['match_phrase' => ['department' => $filters['contractor_company']]];
+            }
+            if (!empty($filters['department']) && $filters['department'] !== ($filters['contractor_company'] ?? '')) {
+                $scopeShould[] = ['match_phrase' => ['department' => $filters['department']]];
+                $scopeShould[] = ['match_phrase' => ['contractor_company' => $filters['department']]];
             }
 
-            if (!empty($filters['department'])) {
+            if (!empty($scopeShould)) {
                 $filterQueries[] = [
-                    'match_phrase' => ['department' => $filters['department']]
+                    'bool' => [
+                        'should' => $scopeShould,
+                        'minimum_should_match' => 1
+                    ]
                 ];
             }
 
