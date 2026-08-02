@@ -173,6 +173,9 @@ class ElasticsearchService {
                                 'sub_competency' => ['type' => 'text'],
                                 'supervision_area' => ['type' => 'text'],
                                 'approval_status' => ['type' => 'keyword'],
+                                'employee_status' => ['type' => 'keyword'],
+                                'appointment_number' => ['type' => 'keyword', 'fields' => ['text' => ['type' => 'text']]],
+                                'resign_date' => ['type' => 'keyword'],
                                 'is_active' => ['type' => 'integer'],
                                 'created_by' => ['type' => 'integer'],
                                 'created_at' => ['type' => 'date', 'format' => 'yyyy-MM-dd HH:mm:ss||yyyy-MM-dd||strict_date_optional_time']
@@ -262,6 +265,9 @@ class ElasticsearchService {
                     'sub_competency' => $data['sub_competency'] ?? '',
                     'supervision_area' => $data['supervision_area'] ?? '',
                     'approval_status' => $data['approval_status'] ?? ($data['status'] ?? 'pending'),
+                    'employee_status' => $data['employee_status'] ?? 'active',
+                    'appointment_number' => $data['appointment_number'] ?? '',
+                    'resign_date' => $data['resign_date'] ?? null,
                     'is_active' => isset($data['is_active']) ? (int)$data['is_active'] : 1,
                     'created_by' => isset($data['created_by']) && $data['created_by'] !== '' ? (int)$data['created_by'] : null,
                     'created_at' => $data['created_at'] ?? date('Y-m-d H:i:s')
@@ -449,6 +455,12 @@ class ElasticsearchService {
             if (!empty($filters['approval_status'])) {
                 $filterQueries[] = [
                     'term' => ['approval_status' => $filters['approval_status']]
+                ];
+            }
+
+            if (!empty($filters['employee_status'])) {
+                $filterQueries[] = [
+                    'term' => ['employee_status' => $filters['employee_status']]
                 ];
             }
 
