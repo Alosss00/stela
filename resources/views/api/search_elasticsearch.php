@@ -56,10 +56,15 @@ try {
     $isAdmin = ($userRole === 'admin' || $userRole === 'superadmin');
 
     $createdByFilter = null;
-    if (!$isAdmin && $currentUserId > 0) {
-        $createdByFilter = $currentUserId;
+    if (!$isAdmin) {
         if (!empty($userCompany)) {
             $company = $userCompany;
+        }
+        if (!empty($userDept)) {
+            $department = $userDept;
+        }
+        if (isset($_GET['created_by']) && is_numeric($_GET['created_by'])) {
+            $createdByFilter = (int)$_GET['created_by'];
         }
     } elseif (isset($_GET['created_by']) && is_numeric($_GET['created_by'])) {
         $createdByFilter = (int)$_GET['created_by'];
