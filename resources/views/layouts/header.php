@@ -51,7 +51,6 @@ $current_page = get_current_page();
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/datatable-custom.css?v=<?php echo time(); ?>">
-    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/genz-add-employee.css?v=<?php echo time(); ?>">
 
 </head>
 <body>

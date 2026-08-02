@@ -649,12 +649,12 @@ require_once dirname(__DIR__) . '/layouts/header.php';
         
         <!-- Form Actions -->
         <div class="form-actions">
-            <a href="employees.php" class="btn-cancel-emp">
-                <i class="fas fa-arrow-left"></i> <span data-lang="cancel">Cancel</span>
-            </a>
-            <button type="submit" class="btn-submit-emp">
-                <i class="fas fa-paper-plane"></i> <span data-lang="save-submit-verification">Save & Submit for Verification</span>
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-save"></i> <span data-lang="save-submit-verification">Save & Submit for Verification</span>
             </button>
+            <a href="employees.php" class="btn btn-secondary btn-lg">
+                <i class="fas fa-times"></i> <span data-lang="cancel">Cancel</span>
+            </a>
         </div>
     </form>
 </div>
