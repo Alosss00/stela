@@ -366,379 +366,346 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
-<div class="add-employee-page-bg">
-    <div class="add-employee-card-wrapper">
-        <!-- Top Bar with Pill Toggle and Close Button -->
-        <div class="card-top-bar">
-            <div class="top-pill-toggle">
-                <span class="pill-tab">Admin Request</span>
-                <span class="pill-tab active">Employee Registration</span>
+<div class="stela-card-page-wrapper">
+    <div class="stela-reg-card">
+        <!-- 1. Top Bar: Pill Toggle & Close Button -->
+        <div class="stela-card-topbar">
+            <div class="stela-pill-toggle">
+                <span class="stela-pill-item">Admin Request</span>
+                <span class="stela-pill-item active">Employee Registration</span>
             </div>
-            <a href="employees.php" class="card-close-btn" title="Back to Employees">
+            <a href="employees.php" class="stela-card-close" title="Back to Employees">
                 <i class="fas fa-times"></i>
             </a>
         </div>
 
-        <!-- Main Title & Section Status Pills (Deep Navy Blue) -->
-        <div class="card-header-main">
-            <h1 class="card-main-title"><span data-lang="add-new-request-employee">Registration Form – Add Employee</span></h1>
+        <!-- 2. Header: Title & Navy Blue Section Pills -->
+        <div class="stela-card-header">
+            <h2 class="stela-card-title"><span data-lang="add-new-request-employee">Registration Form – Add Employee</span></h2>
             
-            <div class="section-pills-row">
-                <div class="status-pill active">
-                    <i class="fas fa-check-circle"></i> <span data-lang="identity-competency-data">Identity Data</span>
+            <div class="stela-section-pills">
+                <div class="stela-pill-navy active">
+                    <i class="fas fa-check"></i> <span data-lang="identity-competency-data">Identity Data</span>
                 </div>
-                <div class="status-pill active">
-                    <i class="fas fa-check-circle"></i> <span data-lang="position">Position & Scope</span>
+                <div class="stela-pill-navy active">
+                    <i class="fas fa-check"></i> <span data-lang="position">Position & Scope</span>
                 </div>
-                <div class="status-pill active">
-                    <i class="fas fa-check-circle"></i> <span data-lang="certification-competency">Certifications & Files</span>
+                <div class="stela-pill-navy active">
+                    <i class="fas fa-check"></i> <span data-lang="certification-competency">Certifications & Files</span>
                 </div>
-                <div class="status-pill-empty"></div>
+                <div class="stela-pill-circle-empty"></div>
             </div>
         </div>
-        
+
         <?php if ($message): ?>
-        <div class="alert alert-success alert-custom-add" style="margin: 0 36px 20px 36px;">
-            <i class="fas fa-check-circle"></i>
-            <div>
-                <strong data-lang="success">Success!</strong>
-                <p><?php echo htmlspecialchars($message); ?></p>
-            </div>
+        <div class="stela-card-alert success" style="margin: 0 36px 18px 36px; padding: 14px 18px; background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; color: #166534;">
+            <i class="fas fa-check-circle"></i> <strong>Success!</strong> <?php echo htmlspecialchars($message); ?>
         </div>
         <?php endif; ?>
         
         <?php if ($error): ?>
-        <div class="alert alert-error alert-custom-add" style="margin: 0 36px 20px 36px;">
-            <i class="fas fa-exclamation-circle"></i>
-            <div>
-                <strong data-lang="error">Error!</strong>
-                <p><?php echo htmlspecialchars($error); ?></p>
-            </div>
+        <div class="stela-card-alert error" style="margin: 0 36px 18px 36px; padding: 14px 18px; background: #fef2f2; border: 1px solid #fecaca; border-radius: 14px; color: #991b1b;">
+            <i class="fas fa-exclamation-circle"></i> <strong>Error!</strong> <?php echo htmlspecialchars($error); ?>
         </div>
         <?php endif; ?>
-        
-        <form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate>
+
+        <!-- 3. Form Body -->
+        <form method="POST" action="" enctype="multipart/form-data" id="addEmployeeForm" novalidate>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
-            
-            <div class="card-form-body">
 
-        <div class="form-section">
-            <div class="section-header">
-                <h3><i class="fas fa-id-card"></i> <span data-lang="identity-competency-data">Identity & Competency Data</span></h3>
-                <span class="section-number">1</span>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group col-lg-6">
-                    <label for="employee_code" data-lang="id-badge-required">ID BADGE <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="employee_code" name="employee_code"
-                           value="<?php echo isset($_POST['employee_code']) ? htmlspecialchars($_POST['employee_code']) : ''; ?>"
-                           required placeholder="Example: BADGE001" data-lang-placeholder="badge-example-placeholder">
-                    <small class="form-hint" data-lang="unique-id-badge-hint">Unique ID for employee badge identification</small>
-                </div>
+            <div class="stela-card-body">
                 
-                <div class="form-group col-lg-6">
-                    <label for="full_name" data-lang="full-name">Full Name<span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="full_name" name="full_name" 
-                           value="<?php echo isset($_POST['full_name']) ? htmlspecialchars($_POST['full_name']) : ''; ?>"
-                           required placeholder="Full name of the employee" data-lang-placeholder="full-name-of-employee-placeholder">
-                </div>
-            </div>
-            
-            <input type="hidden" id="department" name="department" value="General">
-            
-            <div class="form-row">
-                <div class="form-group col-lg-6">
-                    <label for="position" data-lang="position">Position <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="position" name="position" 
-                           value="<?php echo isset($_POST['position']) ? htmlspecialchars($_POST['position']) : ''; ?>"
-                           required placeholder="Example: Rigger, HSE Superintendent" data-lang-placeholder="position-example-placeholder">
-                </div>
-                
-                <div class="form-group col-lg-6" id="ruang_lingkup_group" style="display: none;">
-                    <label for="ruang_lingkup" data-lang="scope-of-work">Scope of Work <span class="text-danger">*</span></label>
-                    <select class="form-control" id="ruang_lingkup" name="ruang_lingkup">
-                        <option value="" data-lang="select-scope-of-work">-- Select Scope of Work --</option>
-                        <option value="PT Meares Soputan Mining (MSM)" data-lang="scope-of-work-msm" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Meares Soputan Mining (MSM)') ? 'selected' : ''; ?>>PT MSM</option>
-                        <option value="PT Tambang Tondano Nusajaya (TTN)" data-lang="scope-of-work-ttn" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Tambang Tondano Nusajaya (TTN)') ? 'selected' : ''; ?>>PT TTN</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group col-lg-6">
-                    <label for="competency_type" data-lang="competency-type">Competency Type <span class="text-danger">*</span></label>
-                    <select class="form-control" id="competency_type" name="competency_type" onchange="toggleCompetencyField()" required>
-                        <option value="" data-lang="select-competency-type">-- Select Competency Type --</option>
-                        <option value="pengawas_operasional" data-lang="competency-type-operational-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_operasional') ? 'selected' : ''; ?>>Pengawas Operasional</option>
-                        <option value="pengawas_teknis" data-lang="competency-type-technical-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_teknis') ? 'selected' : ''; ?>>Pengawas Teknis</option>
-                        <option value="tenaga_teknis" data-lang="competency-type-technical-personnel" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'tenaga_teknis') ? 'selected' : ''; ?>>Tenaga Teknis</option>
-                    </select>
-                </div>
-
-                <div class="form-group col-lg-6" id="supervision_area_group" style="display: none;">
-                    <label for="supervision_area" data-lang="supervision-area">Supervision Area <span class="text-danger">*</span></label>
-                    <select class="form-control" id="supervision_area" name="supervision_area">
-                        <option value="" data-lang="select-supervision-area">-- Select Supervision Area --</option>
-                        <?php
-                        if ($supervision_areas && $supervision_areas->num_rows > 0) {
-                            $supervision_areas->data_seek(0);
-                            while ($area = $supervision_areas->fetch_assoc()):
-                                $selected = (isset($_POST['supervision_area']) && $_POST['supervision_area'] == $area['area_name']) ? 'selected' : '';
-                        ?>
-                        <option value="<?php echo htmlspecialchars($area['area_name']); ?>" <?php echo $selected; ?>>
-                            <?php echo htmlspecialchars($area['area_name']); ?>
-                        </option>
-                        <?php
-                            endwhile;
-                        }
-                        ?>
-                    </select>
-                </div>
-
-                <div class="form-group col-lg-6" id="competency_group" style="display: none;">
-                    <label for="competency_name" data-lang="competency">Competency <span class="text-danger">*</span></label>
-                    <select class="form-control" id="competency_name" name="competency_name" onchange="loadSubCompetencies()">
-                        <option value="" data-lang="select-competency">-- Select Competency --</option>
-                        <?php
-                        if (!empty($competencies_by_type['pengawas_operasional'])) {
-                            foreach ($competencies_by_type['pengawas_operasional'] as $comp):
-                        ?>
-                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="pengawas_operasional" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($comp['competency_name']); ?>
-                            </option>
-                        <?php
-                            endforeach;
-                        }
-                        if (!empty($competencies_by_type['pengawas_teknis'])) {
-                            foreach ($competencies_by_type['pengawas_teknis'] as $comp):
-                        ?>
-                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="pengawas_teknis" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($comp['competency_name']); ?>
-                            </option>
-                        <?php
-                            endforeach;
-                        }
-                        if (!empty($competencies_by_type['tenaga_teknis'])) {
-                            foreach ($competencies_by_type['tenaga_teknis'] as $comp):
-                        ?>
-                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="tenaga_teknis" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($comp['competency_name']); ?>
-                            </option>
-                        <?php
-                            endforeach;
-                        }
-                        ?>
-                    </select>
-                </div>
-
-                <div class="form-group col-lg-6" id="sub_competency_group" style="display: none;">
-                    <label for="sub_competency" data-lang="sub-competency">Sub Competency</label>
-                    <select class="form-control" id="sub_competency" name="sub_competency">
-                        <option value="" data-lang="select-sub-competency">-- Select Sub Competency --</option>
-                    </select>
-                </div>
-            </div>
-
-            <div class="form-row">
-                <div class="form-group col-lg-6">
-                    <label for="contractor_company">
-                        <?php if (!empty($current_department)): ?>
-                            <span data-lang="department">Department</span>
-                        <?php else: ?>
-                            <span data-lang="company">Company</span>
-                        <?php endif; ?>
-                    </label>
-                    <select class="form-control" id="contractor_company" name="contractor_company" required>
-                        <option value="" data-lang="select-company">-- Select Company --</option>
-                        <option value="PT Meares Soputan Mining" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Meares Soputan Mining') ? 'selected' : ''; ?>>PT Meares Soputan Mining</option>
-                        <option value="PT Tambang Tondano Nusajaya" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tambang Tondano Nusajaya') ? 'selected' : ''; ?>>PT Tambang Tondano Nusajaya</option>
-                        <option value="G4S Security Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'G4S Security Services') ? 'selected' : ''; ?>>G4S Security Services</option>
-                        <option value="PT Part Sentra Indomandiri" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Part Sentra Indomandiri') ? 'selected' : ''; ?>>PT Part Sentra Indomandiri</option>
-                        <option value="PT Aneka Kimia Raya Corporindo" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Aneka Kimia Raya Corporindo') ? 'selected' : ''; ?>>PT Aneka Kimia Raya Corporindo</option>
-                        <option value="PT Saribuana Manado" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Saribuana Manado') ? 'selected' : ''; ?>>PT Saribuana Manado</option>
-                        <option value="PT Maxidrill Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Maxidrill Indonesia') ? 'selected' : ''; ?>>PT Maxidrill Indonesia</option>
-                        <option value="PT Tata Wisata" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tata Wisata') ? 'selected' : ''; ?>>PT Tata Wisata</option>
-                        <option value="PT Arlie Labora Utama" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Arlie Labora Utama') ? 'selected' : ''; ?>>PT Arlie Labora Utama</option>
-                        <option value="PT Tou Maesa Sejahtera" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tou Maesa Sejahtera') ? 'selected' : ''; ?>>PT Tou Maesa Sejahtera</option>
-                        <option value="PT DNX Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT DNX Indonesia') ? 'selected' : ''; ?>>PT DNX Indonesia</option>
-                        <option value="PT Mandara Fasilitas Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Mandara Fasilitas Indonesia') ? 'selected' : ''; ?>>PT Mandara Fasilitas Indonesia</option>
-                        <option value="PT Aptekindo Mitra Solusitama" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Aptekindo Mitra Solusitama') ? 'selected' : ''; ?>>PT Aptekindo Mitra Solusitama</option>
-                        <option value="PT Geopersada Mulia Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Geopersada Mulai Abadi') ? 'selected' : ''; ?>>PT Geopersada Mulai Abadi</option>
-                        <option value="PT Hidup Baru Sukses Mandiri" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Hidup Baru Sukses Mandiri') ? 'selected' : ''; ?>>PT Hidup Baru Sukses Mandiri</option>
-                        <option value="PT Intertek Utama Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Intertek Utama Services') ? 'selected' : ''; ?>>PT Intertek Utama Services</option>
-                        <option value="PT Macmahon Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Macmahon Indonesia') ? 'selected' : ''; ?>>PT Macmahon Indonesia</option>
-                        <option value="PT Manado Karya Angrah" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Manado Karya Angrah') ? 'selected' : ''; ?>>PT Manado Karya Angrah</option>
-                        <option value="PT Samudera Mulai Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Samudera Mulai Abadi') ? 'selected' : ''; ?>>PT Samudera Mulai Abadi</option>
-                    </select>
-                    <small class="form-hint" data-lang="select-your-company">Select your company from the list</small>
-                </div>
-            </div>
-            
-            <div class="form-row">
-                <div class="form-group col-lg-6">
-                    <label for="cv_file" data-lang="upload-cv">Upload CV <span class="text-danger">*</span></label>
-                    <div class="file-upload-area">
-                        <i class="fas fa-file-upload"></i>
-                        <input type="file" name="cv_file" id="cv_file" class="file-input" accept=".pdf" required>
-                        <span class="file-text"><span data-lang="upload-cv-file">Upload file CV</span><br><span data-lang="pdf-max-5mb">(PDF, Max 5MB)</span></span>
-                        <span class="file-name"></span>
-                    </div>
-                </div>
-                
-                <div class="form-group col-lg-6">
-                    <label for="statement_file" data-lang="upload-statement-letter">Upload Statement Letter <span class="text-danger">*</span></label>
-                    <div class="file-upload-area">
-                        <i class="fas fa-file-signature"></i>
-                        <input type="file" name="statement_file" id="statement_file" class="file-input" accept=".pdf" required>
-                        <span class="file-text"><span data-lang="upload-tt-mgt-frs-008d">Upload TT-MGT-FRS-008D</span><br><span data-lang="pdf-max-5mb">(PDF, Max 5MB)</span></span>
-                        <span class="file-name"></span>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="alert alert-warning-custom" style="margin-bottom: 0;">
-                <i class="fas fa-exclamation-triangle"></i>
-                <div>
-                    <strong data-lang="important-statement-letter">Important - Statement Letter:</strong>
-                    <p style="margin-bottom: 8px;" data-lang="wet-signature-pdf-instruction">The statement letter must be signed with wet signature (original) and scanned in PDF format</p>
-                    <a href="https://drive.google.com/drive/folders/176NPnFCvAnzp2Mb9vrA2RC5OMA45Hga1?usp=sharing" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
-                        <i class="fas fa-download"></i> <span data-lang="download-statement-letter-template">Download Statement Letter Template</span>
-                    </a>
-                </div>
-            </div>
-        </div>
-        
-        <div class="form-section">
-            <div class="section-header">
-                <h3><i class="fas fa-certificate"></i> <span data-lang="certification-competency">Certification/Competency</span></h3>
-                <span class="section-number">2</span>
-            </div>
-            
-            <div id="certificationContainer" class="certifications-list">
-                <div class="certification-item">
-                    <div class="cert-item-header">
-                        <h5><i class="fas fa-file-certificate"></i> <span data-lang="certification-number-1">Certification #1</span></h5>
-                        <div class="cert-header-actions">
-                            </div>
-                    </div>
+                <!-- Section 1: Identity & Competency Data -->
+                <div class="stela-form-block">
+                    <h4 class="stela-block-title"><i class="fas fa-id-card"></i> <span data-lang="identity-competency-data">Identity & Competency Data</span></h4>
                     
-                    <div class="form-row">
-                        <div class="form-group col-lg-4">
-                            <label data-lang="certification-name">Certification Name <span class="text-danger">*</span></label>
-                            <select name="certification_ids[]" class="form-control cert-name-select" required onchange="updateIssuer(this)">
-                                <option value="" data-lang="select-certification">-- Select Certification --</option>
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <label for="employee_code" class="stela-form-label" data-lang="id-badge-required">ID BADGE <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control stela-pill-input" id="employee_code" name="employee_code"
+                                   value="<?php echo isset($_POST['employee_code']) ? htmlspecialchars($_POST['employee_code']) : ''; ?>"
+                                   required placeholder="Example: BADGE001" data-lang-placeholder="badge-example-placeholder">
+                            <small class="stela-form-hint" data-lang="unique-id-badge-hint">Unique ID for employee badge identification</small>
+                        </div>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="full_name" class="stela-form-label" data-lang="full-name">Full Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control stela-pill-input" id="full_name" name="full_name" 
+                                   value="<?php echo isset($_POST['full_name']) ? htmlspecialchars($_POST['full_name']) : ''; ?>"
+                                   required placeholder="Full name of the employee" data-lang-placeholder="full-name-of-employee-placeholder">
+                        </div>
+                    </div>
+
+                    <input type="hidden" id="department" name="department" value="General">
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <label for="position" class="stela-form-label" data-lang="position">Position <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control stela-pill-input" id="position" name="position" 
+                                   value="<?php echo isset($_POST['position']) ? htmlspecialchars($_POST['position']) : ''; ?>"
+                                   required placeholder="Example: Rigger, HSE Superintendent" data-lang-placeholder="position-example-placeholder">
+                        </div>
+                        
+                        <div class="col-md-6 mb-3" id="ruang_lingkup_group" style="display: none;">
+                            <label for="ruang_lingkup" class="stela-form-label" data-lang="scope-of-work">Scope of Work <span class="text-danger">*</span></label>
+                            <select class="form-control stela-pill-input" id="ruang_lingkup" name="ruang_lingkup">
+                                <option value="" data-lang="select-scope-of-work">-- Select Scope of Work --</option>
+                                <option value="PT Meares Soputan Mining (MSM)" data-lang="scope-of-work-msm" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Meares Soputan Mining (MSM)') ? 'selected' : ''; ?>>PT MSM</option>
+                                <option value="PT Tambang Tondano Nusajaya (TTN)" data-lang="scope-of-work-ttn" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Tambang Tondano Nusajaya (TTN)') ? 'selected' : ''; ?>>PT TTN</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <label for="competency_type" class="stela-form-label" data-lang="competency-type">Competency Type <span class="text-danger">*</span></label>
+                            <select class="form-control stela-pill-input" id="competency_type" name="competency_type" onchange="toggleCompetencyField()" required>
+                                <option value="" data-lang="select-competency-type">-- Select Competency Type --</option>
+                                <option value="pengawas_operasional" data-lang="competency-type-operational-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_operasional') ? 'selected' : ''; ?>>Pengawas Operasional</option>
+                                <option value="pengawas_teknis" data-lang="competency-type-technical-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_teknis') ? 'selected' : ''; ?>>Pengawas Teknis</option>
+                                <option value="tenaga_teknis" data-lang="competency-type-technical-personnel" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'tenaga_teknis') ? 'selected' : ''; ?>>Tenaga Teknis</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-6 mb-3" id="supervision_area_group" style="display: none;">
+                            <label for="supervision_area" class="stela-form-label" data-lang="supervision-area">Supervision Area <span class="text-danger">*</span></label>
+                            <select class="form-control stela-pill-input" id="supervision_area" name="supervision_area">
+                                <option value="" data-lang="select-supervision-area">-- Select Supervision Area --</option>
                                 <?php
-                                if ($certifications && $certifications->num_rows > 0) {
-                                    $certifications->data_seek(0);
-                                    while ($cert = $certifications->fetch_assoc()):
-                                    ?>
-                                    <option value="<?php echo $cert['id']; ?>" 
-                                        data-type="<?php echo htmlspecialchars($cert['cert_type'] ?? ''); ?>" 
-                                        data-issuer="<?php echo htmlspecialchars($cert['cert_issuer'] ?? ''); ?>">
-                                    <?php echo htmlspecialchars($cert['cert_name']); ?>
-                                    </option>
-                                    <?php 
+                                if ($supervision_areas && $supervision_areas->num_rows > 0) {
+                                    $supervision_areas->data_seek(0);
+                                    while ($area = $supervision_areas->fetch_assoc()):
+                                        $selected = (isset($_POST['supervision_area']) && $_POST['supervision_area'] == $area['area_name']) ? 'selected' : '';
+                                ?>
+                                <option value="<?php echo htmlspecialchars($area['area_name']); ?>" <?php echo $selected; ?>>
+                                    <?php echo htmlspecialchars($area['area_name']); ?>
+                                </option>
+                                <?php
                                     endwhile;
                                 }
                                 ?>
                             </select>
                         </div>
-                        <div class="form-group col-lg-4">
-                            <label data-lang="certificate-type">Certificate Type <span class="text-danger">*</span></label>
-                            <select name="cert_types[]" class="form-control cert-type-select" required onchange="toggleOtherType(this)">
-                                <option value="" data-lang="select-type">-- Select Type --</option>
-                                <option value="Attendance/Participant" data-lang="attendance-participant">Attendance/Participant</option>
-                                <option value="Competent" data-lang="competent">Competent</option>
-                                <option value="Training" data-lang="training">Training</option>
+
+                        <div class="col-md-6 mb-3" id="competency_group" style="display: none;">
+                            <label for="competency_name" class="stela-form-label" data-lang="competency">Competency <span class="text-danger">*</span></label>
+                            <select class="form-control stela-pill-input" id="competency_name" name="competency_name" onchange="loadSubCompetencies()">
+                                <option value="" data-lang="select-competency">-- Select Competency --</option>
+                                <?php
+                                if (!empty($competencies_by_type['pengawas_operasional'])) {
+                                    foreach ($competencies_by_type['pengawas_operasional'] as $comp):
+                                ?>
+                                    <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="pengawas_operasional" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($comp['competency_name']); ?>
+                                    </option>
+                                <?php
+                                    endforeach;
+                                }
+                                if (!empty($competencies_by_type['pengawas_teknis'])) {
+                                    foreach ($competencies_by_type['pengawas_teknis'] as $comp):
+                                ?>
+                                    <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="pengawas_teknis" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($comp['competency_name']); ?>
+                                    </option>
+                                <?php
+                                    endforeach;
+                                }
+                                if (!empty($competencies_by_type['tenaga_teknis'])) {
+                                    foreach ($competencies_by_type['tenaga_teknis'] as $comp):
+                                ?>
+                                    <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="tenaga_teknis" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
+                                        <?php echo htmlspecialchars($comp['competency_name']); ?>
+                                    </option>
+                                <?php
+                                    endforeach;
+                                }
+                                ?>
                             </select>
                         </div>
-                        <div class="form-group col-lg-4 other-type-input" style="display: none;">
-                            <label data-lang="other-type">Other Type <span class="text-danger">*</span></label>
-                            <input type="text" name="cert_types_other[]" class="form-control" placeholder="Enter certificate type" data-lang-placeholder="enter-certificate-type">
+
+                        <div class="col-md-6 mb-3" id="sub_competency_group" style="display: none;">
+                            <label for="sub_competency" class="stela-form-label" data-lang="sub-competency">Sub Competency</label>
+                            <select class="form-control stela-pill-input" id="sub_competency" name="sub_competency">
+                                <option value="" data-lang="select-sub-competency">-- Select Sub Competency --</option>
+                            </select>
                         </div>
                     </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-lg-6">
-                            <label data-lang="certificate-number">Certificate Number <span class="text-danger">*</span></label>
-                            <input type="text" name="cert_numbers[]" class="form-control" required placeholder="Certificate number" data-lang-placeholder="certificate-number-placeholder">
-                        </div>
-                        <div class="form-group col-lg-6">
-                            <label data-lang="issuer">Issuer <span class="text-danger">*</span></label>
-                            <input type="text" name="cert_issuers[]" class="form-control" required placeholder="Name of issuer/certification body" data-lang-placeholder="issuer-certification-body-name">
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <label for="contractor_company" class="stela-form-label">
+                                <?php if (!empty($current_department)): ?>
+                                    <span data-lang="department">Department</span>
+                                <?php else: ?>
+                                    <span data-lang="company">Company</span>
+                                <?php endif; ?>
+                            </label>
+                            <select class="form-control stela-pill-input" id="contractor_company" name="contractor_company" required>
+                                <option value="" data-lang="select-company">-- Select Company --</option>
+                                <option value="PT Meares Soputan Mining" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Meares Soputan Mining') ? 'selected' : ''; ?>>PT Meares Soputan Mining</option>
+                                <option value="PT Tambang Tondano Nusajaya" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tambang Tondano Nusajaya') ? 'selected' : ''; ?>>PT Tambang Tondano Nusajaya</option>
+                                <option value="G4S Security Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'G4S Security Services') ? 'selected' : ''; ?>>G4S Security Services</option>
+                                <option value="PT Part Sentra Indomandiri" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Part Sentra Indomandiri') ? 'selected' : ''; ?>>PT Part Sentra Indomandiri</option>
+                                <option value="PT Aneka Kimia Raya Corporindo" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Aneka Kimia Raya Corporindo') ? 'selected' : ''; ?>>PT Aneka Kimia Raya Corporindo</option>
+                                <option value="PT Saribuana Manado" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Saribuana Manado') ? 'selected' : ''; ?>>PT Saribuana Manado</option>
+                                <option value="PT Maxidrill Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Maxidrill Indonesia') ? 'selected' : ''; ?>>PT Maxidrill Indonesia</option>
+                                <option value="PT Tata Wisata" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tata Wisata') ? 'selected' : ''; ?>>PT Tata Wisata</option>
+                                <option value="PT Arlie Labora Utama" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Arlie Labora Utama') ? 'selected' : ''; ?>>PT Arlie Labora Utama</option>
+                                <option value="PT Tou Maesa Sejahtera" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tou Maesa Sejahtera') ? 'selected' : ''; ?>>PT Tou Maesa Sejahtera</option>
+                                <option value="PT DNX Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT DNX Indonesia') ? 'selected' : ''; ?>>PT DNX Indonesia</option>
+                                <option value="PT Mandara Fasilitas Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Mandara Fasilitas Indonesia') ? 'selected' : ''; ?>>PT Mandara Fasilitas Indonesia</option>
+                                <option value="PT Aptekindo Mitra Solusitama" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Aptekindo Mitra Solusitama') ? 'selected' : ''; ?>>PT Aptekindo Mitra Solusitama</option>
+                                <option value="PT Geopersada Mulia Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Geopersada Mulai Abadi') ? 'selected' : ''; ?>>PT Geopersada Mulai Abadi</option>
+                                <option value="PT Hidup Baru Sukses Mandiri" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Hidup Baru Sukses Mandiri') ? 'selected' : ''; ?>>PT Hidup Baru Sukses Mandiri</option>
+                                <option value="PT Intertek Utama Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Intertek Utama Services') ? 'selected' : ''; ?>>PT Intertek Utama Services</option>
+                                <option value="PT Macmahon Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Macmahon Indonesia') ? 'selected' : ''; ?>>PT Macmahon Indonesia</option>
+                                <option value="PT Manado Karya Angrah" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Manado Karya Angrah') ? 'selected' : ''; ?>>PT Manado Karya Angrah</option>
+                                <option value="PT Samudera Mulai Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Samudera Mulai Abadi') ? 'selected' : ''; ?>>PT Samudera Mulai Abadi</option>
+                            </select>
+                            <small class="stela-form-hint" data-lang="select-your-company">Select your company from the list</small>
                         </div>
                     </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-lg-6">
-                            <label data-lang="issue-date">Issue Date <span class="text-danger">*</span></label>
-                            <input type="date" name="issue_dates[]" class="form-control issue-date" required onchange="calculateExpiryDate(this)">
+
+                    <div class="row g-3">
+                        <div class="col-md-6 mb-3">
+                            <label for="cv_file" class="stela-form-label" data-lang="upload-cv">Upload CV <span class="text-danger">*</span></label>
+                            <div class="stela-file-box">
+                                <i class="fas fa-file-upload"></i>
+                                <input type="file" name="cv_file" id="cv_file" class="file-input" accept=".pdf" required>
+                                <span class="file-text"><span data-lang="upload-cv-file">Upload file CV</span> <span data-lang="pdf-max-5mb">(PDF, Max 5MB)</span></span>
+                                <span class="file-name"></span>
+                            </div>
                         </div>
-                        <div class="form-group col-lg-6">
-                            <label data-lang="validity-period">Validity Period <span class="text-danger">*</span></label>
-                            <div class="validity-input-group">
-                                <input type="number" name="validity_years[]" class="form-control validity-years" min="0" step="0.5" placeholder="Years" data-lang-placeholder="years" onchange="calculateExpiryDate(this)">
-                                <label class="checkbox-label">
-                                    <input type="checkbox" name="no_expiry[]" class="no-expiry-check" onchange="toggleExpiryField(this)">
-                                    <span data-lang="no-expiry">No Expiry</span>
-                                </label>
+                        
+                        <div class="col-md-6 mb-3">
+                            <label for="statement_file" class="stela-form-label" data-lang="upload-statement-letter">Upload Statement Letter <span class="text-danger">*</span></label>
+                            <div class="stela-file-box">
+                                <i class="fas fa-file-signature"></i>
+                                <input type="file" name="statement_file" id="statement_file" class="file-input" accept=".pdf" required>
+                                <span class="file-text"><span data-lang="upload-tt-mgt-frs-008d">Upload TT-MGT-FRS-008D</span> <span data-lang="pdf-max-5mb">(PDF, Max 5MB)</span></span>
+                                <span class="file-name"></span>
                             </div>
                         </div>
                     </div>
-                    
-                    <div class="form-row">
-                        <div class="form-group col-lg-6">
-                            <label data-lang="expiry-date">Expiry Date <span class="text-danger">*</span></label>
-                            <input type="date" name="expiry_dates[]" class="form-control expiry-date" readonly>
-                        </div>
-                        <div class="form-group col-lg-6">
-                        </div>
-                    </div>
-                    
-                    <div class="form-group other-expiry-reason" style="display: none;">
-                        <label data-lang="notes">Notes <span class="text-danger">*</span></label>
-                        <textarea name="expiry_reasons[]" class="form-control" placeholder="Explain the reason..." data-lang-placeholder="explain-the-reason" rows="2"></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label data-lang="upload-certificate-file">Upload Certificate File <span class="text-danger">*</span></label>
-                        <div class="file-upload-area">
-                            <i class="fas fa-file-pdf"></i>
-                            <input type="file" name="certifications[]" class="file-input" accept=".pdf" required>
-                            <span class="file-text" data-lang="upload-certificate-file-pdf">Upload certificate file (PDF, Max 5MB)</span>
-                            <span class="file-name"></span>
+
+                    <div class="stela-warn-box">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        <div>
+                            <strong data-lang="important-statement-letter">Important - Statement Letter:</strong>
+                            <p data-lang="wet-signature-pdf-instruction">The statement letter must be signed with wet signature (original) and scanned in PDF format.</p>
+                            <a href="https://drive.google.com/drive/folders/176NPnFCvAnzp2Mb9vrA2RC5OMA45Hga1?usp=sharing" target="_blank" class="btn btn-sm btn-outline-primary mt-1">
+                                <i class="fas fa-download"></i> <span data-lang="download-statement-letter-template">Download Statement Letter Template</span>
+                            </a>
                         </div>
                     </div>
                 </div>
-            </div>
 
-            <button type="button" class="btn btn-outline-primary" onclick="addCertification()">
-                <i class="fas fa-plus-circle"></i> <span data-lang="add-another-certification">Add Another Certification</span>
-            </button>
-        </div>
+                <!-- Section 2: Certification / Competency -->
+                <div class="stela-form-block mt-4">
+                    <h4 class="stela-block-title"><i class="fas fa-certificate"></i> <span data-lang="certification-competency">Certification / Competency</span></h4>
+                    
+                    <div id="certificationContainer" class="certifications-list">
+                        <div class="certification-item stela-cert-card">
+                            <div class="cert-item-header d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="m-0 font-weight-bold" style="color: #1e3a8a;"><i class="fas fa-file-certificate"></i> <span data-lang="certification-number-1">Certification #1</span></h5>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-4 mb-3">
+                                    <label class="stela-form-label" data-lang="certification-name">Certification Name <span class="text-danger">*</span></label>
+                                    <select name="certification_ids[]" class="form-control stela-pill-input cert-name-select" required onchange="updateIssuer(this)">
+                                        <option value="" data-lang="select-certification">-- Select Certification --</option>
+                                        <?php
+                                        if ($certifications && $certifications->num_rows > 0) {
+                                            $certifications->data_seek(0);
+                                            while ($cert = $certifications->fetch_assoc()):
+                                            ?>
+                                            <option value="<?php echo $cert['id']; ?>" 
+                                                data-type="<?php echo htmlspecialchars($cert['cert_type'] ?? ''); ?>" 
+                                                data-issuer="<?php echo htmlspecialchars($cert['cert_issuer'] ?? ''); ?>">
+                                            <?php echo htmlspecialchars($cert['cert_name']); ?>
+                                            </option>
+                                            <?php 
+                                            endwhile;
+                                        }
+                                        ?>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="stela-form-label" data-lang="certificate-type">Certificate Type <span class="text-danger">*</span></label>
+                                    <select name="cert_types[]" class="form-control stela-pill-input cert-type-select" required onchange="toggleOtherType(this)">
+                                        <option value="" data-lang="select-type">-- Select Type --</option>
+                                        <option value="Attendance/Participant" data-lang="attendance-participant">Attendance/Participant</option>
+                                        <option value="Competent" data-lang="competent">Competent</option>
+                                        <option value="Training" data-lang="training">Training</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4 mb-3 other-type-input" style="display: none;">
+                                    <label class="stela-form-label" data-lang="other-type">Other Type <span class="text-danger">*</span></label>
+                                    <input type="text" name="cert_types_other[]" class="form-control stela-pill-input" placeholder="Enter certificate type" data-lang-placeholder="enter-certificate-type">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="stela-form-label" data-lang="certificate-number">Certificate Number <span class="text-danger">*</span></label>
+                                    <input type="text" name="cert_numbers[]" class="form-control stela-pill-input" required placeholder="Certificate number" data-lang-placeholder="certificate-number-placeholder">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="stela-form-label" data-lang="issuing-authority">Issuing Authority / Institution <span class="text-danger">*</span></label>
+                                    <input type="text" name="cert_issuers[]" class="form-control stela-pill-input cert-issuer-input" required placeholder="Issuer name" data-lang-placeholder="issuing-authority-name">
+                                </div>
+                            </div>
+                            
+                            <div class="row g-3">
+                                <div class="col-md-6 mb-3">
+                                    <label class="stela-form-label" data-lang="valid-until">Valid Until <span class="text-danger">*</span></label>
+                                    <div class="validity-input-group d-flex gap-2 align-items-center">
+                                        <input type="date" name="valid_untils[]" class="form-control stela-pill-input valid-until-date" onchange="handleDateChange(this)">
+                                        <div class="form-check form-check-inline m-0">
+                                            <input class="form-check-input lifetime-checkbox" type="checkbox" name="is_lifetimes[]" value="1" onchange="handleLifetimeToggle(this)">
+                                            <label class="form-check-label small" data-lang="lifetime">Lifetime</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label class="stela-form-label" data-lang="upload-certificate">Upload Certificate <span class="text-danger">*</span></label>
+                                    <div class="stela-file-box">
+                                        <i class="fas fa-file-pdf"></i>
+                                        <input type="file" name="cert_files[]" class="file-input cert-file-input" accept=".pdf" required>
+                                        <span class="file-text"><span data-lang="upload-certificate-file-pdf">Upload PDF</span> <span data-lang="pdf-max-5mb">(Max 5MB)</span></span>
+                                        <span class="file-name"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
-            </div> <!-- end .card-form-body -->
-            
-            <!-- Light Blue Bottom Banner (Matching Image Footer) -->
-            <div class="card-footer-banner">
+                    <button type="button" class="btn stela-btn-add-cert mt-2" onclick="addCertification()">
+                        <i class="fas fa-plus-circle"></i> <span data-lang="add-another-certification">Add Another Certification</span>
+                    </button>
+                </div>
+
+            </div> <!-- end .stela-card-body -->
+
+            <!-- 4. Footer Banner: Info & Deep Navy Submit Button -->
+            <div class="stela-card-footer">
                 <div class="footer-info">
-                    <div class="footer-title">
-                        <strong>STELA Verification System</strong> <span class="footer-badge">(Official Request)</span>
-                    </div>
-                    <p class="footer-desc" data-lang="after-employee-data-added-note">Submitted data will be reviewed by Department Admin before an Appointment Letter can be created.</p>
+                    <div class="footer-title">STELA Verification Portal</div>
+                    <div class="footer-desc" data-lang="after-employee-data-added-note">Submitted data will be reviewed by Department Admin before an Appointment Letter can be created.</div>
                 </div>
-                
-                <div class="footer-actions">
-                    <a href="employees.php" class="btn-cancel-pill" data-lang="cancel">Cancel</a>
-                    <button type="submit" class="btn-submit-navy">
-                        <span data-lang="save-submit-verification">Submit Request</span> <i class="fas fa-paper-plane"></i>
+                <div class="footer-buttons">
+                    <a href="employees.php" class="btn stela-btn-cancel" data-lang="cancel">Cancel</a>
+                    <button type="submit" class="btn stela-btn-submit">
+                        <span data-lang="save-submit-verification">Submit Request</span> <i class="fas fa-paper-plane ml-1"></i>
                     </button>
                 </div>
             </div>
+
         </form>
-    </div> <!-- end .add-employee-card-wrapper -->
-</div> <!-- end .add-employee-page-bg -->
+    </div>
+</div>
 
 <script>
 // Data sertifikasi dari server

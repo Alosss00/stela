@@ -27196,41 +27196,38 @@ textarea.form-control {
 }
 
 /* ==========================================================================
-   PASTEL PERIWINKLE BLUE MOCKUP THEME (MATCHING LATEST ATTACHED IMAGE)
+   STELA PERIWINKLE REGISTRATION CARD THEME (EXACT MATCH FOR MOCKUP SCREENSHOT)
    ========================================================================== */
 
-/* Page Background */
-body:has(.add-employee-page-bg) {
-  background: #9bb4d8 !important;
-}
-
-.add-employee-page-bg {
-  min-height: 100vh !important;
-  padding: 30px 20px 60px 20px !important;
-  background: #9bb4d8 !important;
+/* Outer Wrapper inside STELA Main Content */
+.stela-card-page-wrapper {
+  width: 100% !important;
+  padding: 24px 12px 60px 12px !important;
+  background: #9bb4d8 !important; /* Pastel Periwinkle Blue Background */
+  border-radius: 18px !important;
   font-family: 'Segoe UI', system-ui, -apple-system, sans-serif !important;
+  box-sizing: border-box !important;
 }
 
-/* Card Container */
-.add-employee-card-wrapper {
-  max-width: 860px !important;
+/* White Floating Card Container */
+.stela-reg-card {
+  max-width: 840px !important;
   margin: 0 auto !important;
   background: #ffffff !important;
-  border-radius: 28px !important;
-  box-shadow: 0 24px 60px rgba(30, 58, 138, 0.22), 0 4px 16px rgba(0, 0, 0, 0.04) !important;
+  border-radius: 26px !important;
+  box-shadow: 0 20px 50px rgba(30, 58, 138, 0.22) !important;
   overflow: hidden !important;
-  transition: all 0.3s ease !important;
 }
 
-/* Top Bar (Pill Toggle & Close Button) */
-.card-top-bar {
-  padding: 28px 40px 14px 40px !important;
+/* Top Bar: Pill Toggle & Close Button */
+.stela-card-topbar {
+  padding: 24px 36px 12px 36px !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
 }
 
-.top-pill-toggle {
+.stela-pill-toggle {
   background: #f1f5f9 !important;
   padding: 4px !important;
   border-radius: 24px !important;
@@ -27239,26 +27236,25 @@ body:has(.add-employee-page-bg) {
   border: 1px solid #e2e8f0 !important;
 }
 
-.top-pill-toggle .pill-tab {
-  padding: 8px 22px !important;
+.stela-pill-item {
+  padding: 7px 20px !important;
   border-radius: 20px !important;
   font-size: 13px !important;
   font-weight: 600 !important;
   color: #64748b !important;
-  cursor: pointer !important;
-  transition: all 0.2s ease !important;
+  display: inline-block !important;
 }
 
-.top-pill-toggle .pill-tab.active {
+.stela-pill-item.active {
   background: #ffffff !important;
   color: #1e3a8a !important;
   font-weight: 700 !important;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08) !important;
 }
 
-.card-close-btn {
-  width: 38px !important;
-  height: 38px !important;
+.stela-card-close {
+  width: 36px !important;
+  height: 36px !important;
   border-radius: 50% !important;
   display: flex !important;
   align-items: center !important;
@@ -27269,209 +27265,280 @@ body:has(.add-employee-page-bg) {
   transition: all 0.2s ease !important;
 }
 
-.card-close-btn:hover {
+.stela-card-close:hover {
   background: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
-/* Main Title & Section Status Pills */
-.card-header-main {
-  padding: 0 40px 20px 40px !important;
+/* Header Title & Navy Status Pills */
+.stela-card-header {
+  padding: 0 36px 18px 36px !important;
 }
 
-.card-main-title {
-  font-size: 26px !important;
+.stela-card-title {
+  font-size: 24px !important;
   font-weight: 800 !important;
   color: #0f172a !important;
-  margin: 0 0 18px 0 !important;
-  letter-spacing: -0.5px !important;
+  margin: 0 0 16px 0 !important;
+  letter-spacing: -0.4px !important;
 }
 
-.section-pills-row {
+.stela-section-pills {
   display: flex !important;
   align-items: center !important;
-  gap: 12px !important;
+  gap: 10px !important;
   flex-wrap: wrap !important;
 }
 
-.status-pill {
+.stela-pill-navy {
   background: #1e3a8a !important;
   color: #ffffff !important;
-  padding: 9px 20px !important;
+  padding: 8px 18px !important;
   border-radius: 24px !important;
-  font-size: 13.5px !important;
+  font-size: 13px !important;
   font-weight: 700 !important;
   display: inline-flex !important;
   align-items: center !important;
   gap: 8px !important;
-  box-shadow: 0 4px 14px rgba(30, 58, 138, 0.28) !important;
+  box-shadow: 0 4px 12px rgba(30, 58, 138, 0.25) !important;
 }
 
-.status-pill i {
+.stela-pill-navy i {
   color: #4ade80 !important;
-  font-size: 14px !important;
+  font-size: 13px !important;
 }
 
-.status-pill-empty {
-  width: 36px !important;
-  height: 36px !important;
+.stela-pill-circle-empty {
+  width: 34px !important;
+  height: 34px !important;
   border-radius: 50% !important;
   border: 2px solid #cbd5e1 !important;
   background: #ffffff !important;
 }
 
-/* Form Body Padding & Section Headers */
-.card-form-body {
-  padding: 0 40px 32px 40px !important;
+/* Card Body & Form Inputs */
+.stela-card-body {
+  padding: 10px 36px 28px 36px !important;
 }
 
-.card-form-body .form-section {
-  background: #ffffff !important;
-  border-radius: 20px !important;
-  padding: 24px 0 !important;
-  margin-bottom: 20px !important;
-  box-shadow: none !important;
-  border: none !important;
-  border-top: 1px solid #f1f5f9 !important;
-}
-
-.card-form-body .section-header {
-  display: flex !important;
-  justify-content: space-between !important;
-  align-items: center !important;
-  margin-bottom: 20px !important;
-  padding-bottom: 12px !important;
+.stela-block-title {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #1e293b !important;
+  margin: 0 0 18px 0 !important;
+  padding-bottom: 10px !important;
   border-bottom: 1.5px solid #f1f5f9 !important;
 }
 
-.card-form-body .section-header h3 {
-  font-size: 17px !important;
-  font-weight: 700 !important;
-  color: #1e293b !important;
-  margin: 0 !important;
-}
-
-/* Capsule / Pill Form Control Inputs (Exact match to mockup inputs) */
-.card-form-body .form-group label {
+.stela-form-label {
   font-size: 13px !important;
   font-weight: 700 !important;
   color: #475569 !important;
-  margin-bottom: 8px !important;
+  margin-bottom: 6px !important;
   display: block !important;
 }
 
-.card-form-body .form-control,
-.card-form-body select.form-control,
-.card-form-body textarea.form-control {
+/* Smooth Capsule Pill Input Fields */
+.stela-pill-input {
   background-color: #f7f7f2 !important;
   border: 1.5px solid #e8e8e3 !important;
   border-radius: 28px !important;
-  height: 48px !important;
-  padding: 12px 22px !important;
+  height: 46px !important;
+  padding: 10px 20px !important;
   font-size: 13.5px !important;
   color: #1e293b !important;
+  width: 100% !important;
   transition: all 0.25s ease !important;
+  box-shadow: none !important;
 }
 
-.card-form-body textarea.form-control {
-  height: auto !important;
-  min-height: 96px !important;
-  border-radius: 20px !important;
-}
-
-.card-form-body .form-control:hover {
+.stela-pill-input:hover {
   background-color: #ffffff !important;
   border-color: #cbd5e1 !important;
 }
 
-.card-form-body .form-control:focus {
+.stela-pill-input:focus {
   background-color: #ffffff !important;
   border-color: #1e3a8a !important;
   box-shadow: 0 0 0 4px rgba(30, 58, 138, 0.12) !important;
   outline: none !important;
 }
 
-.card-form-body .certification-item {
+.stela-form-hint {
+  font-size: 12px !important;
+  color: #64748b !important;
+  margin-top: 4px !important;
+  display: block !important;
+}
+
+/* File Upload Box */
+.stela-file-box {
+  background: #ffffff !important;
+  border: 2px dashed #cbd5e1 !important;
+  border-radius: 16px !important;
+  padding: 14px 18px !important;
+  text-align: center !important;
+  position: relative !important;
+  transition: all 0.25s ease !important;
+  cursor: pointer !important;
+}
+
+.stela-file-box:hover {
+  border-color: #1e3a8a !important;
+  background: #f0f9ff !important;
+}
+
+.stela-file-box i {
+  font-size: 22px !important;
+  color: #1e3a8a !important;
+  margin-bottom: 4px !important;
+  display: block !important;
+}
+
+.stela-file-box .file-input {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  opacity: 0 !important;
+  cursor: pointer !important;
+}
+
+.stela-file-box .file-text {
+  font-size: 12.5px !important;
+  color: #64748b !important;
+  font-weight: 500 !important;
+  display: block !important;
+}
+
+.stela-file-box .file-name {
+  font-size: 12.5px !important;
+  font-weight: 700 !important;
+  color: #1e3a8a !important;
+  margin-top: 4px !important;
+  display: block !important;
+}
+
+/* Warning & Alert Boxes */
+.stela-warn-box {
+  background: #fffbe6 !important;
+  border: 1px solid #ffe58f !important;
+  border-radius: 14px !important;
+  padding: 14px 18px !important;
+  display: flex !important;
+  gap: 12px !important;
+  align-items: flex-start !important;
+  margin-top: 16px !important;
+}
+
+.stela-warn-box i {
+  color: #d48806 !important;
+  font-size: 18px !important;
+  margin-top: 2px !important;
+}
+
+.stela-warn-box strong {
+  color: #d48806 !important;
+  font-size: 13.5px !important;
+}
+
+.stela-warn-box p {
+  color: #595959 !important;
+  font-size: 12.5px !important;
+  margin: 2px 0 0 0 !important;
+}
+
+.stela-cert-card {
   background: #f7f7f2 !important;
   border: 1.5px solid #e8e8e3 !important;
   border-radius: 20px !important;
-  padding: 22px 26px !important;
+  padding: 20px 24px !important;
   margin-bottom: 16px !important;
 }
 
-/* Bottom Card Footer Banner (Light Blue Background) */
-.card-footer-banner {
-  background: #e6f0fa !important;
-  padding: 24px 40px !important;
+.stela-btn-add-cert {
+  border-radius: 24px !important;
+  padding: 9px 24px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  border: 1.5px dashed #1e3a8a !important;
+  color: #1e3a8a !important;
+  background: #ffffff !important;
+}
+
+.stela-btn-add-cert:hover {
+  background: #f0f9ff !important;
+  color: #172554 !important;
+}
+
+/* Footer Banner (Light Blue Background) */
+.stela-card-footer {
+  background: #ebf3fc !important; /* Soft Light Blue Banner matching mockup */
+  padding: 22px 36px !important;
   border-top: 1px solid #dbeafe !important;
   display: flex !important;
   justify-content: space-between !important;
   align-items: center !important;
 }
 
-.footer-info .footer-title {
+.stela-card-footer .footer-title {
   font-size: 14.5px !important;
   color: #1e3a8a !important;
   font-weight: 700 !important;
 }
 
-.footer-info .footer-badge {
-  font-size: 12.5px !important;
-  color: #64748b !important;
-  font-weight: 500 !important;
-}
-
-.footer-info .footer-desc {
+.stela-card-footer .footer-desc {
   font-size: 12.5px !important;
   color: #475569 !important;
-  margin: 4px 0 0 0 !important;
+  margin-top: 2px !important;
 }
 
-.footer-actions {
+.stela-card-footer .footer-buttons {
   display: flex !important;
   align-items: center !important;
-  gap: 16px !important;
+  gap: 14px !important;
 }
 
-.btn-cancel-pill {
-  padding: 11px 24px !important;
-  border-radius: 28px !important;
+.stela-btn-cancel {
+  padding: 10px 22px !important;
+  border-radius: 24px !important;
   background: #ffffff !important;
   border: 1.5px solid #cbd5e1 !important;
   color: #475569 !important;
   font-size: 13.5px !important;
   font-weight: 600 !important;
   text-decoration: none !important;
-  transition: all 0.2s ease !important;
 }
 
-.btn-cancel-pill:hover {
+.stela-btn-cancel:hover {
   background: #f1f5f9 !important;
   color: #0f172a !important;
 }
 
-.btn-submit-navy {
-  background: #1e3a8a !important;
+.stela-btn-submit {
+  background: #1e3a8a !important; /* Deep Navy Blue Button matching mockup */
   color: #ffffff !important;
   border: none !important;
-  border-radius: 28px !important;
-  padding: 12px 34px !important;
-  font-size: 14.5px !important;
+  border-radius: 24px !important;
+  padding: 11px 32px !important;
+  font-size: 14px !important;
   font-weight: 700 !important;
-  box-shadow: 0 6px 20px rgba(30, 58, 138, 0.35) !important;
+  box-shadow: 0 6px 18px rgba(30, 58, 138, 0.35) !important;
   cursor: pointer !important;
   transition: all 0.25s ease !important;
   display: inline-flex !important;
   align-items: center !important;
-  gap: 10px !important;
+  gap: 8px !important;
 }
 
-.btn-submit-navy:hover {
+.stela-btn-submit:hover {
   background: #172554 !important;
   transform: translateY(-2px) !important;
-  box-shadow: 0 10px 24px rgba(30, 58, 138, 0.48) !important;
+  box-shadow: 0 8px 22px rgba(30, 58, 138, 0.45) !important;
   color: #ffffff !important;
 }
+
 
 
 
