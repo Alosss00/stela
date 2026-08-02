@@ -27055,4 +27055,145 @@ textarea.form-control {
   color: #0F172A !important;
 }
 
+/* ==========================================================================
+   MOCKUP IMAGE 2 STEPPER & CAMERA BADGE SPECIFIC STYLING
+   ========================================================================== */
+
+.mockup-wizard-header {
+  background: #ffffff !important;
+  border-radius: 20px !important;
+  padding: 28px 36px 22px 36px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 10px 30px rgba(245, 124, 0, 0.08) !important;
+  border: 1px solid #f1f5f9 !important;
+}
+
+.stepper-nav {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 16px !important;
+  margin-bottom: 24px !important;
+  padding-bottom: 18px !important;
+  border-bottom: 1.5px solid #f1f5f9 !important;
+}
+
+.step-item {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.step-icon {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 50% !important;
+  background: #e2e8f0 !important;
+  color: #64748b !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-weight: 700 !important;
+  font-size: 14px !important;
+  transition: all 0.25s ease !important;
+}
+
+.step-item.active .step-icon {
+  background: linear-gradient(135deg, #F57C00 0%, #E65100 100%) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 14px rgba(245, 124, 0, 0.4) !important;
+}
+
+.step-label {
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+}
+
+.step-item.active .step-label {
+  color: #F57C00 !important;
+  font-weight: 700 !important;
+}
+
+.step-divider {
+  flex: 1 !important;
+  max-width: 80px !important;
+  height: 2px !important;
+  background: #e2e8f0 !important;
+  margin-top: -18px !important;
+}
+
+.mockup-title-bar {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+}
+
+.mockup-title-bar h2 {
+  font-size: 20px !important;
+  font-weight: 800 !important;
+  color: #1e293b !important;
+  margin: 0 0 4px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.mockup-title-bar h2 i {
+  color: #F57C00 !important;
+}
+
+.mockup-title-bar p {
+  margin: 0 !important;
+  font-size: 13px !important;
+  color: #64748b !important;
+}
+
+.title-right {
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+}
+
+.camera-badge-circle {
+  width: 52px !important;
+  height: 52px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #F57C00 0%, #E65100 100%) !important;
+  color: #ffffff !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+  box-shadow: 0 8px 20px rgba(245, 124, 0, 0.35) !important;
+  cursor: pointer !important;
+  transition: transform 0.25s ease !important;
+}
+
+.camera-badge-circle:hover {
+  transform: scale(1.08) !important;
+}
+
+.btn-back-mockup {
+  padding: 9px 20px !important;
+  border: 1.5px solid #cbd5e1 !important;
+  color: #475569 !important;
+  background: #f8fafc !important;
+  border-radius: 24px !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
+  text-decoration: none !important;
+  transition: all 0.2s ease !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.btn-back-mockup:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+
 

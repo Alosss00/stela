@@ -371,19 +371,44 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 ?>
 
 <div class="add-employee-container">
-    <!-- Page Header -->
-    <div class="page-header-add">
-        <div class="header-left">
-            <h2><i class="fas fa-user-plus"></i> <span data-lang="add-new-request-employee">Add New Request Employee</span></h2>
-            <?php if (!empty($current_department)): ?>
-            <p><span data-lang="department">Department</span>: <strong><?php echo htmlspecialchars($current_department); ?></strong></p>
-            <?php else: ?>
-            <p><span data-lang="company">Company</span>: <strong><?php echo htmlspecialchars($company_name); ?></strong></p>
-            <?php endif; ?>
+    <!-- Wizard Stepper & Camera Badge Header (Matching Image 2 Mockup) -->
+    <div class="mockup-wizard-header">
+        <div class="stepper-nav">
+            <div class="step-item active">
+                <div class="step-icon">1</div>
+                <div class="step-label" data-lang="basic-details">Basic Details</div>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step-item">
+                <div class="step-icon">2</div>
+                <div class="step-label" data-lang="position-scope">Position & Scope</div>
+            </div>
+            <div class="step-divider"></div>
+            <div class="step-item">
+                <div class="step-icon">3</div>
+                <div class="step-label" data-lang="certifications-files">Certifications & Files</div>
+            </div>
         </div>
-        <a href="employees.php" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> <span data-lang="back">Back</span>
-        </a>
+
+        <div class="mockup-title-bar">
+            <div class="title-left">
+                <h2><i class="fas fa-user-plus"></i> <span data-lang="add-new-request-employee">Add New Request Employee</span></h2>
+                <?php if (!empty($current_department)): ?>
+                <p><span data-lang="department">Department</span>: <strong><?php echo htmlspecialchars($current_department); ?></strong></p>
+                <?php else: ?>
+                <p><span data-lang="company">Company</span>: <strong><?php echo htmlspecialchars($company_name); ?></strong></p>
+                <?php endif; ?>
+            </div>
+            
+            <div class="title-right">
+                <div class="camera-badge-circle" title="Employee Data">
+                    <i class="fas fa-camera"></i>
+                </div>
+                <a href="employees.php" class="btn btn-back-mockup">
+                    <i class="fas fa-arrow-left"></i> <span data-lang="back">Back</span>
+                </a>
+            </div>
+        </div>
     </div>
     
     <?php if ($message): ?>
