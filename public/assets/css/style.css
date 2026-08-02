@@ -26268,3 +26268,103 @@ div:has(> #esSearchInput) {
   color: #0f172a !important;
   font-weight: 700 !important;
 }
+
+
+/* ==========================================================================
+   NEAT & SPACIOUS TABLE COLUMN SPACING (POSITIONS & CERTIFICATIONS)
+   ========================================================================== */
+
+/* Positions Table Column Spacing */
+.table-positions {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.table-positions th {
+  padding: 16px 24px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+.table-positions td {
+  padding: 18px 24px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+}
+
+.table-positions .col-name {
+  width: 50% !important;
+  padding-right: 32px !important;
+}
+
+.table-positions .col-type {
+  width: 32% !important;
+  padding-left: 20px !important;
+  padding-right: 24px !important;
+}
+
+.table-positions .col-action {
+  width: 18% !important;
+  text-align: center !important;
+  padding-left: 20px !important;
+}
+
+.table-positions tbody tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+/* Certifications Table Column Spacing */
+.table-cert {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.table-cert th {
+  padding: 16px 28px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+.table-cert td {
+  padding: 18px 28px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+}
+
+.table-cert .col-name {
+  width: 75% !important;
+  padding-right: 36px !important;
+}
+
+.table-cert .col-action {
+  width: 25% !important;
+  text-align: center !important;
+  padding-left: 24px !important;
+}
+
+.table-cert tbody tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+.action-buttons-cert {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
+}
