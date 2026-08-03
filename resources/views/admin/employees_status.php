@@ -188,6 +188,44 @@ WHERE is_active=0
 
 </div>
     
+    <!-- Bonsai.io Pagination Search Section -->
+    <div class="card es-search-card" style="margin-bottom: 16px; padding: 14px 18px; background: #ffffff; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border: 1px solid #e9ecef; position: relative; z-index: 1050; overflow: visible;">
+        <div style="display: flex; gap: 10px; align-items: center; flex-wrap: wrap;">
+            <div style="flex: 1; min-width: 200px; position: relative;">
+                <i class="fas fa-search" style="position: absolute; left: 13px; top: 50%; transform: translateY(-50%); color: #6c757d; font-size: 14px; z-index: 2;"></i>
+                <input type="text" id="esSearchInput" autocomplete="off"
+                       placeholder="Cari Nama, ID Badge, Posisi, No Appointment..."
+                       style="width:100%; padding-left: 38px; padding-right: 36px; height: 40px; border-radius: 8px; border: 1px solid #ced4da; font-size: 14px;">
+                <button type="button" id="esClearBtn" title="Bersihkan"
+                        style="display:none; position: absolute; right: 9px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #a0aec0; cursor: pointer; font-size: 16px; padding: 0; z-index: 2;">
+                    <i class="fas fa-times-circle"></i>
+                </button>
+            </div>
+            <select id="filterCompany" style="height:40px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:150px;">
+                <option value="">Semua Perusahaan</option>
+                <?php
+                $companies_res = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE contractor_company IS NOT NULL AND contractor_company != '' ORDER BY contractor_company ASC");
+                if ($companies_res) {
+                    while ($c_row = $companies_res->fetch_assoc()) {
+                        echo '<option value="' . htmlspecialchars($c_row['contractor_company']) . '">' . htmlspecialchars($c_row['contractor_company']) . '</option>';
+                    }
+                }
+                ?>
+            </select>
+            <select id="filterEmpStatus" style="height:40px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:130px;">
+                <option value="">Semua Status</option>
+                <option value="active" <?php echo $filter === 'active' ? 'selected' : ''; ?>>Active</option>
+                <option value="resigned" <?php echo $filter === 'resigned' ? 'selected' : ''; ?>>Resigned</option>
+            </select>
+            <select id="statusPageLimit" style="height:40px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:90px;">
+                <option value="10">10 / hal</option>
+                <option value="25">25 / hal</option>
+                <option value="50">50 / hal</option>
+            </select>
+        </div>
+        <div id="statusInfoContainer" style="margin-top:8px; font-size:13px; color:#6c757d;"></div>
+    </div>
+
     <!-- Employees Table -->
     <div class="card-emp">
         <div class="card-header-emp">
@@ -197,7 +235,7 @@ WHERE is_active=0
         <div class="card-body-emp">
             <?php if ($employees->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-emp datatable" id="employeesTable">
+                    <table class="table-emp" id="employeesTable">
                         <thead>
                             <tr>
                                 <th class="col-code" data-lang="id-badge">ID BADGE</th>
@@ -211,7 +249,7 @@ WHERE is_active=0
                                 <th class="col-action" data-lang="action">Action</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="statusTbody">
                             <?php 
                             $employees->data_seek(0);
                             while ($row = $employees->fetch_assoc()): 
@@ -280,6 +318,83 @@ WHERE is_active=0
                         </tbody>
                     </table>
                 </div>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-top:12px; flex-wrap:wrap; gap:8px;">
+                    <div id="statusInfoContainerTable" style="font-size:13px; color:#6c757d;"></div>
+                    <div id="statusPaginationContainer"></div>
+                </div>
+
+                <script src="../../assets/js/bonsai_pagination.js?v=<?php echo time(); ?>"></script>
+                <script>
+                (function() {
+                    window.statusPagination = new BonsaiPagination({
+                        apiUrl: '../../api/search_elasticsearch.php',
+                        target: 'employee_status',
+                        tableSelector: '#employeesTable',
+                        tbodySelector: '#statusTbody',
+                        searchInputSelector: '#esSearchInput',
+                        clearBtnSelector: '#esClearBtn',
+                        paginationContainerSelector: '#statusPaginationContainer',
+                        infoContainerSelector: '#statusInfoContainer',
+                        limitSelector: '#statusPageLimit',
+                        filterSelectors: {
+                            company: '#filterCompany',
+                            employee_status: '#filterEmpStatus'
+                        },
+                        defaultLimit: 10,
+                        renderRow: function(item, index, rowNum) {
+                            const empStatus = (item.employee_status || 'active').toLowerCase();
+                            const statusBadge = empStatus === 'active'
+                                ? '<span class="badge-status badge-success">ACTIVE</span>'
+                                : '<span class="badge-status badge-danger">RESIGNED</span>';
+                            
+                            const compType = item.competency_type || '';
+                            const typeClass = compType.toLowerCase().replace(/ /g, '_');
+                            const compBadge = compType ? `<span class="competency-type-badge competency-${typeClass}">${compType}</span>` : '-';
+                            const compName = item.competency_name ? `<span class="competency-tag">${item.competency_name}</span>` : '<span class="text-muted">-</span>';
+                            const companyName = item.contractor_company || '-';
+                            const apptNo = item.appointment_number || '-';
+                            const fullName = item.full_name || '-';
+                            const empCode = item.employee_code || '-';
+                            const pos = item.position || '-';
+
+                            let actionBtn = '';
+                            if (empStatus === 'active') {
+                                actionBtn = `<button type="button" class="btn btn-danger btn-sm resign-btn"
+                                                data-id="${item.id}"
+                                                data-name="${fullName.replace(/"/g, '&quot;')}"
+                                                data-company="${companyName.replace(/"/g, '&quot;')}"
+                                                data-appointment="${apptNo.replace(/"/g, '&quot;')}">
+                                                <i class="fas fa-user-times"></i> Resign
+                                             </button>`;
+                            } else {
+                                actionBtn = `<a href="employee_status_detail.php?id=${item.id}" class="btn-action-emp detail-btn">
+                                                <i class="fas fa-eye"></i> Detail
+                                             </a>`;
+                            }
+
+                            return `<tr class="emp-row" data-company="${companyName.replace(/"/g, '&quot;')}" data-status="${empStatus}">
+                                <td class="col-code"><span class="code-badge">${empCode}</span></td>
+                                <td class="col-name"><strong>${fullName}</strong></td>
+                                <td class="col-position"><span class="position-tag-emp">${pos}</span></td>
+                                <td class="col-company"><span class="company-tag-emp">${companyName}</span></td>
+                                <td class="col-competency-type">${compBadge}</td>
+                                <td class="col-competency">${compName}</td>
+                                <td class="col-status">${apptNo}</td>
+                                <td>${statusBadge}</td>
+                                <td class="col-action text-center">${actionBtn}</td>
+                            </tr>`;
+                        }
+                    });
+
+                    const origInfo = window.statusPagination.renderInfo.bind(window.statusPagination);
+                    window.statusPagination.renderInfo = function() {
+                        origInfo();
+                        const src = document.querySelector('#statusInfoContainer');
+                        const dest = document.querySelector('#statusInfoContainerTable');
+                        if (src && dest) dest.innerHTML = src.innerHTML;
+                    };
+                })();
+                </script>
             <?php else: ?>
                 <div class="empty-state-emp">
                     <i class="fas fa-inbox"></i>
