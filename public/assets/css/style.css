@@ -26559,8 +26559,10 @@ table.table-report tbody td {
   font-size: 14px !important;
   color: #1e293b !important;
   line-height: 1.5 !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+  white-space: normal !important;
   box-sizing: border-box !important;
 }
 
@@ -26572,17 +26574,30 @@ table.table-report tbody tr:hover td {
   background-color: #f8fafc !important;
 }
 
+.company-tag,
+.position-badge-report,
+.emp-code-detail,
+.status-badge,
+.rejector-badge,
+.approver-badge {
+  display: inline-block !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  max-width: 100% !important;
+}
+
 /* Column Classes Width Definitions */
 
 table.table-report th.col-num,
 table.table-report td.col-num {
-  width: 6% !important;
+  width: 5% !important;
   text-align: center !important;
 }
 
 table.table-report th.col-employee,
 table.table-report td.col-employee {
-  width: 24% !important;
+  width: 22% !important;
   text-align: left !important;
 }
 
@@ -26590,7 +26605,7 @@ table.table-report th.col-code,
 table.table-report td.col-code,
 table.table-report th.col-badge,
 table.table-report td.col-badge {
-  width: 15% !important;
+  width: 12% !important;
   text-align: left !important;
 }
 
@@ -26598,7 +26613,7 @@ table.table-report th.col-company,
 table.table-report td.col-company,
 table.table-report th.col-company-detail,
 table.table-report td.col-company-detail {
-  width: 20% !important;
+  width: 18% !important;
   text-align: left !important;
 }
 

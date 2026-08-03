@@ -26182,373 +26182,1316 @@ div:has(> #esSearchInput) {
 }
 
 /* ==========================================================================
-   AUTHENTICATION & LOGIN PAGE STYLES
+   HIGH-CONTRAST DARK TEXT STYLING FOR ADMIN DASHBOARD & WELCOME CARD
    ========================================================================== */
-body.login-page {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-    background: #f8fafc;
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    overflow-x: hidden;
+.dashboard-modern {
+  color: #0f172a !important;
 }
 
-.login-container {
-    display: flex;
-    width: 100%;
-    min-height: 100vh;
+.welcome-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  padding: 24px 28px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03) !important;
 }
 
-/* Left Brand Panel */
-.login-left {
-    flex: 1.1;
-    background: linear-gradient(135deg, #FFC300 0%, #FF8C00 100%);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    overflow: hidden;
-    padding: 40px;
+.welcome-content {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  flex-wrap: wrap !important;
+  gap: 16px !important;
 }
 
-.login-left::before {
-    content: '';
-    position: absolute;
-    width: 900px;
-    height: 900px;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.25) 0%, rgba(255, 140, 0, 0) 70%);
-    border-radius: 50%;
-    top: 50%;
-    right: -250px;
-    transform: translateY(-50%);
-    pointer-events: none;
+.welcome-text h1,
+.welcome-text h1 span {
+  color: #0f172a !important;
+  font-size: 24px !important;
+  font-weight: 800 !important;
+  margin: 0 0 6px 0 !important;
+  letter-spacing: -0.4px !important;
 }
 
-.login-left::after {
-    content: '';
-    position: absolute;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(255, 195, 0, 0.4) 0%, rgba(255, 140, 0, 0) 70%);
-    border-radius: 50%;
-    bottom: -100px;
-    left: -100px;
-    pointer-events: none;
+.welcome-text p {
+  color: #334155 !important;
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  margin: 0 !important;
 }
 
-.login-brand {
-    position: relative;
-    z-index: 2;
-    padding: 40px;
-    max-width: 500px;
-    color: #ffffff;
+.welcome-date {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  padding: 8px 16px !important;
+  border-radius: 10px !important;
+  color: #0f172a !important;
+  font-size: 13.5px !important;
+  font-weight: 600 !important;
 }
 
-.logo-container {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 40px;
+.welcome-date i {
+  color: #4f46e5 !important;
 }
 
-.logo-icon {
-    width: 44px;
-    height: 44px;
-    background: rgba(255, 255, 255, 0.95);
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+.section-title h2 {
+  color: #0f172a !important;
+  font-size: 18px !important;
+  font-weight: 700 !important;
+  margin-bottom: 16px !important;
 }
 
-.logo-icon i {
-    font-size: 24px;
-    color: #FF8C00;
+.stat-box {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.03) !important;
 }
 
-.logo-text {
-    font-size: 24px;
-    color: #ffffff;
-    font-weight: 700;
-    letter-spacing: 1px;
-    text-transform: uppercase;
+.stat-label {
+  color: #1e293b !important;
+  font-weight: 700 !important;
+  font-size: 13px !important;
 }
 
-.welcome-text {
-    color: #ffffff;
-    font-size: 42px;
-    font-weight: 300;
-    line-height: 1.3;
-    margin: 0;
-    text-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+.stat-number {
+  color: #0f172a !important;
+  font-weight: 800 !important;
+  font-size: 26px !important;
 }
 
-.welcome-text strong {
-    font-weight: 800;
-    display: inline-block;
-    position: relative;
+.recent-header h3 {
+  color: #0f172a !important;
+  font-weight: 700 !important;
 }
 
-/* Right Form Panel */
-.login-right {
-    flex: 1;
-    background: #f8fafc;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 40px;
-    position: relative;
+
+/* ==========================================================================
+   NEAT & SPACIOUS TABLE COLUMN SPACING (POSITIONS & CERTIFICATIONS)
+   ========================================================================== */
+
+/* Positions Table Column Spacing */
+.table-positions {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
 }
 
-.login-form-container {
-    width: 100%;
-    max-width: 420px;
-    text-align: center;
-    background: #ffffff;
-    padding: 45px 38px;
-    border-radius: 20px;
-    box-shadow: 0 20px 40px -15px rgba(15, 23, 42, 0.08);
-    border: 1px solid rgba(226, 232, 240, 0.8);
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
+.table-positions th {
+  padding: 16px 24px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
 }
 
-.login-form-container:hover {
-    box-shadow: 0 25px 50px -12px rgba(15, 23, 42, 0.12);
+.table-positions td {
+  padding: 18px 24px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
 }
 
-.user-avatar {
-    width: 88px;
-    height: 88px;
-    background: linear-gradient(135deg, #e2e8f0 0%, #cbd5e1 100%);
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 20px;
-    box-shadow: inset 0 2px 5px rgba(255, 255, 255, 0.6), 0 6px 16px rgba(148, 163, 184, 0.2);
+.table-positions .col-name {
+  width: 50% !important;
+  padding-right: 32px !important;
 }
 
-.user-avatar i {
-    font-size: 42px;
-    color: #64748b;
+.table-positions .col-type {
+  width: 32% !important;
+  padding-left: 20px !important;
+  padding-right: 24px !important;
 }
 
-.login-subtitle {
-    color: #64748b;
-    font-size: 14px;
-    margin-bottom: 30px;
-    font-weight: 500;
+.table-positions .col-action {
+  width: 18% !important;
+  text-align: center !important;
+  padding-left: 20px !important;
 }
 
-.form-group {
-    margin-bottom: 20px;
-    text-align: left;
+.table-positions tbody tr:hover td {
+  background-color: #f8fafc !important;
 }
 
-.form-group label {
-    display: none;
+/* Certifications Table Column Spacing */
+.table-cert {
+  width: 100% !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
 }
 
-.input-group {
-    position: relative;
-    width: 100%;
+.table-cert th {
+  padding: 16px 28px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  background: #f8fafc !important;
+  color: #334155 !important;
+  border-bottom: 2px solid #e2e8f0 !important;
 }
 
-.input-icon {
-    position: absolute;
-    left: 18px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: #94a3b8;
-    font-size: 16px;
-    transition: color 0.3s ease;
-    pointer-events: none;
+.table-cert td {
+  padding: 18px 28px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
 }
 
-.form-group input {
-    width: 100%;
-    padding: 15px 16px 15px 48px;
-    border: 1.5px solid #e2e8f0;
-    border-radius: 12px;
-    font-size: 14.5px;
-    transition: all 0.25s ease;
-    background: #f8fafc;
-    color: #1e293b;
-    box-sizing: border-box;
+.table-cert .col-name {
+  width: 75% !important;
+  padding-right: 36px !important;
 }
 
-.form-group input::placeholder {
-    color: #94a3b8;
-    font-weight: 400;
+.table-cert .col-action {
+  width: 25% !important;
+  text-align: center !important;
+  padding-left: 24px !important;
 }
 
-.form-group input:focus {
-    outline: none;
-    background: #ffffff;
-    border-color: #FF8C00;
-    box-shadow: 0 0 0 4px rgba(255, 140, 0, 0.15);
+.table-cert tbody tr:hover td {
+  background-color: #f8fafc !important;
 }
 
-.form-group input:focus + .input-icon,
-.form-group input:focus ~ .input-icon {
-    color: #FF8C00;
+.action-buttons-cert {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 12px !important;
 }
 
-.form-options {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    margin-bottom: 28px;
-    font-size: 13.5px;
-    text-align: left;
+
+/* ==========================================================================
+   FIXED TABLE LAYOUT & COLUMN DISTRIBUTION FOR POSITIONS & CERTIFICATIONS
+   ========================================================================== */
+
+table.table-positions,
+table.table-cert,
+table.datatable {
+  width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
 }
 
-.remember-me {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    color: #64748b;
-    cursor: pointer;
-    user-select: none;
-    font-weight: 500;
+/* Positions Table Columns */
+.table-positions th.col-name,
+.table-positions td.col-name {
+  width: 50% !important;
+  text-align: left !important;
+  padding: 16px 20px !important;
+  word-wrap: break-word !important;
 }
 
-.remember-me input[type="checkbox"] {
-    width: 17px;
-    height: 17px;
-    cursor: pointer;
-    accent-color: #FF8C00;
-    border-radius: 4px;
+.table-positions th.col-type,
+.table-positions td.col-type {
+  width: 32% !important;
+  text-align: left !important;
+  padding: 16px 20px !important;
+  word-wrap: break-word !important;
 }
 
-.btn-login {
-    width: 100%;
-    padding: 15px;
-    background: linear-gradient(90deg, #FF8C00 0%, #FFC300 100%);
-    color: #ffffff;
-    border: none;
-    border-radius: 50px;
-    font-size: 16px;
-    font-weight: 700;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-    box-shadow: 0 8px 25px rgba(255, 140, 0, 0.35);
+.table-positions th.col-action,
+.table-positions td.col-action {
+  width: 18% !important;
+  text-align: center !important;
+  padding: 16px 20px !important;
 }
 
-.btn-login:hover {
-    background: linear-gradient(90deg, #E67E00 0%, #FFB000 100%);
-    transform: translateY(-2px);
-    box-shadow: 0 12px 30px rgba(255, 140, 0, 0.45);
+.action-buttons-positions {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
 }
 
-.btn-login:active {
-    transform: translateY(0);
-    box-shadow: 0 4px 15px rgba(255, 140, 0, 0.3);
+/* Certifications Table Columns */
+.table-cert th.col-name,
+.table-cert td.col-name {
+  width: 75% !important;
+  text-align: left !important;
+  padding: 16px 24px !important;
+  word-wrap: break-word !important;
 }
 
-.alert {
-    margin-bottom: 24px;
-    padding: 14px 16px;
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    animation: slideIn 0.3s ease;
-    text-align: left;
-    font-size: 13.5px;
+.table-cert th.col-action,
+.table-cert td.col-action {
+  width: 25% !important;
+  text-align: center !important;
+  padding: 16px 24px !important;
 }
 
-.alert-error {
-    background: #fef2f2;
-    color: #991b1b;
-    border: 1px solid #fecaca;
-    border-left: 4px solid #ef4444;
+.action-buttons-cert {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 10px !important;
+  width: 100% !important;
 }
 
-/* Floating Language Switcher on Login Page */
-.login-page .language-switcher {
-    position: absolute;
-    top: 24px;
-    right: 28px;
-    z-index: 100;
+/* Badge Type High-Contrast Styling */
+.badge-position {
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 6px 14px !important;
+  border-radius: 8px !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  line-height: 1.4 !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05) !important;
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
 }
 
-.login-lang-dropdown .language-toggle-btn {
-    background: #ffffff;
-    border: 1px solid #e2e8f0;
-    padding: 8px 14px;
-    border-radius: 20px;
-    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
-    color: #475569;
-    font-weight: 600;
-    font-size: 13px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    transition: all 0.2s ease;
+.badge-position[data-lang*='pengawas-operasional'],
+.badge-position:has(.fa-user-tie) {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  border: 1px solid #93c5fd !important;
 }
 
-.login-lang-dropdown .language-toggle-btn:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    color: #0f172a;
+.badge-position[data-lang*='pengawas-teknis'],
+.badge-position:has(.fa-helmet-safety) {
+  background-color: #fef3c7 !important;
+  color: #92400e !important;
+  border: 1px solid #fde68a !important;
 }
 
-/* Responsive Layout */
-@media (max-width: 968px) {
-    .login-container {
-        flex-direction: column;
-    }
-    .login-left {
-        padding: 50px 30px;
-        min-height: 260px;
-        flex: none;
-    }
-    .login-left::before {
-        width: 500px;
-        height: 500px;
-        right: -100px;
-    }
-    .welcome-text {
-        font-size: 32px;
-    }
-    .login-right {
-        padding: 40px 20px;
-        flex: 1;
-    }
-    .login-form-container {
-        padding: 35px 25px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.06);
-    }
+.badge-position[data-lang*='tenaga-teknis'],
+.badge-position:has(.fa-user-hard-hat) {
+  background-color: #e0e7ff !important;
+  color: #3730a3 !important;
+  border: 1px solid #c7d2fe !important;
 }
 
-@media (max-width: 576px) {
-    .login-left {
-        padding: 35px 20px;
-        min-height: 220px;
-    }
-    .welcome-text {
-        font-size: 26px;
-    }
-    .login-brand {
-        padding: 0;
-    }
-    .logo-container {
-        margin-bottom: 20px;
-    }
-    .user-avatar {
-        width: 72px;
-        height: 72px;
-    }
-    .user-avatar i {
-        font-size: 34px;
-    }
-    .login-form-container {
-        padding: 28px 20px;
-    }
+
+/* Force Type Badge text color to match Competency text color (#0f172a) */
+.badge-position,
+.badge-position i,
+.badge-position span,
+.badge-position[data-lang*='pengawas-operasional'],
+.badge-position[data-lang*='pengawas-teknis'],
+.badge-position[data-lang*='tenaga-teknis'],
+.badge-position:has(.fa-user-tie),
+.badge-position:has(.fa-helmet-safety),
+.badge-position:has(.fa-user-hard-hat) {
+  color: #0f172a !important;
+  font-weight: 700 !important;
+}
+
+
+/* ==========================================================================
+   REPORTS TABLE FIX - ENFORCE NEAT COLUMN LAYOUT & PREVENT OVERLAP/COLLISION
+   ========================================================================== */
+
+.reports-container,
+.card-report {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.card-body-report {
+  padding: 20px !important;
+  overflow: hidden !important;
+}
+
+.card-body-report .table-responsive {
+  width: 100% !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  border-radius: 12px !important;
+}
+
+table.table-report,
+.table-responsive > table.table-report {
+  width: 100% !important;
+  min-width: 100% !important;
+  table-layout: fixed !important; /* Fixed column widths prevent squishing/collision */
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report thead tr {
+  background-color: #f8fafc !important;
+}
+
+table.table-report thead th {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 14px 16px !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  border-top: none !important;
+  vertical-align: middle !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report tbody td {
+  padding: 14px 16px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+  line-height: 1.5 !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+  white-space: normal !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+table.table-report tbody tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+.company-tag,
+.position-badge-report,
+.emp-code-detail,
+.status-badge,
+.rejector-badge,
+.approver-badge {
+  display: inline-block !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  max-width: 100% !important;
+}
+
+/* Column Classes Width Definitions */
+
+table.table-report th.col-num,
+table.table-report td.col-num {
+  width: 5% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-employee,
+table.table-report td.col-employee {
+  width: 22% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-code,
+table.table-report td.col-code,
+table.table-report th.col-badge,
+table.table-report td.col-badge {
+  width: 12% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-company,
+table.table-report td.col-company,
+table.table-report th.col-company-detail,
+table.table-report td.col-company-detail {
+  width: 18% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-date,
+table.table-report td.col-date,
+table.table-report th.col-verified-date,
+table.table-report td.col-verified-date,
+table.table-report th.col-request-date,
+table.table-report td.col-request-date,
+table.table-report th.col-approved-date,
+table.table-report td.col-approved-date,
+table.table-report th.col-rejected-date,
+table.table-report td.col-rejected-date,
+table.table-report th.col-expiry-date,
+table.table-report td.col-expiry-date {
+  width: 15% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-status,
+table.table-report td.col-status,
+table.table-report th.col-status-expiry,
+table.table-report td.col-status-expiry {
+  width: 14% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-verified-by,
+table.table-report td.col-verified-by,
+table.table-report th.col-approved-by,
+table.table-report td.col-approved-by,
+table.table-report th.col-rejected-by,
+table.table-report td.col-rejected-by,
+table.table-report th.col-approved-info,
+table.table-report td.col-approved-info {
+  width: 16% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-number,
+table.table-report td.col-number {
+  width: 22% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-position,
+table.table-report td.col-position {
+  width: 18% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-cert-name,
+table.table-report td.col-cert-name {
+  width: 25% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-cert-number,
+table.table-report td.col-cert-number {
+  width: 18% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-days,
+table.table-report td.col-days,
+table.table-report th.col-days-left,
+table.table-report td.col-days-left {
+  width: 12% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-notes,
+table.table-report td.col-notes {
+  width: 14% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-action,
+table.table-report td.col-action {
+  width: 12% !important;
+  text-align: center !important;
+}
+
+table.table-report thead tr.filter-row th {
+  padding: 8px 10px !important;
+  background-color: #f1f5f9 !important;
+}
+
+table.table-report .column-filter {
+  width: 100% !important;
+  height: 34px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  background-color: #ffffff !important;
+}
+
+.employee-detail {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+.employee-detail strong {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.emp-code-detail {
+  font-size: 12px !important;
+  color: #64748b !important;
+}
+
+.position-badge-report,
+.company-tag {
+  display: inline-block !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+
+
+/* ==========================================================================
+   REPORTS TABLE FIX - ENFORCE NEAT COLUMN LAYOUT & PREVENT OVERLAP/COLLISION
+   ========================================================================== */
+
+.reports-container,
+.card-report {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.card-body-report {
+  padding: 20px !important;
+  overflow: hidden !important;
+}
+
+.card-body-report .table-responsive {
+  width: 100% !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  border-radius: 12px !important;
+}
+
+table.table-report,
+.table-responsive > table.table-report {
+  width: 100% !important;
+  min-width: 100% !important;
+  table-layout: fixed !important; /* Fixed column widths prevent squishing/collision */
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report thead tr {
+  background-color: #f8fafc !important;
+}
+
+table.table-report thead th {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 14px 16px !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  border-top: none !important;
+  vertical-align: middle !important;
+  text-align: left !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report tbody td {
+  padding: 14px 16px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 14px !important;
+  color: #1e293b !important;
+  line-height: 1.5 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+table.table-report tbody tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+/* Column Classes Width Definitions */
+
+table.table-report th.col-num,
+table.table-report td.col-num {
+  width: 6% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-employee,
+table.table-report td.col-employee {
+  width: 24% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-code,
+table.table-report td.col-code,
+table.table-report th.col-badge,
+table.table-report td.col-badge {
+  width: 15% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-company,
+table.table-report td.col-company,
+table.table-report th.col-company-detail,
+table.table-report td.col-company-detail {
+  width: 20% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-date,
+table.table-report td.col-date,
+table.table-report th.col-verified-date,
+table.table-report td.col-verified-date,
+table.table-report th.col-request-date,
+table.table-report td.col-request-date,
+table.table-report th.col-approved-date,
+table.table-report td.col-approved-date,
+table.table-report th.col-rejected-date,
+table.table-report td.col-rejected-date,
+table.table-report th.col-expiry-date,
+table.table-report td.col-expiry-date {
+  width: 15% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-status,
+table.table-report td.col-status,
+table.table-report th.col-status-expiry,
+table.table-report td.col-status-expiry {
+  width: 14% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-verified-by,
+table.table-report td.col-verified-by,
+table.table-report th.col-approved-by,
+table.table-report td.col-approved-by,
+table.table-report th.col-rejected-by,
+table.table-report td.col-rejected-by,
+table.table-report th.col-approved-info,
+table.table-report td.col-approved-info {
+  width: 16% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-number,
+table.table-report td.col-number {
+  width: 22% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-position,
+table.table-report td.col-position {
+  width: 18% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-cert-name,
+table.table-report td.col-cert-name {
+  width: 25% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-cert-number,
+table.table-report td.col-cert-number {
+  width: 18% !important;
+  text-align: left !important;
+}
+
+table.table-report th.col-days,
+table.table-report td.col-days,
+table.table-report th.col-days-left,
+table.table-report td.col-days-left {
+  width: 12% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-notes,
+table.table-report td.col-notes {
+  width: 14% !important;
+  text-align: center !important;
+}
+
+table.table-report th.col-action,
+table.table-report td.col-action {
+  width: 12% !important;
+  text-align: center !important;
+}
+
+table.table-report thead tr.filter-row th {
+  padding: 8px 10px !important;
+  background-color: #f1f5f9 !important;
+}
+
+table.table-report .column-filter {
+  width: 100% !important;
+  height: 34px !important;
+  padding: 4px 8px !important;
+  font-size: 12px !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 6px !important;
+  background-color: #ffffff !important;
+}
+
+.employee-detail {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 3px !important;
+}
+
+.employee-detail strong {
+  color: #0f172a !important;
+  font-weight: 600 !important;
+}
+
+.emp-code-detail {
+  font-size: 12px !important;
+  color: #64748b !important;
+}
+
+.position-badge-report,
+.company-tag {
+  display: inline-block !important;
+  padding: 4px 10px !important;
+  border-radius: 6px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  background-color: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0 !important;
+}
+
+.status-badge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  padding: 6px 12px !important;
+  border-radius: 20px !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+}
+
+
+/* ==========================================================================
+   COMPREHENSIVE UI/UX STYLING FOR REPORTS & DETAIL PAGES (ALL ROLES)
+   ========================================================================== */
+
+/* 1. Global Reports Container & Grid Cards */
+.reports-container,
+.employee-detail-container,
+.appointment-detail-container {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+  padding: 10px 0 !important;
+}
+
+.page-header-reports {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  margin-bottom: 24px !important;
+  background: #ffffff !important;
+  padding: 20px 24px !important;
+  border-radius: 14px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+}
+
+.page-header-reports h2 {
+  font-size: 20px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 0 6px 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+}
+
+.page-header-reports h2 i {
+  color: #4f46e5 !important;
+}
+
+.page-header-reports p {
+  color: #64748b !important;
+  font-size: 14px !important;
+  margin: 0 !important;
+}
+
+/* Overview Statistics Cards */
+.stats-grid-reports {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)) !important;
+  gap: 18px !important;
+  margin-bottom: 24px !important;
+}
+
+.stat-card-report {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  padding: 20px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 16px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+  transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+}
+
+.stat-card-report:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.06) !important;
+}
+
+.stat-icon-report {
+  width: 48px !important;
+  height: 48px !important;
+  border-radius: 12px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  font-size: 20px !important;
+}
+
+.stat-total .stat-icon-report { background: #e0e7ff !important; color: #4338ca !important; }
+.stat-approved .stat-icon-report { background: #dcfce7 !important; color: #15803d !important; }
+.stat-rejected .stat-icon-report { background: #fee2e2 !important; color: #b91c1c !important; }
+
+.stat-content-report h3 {
+  font-size: 22px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 0 2px 0 !important;
+}
+
+.stat-content-report p {
+  font-size: 13px !important;
+  color: #64748b !important;
+  margin: 0 !important;
+}
+
+/* 2. Filter Bar & Quick Navigation */
+.quick-nav-container,
+.filter-section-report {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+  margin-bottom: 20px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+.filter-group-report {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.filter-group-report label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #334155 !important;
+  margin: 0 !important;
+  white-space: nowrap !important;
+}
+
+.filter-select-report {
+  height: 38px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+  color: #1e293b !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  outline: none !important;
+  transition: all 0.2s ease !important;
+}
+
+.filter-select-report:focus {
+  border-color: #93c5fd !important;
+  box-shadow: 0 0 0 3px rgba(147, 197, 253, 0.35) !important;
+  background-color: #ffffff !important;
+}
+
+/* 3. Detail Cards & Info Grids */
+.employee-header-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+}
+
+.employee-header-content {
+  display: flex !important;
+  align-items: center !important;
+  gap: 20px !important;
+}
+
+.employee-avatar {
+  width: 64px !important;
+  height: 64px !important;
+  border-radius: 16px !important;
+  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%) !important;
+  color: #ffffff !important;
+  font-size: 26px !important;
+  font-weight: 700 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
+}
+
+.info-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+}
+
+.info-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  padding: 20px 24px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+}
+
+.info-card h4 {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 0 16px 0 !important;
+  padding-bottom: 10px !important;
+  border-bottom: 2px solid #f1f5f9 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.info-card h4 i {
+  color: #4f46e5 !important;
+}
+
+.info-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 10px 0 !important;
+  border-bottom: 1px solid #f8fafc !important;
+}
+
+.info-row:last-child {
+  border-bottom: none !important;
+}
+
+.info-label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+}
+
+.info-value {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  text-align: right !important;
+}
+
+/* 4. Detail Tables (.cert-table, .approval-table, .table-history) */
+.cert-section,
+.approval-section {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+}
+
+.cert-header,
+.approval-header {
+  margin-bottom: 18px !important;
+}
+
+.cert-header h3,
+.approval-header h3 {
+  font-size: 16px !important;
+  font-weight: 700 !important;
+  color: #0f172a !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+table.cert-table,
+table.approval-table,
+table.table-history {
+  width: 100% !important;
+  table-layout: fixed !important;
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 10px !important;
+  margin: 0 !important;
+}
+
+table.cert-table thead th,
+table.approval-table thead th,
+table.table-history thead th {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  padding: 12px 16px !important;
+  border-bottom: 2px solid #e2e8f0 !important;
+}
+
+table.cert-table tbody td,
+table.approval-table tbody td,
+table.table-history tbody td {
+  padding: 12px 16px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 13.5px !important;
+  color: #1e293b !important;
+}
+
+/* 5. Responsive Behavior */
+@media (max-width: 768px) {
+  .page-header-reports {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 12px !important;
+  }
+  .info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+
+/* ==========================================================================
+   MASTER UI/UX REFINEMENT FOR REPORTS & DETAILS (ALL ROLES)
+   ========================================================================== */
+
+/* 1. Global Container & Responsive Wrappers */
+.reports-container,
+.employee-detail-container,
+.appointment-detail-container,
+.card-report {
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+.card-body-report {
+  padding: 20px !important;
+  overflow: hidden !important;
+}
+
+.card-body-report .table-responsive,
+.table-responsive {
+  width: 100% !important;
+  margin: 0 !important;
+  overflow-x: auto !important;
+  -webkit-overflow-scrolling: touch !important;
+  border-radius: 12px !important;
+}
+
+/* 2. Enforce Fixed Table Layout across all Report and Detail Tables */
+table.table-report,
+table.table-compact-request,
+table.table-approved,
+table.table-rejected,
+table.table-expiring,
+table.cert-table,
+table.approval-table,
+table.table-history,
+.table-responsive > table {
+  width: 100% !important;
+  min-width: 100% !important;
+  table-layout: fixed !important; /* Forces strict header and cell alignment */
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+  background-color: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  margin: 0 !important;
+  box-sizing: border-box !important;
+}
+
+/* 3. Header Cells (TH) Styling */
+table.table-report thead th,
+table.table-compact-request thead th,
+table.table-approved thead th,
+table.table-rejected thead th,
+table.table-expiring thead th,
+table.cert-table thead th,
+table.approval-table thead th,
+table.table-history thead th {
+  background-color: #f8fafc !important;
+  color: #334155 !important;
+  font-size: 13px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+  padding: 14px 16px !important;
+  border-bottom: 2px solid #cbd5e1 !important;
+  border-top: none !important;
+  vertical-align: middle !important;
+  white-space: nowrap !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  box-sizing: border-box !important;
+}
+
+/* 4. Body Data Cells (TD) Styling */
+table.table-report tbody td,
+table.table-compact-request tbody td,
+table.table-approved tbody td,
+table.table-rejected tbody td,
+table.table-expiring tbody td,
+table.cert-table tbody td,
+table.approval-table tbody td,
+table.table-history tbody td {
+  padding: 14px 16px !important;
+  vertical-align: middle !important;
+  border-bottom: 1px solid #f1f5f9 !important;
+  font-size: 13.5px !important;
+  color: #1e293b !important;
+  line-height: 1.5 !important;
+  word-wrap: break-word !important;
+  overflow-wrap: break-word !important;
+  box-sizing: border-box !important;
+}
+
+table.table-report tbody tr:last-child td,
+table.cert-table tbody tr:last-child td,
+table.approval-table tbody tr:last-child td {
+  border-bottom: none !important;
+}
+
+table.table-report tbody tr:hover td,
+table.cert-table tbody tr:hover td,
+table.approval-table tbody tr:hover td {
+  background-color: #f8fafc !important;
+}
+
+/* 5. Specific Column Class Widths & Alignments */
+th.col-num, td.col-num { width: 6% !important; text-align: center !important; }
+th.col-employee, td.col-employee { width: 24% !important; text-align: left !important; }
+th.col-code, td.col-code, th.col-badge, td.col-badge { width: 15% !important; text-align: left !important; }
+th.col-company, td.col-company, th.col-company-detail, td.col-company-detail { width: 20% !important; text-align: left !important; }
+th.col-date, td.col-date, th.col-verified-date, td.col-verified-date, th.col-request-date, td.col-request-date, th.col-approved-date, td.col-approved-date, th.col-rejected-date, td.col-rejected-date, th.col-expiry-date, td.col-expiry-date { width: 15% !important; text-align: left !important; }
+th.col-status, td.col-status, th.col-status-expiry, td.col-status-expiry { width: 14% !important; text-align: center !important; }
+th.col-verified-by, td.col-verified-by, th.col-approved-by, td.col-approved-by, th.col-rejected-by, td.col-rejected-by, th.col-approved-info, td.col-approved-info { width: 16% !important; text-align: left !important; }
+th.col-number, td.col-number { width: 20% !important; text-align: left !important; }
+th.col-position, td.col-position { width: 16% !important; text-align: left !important; }
+th.col-cert-name, td.col-cert-name { width: 25% !important; text-align: left !important; }
+th.col-cert-number, td.col-cert-number { width: 18% !important; text-align: left !important; }
+th.col-days, td.col-days, th.col-days-left, td.col-days-left { width: 12% !important; text-align: center !important; }
+th.col-notes, td.col-notes { width: 14% !important; text-align: center !important; }
+th.col-action, td.col-action { width: 12% !important; text-align: center !important; }
+
+/* 6. Filter Controls & Buttons */
+.quick-nav-container,
+.filter-section-report {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 12px !important;
+  padding: 16px 20px !important;
+  margin-bottom: 20px !important;
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: center !important;
+  gap: 14px !important;
+}
+
+.filter-select-report {
+  height: 38px !important;
+  padding: 6px 14px !important;
+  font-size: 13px !important;
+  color: #1e293b !important;
+  background-color: #f8fafc !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 8px !important;
+  outline: none !important;
+}
+
+/* 7. Detail Page Cards & Info Grids */
+.employee-header-card,
+.info-card,
+.cert-section,
+.approval-section {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  padding: 24px !important;
+  margin-bottom: 24px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02) !important;
+}
+
+.info-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;
+  gap: 20px !important;
+  margin-bottom: 24px !important;
+}
+
+.info-row {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  padding: 10px 0 !important;
+  border-bottom: 1px solid #f8fafc !important;
+}
+
+.info-row:last-child {
+  border-bottom: none !important;
+}
+
+.info-label {
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  color: #64748b !important;
+}
+
+.info-value {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  color: #0f172a !important;
+  text-align: right !important;
 }
