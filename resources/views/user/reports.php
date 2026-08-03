@@ -261,7 +261,7 @@ $work_scopes = $db->query("
 
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-compact-request" style="width: 100% !important; table-layout: fixed !important; width: 100% !important; table-layout: fixed !important;" id="requestsTable">
+                <table class="table-report table-compact-request" style="width: 100%; min-width: 950px;" id="requestsTable">
                     <thead>
                         <tr>
                             <th class="col-employee" data-lang="employee">Employee</th>
@@ -369,7 +369,7 @@ $work_scopes = $db->query("
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-approved" style="width: 100% !important; table-layout: fixed !important; width: 100% !important; table-layout: fixed !important;" id="approvedTable">
+                <table class="table-report table-approved" style="width: 100%; min-width: 950px;" id="approvedTable">
                     <thead>
                         <tr>
                             <th class="col-number" data-lang="assign-letter-no">Assign Letter No.</th>
@@ -507,7 +507,7 @@ $work_scopes = $db->query("
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-rejected" style="width: 100% !important; table-layout: fixed !important; width: 100% !important; table-layout: fixed !important;" id="rejectedTable">
+                <table class="table-report table-rejected" style="width: 100%; min-width: 950px;" id="rejectedTable">
                     <thead>
                         <tr>
                             <th class="col-number" data-lang="assign-letter-no">Assign Letter No.</th>
@@ -599,7 +599,7 @@ $work_scopes = $db->query("
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-report table-expiring" style="width: 100% !important; table-layout: fixed !important; width: 100% !important; table-layout: fixed !important;" id="expiringCertsTable">
+                <table class="table-report table-expiring" style="width: 100%; min-width: 950px;" id="expiringCertsTable">
                     <thead>
                         <tr>
                             <th class="col-employee" data-lang="employee">Employee</th>
@@ -766,24 +766,24 @@ function filterTableByFilters(tableId) {
     }
     
     // Update info message
-    const showingText = window.getLanguageText('');
-    const dataText = window.getLanguageText('');
+    const showingText = window.getLanguageText('showing', 'Showing');
+    const dataText = window.getLanguageText('data', 'data');
     let infoMessage = showingText + ' ' + visibleCount + ' ' + dataText;
     if (scopeFilter || supervisionFilter) {
         let filters = [];
         if (scopeFilter) {
             const scopeLabel = scopeFilter === 'MSM' ? 'PT MSM' : 'PT TTN';
-            const scopeLabelText = window.getLanguageText('');
+            const scopeLabelText = window.getLanguageText('work-scope-label', 'Scope:');
             filters.push(scopeLabelText + ' ' + scopeLabel);
         }
         if (supervisionFilter) {
-            const supervisionLabelText = window.getLanguageText('');
+            const supervisionLabelText = window.getLanguageText('supervision-area-label', 'Supervision Area:');
             filters.push(supervisionLabelText + ' ' + supervisionFilter);
         }
-        const activeFilterText = window.getLanguageText('');
+        const activeFilterText = window.getLanguageText('active-filter', 'Active Filter:');
         infoMessage += ' - ' + activeFilterText + ' ' + filters.join(', ');
     } else {
-        const showingAllText = window.getLanguageText('');
+        const showingAllText = window.getLanguageText('showing-all-data', 'Showing all data');
         infoMessage = showingAllText;
     }
     updateTableInfo(tableId, infoMessage);
@@ -817,16 +817,17 @@ function filterTableByStatus(tableId) {
     }
     
     // Update info message
-    const showingText = window.getLanguageText('showing');
-    const dataText = window.getLanguageText('requests');
+    const showingText = window.getLanguageText('showing', 'Showing');
+    const dataText = window.getLanguageText('requests', 'requests');
     let infoMessage = showingText + ' ' + visibleCount + ' ' + dataText;
     if (statusFilter) {
-        const statusLabel = statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1);
-        const activeFilterText = window.getLanguageText('active-filter');
-        const statusLabelText = window.getLanguageText('status-label');
-        infoMessage += ' - ' + activeFilterText + ' ' + statusLabelText + ' ' + statusLabel;
+        let statusLabelKey = statusFilter === 'verified' ? 'accepted' : (statusFilter === 'rejected' ? 'status-rejected' : 'status-pending');
+        const statusLabel = window.getLanguageText(statusLabelKey, statusFilter);
+        const activeFilterText = window.getLanguageText('active-filter', 'Active Filter:');
+        const statusLabelText = window.getLanguageText('status-label', 'Status:');
+        infoMessage += ' - ' + activeFilterText + ' ' + statusLabelText + ': ' + statusLabel;
     } else {
-        const showingAllText = window.getLanguageText('showing-all');
+        const showingAllText = window.getLanguageText('showing-all-data', 'Showing all data');
         infoMessage = showingAllText;
     }
 }
@@ -856,16 +857,16 @@ function filterTableByScope(tableId, scopeFilter) {
     }
     
     // Update info message
-    const showingText = window.getLanguageText('');
-    const dataText = window.getLanguageText('');
+    const showingText = window.getLanguageText('showing', 'Showing');
+    const dataText = window.getLanguageText('data', 'data');
     let infoMessage = showingText + ' ' + visibleCount + ' ' + dataText;
     if (scopeFilter) {
         const scopeLabel = scopeFilter === 'MSM' ? 'PT MSM' : 'PT TTN';
-        const activeFilterText = window.getLanguageText('');
-        const scopeLabelText = window.getLanguageText('');
+        const activeFilterText = window.getLanguageText('active-filter', 'Active Filter:');
+        const scopeLabelText = window.getLanguageText('work-scope-label', 'Scope:');
         infoMessage += ' - ' + activeFilterText + ' ' + scopeLabelText + ' ' + scopeLabel;
     } else {
-        const showingAllText = window.getLanguageText('');
+        const showingAllText = window.getLanguageText('showing-all-data', 'Showing all data');
         infoMessage = showingAllText;
     }
     updateTableInfo(tableId, infoMessage);
@@ -899,24 +900,18 @@ function filterRequestTable() {
     }
     
     // Update info message
-    const showingText = window.getLanguageText('') || 'Showing';
-    const dataText = window.getLanguageText('') || 'data';
+    const showingText = window.getLanguageText('showing', 'Showing');
+    const dataText = window.getLanguageText('requests', 'requests');
     let infoMessage = showingText + ' ' + visibleCount + ' ' + dataText;
     
     if (statusFilter) {
-        let statusLabel = '';
-        if (statusFilter === 'verified') {
-            statusLabel = 'Accepted';
-        } else if (statusFilter === 'rejected') {
-            statusLabel = 'Rejected';
-        } else if (statusFilter === 'pending') {
-            statusLabel = 'Pending';
-        }
-        const activeFilterText = window.getLanguageText('') || 'Active filters';
-        const statusLabelText = window.getLanguageText('') || 'Status';
+        let statusLabelKey = statusFilter === 'verified' ? 'accepted' : (statusFilter === 'rejected' ? 'status-rejected' : 'status-pending');
+        const statusLabel = window.getLanguageText(statusLabelKey, statusFilter);
+        const activeFilterText = window.getLanguageText('active-filter', 'Active Filter:');
+        const statusLabelText = window.getLanguageText('status-label', 'Status:');
         infoMessage += ' - ' + activeFilterText + ' ' + statusLabelText + ': ' + statusLabel;
     } else {
-        const showingAllText = window.getLanguageText('') || 'Showing all data';
+        const showingAllText = window.getLanguageText('showing-all-data', 'Showing all data');
         infoMessage = showingAllText;
     }
     
@@ -958,7 +953,7 @@ function showRejectionModal(id, appointmentNumber, employeeName, kttNotes) {
             notesContent.appendChild(noteDiv);
         });
     } else {
-        const emptyNotesText = window.getLanguageText('');
+        const emptyNotesText = window.getLanguageText('no-rejection-notes', 'No rejection notes');
         notesContent.innerHTML = '<p class="text-muted">' + emptyNotesText + '</p>';
     }
     
@@ -992,7 +987,7 @@ function escapeHtml(unsafe) {
 function exportRequestsToExcel(tableId, filename) {
     const table = document.getElementById(tableId);
     if (!table) {
-        const tableNotFound = window.getLanguageText('');
+        const tableNotFound = window.getLanguageText('table-not-found', 'Table not found!');
         alert(tableNotFound);
         return;
     }
@@ -1008,7 +1003,7 @@ function exportRequestsToExcel(tableId, filename) {
     }
     
     if (filteredRows.length === 0) {
-        const noDataToExport = window.getLanguageText('');
+        const noDataToExport = window.getLanguageText('no-data-to-export', 'No data to export!');
         alert(noDataToExport);
         return;
     }
@@ -1115,7 +1110,7 @@ function exportRequestsToExcel(tableId, filename) {
 function exportApprovedByCompany() {
     const table = document.getElementById('approvedTable');
     if (!table) {
-        const tableNotFound = window.getLanguageText('');
+        const tableNotFound = window.getLanguageText('table-not-found', 'Table not found!');
         alert(tableNotFound);
         return;
     }
@@ -1131,7 +1126,7 @@ function exportApprovedByCompany() {
     }
     
     if (filteredRows.length === 0) {
-        const noDataToPrint = window.getLanguageText('');
+        const noDataToPrint = window.getLanguageText('no-data-to-print', 'No data to print!');
         alert(noDataToPrint);
         return;
     }
@@ -1225,7 +1220,7 @@ function exportApprovedByCompany() {
 function exportToExcel(tableId, filename) {
     const table = document.getElementById(tableId);
     if (!table) {
-        const tableNotFound = window.getLanguageText('');
+        const tableNotFound = window.getLanguageText('table-not-found', 'Table not found!');
         alert(tableNotFound);
         return;
     }
@@ -1241,7 +1236,7 @@ function exportToExcel(tableId, filename) {
     }
     
     if (filteredRows.length === 0) {
-        const noDataToExport = window.getLanguageText('');
+        const noDataToExport = window.getLanguageText('no-data-to-export', 'No data to export!');
         alert(noDataToExport);
         return;
     }
@@ -1375,7 +1370,7 @@ function exportToExcel(tableId, filename) {
 function exportExpiringCertsToExcel() {
     const table = document.getElementById('expiringCertsTable');
     if (!table) {
-        const tableNotFound = window.getLanguageText('');
+        const tableNotFound = window.getLanguageText('table-not-found', 'Table not found!');
         alert(tableNotFound);
         return;
     }
@@ -1391,7 +1386,7 @@ function exportExpiringCertsToExcel() {
     }
     
     if (filteredRows.length === 0) {
-        const noDataToExport = window.getLanguageText('');
+        const noDataToExport = window.getLanguageText('no-data-to-export', 'No data to export!');
         alert(noDataToExport);
         return;
     }

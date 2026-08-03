@@ -493,8 +493,8 @@ table.approval-table,
 table.table-history,
 .table-responsive > table {
   width: 100% !important;
-  min-width: 100% !important;
-  table-layout: fixed !important; /* Forces strict header and cell alignment */
+  min-width: 950px !important;
+  table-layout: auto !important; /* Allow responsive column sizing without cramped text */
   border-collapse: separate !important;
   border-spacing: 0 !important;
   background-color: #ffffff !important;
