@@ -220,6 +220,14 @@ try {
                                     }
                                 }
                                 unset($item);
+
+                                if ($target === 'employee_status') {
+                                    $items = array_values(array_filter($items, function($item) use ($metaMap) {
+                                        $id = (int)($item['id'] ?? 0);
+                                        return isset($metaMap[$id]) && !empty($metaMap[$id]['appointment_number']);
+                                    }));
+                                    $totalHits = count($items);
+                                }
                             }
                         } catch (\Throwable $t) {}
                     }

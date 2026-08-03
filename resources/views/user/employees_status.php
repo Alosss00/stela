@@ -403,6 +403,7 @@ AND a.is_current=1
                         },
                         defaultLimit: 10,
                         renderRow: function(item, index, rowNum) {
+                            if (!item.appointment_number || item.appointment_number === '-') return '';
                             const empStatus = (item.employee_status || 'active').toLowerCase();
                             const statusBadge = empStatus === 'active'
                                 ? '<span class="badge-status badge-success">ACTIVE</span>'
