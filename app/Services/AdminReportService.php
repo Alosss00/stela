@@ -5,8 +5,12 @@
  * Integrates Bonsai.io (ElasticsearchService) with fallback to MySQL Prepared Statements.
  */
 
-require_once __DIR__ . '/Database.php';
-require_once __DIR__ . '/ElasticsearchService.php';
+if (!class_exists('Database')) {
+    require_once dirname(__DIR__) . '/Models/Database.php';
+}
+if (!class_exists('ElasticsearchService')) {
+    require_once __DIR__ . '/ElasticsearchService.php';
+}
 
 class AdminReportService {
     private static $instance = null;
