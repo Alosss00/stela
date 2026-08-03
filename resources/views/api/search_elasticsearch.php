@@ -161,8 +161,8 @@ try {
         }
     }
 
-    // 1. Try Elasticsearch Search first if class exists
-    if (class_exists('ElasticsearchService')) {
+    // 1. Try Elasticsearch Search first if class exists (except for employee_status which requires strict direct DB joining for approved appointments)
+    if ($target !== 'employee_status' && class_exists('ElasticsearchService')) {
         $es = ElasticsearchService::getInstance();
         if ($es && method_exists($es, 'isAvailable') && $es->isAvailable()) {
             $filters = [];
