@@ -7,10 +7,10 @@ $(document).ready(function () {
 
             $(this).DataTable({
                 pageLength: 10,
-                responsive: true,
+                responsive: false, // Set to false so DataTables does not inject dtr-control column or shift th/td
                 autoWidth: false,
                 dom: "<'dt-controls-top'<'dt-length-container'l><'dt-search-container'f>>" +
-                     "<'table-responsive'tr>" +
+                     "t" +
                      "<'dt-controls-bottom'<'dt-info-container'i><'dt-paginate-container'p>>",
                 language: {
                     lengthMenu: "Tampilkan _MENU_ data",
