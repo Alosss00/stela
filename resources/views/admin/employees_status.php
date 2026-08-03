@@ -54,33 +54,37 @@ ORDER BY e.full_name ASC
 
 require_once dirname(__DIR__) . '/layouts/header.php';
 
-// Get statistics
+// Get statistics (only employees with approved current appointments)
 $total_employees =
 $db->query("
-SELECT COUNT(*) total
-FROM employees
-WHERE is_active=1
+SELECT COUNT(DISTINCT e.id) total
+FROM employees e
+INNER JOIN appointments a ON a.employee_id = e.id
+WHERE e.is_active=1 AND a.status='approved' AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 $active_count =
 $db->query("
-SELECT COUNT(*) total
-FROM employees
-WHERE employee_status='active'
+SELECT COUNT(DISTINCT e.id) total
+FROM employees e
+INNER JOIN appointments a ON a.employee_id = e.id
+WHERE e.is_active=1 AND e.employee_status='active' AND a.status='approved' AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 $resigned_count =
 $db->query("
-SELECT COUNT(*) total
-FROM employees
-WHERE employee_status='resigned'
+SELECT COUNT(DISTINCT e.id) total
+FROM employees e
+INNER JOIN appointments a ON a.employee_id = e.id
+WHERE e.is_active=1 AND e.employee_status='resigned' AND a.status='approved' AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 $inactive_count =
 $db->query("
-SELECT COUNT(*) total
-FROM employees
-WHERE is_active=0
+SELECT COUNT(DISTINCT e.id) total
+FROM employees e
+INNER JOIN appointments a ON a.employee_id = e.id
+WHERE e.is_active=0 AND a.status='approved' AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 ?>
@@ -204,7 +208,7 @@ WHERE is_active=0
             <select id="filterCompany" style="height:40px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:150px;">
                 <option value="">Semua Perusahaan</option>
                 <?php
-                $companies_res = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE contractor_company IS NOT NULL AND contractor_company != '' ORDER BY contractor_company ASC");
+                $companies_res = $db->query("SELECT DISTINCT e.contractor_company FROM employees e INNER JOIN appointments a ON a.employee_id = e.id WHERE a.status = 'approved' AND a.is_current = 1 AND e.contractor_company IS NOT NULL AND e.contractor_company != '' ORDER BY e.contractor_company ASC");
                 if ($companies_res) {
                     while ($c_row = $companies_res->fetch_assoc()) {
                         echo '<option value="' . htmlspecialchars($c_row['contractor_company']) . '">' . htmlspecialchars($c_row['contractor_company']) . '</option>';

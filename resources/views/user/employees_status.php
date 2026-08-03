@@ -99,44 +99,56 @@ ORDER BY e.full_name ASC
 
 require_once dirname(__DIR__) . '/layouts/header.php';
 
-// Get statistics
+// Get statistics (only employees with approved current appointments)
 $total_employees =
 $db->query("
-SELECT COUNT(*) total
-FROM employees
+SELECT COUNT(DISTINCT e.id) total
+FROM employees e
+INNER JOIN appointments a ON a.employee_id = e.id
 WHERE
-is_active=1
-AND contractor_company='$company_name'
+e.is_active=1
+AND e.contractor_company='$company_name'
+AND a.status='approved'
+AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 $active_count =
 $db->query("
-SELECT COUNT(*) total
-FROM employees
+SELECT COUNT(DISTINCT e.id) total
+FROM employees e
+INNER JOIN appointments a ON a.employee_id = e.id
 WHERE
-is_active=1
-AND employee_status='active'
-AND contractor_company='$company_name'
+e.is_active=1
+AND e.employee_status='active'
+AND e.contractor_company='$company_name'
+AND a.status='approved'
+AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 
 $resigned_count =
 $db->query("
-SELECT COUNT(*) total
-FROM employees
+SELECT COUNT(DISTINCT e.id) total
+FROM employees e
+INNER JOIN appointments a ON a.employee_id = e.id
 WHERE
-is_active=1
-AND employee_status='resigned'
-AND contractor_company='$company_name'
+e.is_active=1
+AND e.employee_status='resigned'
+AND e.contractor_company='$company_name'
+AND a.status='approved'
+AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 $inactive_count =
 $db->query("
-SELECT COUNT(*) total
-FROM employees
+SELECT COUNT(DISTINCT e.id) total
+FROM employees e
+INNER JOIN appointments a ON a.employee_id = e.id
 WHERE
-is_active=0
-AND contractor_company='$company_name'
+e.is_active=0
+AND e.contractor_company='$company_name'
+AND a.status='approved'
+AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 ?>
