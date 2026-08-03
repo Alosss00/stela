@@ -79,8 +79,11 @@ try {
         try {
             $esSync = ElasticsearchService::getInstance();
             if ($esSync && $esSync->isAvailable()) {
-                if ($target === 'employees') {
+                if ($target === 'employees' || $target === 'employee_status') {
                     $syncWhere = ["e.is_active = 1"];
+                    if ($target === 'employee_status') {
+                        $syncWhere[] = "a.status = 'approved'";
+                    }
                     if (!empty($createdByFilter)) {
                         if (!empty($company)) {
                             $syncWhere[] = "(e.created_by = " . intval($createdByFilter) . " OR (e.created_by IS NULL AND e.contractor_company = '" . $db->escapeString($company) . "'))";
@@ -90,11 +93,13 @@ try {
                     } elseif (!empty($company)) {
                         $syncWhere[] = "e.contractor_company = '" . $db->escapeString($company) . "'";
                     }
-                    $syncSql = "SELECT e.*, u.full_name as verified_by_name 
+                    $syncSql = "SELECT e.*, u.full_name as verified_by_name, a.appointment_number, a.appointment_date 
                                 FROM employees e 
                                 LEFT JOIN users u ON e.verified_by = u.id 
+                                INNER JOIN appointments a ON a.employee_id = e.id AND a.status = 'approved'
                                 WHERE " . implode(' AND ', $syncWhere) . " 
-                                ORDER BY e.id DESC LIMIT 50";
+                                GROUP BY e.id
+                                ORDER BY e.id DESC LIMIT 500";
                     $syncRes = $db->query($syncSql);
                     if ($syncRes && $syncRes->num_rows > 0) {
                         while ($empRow = $syncRes->fetch_assoc()) {
@@ -112,6 +117,9 @@ try {
                                 'sub_competency' => $empRow['sub_competency'] ?? '',
                                 'supervision_area' => $empRow['supervision_area'] ?? '',
                                 'approval_status' => $empRow['verification_status'] ?? ($empRow['status'] ?? 'pending'),
+                                'employee_status' => $empRow['employee_status'] ?? 'active',
+                                'appointment_number' => $empRow['appointment_number'] ?? '',
+                                'resign_date' => $empRow['resign_date'] ?? null,
                                 'is_active' => isset($empRow['is_active']) ? (int)$empRow['is_active'] : 1,
                                 'created_by' => isset($empRow['created_by']) ? (int)$empRow['created_by'] : null,
                                 'created_at' => $empRow['created_at'] ?? date('Y-m-d H:i:s')
