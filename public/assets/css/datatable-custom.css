@@ -544,8 +544,10 @@ table.table-history tbody td {
   font-size: 13.5px !important;
   color: #1e293b !important;
   line-height: 1.5 !important;
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+  white-space: normal !important;
   box-sizing: border-box !important;
 }
 
@@ -561,6 +563,13 @@ table.approval-table tbody tr:hover td {
   background-color: #f8fafc !important;
 }
 
+/* Suppress DataTables Responsive Column Collapse & Control Arrow Injection */
+table.dataTable.dtr-inline.collapsed > tbody > tr > td.dtr-control::before,
+table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control::before,
+.dtr-control {
+  display: none !important;
+}
+
 /* 5. Specific Column Class Widths & Alignments (Strict 100% total allocation) */
 table.table-report {
   width: 100% !important;
@@ -570,9 +579,24 @@ table.table-report {
 
 table.table-report th, 
 table.table-report td {
-  word-wrap: break-word !important;
-  overflow-wrap: break-word !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  overflow-wrap: normal !important;
+  white-space: normal !important;
   box-sizing: border-box !important;
+}
+
+.company-tag,
+.position-badge-report,
+.emp-code-detail,
+.status-badge,
+.rejector-badge,
+.approver-badge {
+  display: inline-block !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  word-wrap: normal !important;
+  max-width: 100% !important;
 }
 
 th.col-num, td.col-num { width: 5% !important; text-align: center !important; }
