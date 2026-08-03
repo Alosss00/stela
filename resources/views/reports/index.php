@@ -9,7 +9,7 @@ $userCompany = trim((string)($_SESSION['contractor_company'] ?? ''));
 $userDepartment = trim((string)($_SESSION['department'] ?? ''));
 $page_title = 'STELA Reports Hub';
 
-require_once dirname(__DIR__, 2) . '/app/Services/ReportService.php';
+require_once dirname(__DIR__, 3) . '/app/Services/ReportService.php';
 $db = new Database();
 
 // Fetch company list for Admin dropdown filter
