@@ -182,6 +182,117 @@ WHERE is_active=0
 
         <div class="stat-info">
             <div class="stat-number"><?= $inactive_count ?></div>
+            <div class="stat-text">Inactive</div>
+        </div>
+    </div>
+
+</div>
+    
+    <!-- Employees Table -->
+    <div class="card-emp">
+        <div class="card-header-emp">
+            <h3><i class="fas fa-list"></i> <span data-lang="complete-workforce-list">Complete Workforce List</span></h3>
+        </div>
+
+        <div class="card-body-emp">
+            <?php if ($employees->num_rows > 0): ?>
+                <div class="table-responsive">
+                    <table class="table-emp datatable" id="employeesTable">
+                        <thead>
+                            <tr>
+                                <th class="col-code" data-lang="id-badge">ID BADGE</th>
+                                <th class="col-name" data-lang="name">Name</th>
+                                <th class="col-position no-required-marker" data-lang="position">Position</th>
+                                <th class="col-company no-required-marker" data-lang="company">Company</th>
+                                <th class="col-competency-type no-required-marker" data-lang="competency-type">Competency Type</th>
+                                <th class="col-competency no-required-marker" data-lang="competency">Competency</th>
+                                <th class="col-status">Appointment No</th>
+                                <th class="col-employee-status" data-lang="employee-status">Employee Status</th>
+                                <th class="col-action" data-lang="action">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php 
+                            $employees->data_seek(0);
+                            while ($row = $employees->fetch_assoc()): 
+                                $company_name = htmlspecialchars($row['contractor_company']);
+                            ?>
+                            <tr class="emp-row" data-company="<?php echo $company_name; ?>" data-status="<?= htmlspecialchars($row['employee_status']) ?>">
+                                <td class="col-code">
+                                    <span class="code-badge"><?php echo htmlspecialchars($row['employee_code']); ?></span>
+                                </td>
+                                <td class="col-name">
+                                    <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
+                                </td>
+                                <td class="col-position">
+                                    <span class="position-tag-emp"><?php echo htmlspecialchars($row['position']); ?></span>
+                                </td>
+                                <td class="col-company">
+                                    <span class="company-tag-emp"><?php echo $company_name; ?></span>
+                                </td>
+                                <td class="col-competency-type">
+                                    <?php $type = strtolower(str_replace(' ', '_', trim($row['competency_type'])));?>
+                                    <span class="competency-type-badge competency-<?= $type ?>"><?= htmlspecialchars($row['competency_type']) ?></span>
+                                    </td>      
+                                <td class="col-competency">
+                                    <?php if (!empty($row['competency_name'])): ?>
+                                        <span class="competency-tag"><?php echo htmlspecialchars($row['competency_name']); ?></span>
+                                    <?php else: ?>
+                                        <span class="text-muted">-</span>
+                                    <?php endif; ?>
+                                </td>
+                                <td class="col-status">
+                                    <?= htmlspecialchars($row['appointment_number']) ?>
+                                </td>
+                                <td>
+                                    <?php if($row['employee_status']=="active"): ?>
+                                    <span class="badge-status badge-success">ACTIVE</span>
+                                    <?php else: ?>
+                                    <span class="badge-status badge-danger">RESIGNED</span>
+                                    <?php endif; ?>
+                                    </td>   
+                                <td class="col-action text-center">
+                                    <?php if($row['employee_status']=="active"): ?>
+                                    <button
+                                        type="button"
+                                        class="btn btn-danger btn-sm resign-btn"
+                                        data-id="<?= $row['id']; ?>"
+                                        data-name="<?= htmlspecialchars($row['full_name']); ?>"
+                                        data-company="<?= htmlspecialchars($row['contractor_company']); ?>"
+                                        data-appointment="<?= htmlspecialchars($row['appointment_number']); ?>">
+                                        <i class="fas fa-user-times"></i>
+                                        Resign
+                                    </button>
+                                    <?php else: ?>
+                                        <a href="employee_status_detail.php?id=<?= $row['id']; ?>"
+                                        class="btn-action-emp detail-btn">
+
+                                            <i class="fas fa-eye"></i>
+                                            Detail
+
+                                        </a>
+
+                                        <?php endif; ?>
+
+                                    </td>
+                              </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            <?php else: ?>
+                <div class="empty-state-emp">
+                    <i class="fas fa-inbox"></i>
+                    <p data-lang="no-workforce-data">No workforce data yet</p>
+                </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="employeeStatusModal">
+
+    <div class="modal-dialog">
 
         <div class="modal-content">
 

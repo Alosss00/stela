@@ -38,11 +38,10 @@ try {
     }
 
     $queryText = trim($_GET['q'] ?? $_GET['query'] ?? '');
-    $target = trim($_GET['target'] ?? 'employees'); // 'employees', 'appointments', or 'employee_status'
+    $target = trim($_GET['target'] ?? 'employees'); // 'employees' or 'appointments'
     $company = trim($_GET['company'] ?? '');
     $competencyType = trim($_GET['competency_type'] ?? '');
     $status = trim($_GET['status'] ?? '');
-    $employeeStatus = trim($_GET['employee_status'] ?? '');
     $department = trim($_GET['department'] ?? '');
     $page = max(1, (int)($_GET['page'] ?? 1));
     $limit = min(100, max(1, (int)($_GET['limit'] ?? 10)));
@@ -162,9 +161,8 @@ try {
             if (!empty($competencyType)) $filters['competency_type'] = $competencyType;
             if (!empty($department)) $filters['department'] = $department;
             if (!empty($createdByFilter)) $filters['created_by'] = $createdByFilter;
-            if (!empty($employeeStatus)) $filters['employee_status'] = $employeeStatus;
             if (!empty($status)) {
-                if ($target === 'employees' || $target === 'employee_status') {
+                if ($target === 'employees') {
                     $filters['approval_status'] = $status;
                 } else {
                     $filters['status'] = $status;
@@ -183,16 +181,15 @@ try {
                 // If ES has hits, return ES result. If 0 hits, fall through to MySQL fallback search
                 if ($totalHits > 0) {
                     $items = $result['items'] ?? [];
-                    if (($target === 'employees' || $target === 'employee_status') && !empty($items) && class_exists('Database')) {
+                    if ($target === 'employees' && !empty($items) && class_exists('Database')) {
                         try {
                             $dbHydrate = new Database();
                             $ids = array_filter(array_map(function($i) { return (int)($i['id'] ?? 0); }, $items));
                             if (!empty($ids)) {
                                 $idsStr = implode(',', $ids);
-                                $dbRes = $dbHydrate->query("SELECT e.id, e.competency_name, e.sub_competency, e.verified_date, e.employee_status, e.resign_date, u.full_name as verified_by_name, a.appointment_number, a.appointment_date 
+                                $dbRes = $dbHydrate->query("SELECT e.id, e.competency_name, e.sub_competency, e.verified_date, u.full_name as verified_by_name 
                                                      FROM employees e 
                                                      LEFT JOIN users u ON e.verified_by = u.id 
-                                                     LEFT JOIN appointments a ON a.employee_id = e.id AND a.status = 'approved' AND a.is_current = 1
                                                      WHERE e.id IN ($idsStr)");
                                 $metaMap = [];
                                 if ($dbRes) {
@@ -211,12 +208,6 @@ try {
                                         if (empty($item['sub_competency'])) $item['sub_competency'] = $metaMap[$id]['sub_competency'] ?? '';
                                         if (empty($item['verified_by_name'])) $item['verified_by_name'] = $metaMap[$id]['verified_by_name'] ?? '';
                                         if (empty($item['verified_date'])) $item['verified_date'] = $metaMap[$id]['verified_date'] ?? '';
-                                    }
-                                    if (isset($metaMap[$id])) {
-                                        $item['employee_status'] = $metaMap[$id]['employee_status'] ?? ($item['employee_status'] ?? 'active');
-                                        $item['resign_date'] = $metaMap[$id]['resign_date'] ?? ($item['resign_date'] ?? null);
-                                        $item['appointment_number'] = $metaMap[$id]['appointment_number'] ?? ($item['appointment_number'] ?? '-');
-                                        $item['appointment_date'] = $metaMap[$id]['appointment_date'] ?? ($item['appointment_date'] ?? null);
                                     }
                                 }
                                 unset($item);
@@ -306,61 +297,7 @@ try {
     $items = [];
     $total = 0;
 
-    if ($target === 'employee_status') {
-        $where = ["e.is_active = 1", "a.status = 'approved'", "a.is_current = 1"];
-        
-        if (!empty($queryText)) {
-            $safeQ = $db->escapeString($queryText);
-            $where[] = "(e.employee_code LIKE '%$safeQ%' OR e.full_name LIKE '%$safeQ%' OR e.position LIKE '%$safeQ%' OR e.contractor_company LIKE '%$safeQ%' OR a.appointment_number LIKE '%$safeQ%')";
-        }
-
-        if (!$isAdmin) {
-            $scopeConds = [];
-            if (!empty($company)) {
-                $safeCompany = $db->escapeString($company);
-                $scopeConds[] = "e.contractor_company = '$safeCompany'";
-                $scopeConds[] = "e.department = '$safeCompany'";
-            }
-            if (!empty($scopeConds)) {
-                $where[] = "(" . implode(' OR ', array_unique($scopeConds)) . ")";
-            }
-        } elseif (!empty($company)) {
-            $safeCompany = $db->escapeString($company);
-            $where[] = "e.contractor_company = '$safeCompany'";
-        }
-
-        if (!empty($employeeStatus)) {
-            $safeEmpStatus = $db->escapeString($employeeStatus);
-            $where[] = "e.employee_status = '$safeEmpStatus'";
-        }
-
-        if (!empty($competencyType)) {
-            $safeType = $db->escapeString($competencyType);
-            $where[] = "e.competency_type = '$safeType'";
-        }
-
-        $whereClause = implode(' AND ', $where);
-
-        // Count
-        $countRes = $db->query("SELECT COUNT(*) as cnt FROM employees e INNER JOIN appointments a ON a.employee_id = e.id WHERE $whereClause");
-        if ($countRes) {
-            $total = (int)($countRes->fetch_assoc()['cnt'] ?? 0);
-        }
-
-        $sql = "SELECT e.id, e.employee_code, e.full_name, e.position, e.department, e.contractor_company, 
-                       e.competency_type, e.competency_name, e.ruang_lingkup, e.sub_competency, e.supervision_area, 
-                       e.employee_status, e.resign_date, a.appointment_number, a.appointment_date,
-                       e.verification_status as approval_status, e.verification_status, e.created_at 
-                FROM employees e 
-                INNER JOIN appointments a ON a.employee_id = e.id 
-                WHERE $whereClause ORDER BY e.full_name ASC LIMIT $from, $limit";
-        $res = $db->query($sql);
-        if ($res) {
-            while ($row = $res->fetch_assoc()) {
-                $items[] = $row;
-            }
-        }
-    } else if ($target === 'employees') {
+    if ($target === 'employees') {
         $where = ["e.is_active = 1"];
         
         if (!empty($queryText)) {
