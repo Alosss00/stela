@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$is_superadmin) {
                                 $notifService = new NotificationService();
                                 $notifService->notifyKttBothApprovedToAdmin($id);
                                 $notifService->notifyKttApprovedFinalToUserDept($id);
-                            } catch (Exception $e) {
+                            } catch (\Throwable $e) {
                                 error_log("Notification error (ktt approved): " . $e->getMessage());
                             }
                         } else {
@@ -173,7 +173,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$is_superadmin) {
                                 $notifService = new NotificationService();
                                 $notifService->notifyKttBothApprovedToAdmin($id);
                                 $notifService->notifyKttApprovedFinalToUserDept($id);
-                            } catch (Exception $e) {
+                            } catch (\Throwable $e) {
                                 error_log("Notification error (ktt approved): " . $e->getMessage());
                             }
                         } else {
@@ -250,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$is_superadmin) {
                                 set_time_limit(60);
                                 $notificationService = new NotificationService();
                                 $notificationService->notifyAppointmentRejectedForReview($id);
-                            } catch (Exception $e) {
+                            } catch (\Throwable $e) {
                                 error_log("Notification error: " . $e->getMessage());
                             }
 

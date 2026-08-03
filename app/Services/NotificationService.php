@@ -53,11 +53,19 @@ private $email_from_name = 'Mining Appointment System';
         error_log("[NOTIFICATION] Found " . count($admins) . " admin(s)");
         
         // Get employee details
-        $employee = $this->db->query("
+        $employee_id = (int) $employee_id;
+        $res = $this->db->query("
             SELECT employee_code, full_name, position, contractor_company
             FROM employees 
             WHERE id = $employee_id
-        ")->fetch_assoc();
+        ");
+
+        if (!$res) {
+            error_log("[NOTIFICATION ERROR] Query failed for employee_id: $employee_id");
+            return false;
+        }
+
+        $employee = $res->fetch_assoc();
         
         if (!$employee) {
             error_log("[NOTIFICATION ERROR] Employee not found: $employee_id");
@@ -116,7 +124,8 @@ private $email_from_name = 'Mining Appointment System';
         error_log("[NOTIFICATION] Found " . count($admins) . " admin(s)");
         
         // Get appointment details
-        $appointment = $this->db->query("
+        $appointment_id = (int) $appointment_id;
+        $res = $this->db->query("
             SELECT a.id, a.appointment_number,
                    COALESCE(
                        (SELECT ka.approval_notes FROM ktt_approvals ka
@@ -135,9 +144,16 @@ private $email_from_name = 'Mining Appointment System';
                    p.position_name
             FROM appointments a
             JOIN employees e ON a.employee_id = e.id
-            JOIN positions p ON a.position_id = p.id
+            LEFT JOIN positions p ON a.position_id = p.id
             WHERE a.id = $appointment_id
-        ")->fetch_assoc();
+        ");
+
+        if (!$res) {
+            error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");
+            return false;
+        }
+
+        $appointment = $res->fetch_assoc();
         
         if (!$appointment) {
             error_log("[NOTIFICATION ERROR] Appointment not found: $appointment_id");
@@ -240,7 +256,8 @@ private $email_from_name = 'Mining Appointment System';
         error_log("[NOTIFICATION] notifyKttForApproval called for appointment_id=$appointment_id, MSM=$notify_msm, TTN=$notify_ttn");
 
         // Get appointment details
-        $appointment = $this->db->query("
+        $appointment_id = (int) $appointment_id;
+        $res = $this->db->query("
             SELECT a.appointment_number, a.id,
                    e.full_name, e.employee_code, e.contractor_company,
                    p.position_name
@@ -248,7 +265,14 @@ private $email_from_name = 'Mining Appointment System';
             JOIN employees e ON a.employee_id = e.id
             LEFT JOIN positions p ON a.position_id = p.id
             WHERE a.id = $appointment_id
-        ")->fetch_assoc();
+        ");
+
+        if (!$res) {
+            error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");
+            return false;
+        }
+
+        $appointment = $res->fetch_assoc();
 
         if (!$appointment) {
             error_log("[NOTIFICATION ERROR] Appointment not found: $appointment_id");
@@ -529,7 +553,8 @@ private $email_from_name = 'Mining Appointment System';
             return false;
         }
 
-        $appointment = $this->db->query("
+        $appointment_id = (int) $appointment_id;
+        $res = $this->db->query("
             SELECT a.appointment_number, e.full_name, e.employee_code, e.contractor_company,
                    p.position_name,
                    u1.full_name as ktt1_name, u2.full_name as ktt2_name
@@ -539,7 +564,14 @@ private $email_from_name = 'Mining Appointment System';
             LEFT JOIN users u1 ON a.ktt1_approved_by = u1.id
             LEFT JOIN users u2 ON a.ktt2_approved_by = u2.id
             WHERE a.id = $appointment_id
-        ")->fetch_assoc();
+        ");
+
+        if (!$res) {
+            error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");
+            return false;
+        }
+
+        $appointment = $res->fetch_assoc();
 
         if (!$appointment) {
             error_log("[NOTIFICATION ERROR] Appointment not found: $appointment_id");
@@ -589,13 +621,21 @@ private $email_from_name = 'Mining Appointment System';
     public function notifyAdminAcceptedEmployee($employee_id, $reviewer_name = '') {
         error_log("[NOTIFICATION] notifyAdminAcceptedEmployee called for employee_id=$employee_id");
 
-        $employee = $this->db->query("
+        $employee_id = (int) $employee_id;
+        $res = $this->db->query("
             SELECT e.full_name, e.employee_code, e.contractor_company, e.department,
                    u.full_name as reviewer_full_name
             FROM employees e
             LEFT JOIN users u ON e.verified_by = u.id
             WHERE e.id = $employee_id
-        ")->fetch_assoc();
+        ");
+
+        if (!$res) {
+            error_log("[NOTIFICATION ERROR] Query failed for employee_id: $employee_id");
+            return false;
+        }
+
+        $employee = $res->fetch_assoc();
 
         if (!$employee) {
             error_log("[NOTIFICATION ERROR] Employee not found: $employee_id");
@@ -653,10 +693,18 @@ private $email_from_name = 'Mining Appointment System';
     public function notifyAdminRejectedEmployee($employee_id, $rejection_notes = '') {
         error_log("[NOTIFICATION] notifyAdminRejectedEmployee called for employee_id=$employee_id");
 
-        $employee = $this->db->query("
+        $employee_id = (int) $employee_id;
+        $res = $this->db->query("
             SELECT full_name, employee_code, contractor_company, department
             FROM employees WHERE id = $employee_id
-        ")->fetch_assoc();
+        ");
+
+        if (!$res) {
+            error_log("[NOTIFICATION ERROR] Query failed for employee_id: $employee_id");
+            return false;
+        }
+
+        $employee = $res->fetch_assoc();
 
         if (!$employee) {
             error_log("[NOTIFICATION ERROR] Employee not found: $employee_id");
@@ -712,7 +760,8 @@ private $email_from_name = 'Mining Appointment System';
     public function notifyKttApprovedFinalToUserDept($appointment_id) {
         error_log("[NOTIFICATION] notifyKttApprovedFinalToUserDept called for appointment_id=$appointment_id");
 
-        $appointment = $this->db->query("
+        $appointment_id = (int) $appointment_id;
+        $res = $this->db->query("
             SELECT a.appointment_number, a.employee_id,
                    e.full_name, e.employee_code, e.contractor_company, e.department,
                    p.position_name
@@ -720,7 +769,14 @@ private $email_from_name = 'Mining Appointment System';
             JOIN employees e ON a.employee_id = e.id
             LEFT JOIN positions p ON a.position_id = p.id
             WHERE a.id = $appointment_id
-        ")->fetch_assoc();
+        ");
+
+        if (!$res) {
+            error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");
+            return false;
+        }
+
+        $appointment = $res->fetch_assoc();
 
         if (!$appointment) {
             error_log("[NOTIFICATION ERROR] Appointment not found: $appointment_id");
@@ -774,7 +830,8 @@ private $email_from_name = 'Mining Appointment System';
     public function notifyAdminFinalRejectionToUserDept($appointment_id, $admin_notes = '') {
         error_log("[NOTIFICATION] notifyAdminFinalRejectionToUserDept called for appointment_id=$appointment_id");
 
-        $appointment = $this->db->query("
+        $appointment_id = (int) $appointment_id;
+        $res = $this->db->query("
             SELECT a.appointment_number,
                    e.full_name, e.employee_code, e.contractor_company, e.department,
                    p.position_name,
@@ -792,7 +849,14 @@ private $email_from_name = 'Mining Appointment System';
             )
             LEFT JOIN users ktt_user ON ktt_rej.ktt_user_id = ktt_user.id
             WHERE a.id = $appointment_id
-        ")->fetch_assoc();
+        ");
+
+        if (!$res) {
+            error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");
+            return false;
+        }
+
+        $appointment = $res->fetch_assoc();
 
         if (!$appointment) {
             error_log("[NOTIFICATION ERROR] Appointment not found: $appointment_id");
