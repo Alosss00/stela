@@ -92,14 +92,14 @@ INNER JOIN appointments a
 WHERE
     $where_clause
     AND a.status='approved'
-    AND a.is_current=1
 
+GROUP BY e.id
 ORDER BY e.full_name ASC
 ");
 
 require_once dirname(__DIR__) . '/layouts/header.php';
 
-// Get statistics (only employees with approved current appointments)
+// Get statistics (only employees with approved appointments)
 $total_employees =
 $db->query("
 SELECT COUNT(DISTINCT e.id) total
@@ -109,7 +109,6 @@ WHERE
 e.is_active=1
 AND e.contractor_company='$company_name'
 AND a.status='approved'
-AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 $active_count =
@@ -122,7 +121,6 @@ e.is_active=1
 AND e.employee_status='active'
 AND e.contractor_company='$company_name'
 AND a.status='approved'
-AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 
@@ -136,7 +134,6 @@ e.is_active=1
 AND e.employee_status='resigned'
 AND e.contractor_company='$company_name'
 AND a.status='approved'
-AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 $inactive_count =
@@ -148,7 +145,6 @@ WHERE
 e.is_active=0
 AND e.contractor_company='$company_name'
 AND a.status='approved'
-AND a.is_current=1
 ")->fetch_assoc()['total'];
 
 ?>

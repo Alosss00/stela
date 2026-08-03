@@ -192,7 +192,7 @@ try {
                                 $dbRes = $dbHydrate->query("SELECT e.id, e.competency_name, e.sub_competency, e.verified_date, e.employee_status, e.resign_date, u.full_name as verified_by_name, a.appointment_number, a.appointment_date 
                                                      FROM employees e 
                                                      LEFT JOIN users u ON e.verified_by = u.id 
-                                                     LEFT JOIN appointments a ON a.employee_id = e.id AND a.status = 'approved' AND a.is_current = 1
+                                                     LEFT JOIN appointments a ON a.employee_id = e.id AND a.status = 'approved'
                                                      WHERE e.id IN ($idsStr)");
                                 $metaMap = [];
                                 if ($dbRes) {
@@ -315,7 +315,7 @@ try {
     $total = 0;
 
     if ($target === 'employee_status') {
-        $where = ["e.is_active = 1", "a.status = 'approved'", "a.is_current = 1"];
+        $where = ["e.is_active = 1", "a.status = 'approved'"];
         
         if (!empty($queryText)) {
             $safeQ = $db->escapeString($queryText);
@@ -350,7 +350,7 @@ try {
         $whereClause = implode(' AND ', $where);
 
         // Count
-        $countRes = $db->query("SELECT COUNT(*) as cnt FROM employees e INNER JOIN appointments a ON a.employee_id = e.id WHERE $whereClause");
+        $countRes = $db->query("SELECT COUNT(DISTINCT e.id) as cnt FROM employees e INNER JOIN appointments a ON a.employee_id = e.id WHERE $whereClause");
         if ($countRes) {
             $total = (int)($countRes->fetch_assoc()['cnt'] ?? 0);
         }
@@ -361,7 +361,7 @@ try {
                        e.verification_status as approval_status, e.verification_status, e.created_at 
                 FROM employees e 
                 INNER JOIN appointments a ON a.employee_id = e.id 
-                WHERE $whereClause ORDER BY e.full_name ASC LIMIT $from, $limit";
+                WHERE $whereClause GROUP BY e.id ORDER BY e.full_name ASC LIMIT $from, $limit";
         $res = $db->query($sql);
         if ($res) {
             while ($row = $res->fetch_assoc()) {
