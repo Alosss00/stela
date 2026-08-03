@@ -447,7 +447,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         <div class="card-body-report">
             <?php if ($report_data && $report_data->num_rows > 0): ?>
                 <div class="table-responsive">
-                    <table class="table-emp" style="width: 100%;">
+                    <table class="table-emp" style="width: 100%; table-layout: fixed !important; min-width: 950px !important;">
                         <thead>
                             <tr>
                                 <th class="col-num">#</th>
@@ -557,7 +557,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
 
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-emp" style="width: 100%;" id="acceptedRequestTable">
+                <table class="table-emp" style="width: 100%; table-layout: fixed !important; min-width: 950px !important;" id="acceptedRequestTable">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
@@ -699,7 +699,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
 
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-emp" style="width: 100%;" id="rejectedRequestTable">
+                <table class="table-emp" style="width: 100%; table-layout: fixed !important; min-width: 950px !important;" id="rejectedRequestTable">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
@@ -849,7 +849,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
 
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-emp" style="width: 100%;" id="waitingRequestTable">
+                <table class="table-emp" style="width: 100%; table-layout: fixed !important; min-width: 950px !important;" id="waitingRequestTable">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
@@ -938,7 +938,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-emp table-approved table-with-filters" style="width: 100%;" id="approvedTable">
+                <table class="table-emp table-approved table-with-filters" style="width: 100%; table-layout: fixed !important; min-width: 950px !important;" id="approvedTable">
                     <thead>
                         <tr class="header-row">
                             <th class="col-num">No</th>
@@ -1162,7 +1162,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-emp table-rejected" style="width: 100%;" id="rejectedTable">
+                <table class="table-emp table-rejected" style="width: 100%; table-layout: fixed !important; min-width: 950px !important;" id="rejectedTable">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
@@ -1296,7 +1296,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         
         <div class="card-body-report">
             <div class="table-responsive">
-                <table class="table-emp table-expiring" style="width: 100%;" id="expiringCertsTable">
+                <table class="table-emp table-expiring" style="width: 100%; table-layout: fixed !important; min-width: 950px !important;" id="expiringCertsTable">
                     <thead>
                         <tr>
                             <th class="col-num">#</th>
