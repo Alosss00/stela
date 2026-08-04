@@ -138,14 +138,9 @@ $accepted_requests = $db->query("
     SELECT e.*, e.updated_at as verification_date,
            u.full_name as verified_by_name,
            e.verified_date,
-           (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type, (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name, (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number,
-           (SELECT p.position_name FROM appointments a
-            JOIN positions p ON a.position_id = p.id
-            WHERE a.employee_id = e.id
-            ORDER BY a.created_at DESC LIMIT 1) as position_name,
-           (SELECT a2.appointment_number FROM appointments a2
-            WHERE a2.employee_id = e.id
-            ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
+           (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type,
+           (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name,
+           (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
     FROM employees e
     LEFT JOIN users u ON e.verified_by = u.id
     WHERE e.verification_status = 'verified'
@@ -157,14 +152,9 @@ $rejected_requests = $db->query("
     SELECT e.*, e.updated_at as verification_date,
            u.full_name as rejected_by_name,
            e.verified_date,
-           (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type, (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name, (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number,
-           (SELECT p.position_name FROM appointments a
-            JOIN positions p ON a.position_id = p.id
-            WHERE a.employee_id = e.id
-            ORDER BY a.created_at DESC LIMIT 1) as position_name,
-           (SELECT a2.appointment_number FROM appointments a2
-            WHERE a2.employee_id = e.id
-            ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
+           (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type,
+           (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name,
+           (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
     FROM employees e
     LEFT JOIN users u ON e.verified_by = u.id
     WHERE e.verification_status = 'rejected'
@@ -174,14 +164,9 @@ $rejected_requests = $db->query("
 // Get waiting for approval requests (pending employees)
 $waiting_requests = $db->query("
     SELECT e.*,
-           (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type, (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name, (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number,
-           (SELECT p.position_name FROM appointments a
-            JOIN positions p ON a.position_id = p.id
-            WHERE a.employee_id = e.id
-            ORDER BY a.created_at DESC LIMIT 1) as position_name,
-           (SELECT a2.appointment_number FROM appointments a2
-            WHERE a2.employee_id = e.id
-            ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
+           (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type,
+           (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name,
+           (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
     FROM employees e
     WHERE e.verification_status = 'pending'
     ORDER BY e.contractor_company, e.created_at DESC
@@ -1320,7 +1305,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                 $status_icon = 'fa-clock';
                             }
                         ?>
-                        <tr class="" data-company="<?php echo $company_name; ?>" data-competency="<?php echo htmlspecialchars(normalizeCompetencyTypeLabel($cert['appointment_number'] ?? '', $cert['position_type'] ?? '', $cert['position_name'] ?? '')); ?>">
+                        <tr data-company="<?php echo $company_name; ?>" data-competency="<?php echo htmlspecialchars(normalizeCompetencyTypeLabel($cert['appointment_number'] ?? '', $cert['position_type'] ?? '', $cert['position_name'] ?? '')); ?>">
                             <td><?php echo $row_num++; ?></td>
                             <td>
                                 <span><?php echo $company_name; ?></span>
