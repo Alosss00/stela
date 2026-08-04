@@ -43,6 +43,20 @@ function hasPermission($permission_name) {
     return in_array($permission_name, $user_permissions);
 }
 
+// Helper to strictly require a permission. Halts execution if not met.
+function requirePermission($permission_name) {
+    if (!hasPermission($permission_name)) {
+        header('HTTP/1.1 403 Forbidden');
+        // If not AJAX, redirect to their dashboard or an error page
+        if (empty($_SERVER['HTTP_X_REQUESTED_WITH']) || strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) != 'xmlhttprequest') {
+            header('Location: ' . AUTH_BASE_URL . '/index.php');
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Unauthorized Access. Missing permission: ' . $permission_name]);
+        }
+        exit();
+    }
+}
+
 // Function to check if user has permission to access a page
 function checkPageAccess($allowed_roles = [], $required_permission = null) {
     if ($required_permission && !hasPermission($required_permission)) {

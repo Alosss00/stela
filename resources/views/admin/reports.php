@@ -611,11 +611,11 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
     <div class="card-report" id="section-rejected-req">
         <div class="card-header-report">
             <div class="card-hd-left">
-                <h3> Permohonan Tidak Disetujui</h3>
+                <h3> Detail Rejected Request</h3>
                 <span class="badge-header rejected"><?php echo $rejected_requests->num_rows; ?></span>
             </div>
             <button onclick="toggleSection('rejectedRequestSection')" class="btn-toggle-section" id="btnRejectedReq">
-                <span class="btn-toggle-text">Lihat Semua</span> <i class="fas fa-chevron-down"></i>
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
             </button>
         </div>
 
@@ -623,9 +623,9 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         <!-- Filter by Company and Work Scope -->
         <div class="filter-section-report">
             <div class="filter-group-report">
-                <label><i class="fas fa-building"></i> Filter Perusahaan:</label>
+                <label><i class="fas fa-building"></i> Filter Company:</label>
                 <select id="companyFilterRejectedReq" class="filter-select-report" onchange="filterRequestTable('rejectedRequestTable')">
-                    <option value="">-- Semua Perusahaan --</option>
+                    <option value="">-- All Company --</option>
                     <?php
                     $rejected_requests->data_seek(0);
                     $rej_companies = [];
@@ -645,11 +645,11 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                 </select>
             </div>
             <div class="filter-group-report">
-                <label><i class="fas fa-map-marker-alt"></i> Ruang Lingkup:</label>
+                <label><i class="fas fa-map-marker-alt"></i> Scope Of Work :</label>
                 <select id="scopeFilterRejectedReq" class="filter-select-report" onchange="filterRequestTable('rejectedRequestTable')">
-                    <option value="">-- Semua Ruang Lingkup --</option>
-                    <option value="MSM">PT MSM</option>
-                    <option value="TTN">PT TTN</option>
+                    <option value="">-- All Scope of Work --</option>
+                    <option value="MSM">MSM</option>
+                    <option value="TTN">TTN</option>
                 </select>
             </div>
             <div class="filter-group-report">

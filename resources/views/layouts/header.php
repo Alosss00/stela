@@ -75,7 +75,7 @@ $current_page = get_current_page();
             </div>
             
             <ul class="sidebar-menu">
-                <?php if ($_SESSION['role'] == 'user' && !hasDepartment()): ?>
+                <?php if (hasPermission('user.access') && !hasDepartment()): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/user/dashboard.php" class="<?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
                             <i class="fas fa-home"></i> <span data-lang="dashboard">Dashboard</span>
@@ -107,7 +107,7 @@ $current_page = get_current_page();
                     </li>
                      
 
-                <?php elseif (($_SESSION['role'] == 'user' && hasDepartment()) || $_SESSION['role'] == 'department_user'): ?>
+                <?php elseif (hasPermission('dept.access') || (hasPermission('user.access') && hasDepartment())): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/dept/dashboard.php" class="<?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
                             <i class="fas fa-home"></i> <span data-lang="dashboard">Dashboard</span>
@@ -140,7 +140,7 @@ $current_page = get_current_page();
                     </li>
 
                 <?php else: ?>
-                    <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'superadmin'): ?>
+                    <?php if (hasPermission('admin.access')): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/dashboard.php" class="<?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
                             <i class="fas fa-home"></i> <span data-lang="dashboard">Dashboard</span>
@@ -148,7 +148,7 @@ $current_page = get_current_page();
                     </li>
                     <?php endif; ?>
 
-                    <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'superadmin'): ?>
+                    <?php if (hasPermission('admin.access')): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/positions.php" class="<?php echo $current_page == 'positions.php' ? 'active' : ''; ?>">
                             <i class="fas fa-briefcase"></i> <span data-lang="competencies">Competencies</span>
@@ -168,7 +168,7 @@ $current_page = get_current_page();
                     </li>
                     <?php endif; ?>
 
-                    <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'superadmin'): ?>
+                    <?php if (hasPermission('admin.access')): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/employees.php" class="<?php echo $current_page == 'employees.php' ? 'active' : ''; ?>">
                             <i class="fas fa-users"></i> <span data-lang="request">Request</span>
@@ -192,7 +192,7 @@ $current_page = get_current_page();
                     </li>
                     <?php endif; ?>
 
-                    <?php if ($_SESSION['role'] == 'ktt' || $_SESSION['role'] == 'superadmin'): ?>
+                    <?php if (hasPermission('ktt.access')): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/ktt/approval.php" class="<?php echo $current_page == 'approval.php' ? 'active' : ''; ?>">
                             <i class="fas fa-check-circle"></i> <span data-lang="approval-ktt">Approval KTT</span>
@@ -200,7 +200,7 @@ $current_page = get_current_page();
                     </li>
                     <?php endif; ?>
 
-                    <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'superadmin'): ?>
+                    <?php if (hasPermission('admin.access')): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/reports.php" class="<?php echo $current_page == 'reports.php' ? 'active' : ''; ?>">
                             <i class="fas fa-chart-bar"></i> <span data-lang="reports">Reports</span>
@@ -208,7 +208,7 @@ $current_page = get_current_page();
                     </li>
                     <?php endif; ?>
 
-                    <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'superadmin'): ?>
+                    <?php if (hasPermission('admin.access')): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/change_password.php" class="<?php echo $current_page == 'change_password.php' ? 'active' : ''; ?>">
                             <i class="fas fa-cog"></i> <span data-lang="settings">Settings</span>
