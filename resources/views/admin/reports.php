@@ -469,11 +469,11 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
     <div class="card-report" id="section-accepted-req">
         <div class="card-header-report">
             <div class="card-hd-left">
-                <h3> Permohonan Disetujui</h3>
+                <h3> Accepted Request</h3>
                 <span class="badge-header"><?php echo $accepted_requests->num_rows; ?></span>
             </div>
             <button onclick="toggleSection('acceptedRequestSection')" class="btn-toggle-section" id="btnAcceptedReq">
-                <span class="btn-toggle-text">Lihat Semua</span> <i class="fas fa-chevron-down"></i>
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
             </button>
         </div>
 
@@ -481,9 +481,9 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         <!-- Filter by Company and Work Scope -->
         <div class="filter-section-report">
             <div class="filter-group-report">
-                <label><i class="fas fa-building"></i> Filter Perusahaan:</label>
+                <label><i class="fas fa-building"></i> Filter Company:</label>
                 <select id="companyFilterAcceptedReq" class="filter-select-report" onchange="filterRequestTable('acceptedRequestTable')">
-                    <option value="">-- Semua Perusahaan --</option>
+                    <option value="">-- All Company --</option>
                     <?php
                     $accepted_requests->data_seek(0);
                     $req_companies = [];
@@ -503,17 +503,17 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                 </select>
             </div>
             <div class="filter-group-report">
-                <label><i class="fas fa-map-marker-alt"></i> Ruang Lingkup:</label>
+                <label><i class="fas fa-map-marker-alt"></i> Work Scope:</label>
                 <select id="scopeFilterAcceptedReq" class="filter-select-report" onchange="filterRequestTable('acceptedRequestTable')">
-                    <option value="">-- Semua Ruang Lingkup --</option>
+                    <option value="">-- All Work Scope --</option>
                     <option value="MSM">PT MSM</option>
                     <option value="TTN">PT TTN</option>
                 </select>
             </div>
             <div class="filter-group-report">
-                <label><i class="fas fa-award"></i> Jenis Kompetensi:</label>
+                <label><i class="fas fa-award"></i> Competency Type:</label>
                 <select id="competencyFilterAcceptedReq" class="filter-select-report" onchange="filterRequestTable('acceptedRequestTable')">
-                    <option value="">-- Semua Jenis --</option>
+                    <option value="">-- All Competency Type --</option>
                     <?php foreach ($accepted_request_competency_type_options as $competencyType): ?>
                     <option value="<?php echo htmlspecialchars($competencyType); ?>">
                         <?php echo htmlspecialchars($competencyType); ?>
@@ -523,7 +523,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
             </div>
             <div class="filter-action-group">
                 <button class="btn btn-export-small" onclick="exportToExcel('acceptedRequestTable', 'Accepted_Requests_Report')">
-                    <i class="fas fa-file-excel"></i> Ekspor ke Excel
+                    <i class="fas fa-file-excel"></i> Export to Excel
                 </button>
             </div>
         </div>
