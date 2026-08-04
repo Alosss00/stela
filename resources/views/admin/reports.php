@@ -423,10 +423,10 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                     <table class="table-report datatable" style="width: 100%;">
                         <thead>
                             <tr>
-                                <th class="col-num">#</th>
-                                <th class="col-company">Perusahaan</th>
-                                <th class="col-approved">Disetujui</th>
-                                <th class="col-rejected">Tidak Disetujui</th>
+                                <th class="col-num">No</th>
+                                <th class="col-company">Company</th>
+                                <th class="col-approved">Approved</th>
+                                <th class="col-rejected">Rejected</th>
                                 <th class="col-total">Total</th>
                             </tr>
                         </thead>
@@ -533,11 +533,11 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                 <table class="table-report datatable" style="width: 100%;" id="acceptedRequestTable">
                     <thead>
                         <tr>
-                            <th class="col-num">#</th>
-                            <th class="col-company-detail">Perusahaan</th>
-                            <th class="col-employee">Karyawan</th>
-                            <th class="col-date">Tanggal Verifikasi</th>
-                            <th class="col-approved-info">Diverifikasi Oleh</th>
+                            <th class="col-num">No</th>
+                            <th class="col-company-detail">Company</th>
+                            <th class="col-employee">Employee</th>
+                            <th class="col-date">Verification Date</th>
+                            <th class="col-approved-info">Verified By</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -665,7 +665,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
             </div>
             <div class="filter-action-group">
                 <button class="btn btn-export-small" onclick="exportToExcel('rejectedRequestTable', 'Rejected_Requests_Report')">
-                    <i class="fas fa-file-excel"></i> Ekspor ke Excel
+                    <i class="fas fa-file-excel"></i> Export to Excel
                 </button>
             </div>
         </div>
@@ -675,12 +675,12 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                 <table class="table-report datatable" style="width: 100%;" id="rejectedRequestTable">
                     <thead>
                         <tr>
-                            <th class="col-num">#</th>
-                            <th class="col-company-detail">Perusahaan</th>
-                            <th class="col-employee">Karyawan</th>
-                            <th class="col-date">Tanggal Penolakan</th>
-                            <th class="col-rejected-by">Tidak Disetujui Oleh</th>
-                            <th class="col-notes">Catatan</th>
+                            <th class="col-num">No</th>
+                            <th class="col-company-detail">Company</th>
+                            <th class="col-employee">Employee</th>
+                            <th class="col-date">Rejection Date</th>
+                            <th class="col-rejected-by">Rejected By</th>
+                            <th class="col-notes">Notes</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -761,11 +761,11 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
     <div class="card-report" id="section-waiting-req">
         <div class="card-header-report">
             <div class="card-hd-left">
-                <h3>Permohonan Menunggu Persetujuan</h3>
+                <h3>Waiting Approval Request</h3>
                 <span class="badge-header warning"><?php echo $waiting_requests->num_rows; ?></span>
             </div>
             <button onclick="toggleSection('waitingRequestSection')" class="btn-toggle-section" id="btnWaitingReq">
-                <span class="btn-toggle-text">Lihat Semua</span> <i class="fas fa-chevron-down"></i>
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
             </button>
         </div>
 
@@ -815,7 +815,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
             </div>
             <div class="filter-action-group">
                 <button class="btn btn-export-small" onclick="exportToExcel('waitingRequestTable', 'Waiting_Requests_Report')">
-                    <i class="fas fa-file-excel"></i> Ekspor ke Excel
+                    <i class="fas fa-file-excel"></i> Export to Excel
                 </button>
             </div>
         </div>
@@ -825,10 +825,10 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                 <table class="table-report datatable" style="width: 100%;" id="waitingRequestTable">
                     <thead>
                         <tr>
-                            <th class="col-num">#</th>
-                            <th class="col-company-detail">Perusahaan</th>
-                            <th class="col-employee">Karyawan</th>
-                            <th class="col-date">Tanggal Permohonan</th>
+                            <th class="col-num">No</th>
+                            <th class="col-company-detail">Company</th>
+                            <th class="col-employee">Employee</th>
+                            <th class="col-date">Request Date</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -892,7 +892,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                 <span class="badge-header"><?php echo $approved_appointments->num_rows; ?></span>
             </div>
             <button onclick="toggleSection('approvedAppointmentSection')" class="btn-toggle-section" id="btnApprovedAppt">
-                <span class="btn-toggle-text">Lihat Semua</span> <i class="fas fa-chevron-down"></i>
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
             </button>
         </div>
 
@@ -901,10 +901,10 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         <div class="filter-section-report">
             <div class="filter-action-group" style="margin-left: auto;">
                 <button class="btn btn-export-small" onclick="exportToExcel('approvedTable', 'Accepted_Assign_Letters_Report')">
-                    <i class="fas fa-file-excel"></i> Ekspor ke Excel
+                    <i class="fas fa-file-excel"></i> Export to Excel
                 </button>
                 <button class="btn btn-export-pdf" onclick="exportApprovedByCompany()">
-                    <i class="fas fa-file-pdf"></i> Ekspor PDF
+                    <i class="fas fa-file-pdf"></i> Export to PDF
                 </button>
             </div>
         </div>
@@ -915,13 +915,13 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                     <thead>
                         <tr class="header-row">
                             <th class="col-num">No</th>
-                            <th class="col-number">Nomor Surat Penunjukan</th>
-                            <th class="col-publisher">Penerbit</th>
+                            <th class="col-number">Appointment Number</th>
+                            <th class="col-publisher">Issuer</th>
                             <th class="col-badge">ID BADGE</th>
-                            <th class="col-employee">Nama</th>
-                            <th class="col-position">Jabatan</th>
-                            <th class="col-company-detail">Perusahaan</th>
-                            <th class="col-date">Tanggal Kedaluwarsa</th>
+                            <th class="col-employee">Name</th>
+                            <th class="col-position">Position</th>
+                            <th class="col-company-detail">Company</th>
+                            <th class="col-date">Expiry Date</th>
                         </tr>
                         <tr class="filter-row">
                             <th class="col-num"></th>
