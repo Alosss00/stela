@@ -561,7 +561,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                         $row['position_name'] ?? ''
                                     );
                         ?>
-                        <tr class="detail-row" data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars($competency_normalized); ?>">
+                        <tr class="" data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars($competency_normalized); ?>">
                             <td class="col-num"><?php echo $row_num++; ?></td>
                             <td class="col-company-detail">
                                 <span class="company-tag"><?php echo $company_name; ?></span>
