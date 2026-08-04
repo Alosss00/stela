@@ -34,8 +34,23 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
+// Function to check if user has a specific permission
+function hasPermission($permission_name) {
+    if (isSuperadmin()) {
+        return true;
+    }
+    $user_permissions = $_SESSION['permissions'] ?? [];
+    return in_array($permission_name, $user_permissions);
+}
+
 // Function to check if user has permission to access a page
-function checkPageAccess($allowed_roles = []) {
+function checkPageAccess($allowed_roles = [], $required_permission = null) {
+    if ($required_permission && !hasPermission($required_permission)) {
+        global $base_path;
+        header('Location: ' . AUTH_BASE_URL . '/pages/admin/dashboard.php');
+        exit();
+    }
+
     if (empty($allowed_roles)) {
         return true; // No restriction
     }

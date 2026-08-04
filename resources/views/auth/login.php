@@ -95,6 +95,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $_SESSION['company_name'] = $user['company_name'];
                     $_SESSION['department'] = $user['department'];
                     
+                    // Fetch permissions based on role
+                    $perm_stmt = $db->prepare("SELECT p.name FROM permissions p JOIN role_permissions rp ON p.id = rp.permission_id JOIN roles r ON rp.role_id = r.id WHERE r.name = ?");
+                    if ($perm_stmt) {
+                        $perm_stmt->bind_param("s", $user['role']);
+                        $perm_stmt->execute();
+                        $perm_result = $perm_stmt->get_result();
+                        $permissions = [];
+                        if ($perm_result) {
+                            while ($p_row = $perm_result->fetch_assoc()) {
+                                $permissions[] = $p_row['name'];
+                            }
+                        }
+                        $_SESSION['permissions'] = $permissions;
+                        $perm_stmt->close();
+                    } else {
+                        $_SESSION['permissions'] = []; // Fallback if tables don't exist yet
+                    }
+                    
                     unset($_SESSION['csrf_token']);
                     
                     redirect_to_dashboard();

@@ -21,6 +21,15 @@ $route_map = [
     '/user/appointments' => 'user/appointments.php',
     '/ktt/approval' => 'ktt/approval.php',
     '/superadmin/dashboard' => 'superadmin/dashboard.php',
+    '/superadmin/users' => 'superadmin/users.php',
+    '/superadmin/roles_permissions' => 'superadmin/roles_permissions.php',
+    '/superadmin/companies' => 'superadmin/companies.php',
+    '/superadmin/departments' => 'superadmin/departments.php',
+    '/superadmin/master_data' => 'superadmin/master_data.php',
+    '/superadmin/settings' => 'superadmin/settings.php',
+    '/superadmin/monitoring_logs' => 'superadmin/monitoring_logs.php',
+    '/superadmin/elasticsearch_manage' => 'superadmin/elasticsearch_manage.php',
+    '/superadmin/backup_restore' => 'superadmin/backup_restore.php',
 ];
 
 function dispatch_route($path) {
