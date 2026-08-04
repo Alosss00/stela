@@ -26378,7 +26378,7 @@ table.table-positions,
 table.table-cert,
 table.datatable {
   width: 100% !important;
-  table-layout: fixed !important;
+  /* table-layout: fixed removed to fix DataTables header sync */
   border-collapse: separate !important;
   border-spacing: 0 !important;
 }
@@ -26520,7 +26520,7 @@ table.table-report,
 .table-responsive > table.table-report {
   width: 100% !important;
   min-width: 100% !important;
-  table-layout: fixed !important; /* Fixed column widths prevent squishing/collision */
+  /* table-layout: fixed removed to fix DataTables header sync */ /* Fixed column widths prevent squishing/collision */
   border-collapse: separate !important;
   border-spacing: 0 !important;
   background-color: #ffffff !important;
@@ -26781,7 +26781,7 @@ table.table-report,
 .table-responsive > table.table-report {
   width: 100% !important;
   min-width: 100% !important;
-  table-layout: fixed !important; /* Fixed column widths prevent squishing/collision */
+  /* table-layout: fixed removed to fix DataTables header sync */ /* Fixed column widths prevent squishing/collision */
   border-collapse: separate !important;
   border-spacing: 0 !important;
   background-color: #ffffff !important;
@@ -27260,7 +27260,7 @@ table.cert-table,
 table.approval-table,
 table.table-history {
   width: 100% !important;
-  table-layout: fixed !important;
+  /* table-layout: fixed removed to fix DataTables header sync */
   border-collapse: separate !important;
   border-spacing: 0 !important;
   border: 1px solid #e2e8f0 !important;
@@ -27343,7 +27343,7 @@ table.table-history,
 .table-responsive > table {
   width: 100% !important;
   min-width: 100% !important;
-  table-layout: fixed !important; /* Forces strict header and cell alignment */
+  /* table-layout: fixed removed to fix DataTables header sync */ /* Forces strict header and cell alignment */
   border-collapse: separate !important;
   border-spacing: 0 !important;
   background-color: #ffffff !important;

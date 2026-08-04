@@ -570,11 +570,10 @@ table.dataTable.dtr-inline.collapsed > tbody > tr > th.dtr-control::before,
   display: none !important;
 }
 
-/* 5. Specific Column Class Widths & Alignments (Strict 100% total allocation) */
+/* 5. Specific Column Class Widths & Alignments */
 table.table-report {
   width: 100% !important;
   min-width: 950px !important;
-  table-layout: fixed !important;
 }
 
 table.table-report th, 
