@@ -1138,10 +1138,10 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                 <table class="table-report datatable table-rejected" style="width: 100%;" id="rejectedTable">
                     <thead>
                         <tr>
-                            <th class="col-num">#</th>
+                            <th class="col-num">No</th>
                             <th class="col-number">Assign Letter No.</th>
-                            <th class="col-company-detail">Perusahaan</th>
-                            <th class="col-employee">Karyawan</th>
+                            <th class="col-company-detail">Company</th>
+                            <th class="col-employee">Employee</th>
                             <th class="col-position">Position</th>
                             <th class="col-rejected-date">Rejected Date</th>
                             <th class="col-rejected-by">Rejected By</th>
@@ -1272,13 +1272,13 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                 <table class="table-report datatable table-expiring" style="width: 100%;" id="expiringCertsTable">
                     <thead>
                         <tr>
-                            <th class="col-num">#</th>
-                            <th class="col-company-detail">Perusahaan</th>
-                            <th class="col-employee">Karyawan</th>
-                            <th class="col-cert-name">Nama Sertifikat</th>
-                            <th class="col-cert-number">Nomor Sertifikat</th>
-                            <th class="col-expiry-date">Tanggal Kedaluwarsa</th>
-                            <th class="col-days-left">Sisa Hari</th>
+                            <th class="col-num">No</th>
+                            <th class="col-company-detail">Company</th>
+                            <th class="col-employee">Employee</th>
+                            <th class="col-cert-name">Certificate Name</th>
+                            <th class="col-cert-number">Certificate Number</th>
+                            <th class="col-expiry-date">Expiry Date</th>
+                            <th class="col-days-left">Days Left</th>
                             <th class="col-status-expiry">Status</th>
                         </tr>
                     </thead>
