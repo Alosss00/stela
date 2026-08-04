@@ -1322,30 +1322,30 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                         ?>
                         <tr class="detail-row expiring-row" data-company="<?php echo $company_name; ?>" data-competency="<?php echo htmlspecialchars(normalizeCompetencyTypeLabel($cert['appointment_number'] ?? '', $cert['position_type'] ?? '', $cert['position_name'] ?? '')); ?>">
                             <td class="col-num"><?php echo $row_num++; ?></td>
-                            <td class="col-company-detail">
+                            <td class="">
                                 <span class="company-tag"><?php echo $company_name; ?></span>
                             </td>
-                            <td class="col-employee">
+                            <td class="">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($cert['full_name']); ?></strong>
                                     <span class="emp-code-detail"><?php echo htmlspecialchars($cert['employee_code']); ?></span>
                                 </div>
                             </td>
-                            <td class="col-cert-name">
+                            <td class="">
                                 <span class="cert-name-badge"><?php echo htmlspecialchars($cert['cert_name'] ?: 'N/A'); ?></span>
                             </td>
-                            <td class="col-cert-number">
+                            <td class="">
                                 <?php echo htmlspecialchars($cert['cert_number']); ?>
                             </td>
-                            <td class="col-expiry-date">
+                            <td class="">
                                 <?php echo date('d/m/Y', strtotime($cert['expiry_date'])); ?>
                             </td>
-                            <td class="col-days-left">
+                            <td class="">
                                 <span class="days-badge days-<?php echo $days_left <= 14 ? 'critical' : ($days_left <= 30 ? 'urgent' : 'warning'); ?>">
                                     <?php echo $days_left; ?> days
                                 </span>
                             </td>
-                            <td class="col-status-expiry">
+                            <td class="">
                                 <span class="status-badge <?php echo $status_class; ?>">
                                     <i class="fas <?php echo $status_icon; ?>"></i> <?php echo $status_text; ?>
                                 </span>
