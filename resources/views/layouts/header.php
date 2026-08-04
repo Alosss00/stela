@@ -168,6 +168,7 @@ $current_page = get_current_page();
                     </li>
                     <?php endif; ?>
 
+                    <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'superadmin'): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/employees.php" class="<?php echo $current_page == 'employees.php' ? 'active' : ''; ?>">
                             <i class="fas fa-users"></i> <span data-lang="request">Request</span>
