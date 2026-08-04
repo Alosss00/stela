@@ -38,7 +38,24 @@ $appointment = $db->query("
 $admin_verified_date = $appointment['verified_date'] ?? $appointment['admin_verified_date'] ?? $appointment['admin_verified_at'] ?? null;
 
 if (!$appointment) {
-    header('Location: appointments.php');
+    ?>
+    <div class="appointment-detail-container" style="display: flex; justify-content: center; padding-top: 50px; min-height: 60vh;">
+        <div style="max-width: 600px; width: 100%;">
+            <div class="alert alert-error" style="padding: 25px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                <h3 style="margin-top: 0; margin-bottom: 15px; display: flex; align-items: center; gap: 10px; color: inherit;">
+                    <i class="fas fa-exclamation-triangle" style="font-size: 24px;"></i> Peringatan Akses
+                </h3>
+                <p style="margin-bottom: 25px; line-height: 1.6; font-size: 16px;">
+                    Data tidak ditemukan atau Anda <strong>tidak memiliki hak akses</strong> untuk melihat surat pengangkatan dari perusahaan lain.
+                </p>
+                <a href="appointments.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;">
+                    <i class="fas fa-arrow-left"></i> Kembali ke Daftar
+                </a>
+            </div>
+        </div>
+    </div>
+    <?php
+    require_once dirname(__DIR__) . '/layouts/footer.php';
     exit();
 }
 
