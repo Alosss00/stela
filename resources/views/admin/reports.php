@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $page_title = 'Reports';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
@@ -138,10 +138,7 @@ $accepted_requests = $db->query("
     SELECT e.*, e.updated_at as verification_date,
            u.full_name as verified_by_name,
            e.verified_date,
-           (SELECT p.position_type FROM appointments a
-            JOIN positions p ON a.position_id = p.id
-            WHERE a.employee_id = e.id
-            ORDER BY a.created_at DESC LIMIT 1) as position_type,
+           (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type, (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name, (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number,
            (SELECT p.position_name FROM appointments a
             JOIN positions p ON a.position_id = p.id
             WHERE a.employee_id = e.id
@@ -160,10 +157,7 @@ $rejected_requests = $db->query("
     SELECT e.*, e.updated_at as verification_date,
            u.full_name as rejected_by_name,
            e.verified_date,
-           (SELECT p.position_type FROM appointments a
-            JOIN positions p ON a.position_id = p.id
-            WHERE a.employee_id = e.id
-            ORDER BY a.created_at DESC LIMIT 1) as position_type,
+           (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type, (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name, (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number,
            (SELECT p.position_name FROM appointments a
             JOIN positions p ON a.position_id = p.id
             WHERE a.employee_id = e.id
@@ -180,10 +174,7 @@ $rejected_requests = $db->query("
 // Get waiting for approval requests (pending employees)
 $waiting_requests = $db->query("
     SELECT e.*,
-           (SELECT p.position_type FROM appointments a
-            JOIN positions p ON a.position_id = p.id
-            WHERE a.employee_id = e.id
-            ORDER BY a.created_at DESC LIMIT 1) as position_type,
+           (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type, (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name, (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number,
            (SELECT p.position_name FROM appointments a
             JOIN positions p ON a.position_id = p.id
             WHERE a.employee_id = e.id
@@ -279,10 +270,7 @@ $expiring_certs = $db->query("
         ec.expiry_date,
         c.cert_name,
         DATEDIFF(ec.expiry_date, CURDATE()) as days_until_expiry,
-        (SELECT p.position_type FROM appointments a
-         JOIN positions p ON a.position_id = p.id
-         WHERE a.employee_id = e.id
-         ORDER BY a.created_at DESC LIMIT 1) as position_type
+        (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type, (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name, (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
     FROM employee_certifications ec
     JOIN employees e ON ec.employee_id = e.id
     LEFT JOIN certifications c ON ec.certification_id = c.id
@@ -335,7 +323,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         </div>
     </div>
     
-    <!-- Stats Row � unified -->
+    <!-- Stats Row ï¿½ unified -->
     <?php $total_requests_processed = $accepted_requests_count + $rejected_requests_count + $waiting_requests_count; ?>
     <div class="stats-grid-reports">
         <!-- Assign Letter stats -->
@@ -603,7 +591,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                 <?php if ($row['verification_date']): ?>
                                 <?php echo date('d/m/Y H:i', strtotime($row['verification_date'])); ?>
                                 <?php else: ?>
-                                <span class="text-muted">�</span>
+                                <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
                             <td class="col-approved-info">
@@ -616,7 +604,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                         echo '<div class="approval-datetime">' . date('d/m/Y', strtotime($row['verified_date'])) . '</div>';
                                     }
                                 } else {
-                                    echo '<span class="text-muted">N/A</span>';
+                                    echo '<span class="text-muted">-</span>';
                                 }
                                 ?>
                             </td>
@@ -746,7 +734,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                 <?php if ($row['verification_date']): ?>
                                 <?php echo date('d/m/Y H:i', strtotime($row['verification_date'])); ?>
                                 <?php else: ?>
-                                <span class="text-muted">�</span>
+                                <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
                             <td class="col-rejected-by">
@@ -757,7 +745,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                         echo '<div class="approval-datetime">' . date('d/m/Y', strtotime($row['verified_date'])) . '</div>';
                                     }
                                 } else {
-                                    echo '<span class="text-muted">N/A</span>';
+                                    echo '<span class="text-muted">-</span>';
                                 }
                                 ?>
                             </td>
@@ -767,7 +755,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                     <i class="fas fa-eye"></i> View Notes
                                 </span>
                                 <?php else: ?>
-                                <span class="text-muted">Tidak ada catatan</span>
+                                <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -894,7 +882,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                 <?php if ($row['created_at']): ?>
                                 <?php echo date('d/m/Y H:i', strtotime($row['created_at'])); ?>
                                 <?php else: ?>
-                                <span class="text-muted">�</span>
+                                <span class="text-muted">-</span>
                                 <?php endif; ?>
                             </td>
                         </tr>
@@ -2042,7 +2030,7 @@ function exportToExcel(tableId, filename) {
         const cells = row.getElementsByTagName('td');
         const vals  = schema.row(cells, i + 1);
         xl += `<tr${i % 2 === 1 ? ' class="even"' : ''}>` +
-              vals.map(v => `<td>${(v !== '' && v != null) ? v : '�'}</td>`).join('') +
+              vals.map(v => `<td>${(v !== '' && v != null) ? v : 'ï¿½'}</td>`).join('') +
               '</tr>';
     });
 
@@ -2342,3 +2330,5 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
+
+
