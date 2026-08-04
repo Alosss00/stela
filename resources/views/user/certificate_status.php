@@ -3,7 +3,11 @@ $page_title = 'Certificate Status';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-checkPageAccess(['user', 'department_user']);
+requirePermission('certificate.view');
+if (!hasPermission('user.access') && !hasPermission('dept.access') && !isSuperadmin()) {
+    header('Location: ../admin/dashboard.php');
+    exit();
+}
 
 $db = new Database();
 $monitor_window_days = 60;
@@ -165,11 +169,11 @@ $scope_sql = '';
 $scope_params = [];
 $scope_types = '';
 
-if ($role === 'department_user' && $department !== '') {
+if (hasPermission('dept.access') && $department !== '') {
 	$scope_sql = ' AND LOWER(TRIM(e.department)) = LOWER(TRIM(?))';
 	$scope_params[] = $department;
 	$scope_types .= 's';
-} elseif ($role === 'user' && $company_name !== '') {
+} elseif (hasPermission('user.access') && $company_name !== '') {
 	$scope_sql = ' AND LOWER(TRIM(e.contractor_company)) = LOWER(TRIM(?))';
 	$scope_params[] = $company_name;
 	$scope_types .= 's';
@@ -220,9 +224,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 		$cert_row = $cert_check->fetch_assoc();
 		$document_allowed = $cert_row['verification_status'] === 'verified' && (int) $cert_row['is_active'] === 1 && $cert_row['status'] !== 'expired';
 		$document_in_scope = false;
-		if ($role === 'department_user' && $department !== '') {
+		if (hasPermission('dept.access') && $department !== '') {
 			$document_in_scope = strtolower(trim((string) ($cert_row['department'] ?? ''))) === strtolower($department);
-		} elseif ($role === 'user' && $company_name !== '') {
+		} elseif (hasPermission('user.access') && $company_name !== '') {
 			$document_in_scope = strtolower(trim((string) ($cert_row['contractor_company'] ?? ''))) === strtolower($company_name);
 		}
 		$document_in_window = !empty($cert_row['expiry_date']) && $cert_row['expiry_date'] > date('Y-m-d') && $cert_row['expiry_date'] <= date('Y-m-d', strtotime('+' . $monitor_window_days . ' days'));

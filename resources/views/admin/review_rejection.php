@@ -3,11 +3,9 @@ $page_title = 'Review KTT Rejections';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-// Check if user is admin
-if ($_SESSION['role'] != 'admin') {
-    header('Location: dashboard.php');
-    exit();
-}
+// Check if user has permission
+requirePermission('admin.access');
+requirePermission('appointment.update');
 
 // Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
 if (session_status() === PHP_SESSION_NONE) {

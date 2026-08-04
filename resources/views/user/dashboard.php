@@ -3,8 +3,12 @@ $page_title = 'Dashboard';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-// Only USER role can access this page
-checkPageAccess(['user', 'superadmin']);
+// Only user access permitted
+requirePermission('dashboard.view');
+if (!hasPermission('user.access') && !isSuperadmin()) {
+    header('Location: ../admin/dashboard.php');
+    exit();
+}
 
 require_once dirname(__DIR__) . '/layouts/header.php';
 

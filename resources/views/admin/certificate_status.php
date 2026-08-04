@@ -3,7 +3,8 @@ $page_title = 'Certificate Status';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-checkPageAccess(['admin', 'superadmin']);
+requirePermission('admin.access');
+requirePermission('certificate.view');
 
 $db = new Database();
 $monitor_window_days = 60;
@@ -157,7 +158,7 @@ if (empty($_SESSION['csrf_token'])) {
 
 $message = '';
 $error = '';
-$role = $_SESSION['role'] ?? '';
+
 
 // Get distinct companies list for Admin filter
 $companies_res = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE contractor_company IS NOT NULL AND TRIM(contractor_company) != '' ORDER BY contractor_company ASC");

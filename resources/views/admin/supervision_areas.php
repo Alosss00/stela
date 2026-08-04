@@ -5,13 +5,8 @@ require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
 // Only ADMIN can access this page
-checkPageAccess(['admin']);
-
-// Check if user is admin
-if ($_SESSION['role'] != 'admin') {
-    header('Location: dashboard.php');
-    exit();
-}
+requirePermission('admin.access');
+requirePermission('settings.update');
 
 // Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
 if (session_status() === PHP_SESSION_NONE) {

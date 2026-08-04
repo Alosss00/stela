@@ -3,7 +3,11 @@ $page_title = 'Certificate Status';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-checkPageAccess(['user', 'department_user', 'dept']);
+requirePermission('certificate.view');
+if (!hasPermission('dept.access') && !(hasPermission('user.access') && hasDepartment()) && !isSuperadmin()) {
+    header('Location: ../admin/dashboard.php');
+    exit();
+}
 
 $db = new Database();
 $monitor_window_days = 60;
@@ -157,7 +161,7 @@ if (empty($_SESSION['csrf_token'])) {
 
 $message = '';
 $error = '';
-$role = $_SESSION['role'] ?? '';
+
 $company_name = trim((string) ($_SESSION['company_name'] ?? ''));
 $department = trim((string) ($_SESSION['department'] ?? ''));
 

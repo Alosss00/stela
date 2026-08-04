@@ -4,16 +4,15 @@ require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 require_once dirname(__DIR__) . '/layouts/header.php';
 
-// Only USER role can access this page
-checkPageAccess(['user', 'admin', 'superadmin', 'department_user']);
+// Only allowed users can access this page
+requirePermission('employee.view');
 
 // Initialize database and variables early (before POST handler)
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 $message = '';
 $error = '';
-$userRole = $_SESSION['role'] ?? '';
-$isAdmin = ($userRole === 'admin' || $userRole === 'superadmin');
+$isAdmin = isSuperadmin() || hasPermission('admin.access');
 
 // Handle form submission for adding certificate
 // Pastikan session sudah dimulai di bagian paling atas file PHP Anda

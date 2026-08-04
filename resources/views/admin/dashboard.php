@@ -3,28 +3,9 @@ $page_title = 'Dashboard';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-// Redirect KTT to approval page
-if (isKTT()) {
-    header('Location: ../ktt/approval.php');
-    exit();
-}
-
-// Redirect USER role to their specific dashboard
-if (isUser()) {
-    // If user has department, redirect to department dashboard
-    if (hasDepartment()) {
-        header('Location: ../dept/dashboard.php');
-        exit();
-    }
-    header('Location: ../user/dashboard.php');
-    exit();
-}
-
-// Redirect Department User role to their specific dashboard
-if (isDepartmentUser()) {
-    header('Location: ../dept/dashboard.php');
-    exit();
-}
+// Require admin access and dashboard view permission
+requirePermission('admin.access');
+requirePermission('dashboard.view');
 
 require_once dirname(__DIR__) . '/layouts/header.php';
 

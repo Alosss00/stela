@@ -3,8 +3,9 @@ $page_title = 'Settings';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-// Only admin (reviewer) can access
-checkPageAccess(['admin']);
+// Only users with settings.update permission can access
+requirePermission('admin.access');
+requirePermission('settings.update');
 
 // Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
 if (session_status() === PHP_SESSION_NONE) {
@@ -163,9 +164,9 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <i class="fas fa-save"></i> Change Password
         </button>
         <a href="<?php
-            if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'ktt') {
+            if (hasPermission('admin.access') || hasPermission('ktt.access')) {
                 echo 'dashboard.php';
-            } elseif ($_SESSION['role'] == 'user' && !hasDepartment()) {
+            } elseif (hasPermission('user.access') && !hasDepartment()) {
                 echo '../user/dashboard.php';
             } else {
                 echo '../dept/dashboard.php';

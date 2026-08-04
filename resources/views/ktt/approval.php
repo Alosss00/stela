@@ -4,13 +4,14 @@ require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 // Included via bootstrap/app.php
 
-// Check if user is KTT only, or superadmin for read access
-if ($_SESSION['role'] != 'ktt' && $_SESSION['role'] != 'superadmin') {
+// Check if user has KTT access or is superadmin
+requirePermission('appointment.view');
+if (!hasPermission('ktt.access') && !isSuperadmin()) {
     header('Location: ../admin/dashboard.php');
     exit();
 }
 
-$is_superadmin = ($_SESSION['role'] == 'superadmin');
+$is_superadmin = isSuperadmin();
 
 $db = new Database();
 $message = '';

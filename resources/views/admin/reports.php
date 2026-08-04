@@ -1,8 +1,11 @@
-﻿<?php
+<?php
 $page_title = 'Reports';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 // Included via bootstrap/app.php
+
+requirePermission('admin.access');
+requirePermission('reports.view');
 
 $db = new Database();
 

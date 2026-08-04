@@ -51,11 +51,9 @@ try {
     // Role-based Search Scope Enforcement:
     // Non-admin roles (User, Dept, etc.) can ONLY search data input by the current user.
     // Admin roles (admin, superadmin) can search across ALL data.
-    $userRole = $_SESSION['role'] ?? '';
     $userCompany = $_SESSION['company_name'] ?? '';
     $currentUserId = (int)($_SESSION['user_id'] ?? 0);
-    $isAdmin = ($userRole === 'admin' || $userRole === 'superadmin');
-
+    $isAdmin = isSuperadmin() || hasPermission('admin.access');
     $createdByFilter = null;
     if (!$isAdmin) {
         if (!empty($userCompany)) {

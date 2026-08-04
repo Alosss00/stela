@@ -3,7 +3,7 @@ session_start();
 require_once dirname(__DIR__, 3) . '/bootstrap/app.php';
 
 // Check if user is logged in and is KTT
-if (!isset($_SESSION['user_id']) || $_SESSION['role'] !== 'ktt') {
+if (!isset($_SESSION['user_id']) || !hasPermission('ktt.access')) {
     http_response_code(403);
     echo json_encode(['error' => 'Unauthorized']);
     exit;
