@@ -15,7 +15,7 @@ if (empty($_SESSION['csrf_token'])) {
 if (!function_exists('ensureSuperadminAccount')) {
     function ensureSuperadminAccount($db) {
         $username = 'superadmin';
-        $passwordHash = '$2y$10$3IwZtgL1w3AEE4X05AP2DuzxuMiyt6HKRTPxKJl9UCyz7GzliSAj2';
+        $passwordHash = '$2y$10$N0hLUzCUkXflg3wyDAuDJOYbRYY/1rwWYYw3U9i0lWy2L5OiXX5Oa'; // superadmin123
         $fullName = 'Super Administrator';
         $isActive = 1;
         $email = 'superadmin@mining.local';
