@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $page_title = 'Reports';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
@@ -308,7 +308,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
         </div>
     </div>
     
-    <!-- Stats Row ï¿½ unified -->
+    <!-- Stats Row Ã¯Â¿Â½ unified -->
     <?php $total_requests_processed = $accepted_requests_count + $rejected_requests_count + $waiting_requests_count; ?>
     <div class="stats-grid-reports">
         <!-- Assign Letter stats -->
@@ -436,7 +436,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                             $row_num = 1;
                             while ($row = $report_data->fetch_assoc()):
                             ?>
-                            <tr class="report-row">
+                            <tr>
                                 <td class="col-num"><?php echo $row_num++; ?></td>
                                 <td class="col-company">
                                     <strong><?php echo htmlspecialchars($row['contractor_company'] ?: 'Unknown'); ?></strong>
@@ -561,7 +561,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                         $row['position_name'] ?? ''
                                     );
                         ?>
-                        <tr class="" data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars($competency_normalized); ?>">
+                        <tr data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars($competency_normalized); ?>">
                             <td class="col-num"><?php echo $row_num++; ?></td>
                             <td class="col-company-detail">
                                 <span class="company-tag"><?php echo $company_name; ?></span>
@@ -704,7 +704,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                         $row['position_name'] ?? ''
                                     );
                         ?>
-                        <tr class="detail-row rejected-row" data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars($competency_normalized); ?>">
+                        <tr data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars($competency_normalized); ?>">
                             <td class="col-num"><?php echo $row_num++; ?></td>
                             <td class="col-company-detail">
                                 <span class="company-tag"><?php echo $company_name; ?></span>
@@ -852,7 +852,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                         $row['position_name'] ?? ''
                                     );
                         ?>
-                        <tr class="detail-row" data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars($competency_normalized); ?>">
+                        <tr data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars($competency_normalized); ?>">
                             <td class="col-num"><?php echo $row_num++; ?></td>
                             <td class="col-company-detail">
                                 <span class="company-tag"><?php echo $company_name; ?></span>
@@ -913,7 +913,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
             <div class="table-responsive">
                 <table class="table-report datatable table-approved table-with-filters" style="width: 100%;" id="approvedTable">
                     <thead>
-                        <tr class="header-row">
+                        <tr>
                             <th class="col-num">No</th>
                             <th class="col-number">Nomor Surat Penunjukan</th>
                             <th class="col-publisher">Penerbit</th>
@@ -923,7 +923,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                             <th class="col-company-detail">Perusahaan</th>
                             <th class="col-date">Tanggal Kedaluwarsa</th>
                         </tr>
-                        <tr class="filter-row">
+                        <tr>
                             <th class="col-num"></th>
                             <th class="col-number">
                                 <div class="filter-with-sort">
@@ -1011,7 +1011,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                 $expiry_date_display = date('d/m/Y', strtotime($row['expiry_date']));
                             }
                         ?>
-                        <tr class="detail-row"
+                        <tr
                             data-company="<?php echo htmlspecialchars($row['contractor_company'] ?: 'Unknown'); ?>"
                             data-scope="<?php echo $scope_normalized; ?>"
                             data-supervision="<?php echo $supervision_area; ?>"
@@ -1165,7 +1165,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                             }
                             $rejection_id = 'rejection_' . $row['id'];
                         ?>
-                        <tr class="detail-row rejected-row" data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars(normalizeCompetencyTypeLabel($row['appointment_number'] ?? '', $row['position_type'] ?? '', $row['position_name'] ?? '')); ?>">
+                        <tr data-company="<?php echo $company_name; ?>" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>" data-competency="<?php echo htmlspecialchars(normalizeCompetencyTypeLabel($row['appointment_number'] ?? '', $row['position_type'] ?? '', $row['position_name'] ?? '')); ?>">
                             <td class="col-num"><?php echo $row_num++; ?></td>
                             <td class="col-number">
                                 <strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong>
@@ -2004,10 +2004,10 @@ function exportToExcel(tableId, filename) {
     </x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]-->
     </head><body><table>`;
 
-    xl += `<tr class="title"><td colspan="${cols}">${schema.title}</td></tr>`;
-    xl += `<tr class="meta"><td colspan="${cols}">Export Date: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}</td></tr>`;
-    if (filterLabel) xl += `<tr class="meta"><td colspan="${cols}">Filter: ${filterLabel}</td></tr>`;
-    xl += `<tr class="meta"><td colspan="${cols}">Total: ${rows.length} rows</td></tr>`;
+    xl += `<tr><td colspan="${cols}">${schema.title}</td></tr>`;
+    xl += `<tr><td colspan="${cols}">Export Date: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}</td></tr>`;
+    if (filterLabel) xl += `<tr><td colspan="${cols}">Filter: ${filterLabel}</td></tr>`;
+    xl += `<tr><td colspan="${cols}">Total: ${rows.length} rows</td></tr>`;
     xl += `<tr><td colspan="${cols}"></td></tr>`;
     xl += '<tr>' + schema.headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
 
@@ -2015,7 +2015,7 @@ function exportToExcel(tableId, filename) {
         const cells = row.getElementsByTagName('td');
         const vals  = schema.row(cells, i + 1);
         xl += `<tr${i % 2 === 1 ? ' class="even"' : ''}>` +
-              vals.map(v => `<td>${(v !== '' && v != null) ? v : 'ï¿½'}</td>`).join('') +
+              vals.map(v => `<td>${(v !== '' && v != null) ? v : 'Ã¯Â¿Â½'}</td>`).join('') +
               '</tr>';
     });
 
@@ -2315,5 +2315,6 @@ document.addEventListener('DOMContentLoaded', function(){
 </script>
 
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
+
 
 
