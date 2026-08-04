@@ -148,7 +148,7 @@ $current_page = get_current_page();
                     </li>
                     <?php endif; ?>
 
-                    <?php if ($_SESSION['role'] == 'superadmin'): ?>
+                    <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'superadmin'): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/positions.php" class="<?php echo $current_page == 'positions.php' ? 'active' : ''; ?>">
                             <i class="fas fa-briefcase"></i> <span data-lang="competencies">Competencies</span>
@@ -211,7 +211,7 @@ $current_page = get_current_page();
                     <?php if ($_SESSION['role'] == 'admin' || $_SESSION['role'] == 'superadmin'): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/pages/admin/change_password.php" class="<?php echo $current_page == 'change_password.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-key"></i> <span data-lang="settings">Change Password</span>
+                            <i class="fas fa-cog"></i> <span data-lang="settings">Settings</span>
                         </a>
                     </li>
                     <?php endif; ?>
