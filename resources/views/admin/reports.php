@@ -1320,7 +1320,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
                                 $status_icon = 'fa-clock';
                             }
                         ?>
-                        <tr class="detail-row expiring-row" data-company="<?php echo $company_name; ?>" data-competency="<?php echo htmlspecialchars(normalizeCompetencyTypeLabel($cert['appointment_number'] ?? '', $cert['position_type'] ?? '', $cert['position_name'] ?? '')); ?>">
+                        <tr class="" data-company="<?php echo $company_name; ?>" data-competency="<?php echo htmlspecialchars(normalizeCompetencyTypeLabel($cert['appointment_number'] ?? '', $cert['position_type'] ?? '', $cert['position_name'] ?? '')); ?>">
                             <td><?php echo $row_num++; ?></td>
                             <td>
                                 <span><?php echo $company_name; ?></span>
