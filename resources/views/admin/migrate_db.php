@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+require_once dirname(__DIR__, 3) . '/bootstrap/app.php';
 $db = new Database();
 
 echo "<h2>Database Migration</h2>";
