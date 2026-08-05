@@ -1,8 +1,9 @@
 <?php
-$page_title = 'Add Employee - ' . ($_SESSION['department'] ?? 'Department');
+$page_title = 'Add Employee';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 // Included via bootstrap/app.php
+require_once dirname(__DIR__, 3) . '/bootstrap/app.php';
 
 // Only department access permitted
 requirePermission('employee.create');
@@ -21,19 +22,27 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-$db = new Database();   
+$db = new Database();
+$company_name = $_SESSION['company_name'] ?? '';
 $current_department = $_SESSION['department'] ?? '';
 $message = '';
 $error = '';
 
-// Get certifications and posit ions for dropdown
+// Get certifications and positions for dropdown
 $certifications = $db->query("SELECT * FROM certifications ORDER BY cert_name");
-$certifications_data = [];
+$certifications_data = []; // Array untuk menyimpan data sertifikasi
 if ($certifications && $certifications->num_rows > 0) {
-    $certifications->data_seek(0);
     while ($cert = $certifications->fetch_assoc()) {
-        $certifications_data[$cert['id']] = $cert;
+        $certifications_data[$cert['id']] = [
+            'cert_name' => $cert['cert_name'],
+            'cert_type' => $cert['cert_type'] ?? '',
+            'cert_issuer' => $cert['cert_issuer'] ?? '',
+            'issuing_authority' => $cert['issuing_authority'] ?? '',
+            'issuing_authority_name' => $cert['issuing_authority_name'] ?? ''
+        ];
     }
+    // Reset pointer untuk loop berikutnya
+    $certifications->data_seek(0);
 }
 $positions = $db->query("SELECT * FROM positions ORDER BY position_type, position_name");
 
@@ -62,38 +71,50 @@ if ($competencies_table_exists) {
 // Get supervision areas from database
 $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_name");
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+$supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_name");
+
+$draft_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+if ($draft_id && $_SERVER['REQUEST_METHOD'] != 'POST') {
+    $draft_data = $db->query("SELECT * FROM employees WHERE id = $draft_id AND verification_status = 'draft'")->fetch_assoc();
+    if ($draft_data) {
+        $_POST = $draft_data;
+    } else {
+        $error = "Draft not found or already submitted.";
+    }
+}
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
     // ==========================================
-    // PERBAIKAN KEAMANAN: Validasi Token CSRF
+    // IMPLEMENTASI VALIDASI ANTI-CSRF
     // ==========================================
     if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-        $error = 'Akses ditolak: Token keamanan tidak valid atau telah kedaluwarsa. Silakan coba kirim ulang formulir.';
+        // Hentikan eksekusi jika token tidak valid atau tidak ada
+        die('Aksi tidak diizinkan: Validasi token keamanan (CSRF) gagal.');
     }
+    // ==========================================
 
-    if (!$error) {
-        $employee_code = $db->escapeString(trim($_POST['employee_code']));
+    $employee_code = $db->escapeString(trim($_POST['employee_code']));
     $full_name = $db->escapeString(trim($_POST['full_name']));
     $position = $db->escapeString(trim($_POST['position']));
     // Department is automatically set from session for department_user
     $department = $db->escapeString($current_department);
     $competency_type = $db->escapeString(trim($_POST['competency_type']));
     $competency_name = !empty($_POST['competency_name']) ? $db->escapeString(trim($_POST['competency_name'])) : '';
-    $sub_competency = !empty($_POST['sub_competency']) ? $db->escapeString(trim($_POST['sub_competency'])) : '';
     $supervision_area = !empty($_POST['supervision_area']) ? $db->escapeString(trim($_POST['supervision_area'])) : '';
     $ruang_lingkup = !empty($_POST['ruang_lingkup']) ? $db->escapeString(trim($_POST['ruang_lingkup'])) : '';
+    $sub_competency = !empty($_POST['sub_competency']) ? $db->escapeString(trim($_POST['sub_competency'])) : '';
     $contractor_company = $db->escapeString(trim($_POST['contractor_company']));
+
     $is_draft = isset($_POST['is_draft']) ? (int)$_POST['is_draft'] : 0;
-    
+
     // Validate required fields
     if (!$is_draft) {
-        if (empty($employee_code) || empty($full_name) || empty($position) || empty($competency_type) || empty($contractor_company)) {
+        if (empty($employee_code) || empty($full_name) || empty($position) || empty($department) || empty($competency_type) || empty($contractor_company)) {
             $error = 'All fields are required!';
-        } elseif ($competency_type == 'pengawas_operasional' && empty($supervision_area)) {
-            $error = 'Supervision Area is required for Operational Supervisor!';
         } elseif (in_array($competency_type, ['pengawas_teknis', 'pengawas_operasional']) && empty($ruang_lingkup)) {
             $error = 'Scope of Work is required for Technical Supervisor and Operational Supervisor!';
+        } elseif ($competency_type == 'pengawas_operasional' && empty($supervision_area)) {
+            $error = 'Supervision Area is required for Operational Supervisor!';
         } elseif (in_array($competency_type, ['pengawas_teknis', 'tenaga_teknis']) && empty($competency_name)) {
             $error = 'Competency is required for Technical Supervisor and Technical Personnel types!';
         } elseif (!isset($_FILES['cv_file']) || $_FILES['cv_file']['error'] != 0) {
@@ -102,21 +123,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = 'Statement Letter upload is required!';
         }
     } else {
-        // Validation for draft is very relaxed, just ensure employee_code exists if at all possible, though not strictly required
+        if (empty($employee_code)) $employee_code = 'DRAFT_' . time() . rand(10,99);
+        if (empty($full_name)) $full_name = 'Draft Employee';
     }
-    
-    if (empty($employee_code)) {
-        // Even for draft we need ID badge as it is a unique identifier (and part of filenames)
-        $error = 'ID BADGE is required even for drafts!';
-    }
-    
+
     if (!$error) {
         // Check if employee code already exists
         $check = $db->query("SELECT id FROM employees WHERE employee_code = '$employee_code'");
         if ($check && $check->num_rows > 0) {
-            $error = 'ID BADGE already in use!';
-        } else {
-            // Handle CV upload (optional if draft)
+            if ($is_draft) {
+                $employee_code = $employee_code . '_' . rand(100,999);
+            } else {
+                $error = 'ID BADGE is already in use!';
+            }
+        }
+        
+        if (!$error) {
+           // Handle CV upload
             $cv_file = '';
             if (isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] == 0) {
                 $file_size = $_FILES['cv_file']['size'];
@@ -131,14 +154,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } elseif ($file_size > $max_size) {
                     $error = 'File size too large! Maximum 5MB.';
                 } else {
-                    // PERBAIKAN 1: Gunakan Absolute Path berbasis Document Root
+                    // Gunakan Absolute Path berbasis Document Root
+                    // rtrim digunakan untuk mencegah double slash (//) pada path
                     $base_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/'); 
                     
                     // Pastikan folder assets berada tepat di dalam public_html
                     $upload_dir = $base_dir . '/assets/uploads/cv/'; 
                     
                     if (!file_exists($upload_dir)) {
-                        // PERBAIKAN 2: Gunakan 0755 alih-alih 0777
+                        // Gunakan 0755 alih-alih 0777
                         mkdir($upload_dir, 0755, true); 
                     }
                     
@@ -146,20 +170,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $upload_path = $upload_dir . $new_filename;
                     
                     if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
+                        // Path ini yang disimpan ke database, sudah benar tidak perlu diubah
                         $cv_file = 'assets/uploads/cv/' . $new_filename; 
                     } else {
                         $error = 'Failed to upload CV file.';
                     }
                 }
             }
-
+            
             // Handle Statement upload (optional if draft)
             $statement_file = '';
             if (!$error && isset($_FILES['statement_file']) && $_FILES['statement_file']['error'] == 0) {
                 $stmt_file_size = $_FILES['statement_file']['size'];
                 $stmt_max_size = 5 * 1024 * 1024; // 5MB
                 $stmt_file_extension = strtolower(pathinfo($_FILES['statement_file']['name'], PATHINFO_EXTENSION));
-                
+
                 if ($stmt_file_extension !== 'pdf') {
                     $error = 'Statement Letter must be in PDF format!';
                 } elseif ($stmt_file_size > $stmt_max_size) {
@@ -167,7 +192,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     $stmt_upload_dir = '../../assets/uploads/statements/';
                     if (!file_exists($stmt_upload_dir)) {
-                        mkdir($stmt_upload_dir, 0755, true); // Diubah ke 0755 demi keamanan
+                        mkdir($stmt_upload_dir, 0777, true);
                     }
                     
                     $stmt_new_filename = 'statement_' . $employee_code . '_' . time() . '.pdf';
@@ -190,53 +215,52 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $available_columns[] = $col['Field'];
                 }
                 
-                $status_val = $is_draft ? 'draft' : 'pending';
-                // Create dynamic INSERT query based on available columns
-                $insert_fields = ['employee_code', 'full_name', 'position', 'department', 'competency_type', 'contractor_company', 'ruang_lingkup', 'cv_file', 'verification_status', 'is_active'];
-                $insert_values = ["'$employee_code'", "'$full_name'", "'$position'", "'$department'", "'$competency_type'", "'$contractor_company'", "'$ruang_lingkup'", "'$cv_file'", "'$status_val'", "1"];
+                // Buat query UPDATE dinamis
+                $verification_status = $is_draft ? 'draft' : 'pending';
+                $update_fields = [
+                    "employee_code = '$employee_code'",
+                    "full_name = '$full_name'",
+                    "position = '$position'",
+                    "department = '$department'",
+                    "competency_type = '$competency_type'",
+                    "contractor_company = '$contractor_company'",
+                    "ruang_lingkup = '$ruang_lingkup'",
+                    "verification_status = '$verification_status'"
+                ];
                 
-                // Add optional fields if they exist in the table
+                if ($cv_file) {
+                    $update_fields[] = "cv_file = '$cv_file'";
+                }
+                
                 if (in_array('competency_name', $available_columns) && !empty($competency_name)) {
-                    $insert_fields[] = 'competency_name';
-                    $insert_values[] = "'$competency_name'";
+                    $update_fields[] = "competency_name = '$competency_name'";
                 }
-
-                if (in_array('sub_competency', $available_columns) && !empty($sub_competency)) {
-                    $insert_fields[] = 'sub_competency';
-                    $insert_values[] = "'$sub_competency'";
-                }
-
                 if (in_array('supervision_area', $available_columns) && !empty($supervision_area)) {
-                    $insert_fields[] = 'supervision_area';
-                    $insert_values[] = "'$supervision_area'";
+                    $update_fields[] = "supervision_area = '$supervision_area'";
+                }
+                if (in_array('sub_competency', $available_columns) && !empty($sub_competency)) {
+                    $update_fields[] = "sub_competency = '$sub_competency'";
+                }
+                if (in_array('statement_file', $available_columns) && !empty($statement_file)) {
+                    $update_fields[] = "statement_file = '$statement_file'";
                 }
                 
-                if (in_array('statement_file', $available_columns) && !empty($statement_file)) {
-                    $insert_fields[] = 'statement_file';
-                    $insert_values[] = "'$statement_file'";
-                }
-
-                // Track who created this employee record
-                if (in_array('created_by', $available_columns)) {
-                    $insert_fields[] = 'created_by';
-                    $insert_values[] = "'" . intval($_SESSION['user_id']) . "'";
-                }
-
-                $sql = "INSERT INTO employees (" . implode(', ', $insert_fields) . ")
-                        VALUES (" . implode(', ', $insert_values) . ")";
+                $sql = "UPDATE employees SET " . implode(', ', $update_fields) . " WHERE id = $draft_id";
                 
                 if ($db->query($sql)) {
-                    $employee_id = $db->lastInsertId();
+                    $employee_id = $draft_id;
                     
                     // Handle multiple certification uploads
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
                         $upload_dir = '../../assets/uploads/certifications/';
                         if (!file_exists($upload_dir)) {
-                            mkdir($upload_dir, 0755, true); // Diubah ke 0755 demi keamanan
+                            mkdir($upload_dir, 0777, true);
                         }
                         
                         $cert_ids = $_POST['certification_ids'] ?? [];
                         $cert_numbers = $_POST['cert_numbers'] ?? [];
+                        $cert_types = $_POST['cert_types'] ?? [];
+                        $cert_types_other = $_POST['cert_types_other'] ?? [];
                         $cert_issuers = $_POST['cert_issuers'] ?? [];
                         $issue_dates = $_POST['issue_dates'] ?? [];
                         $expiry_dates = $_POST['expiry_dates'] ?? [];
@@ -245,13 +269,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         
                         foreach ($_FILES['certifications']['tmp_name'] as $key => $tmp_name) {
                             if (isset($_FILES['certifications']['error'][$key]) && $_FILES['certifications']['error'][$key] == 0) {
-                                $file_ext = pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION);
+                                $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
+
+                                // Validate certification file type - only PDF allowed
+                                if ($file_ext !== 'pdf') {
+                                    $error = 'Certificate file must be in PDF format!';
+                                    break;
+                                }
+
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                                 
                                 if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
                                     $cert_path = 'uploads/certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
                                     $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
+                                    
+                                    // Get cert_type: if "Lainnya", use manual input, otherwise use dropdown value
+                                    $cert_type = '';
+                                    if (isset($cert_types[$key]) && !empty($cert_types[$key])) {
+                                        if ($cert_types[$key] === 'Lainnya') {
+                                            $cert_type = $db->escapeString($cert_types_other[$key] ?? '');
+                                        } else {
+                                            $cert_type = $db->escapeString($cert_types[$key]);
+                                        }
+                                    }
+                                    
                                     $cert_issuer = $db->escapeString($cert_issuers[$key] ?? '');
                                     $issue_date = $db->escapeString($issue_dates[$key] ?? '');
                                     $expiry_date = $db->escapeString($expiry_dates[$key] ?? '');
@@ -261,11 +303,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     $today = date('Y-m-d');
                                     $status = ($expiry_date && $expiry_date < $today) ? 'expired' : 'pending';
                                     
-                                    $sql_cert = "INSERT INTO employee_certifications 
-                                                (employee_id, certification_id, cert_number, cert_issuer, issue_date, expiry_date, 
-                                                 document_file, status, verification_status, expiry_reason) 
-                                                VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
-                                                        '$cert_path', '$status', 'pending', '$reason')";
+                                    // Check if cert_type column exists in employee_certifications table
+                                    $columns_check = $db->query("SHOW COLUMNS FROM employee_certifications LIKE 'cert_type'");
+                                    
+                                    if ($columns_check && $columns_check->num_rows > 0) {
+                                        // Column cert_type EXISTS - include in INSERT
+                                        $sql_cert = "INSERT INTO employee_certifications 
+                                                    (employee_id, certification_id, cert_type, cert_number, cert_issuer, issue_date, expiry_date, 
+                                                     document_file, status, verification_status, expiry_reason) 
+                                                    VALUES ($employee_id, $cert_id, '$cert_type', '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
+                                                            '$cert_path', '$status', 'pending', '$reason')";
+                                    } else {
+                                        // Column cert_type DOES NOT EXIST - skip cert_type (backward compatible)
+                                        $sql_cert = "INSERT INTO employee_certifications 
+                                                    (employee_id, certification_id, cert_number, cert_issuer, issue_date, expiry_date, 
+                                                     document_file, status, verification_status, expiry_reason) 
+                                                    VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
+                                                            '$cert_path', '$status', 'pending', '$reason')";
+                                    }
                                     
                                     if (!$db->query($sql_cert)) {
                                         error_log("Error inserting certification: " . $db->getConnection()->error);
@@ -275,64 +330,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         }
                     }
                     
-                    // Send notification to admin - with timeout protection
-                    try {
-                        set_time_limit(60); // Allow extra time for email sending
-                        $notificationService = new NotificationService();
-                        $company_display = !empty($contractor_company) ? $contractor_company : "Department: $current_department";
-                        $notificationService->notifyNewEmployeeAdded($employee_id, $company_display);
-                    } catch (Exception $e) {
-                        error_log("Notification error: " . $e->getMessage());
-                    }
-                    
-                                        // Instantly index new employee to Bonsai.io / Elasticsearch
-                    try {
-                        $esServicePath = dirname(__DIR__, 2) . '/app/Services/ElasticsearchService.php';
-                        if (file_exists($esServicePath)) {
-                            require_once $esServicePath;
-                            if (class_exists('ElasticsearchService')) {
-                                $esService = ElasticsearchService::getInstance();
-                                if ($esService->isAvailable()) {
-                                    $esService->indexEmployee([
-                                        'id' => (int)$employee_id,
-                                        'employee_code' => $employee_code,
-                                        'full_name' => $full_name,
-                                        'position' => $position,
-                                        'department' => $department,
-                                        'contractor_company' => $contractor_company,
-                                        'competency_type' => $competency_type,
-                                        'competency_name' => $competency_name,
-                                        'ruang_lingkup' => $ruang_lingkup,
-                                        'sub_competency' => $sub_competency,
-                                        'supervision_area' => $supervision_area,
-                                        'approval_status' => 'pending',
-                                        'is_active' => 1,
-                                        'created_at' => date('Y-m-d H:i:s')
-                                    ]);
+                    // Send notification to admin if not draft
+                    if (!$is_draft) {
+                        try {
+                            if (class_exists('NotificationService')) {
+                                // Set a shorter timeout for the notification process
+                                set_time_limit(60); // Allow 60 seconds for this page (30 more seconds)
+                                
+                                $notificationService = new NotificationService();
+                                // Menggunakan $contractor_company karena $company_name tidak terdefinisi di scope atas
+                                $notification_company = !empty($contractor_company) ? $contractor_company : $department;
+                                $notificationService->notifyNewEmployeeAdded($employee_id, $notification_company);
+                            } else {
+                                error_log("NotificationService class not found");
+                            }
+                        } catch (Exception $e) {
+                            error_log("Notification Exception: " . $e->getMessage());
+                        } catch (Error $e) {
+                            error_log("Notification Error: " . $e->getMessage());
+                        }
+
+                        // Instantly index new employee to Bonsai.io / Elasticsearch
+                        try {
+                            $esServicePath = dirname(__DIR__, 2) . '/app/Services/ElasticsearchService.php';
+                            if (file_exists($esServicePath)) {
+                                require_once $esServicePath;
+                                if (class_exists('ElasticsearchService')) {
+                                    $esService = ElasticsearchService::getInstance();
+                                    if ($esService->isAvailable()) {
+                                        $esService->indexEmployee([
+                                            'id' => (int)$employee_id,
+                                            'employee_code' => $employee_code,
+                                            'full_name' => $full_name,
+                                            'position' => $position,
+                                            'department' => $department,
+                                            'contractor_company' => $contractor_company,
+                                            'competency_type' => $competency_type,
+                                            'competency_name' => $competency_name,
+                                            'ruang_lingkup' => $ruang_lingkup,
+                                            'sub_competency' => $sub_competency,
+                                            'supervision_area' => $supervision_area,
+                                            'approval_status' => 'pending',
+                                            'is_active' => 1,
+                                            'created_at' => date('Y-m-d H:i:s')
+                                        ]);
+                                    }
                                 }
                             }
+                        } catch (\Throwable $esEx) {
+                            error_log("Elasticsearch auto-index exception: " . $esEx->getMessage());
                         }
-                    } catch (\Throwable $esEx) {
-                        error_log("Elasticsearch auto-index exception: " . $esEx->getMessage());
                     }
 
-                    $message = 'Employee successfully added! Waiting for verification from Admin.';
-                    
-                    // PERBAIKAN OPTIONAL: Hapus token setelah sukses submit 
-                    // Ini mencegah pengiriman ganda jika user me-refresh halaman sukses (Double Submit)
-                    unset($_SESSION['csrf_token']);
-                    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-
-                    // Redirect after 2 seconds
-                    header("refresh:2;url=employees.php");
+                    if ($is_draft) {
+                        if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                            echo json_encode(['success' => true, 'message' => 'Draft tersimpan otomatis.']);
+                            exit;
+                        } else {
+                            $message = 'Employee draft successfully saved!';
+                            header("refresh:2;url=employees.php?tab=draft");
+                        }
+                    } else {
+                        $message = 'Employee successfully added! Waiting for Admin verification.';
+                        header("refresh:2;url=employees.php");
+                    }
                 } else {
+                    if ($is_draft && !empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+                        echo json_encode(['success' => false, 'message' => 'Gagal menyimpan draft.']);
+                        exit;
+                    }
                     $error = 'Failed to add employee!';
                     error_log("Error inserting employee: " . $db->getConnection()->error);
                 }
             }
         }
     }
-}
 }
 
 require_once dirname(__DIR__) . '/layouts/header.php';
@@ -342,11 +414,15 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     <!-- Page Header -->
     <div class="page-header-add">
         <div class="header-left">
-            <h2><i class="fas fa-user-plus"></i> <span data-lang="add-new-request-employee">Add New Request Employee</span></h2>
-            <p>Department: <strong><?php echo htmlspecialchars($current_department); ?></strong></p>
+            <h2><i class="fas fa-edit"></i> <span data-lang="edit-draft-employee">Edit Draft Employee</span></h2>
+            <?php if (!empty($current_department)): ?>
+            <p><span data-lang="department">Department</span>: <strong><?php echo htmlspecialchars($current_department); ?></strong></p>
+            <?php else: ?>
+            <p><span data-lang="company">Company</span>: <strong><?php echo htmlspecialchars($company_name); ?></strong></p>
+            <?php endif; ?>
         </div>
         <a href="employees.php" class="btn btn-outline-secondary">
-            <i class="fas fa-arrow-left"></i> Back
+            <i class="fas fa-arrow-left"></i> <span data-lang="back">Back</span>
         </a>
     </div>
     
@@ -354,7 +430,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     <div class="alert alert-success alert-custom-add">
         <i class="fas fa-check-circle"></i>
         <div>
-            <strong>Success!</strong>
+            <strong data-lang="success">Success!</strong>
             <p><?php echo htmlspecialchars($message); ?></p>
         </div>
     </div>
@@ -364,16 +440,16 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     <div class="alert alert-error alert-custom-add">
         <i class="fas fa-exclamation-circle"></i>
         <div>
-            <strong>Error!</strong>
+            <strong data-lang="error">Error!</strong>
             <p><?php echo htmlspecialchars($error); ?></p>
         </div>
     </div>
     <?php endif; ?>
     
-    <form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate>
-        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+<form method="POST" action="?id=<?php echo $draft_id; ?>" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate> 
+        <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
         <input type="hidden" name="is_draft" id="is_draft" value="0">
-        <!-- Section 1: Data Identitas & Kompetensi -->
+
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-id-card"></i> <span data-lang="identity-competency-data">Identity & Competency Data</span></h3>
@@ -390,45 +466,38 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 </div>
                 
                 <div class="form-group col-lg-6">
-                    <label for="full_name" data-lang="full-name">Full Name <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="full_name" name="full_name"
+                    <label for="full_name" data-lang="full-name">Full Name<span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" id="full_name" name="full_name" 
                            value="<?php echo isset($_POST['full_name']) ? htmlspecialchars($_POST['full_name']) : ''; ?>"
-                           required placeholder="Employee full name" data-lang-placeholder="employee-full-name-placeholder">
+                           required placeholder="Full name of the employee" data-lang-placeholder="full-name-of-employee-placeholder">
                 </div>
             </div>
+            
+            <input type="hidden" id="department" name="department" value="General">
             
             <div class="form-row">
                 <div class="form-group col-lg-6">
                     <label for="position" data-lang="position">Position <span class="text-danger">*</span></label>
-                    <input type="text" class="form-control" id="position" name="position"
+                    <input type="text" class="form-control" id="position" name="position" 
                            value="<?php echo isset($_POST['position']) ? htmlspecialchars($_POST['position']) : ''; ?>"
                            required placeholder="Example: Rigger, HSE Superintendent" data-lang-placeholder="position-example-placeholder">
                 </div>
                 
-                <div class="form-group col-lg-6" id="ruang_lingkup_group" style="display: none;">
-                    <label for="ruang_lingkup" data-lang="scope-of-work">Scope of Work <span class="text-danger">*</span></label>
-                    <select class="form-control" id="ruang_lingkup" name="ruang_lingkup">
-                        <option value="" data-lang="select-scope-of-work">-- Select Scope of Work --</option>
-                        <option value="PT Meares Soputan Mining (MSM)" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Meares Soputan Mining (MSM)') ? 'selected' : ''; ?>>PT MSM</option>
-                        <option value="PT Tambang Tondano Nusajaya (TTN)" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Tambang Tondano Nusajaya (TTN)') ? 'selected' : ''; ?>>PT TTN</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div class="form-row">
                 <div class="form-group col-lg-6">
                     <label for="department" data-lang="department">Department</label>
                     <input type="text" class="form-control" id="department" name="department"
                            value="<?php echo htmlspecialchars($current_department); ?>" readonly>
                     <small class="form-hint" data-lang="auto-filled-from-account">Automatically filled from your account</small>
                 </div>
-                
-                <div class="form-group col-lg-6">
-                    <label for="contractor_company" data-lang="company">Company</label>
-                    <select class="form-control" id="contractor_company" name="contractor_company" required>
-                        <option value="" data-lang="select-company">-- Select Company --</option>
-                        <option value="PT Meares Soputan Mining" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Meares Soputan Mining') ? 'selected' : ''; ?>>PT Meares Soputan Mining</option>
-                        <option value="PT Tambang Tondano Nusajaya" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tambang Tondano Nusajaya') ? 'selected' : ''; ?>>PT Tambang Tondano Nusajaya</option>
+            </div>
+            
+            <div class="form-row">
+                <div class="form-group col-lg-6" id="ruang_lingkup_group" style="display: none;">
+                    <label for="ruang_lingkup" data-lang="scope-of-work">Scope of Work <span class="text-danger">*</span></label>
+                    <select class="form-control" id="ruang_lingkup" name="ruang_lingkup">
+                        <option value="" data-lang="select-scope-of-work">-- Select Scope of Work --</option>
+                        <option value="PT Meares Soputan Mining (MSM)" data-lang="scope-of-work-msm" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Meares Soputan Mining (MSM)') ? 'selected' : ''; ?>>PT MSM</option>
+                        <option value="PT Tambang Tondano Nusajaya (TTN)" data-lang="scope-of-work-ttn" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Tambang Tondano Nusajaya (TTN)') ? 'selected' : ''; ?>>PT TTN</option>
                     </select>
                 </div>
             </div>
@@ -438,12 +507,12 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     <label for="competency_type" data-lang="competency-type">Competency Type <span class="text-danger">*</span></label>
                     <select class="form-control" id="competency_type" name="competency_type" onchange="toggleCompetencyField()" required>
                         <option value="" data-lang="select-competency-type">-- Select Competency Type --</option>
-                        <option value="pengawas_operasional" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_operasional') ? 'selected' : ''; ?>>Pengawas Operasional</option>
-                        <option value="pengawas_teknis" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_teknis') ? 'selected' : ''; ?>>Pengawas Teknis</option>
-                        <option value="tenaga_teknis" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'tenaga_teknis') ? 'selected' : ''; ?>>Tenaga Teknis</option>
+                        <option value="pengawas_operasional" data-lang="competency-type-operational-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_operasional') ? 'selected' : ''; ?>>Pengawas Operasional</option>
+                        <option value="pengawas_teknis" data-lang="competency-type-technical-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_teknis') ? 'selected' : ''; ?>>Pengawas Teknis</option>
+                        <option value="tenaga_teknis" data-lang="competency-type-technical-personnel" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'tenaga_teknis') ? 'selected' : ''; ?>>Tenaga Teknis</option>
                     </select>
                 </div>
-                
+
                 <div class="form-group col-lg-6" id="supervision_area_group" style="display: none;">
                     <label for="supervision_area" data-lang="supervision-area">Supervision Area <span class="text-danger">*</span></label>
                     <select class="form-control" id="supervision_area" name="supervision_area">
@@ -457,19 +526,18 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                         <option value="<?php echo htmlspecialchars($area['area_name']); ?>" <?php echo $selected; ?>>
                             <?php echo htmlspecialchars($area['area_name']); ?>
                         </option>
-                        <?php 
+                        <?php
                             endwhile;
                         }
                         ?>
                     </select>
                 </div>
-                
+
                 <div class="form-group col-lg-6" id="competency_group" style="display: none;">
-                    <label for="competency_name" data-lang="competency">Competency <span class="text-danger" id="competency_required">*</span></label>
+                    <label for="competency_name" data-lang="competency">Competency <span class="text-danger">*</span></label>
                     <select class="form-control" id="competency_name" name="competency_name" onchange="loadSubCompetencies()">
                         <option value="" data-lang="select-competency">-- Select Competency --</option>
                         <?php
-                        // Populate competencies for pengawas_operasional
                         if (!empty($competencies_by_type['pengawas_operasional'])) {
                             foreach ($competencies_by_type['pengawas_operasional'] as $comp):
                         ?>
@@ -479,7 +547,6 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                         <?php
                             endforeach;
                         }
-                        // Populate competencies for pengawas_teknis
                         if (!empty($competencies_by_type['pengawas_teknis'])) {
                             foreach ($competencies_by_type['pengawas_teknis'] as $comp):
                         ?>
@@ -489,7 +556,6 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                         <?php
                             endforeach;
                         }
-                        // Populate competencies for tenaga_teknis
                         if (!empty($competencies_by_type['tenaga_teknis'])) {
                             foreach ($competencies_by_type['tenaga_teknis'] as $comp):
                         ?>
@@ -511,14 +577,48 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 </div>
             </div>
 
-            <!-- File Upload Section -->
+            <div class="form-row">
+                <div class="form-group col-lg-6">
+                    <label for="contractor_company">
+                        <?php if (!empty($current_department)): ?>
+                            <span data-lang="department">Department</span>
+                        <?php else: ?>
+                            <span data-lang="company">Company</span>
+                        <?php endif; ?>
+                    </label>
+                    <select class="form-control" id="contractor_company" name="contractor_company" required>
+                        <option value="" data-lang="select-company">-- Select Company --</option>
+                        <option value="PT Meares Soputan Mining" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Meares Soputan Mining') ? 'selected' : ''; ?>>PT Meares Soputan Mining</option>
+                        <option value="PT Tambang Tondano Nusajaya" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tambang Tondano Nusajaya') ? 'selected' : ''; ?>>PT Tambang Tondano Nusajaya</option>
+                        <option value="G4S Security Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'G4S Security Services') ? 'selected' : ''; ?>>G4S Security Services</option>
+                        <option value="PT Part Sentra Indomandiri" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Part Sentra Indomandiri') ? 'selected' : ''; ?>>PT Part Sentra Indomandiri</option>
+                        <option value="PT Aneka Kimia Raya Corporindo" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Aneka Kimia Raya Corporindo') ? 'selected' : ''; ?>>PT Aneka Kimia Raya Corporindo</option>
+                        <option value="PT Saribuana Manado" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Saribuana Manado') ? 'selected' : ''; ?>>PT Saribuana Manado</option>
+                        <option value="PT Maxidrill Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Maxidrill Indonesia') ? 'selected' : ''; ?>>PT Maxidrill Indonesia</option>
+                        <option value="PT Tata Wisata" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tata Wisata') ? 'selected' : ''; ?>>PT Tata Wisata</option>
+                        <option value="PT Arlie Labora Utama" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Arlie Labora Utama') ? 'selected' : ''; ?>>PT Arlie Labora Utama</option>
+                        <option value="PT Tou Maesa Sejahtera" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Tou Maesa Sejahtera') ? 'selected' : ''; ?>>PT Tou Maesa Sejahtera</option>
+                        <option value="PT DNX Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT DNX Indonesia') ? 'selected' : ''; ?>>PT DNX Indonesia</option>
+                        <option value="PT Mandara Fasilitas Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Mandara Fasilitas Indonesia') ? 'selected' : ''; ?>>PT Mandara Fasilitas Indonesia</option>
+                        <option value="PT Aptekindo Mitra Solusitama" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Aptekindo Mitra Solusitama') ? 'selected' : ''; ?>>PT Aptekindo Mitra Solusitama</option>
+                        <option value="PT Geopersada Mulia Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Geopersada Mulai Abadi') ? 'selected' : ''; ?>>PT Geopersada Mulai Abadi</option>
+                        <option value="PT Hidup Baru Sukses Mandiri" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Hidup Baru Sukses Mandiri') ? 'selected' : ''; ?>>PT Hidup Baru Sukses Mandiri</option>
+                        <option value="PT Intertek Utama Services" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Intertek Utama Services') ? 'selected' : ''; ?>>PT Intertek Utama Services</option>
+                        <option value="PT Macmahon Indonesia" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Macmahon Indonesia') ? 'selected' : ''; ?>>PT Macmahon Indonesia</option>
+                        <option value="PT Manado Karya Angrah" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Manado Karya Angrah') ? 'selected' : ''; ?>>PT Manado Karya Angrah</option>
+                        <option value="PT Samudera Mulai Abadi" <?php echo (isset($_POST['contractor_company']) && $_POST['contractor_company'] == 'PT Samudera Mulai Abadi') ? 'selected' : ''; ?>>PT Samudera Mulai Abadi</option>
+                    </select>
+                    <small class="form-hint" data-lang="select-your-company">Select your company from the list</small>
+                </div>
+            </div>
+            
             <div class="form-row">
                 <div class="form-group col-lg-6">
                     <label for="cv_file" data-lang="upload-cv">Upload CV <span class="text-danger">*</span></label>
                     <div class="file-upload-area">
                         <i class="fas fa-file-upload"></i>
                         <input type="file" name="cv_file" id="cv_file" class="file-input" accept=".pdf" required>
-                        <span class="file-text" data-lang="click-drag-cv-file">Click or drag CV file(PDF, Max 5MB)</span>
+                        <span class="file-text"><span data-lang="upload-cv-file">Upload file CV</span><br><span data-lang="pdf-max-5mb">(PDF, Max 5MB)</span></span>
                         <span class="file-name"></span>
                     </div>
                 </div>
@@ -528,7 +628,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     <div class="file-upload-area">
                         <i class="fas fa-file-signature"></i>
                         <input type="file" name="statement_file" id="statement_file" class="file-input" accept=".pdf" required>
-                        <span class="file-text" data-lang="click-drag-statement-letter">Click or drag Statement Letter(PDF, Max 5MB)</span>
+                        <span class="file-text"><span data-lang="upload-tt-mgt-frs-008d">Upload TT-MGT-FRS-008D</span><br><span data-lang="pdf-max-5mb">(PDF, Max 5MB)</span></span>
                         <span class="file-name"></span>
                     </div>
                 </div>
@@ -537,16 +637,15 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <div class="alert alert-warning-custom" style="margin-bottom: 0;">
                 <i class="fas fa-exclamation-triangle"></i>
                 <div>
-                    <strong>Important - Statement Letter:</strong>
-                    <p style="margin-bottom: 8px;">The statement letter must be signed with an <strong>original signature (wet signature)</strong> by the person concerned, then scanned in PDF format.</p>
+                    <strong data-lang="important-statement-letter">Important - Statement Letter:</strong>
+                    <p style="margin-bottom: 8px;" data-lang="wet-signature-pdf-instruction">The statement letter must be signed with wet signature (original) and scanned in PDF format</p>
                     <a href="https://drive.google.com/drive/folders/176NPnFCvAnzp2Mb9vrA2RC5OMA45Hga1?usp=sharing" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
-                        <i class="fas fa-download"></i> Download Statement Letter Template
+                        <i class="fas fa-download"></i> <span data-lang="download-statement-letter-template">Download Statement Letter Template</span>
                     </a>
                 </div>
             </div>
         </div>
         
-        <!-- Section 2: Sertifikasi -->
         <div class="form-section">
             <div class="section-header">
                 <h3><i class="fas fa-certificate"></i> <span data-lang="certification-competency">Certification/Competency</span></h3>
@@ -558,8 +657,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     <div class="cert-item-header">
                         <h5><i class="fas fa-file-certificate"></i> <span data-lang="certification-number-1">Certification #1</span></h5>
                         <div class="cert-header-actions">
-                            <!-- Remove button will appear for additional certifications -->
-                        </div>
+                            </div>
                     </div>
                     
                     <div class="form-row">
@@ -572,8 +670,10 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                                     $certifications->data_seek(0);
                                     while ($cert = $certifications->fetch_assoc()):
                                     ?>
-                                    <option value="<?php echo $cert['id']; ?>" data-issuer="<?php echo htmlspecialchars($cert['cert_issuer'] ?? ''); ?>">
-                                        <?php echo htmlspecialchars($cert['cert_name']); ?>
+                                    <option value="<?php echo $cert['id']; ?>" 
+                                        data-type="<?php echo htmlspecialchars($cert['cert_type'] ?? ''); ?>" 
+                                        data-issuer="<?php echo htmlspecialchars($cert['cert_issuer'] ?? ''); ?>">
+                                    <?php echo htmlspecialchars($cert['cert_name']); ?>
                                     </option>
                                     <?php 
                                     endwhile;
@@ -585,8 +685,8 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                             <label data-lang="certificate-type">Certificate Type <span class="text-danger">*</span></label>
                             <select name="cert_types[]" class="form-control cert-type-select" required onchange="toggleOtherType(this)">
                                 <option value="" data-lang="select-type">-- Select Type --</option>
-                                <option value="Attendance/Peserta" data-lang="attendance-participant">Attendance/Participant</option>
-                                <option value="Kompeten" data-lang="competent">Competent</option>
+                                <option value="Attendance/Participant" data-lang="attendance-participant">Attendance/Participant</option>
+                                <option value="Competent" data-lang="competent">Competent</option>
                                 <option value="Training" data-lang="training">Training</option>
                             </select>
                         </div>
@@ -598,12 +698,12 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     
                     <div class="form-row">
                         <div class="form-group col-lg-6">
-                            <label data-lang="certificate-no">Certificate No. <span class="text-danger">*</span></label>
+                            <label data-lang="certificate-number">Certificate Number <span class="text-danger">*</span></label>
                             <input type="text" name="cert_numbers[]" class="form-control" required placeholder="Certificate number" data-lang-placeholder="certificate-number-placeholder">
                         </div>
                         <div class="form-group col-lg-6">
                             <label data-lang="issuer">Issuer <span class="text-danger">*</span></label>
-                            <input type="text" name="cert_issuers[]" class="form-control" required placeholder="Issuer/certification body name" data-lang-placeholder="issuer-certification-body-name">
+                            <input type="text" name="cert_issuers[]" class="form-control" required placeholder="Name of issuer/certification body" data-lang-placeholder="issuer-certification-body-name">
                         </div>
                     </div>
                     
@@ -643,28 +743,26 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                         <div class="file-upload-area">
                             <i class="fas fa-file-pdf"></i>
                             <input type="file" name="certifications[]" class="file-input" accept=".pdf" required>
-                            <span class="file-text" data-lang="click-drag-certificate-file">Click or drag certificate file (PDF, Max 5MB)</span>
+                            <span class="file-text" data-lang="upload-certificate-file-pdf">Upload certificate file (PDF, Max 5MB)</span>
                             <span class="file-name"></span>
                         </div>
                     </div>
                 </div>
             </div>
-            
+
             <button type="button" class="btn btn-outline-primary" onclick="addCertification()">
                 <i class="fas fa-plus-circle"></i> <span data-lang="add-another-certification">Add Another Certification</span>
             </button>
         </div>
 
-        <!-- Info Alert -->
         <div class="alert alert-info-custom">
             <i class="fas fa-lightbulb"></i>
             <div>
-                <strong data-lang="important-note">Important Note</strong>
+                <strong data-lang="important-notes">Important Notes</strong>
                 <p data-lang="after-employee-data-added-note">After the employee data is added, the status will be "Pending" and awaiting verification from Admin before an Appointment Letter can be created.</p>
             </div>
         </div>
         
-        <!-- Form Actions -->
         <div class="form-actions">
             <button type="submit" class="btn btn-primary btn-lg">
                 <i class="fas fa-save"></i> <span data-lang="save-submit-verification">Save & Submit for Verification</span>
@@ -695,15 +793,22 @@ async function loadSubCompetencies() {
     const selectedOption = competencySelect.options[competencySelect.selectedIndex];
     
     // Clear previous options
-        const selectSubCompetencyText = window.getLanguageText('select-sub-competency', '-- Select Sub Competency --');
+    const selectSubCompetencyText = window.getLanguageText('select-sub-competency', '-- Select Sub Competency --');
+    subCompetencySelect.innerHTML = '<option value="">' + selectSubCompetencyText + '</option>';
+    
+    if (!selectedOption.value) {
+        toggleSubCompetency();
+        return;
+    }
+    
     const competencyId = selectedOption.getAttribute('data-id');
-
+    
     if (!competencyId) {
         console.warn('Competency ID not found');
         toggleSubCompetency();
         return;
     }
-
+    
     try {
         const response = await fetch('../../api/get_sub_competencies.php', {
             method: 'POST',
@@ -714,9 +819,9 @@ async function loadSubCompetencies() {
                 competency_id: parseInt(competencyId)
             })
         });
-
+        
         const result = await response.json();
-
+        
         if (result.success && result.data.length > 0) {
             result.data.forEach(subComp => {
                 const option = document.createElement('option');
@@ -753,7 +858,7 @@ async function loadSubCompetencies() {
     } catch (error) {
         console.error('Error loading sub-competencies:', error);
     }
-
+    
     // Show or hide sub_competency field based on competency type and selection
     toggleSubCompetency();
 }
@@ -785,7 +890,6 @@ function toggleCompetencyField() {
         // Tampilkan kedua field untuk pengawas operasional
         supervisionAreaGroup.style.display = 'block';
         competencyGroup.style.display = 'block';
-        subCompetencyGroup.style.display = 'none';
 
         // Kedua field wajib diisi
         competencyInput.setAttribute('required', 'required');
@@ -943,6 +1047,124 @@ function calculateExpiryDate(inputElement) {
     }
 }
 
+function setupFileUpload(area) {
+    area.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        area.classList.add('dragover');
+    });
+    area.addEventListener('dragleave', () => {
+        area.classList.remove('dragover');
+    });
+    area.addEventListener('drop', (e) => {
+        e.preventDefault();
+        area.classList.remove('dragover');
+        const input = area.querySelector('.file-input');
+        input.files = e.dataTransfer.files;
+        updateFileName(area, input.files[0]);
+    });
+    
+    const input = area.querySelector('.file-input');
+    input.addEventListener('change', () => {
+        updateFileName(area, input.files[0]);
+    });
+}
+
+// File upload preview
+document.querySelectorAll('.file-upload-area').forEach(area => {
+    setupFileUpload(area);
+});
+
+function updateFileName(area, file) {
+    if (file) {
+        area.querySelector('.file-name').textContent = file.name;
+        area.querySelector('.file-name').style.display = 'block';
+    }
+}
+
+// Initialize event listeners for initial certification item on page load
+document.addEventListener('DOMContentLoaded', function() {
+    // Re-initialize event listeners for all certification items
+    document.querySelectorAll('.certification-item').forEach(item => {
+        const certTypeSelect = item.querySelector('.cert-type-select');
+        if (certTypeSelect) certTypeSelect.onchange = function() { toggleOtherType(this); };
+        
+        const certNameSelect = item.querySelector('.cert-name-select');
+        if (certNameSelect) {
+            certNameSelect.onchange = function() { updateIssuer(this); };
+            if (certNameSelect.value) updateIssuer(certNameSelect);
+        }
+        
+        const issueDate = item.querySelector('input[name="issue_dates[]"]');
+        if (issueDate) issueDate.onchange = function() { calculateExpiryDate(this); };
+        
+        const validityYears = item.querySelector('input[name="validity_years[]"]');
+        if (validityYears) validityYears.onchange = function() { calculateExpiryDate(this); };
+        
+        const noExpiryCheck = item.querySelector('input[name="no_expiry[]"]');
+        if (noExpiryCheck) {
+            noExpiryCheck.onchange = function() { toggleExpiryField(this); };
+            if (noExpiryCheck.checked) toggleExpiryField(noExpiryCheck);
+        }
+    });
+    
+    // Trigger toggleCompetencyField if competency_type has a value on page load
+    const compTypeEl = document.getElementById('competency_type');
+    if (compTypeEl && compTypeEl.value) {
+        toggleCompetencyField();
+        const compNameEl = document.getElementById('competency_name');
+        if (compNameEl && compNameEl.value) {
+            loadSubCompetencies();
+        }
+    }
+
+    // Client-side form validation before submit
+    const formEl = document.getElementById('addEmployeeForm') || document.querySelector('form.form-container');
+    if (formEl) {
+        formEl.addEventListener('submit', function(e) {
+            let isValid = true;
+            let firstInvalid = null;
+
+            // Clear previous invalid highlights
+            formEl.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+            formEl.querySelectorAll('.file-upload-area').forEach(el => el.style.borderColor = '');
+
+            // Check required fields
+            const requiredFields = formEl.querySelectorAll('input[required], select[required], textarea[required]');
+            requiredFields.forEach(field => {
+                const group = field.closest('.form-group');
+                const isVisible = group ? (group.style.display !== 'none' && group.offsetHeight > 0) : true;
+                
+                if (isVisible) {
+                    if (field.type === 'file') {
+                        if (field.files.length === 0 && !field.dataset.hasExisting) {
+                            isValid = false;
+                            const area = field.closest('.file-upload-area');
+                            if (area) area.style.borderColor = '#ef4444';
+                            if (!firstInvalid) firstInvalid = field;
+                        }
+                    } else if (!field.value || field.value.trim() === '') {
+                        isValid = false;
+                        field.classList.add('is-invalid');
+                        field.style.borderColor = '#ef4444';
+                        if (!firstInvalid) firstInvalid = field;
+                    }
+                }
+            });
+
+            if (!isValid) {
+                e.preventDefault();
+                e.stopPropagation();
+                if (firstInvalid) {
+                    firstInvalid.focus();
+                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                alert('Mohon lengkapi semua data dan berkas yang wajib diisi (*) terlebih dahulu!');
+                return false;
+            }
+        });
+    }
+});
+
 function addCertification() {
     const container = document.getElementById('certificationContainer');
     const certItems = container.querySelectorAll('.certification-item');
@@ -973,8 +1195,8 @@ function addCertification() {
                 <label data-lang="certificate-type">Certificate Type <span class="text-danger">*</span></label>
                 <select name="cert_types[]" class="form-control cert-type-select" required onchange="toggleOtherType(this)">
                     <option value="" data-lang="select-type">-- Select Type --</option>
-                    <option value="Attendance/Peserta" data-lang="attendance-participant">Attendance/Participant</option>
-                    <option value="Kompeten" data-lang="competent">Competent</option>
+                    <option value="Attendance/Participant" data-lang="attendance-participant">Attendance/Participant</option>
+                    <option value="Competent" data-lang="competent">Competent</option>
                     <option value="Training" data-lang="training">Training</option>
                 </select>
             </div>
@@ -986,12 +1208,12 @@ function addCertification() {
 
         <div class="form-row">
             <div class="form-group col-lg-6">
-                <label data-lang="certificate-no">Certificate No. <span class="text-danger">*</span></label>
+                <label data-lang="certificate-number">Certificate Number <span class="text-danger">*</span></label>
                 <input type="text" name="cert_numbers[]" class="form-control" required placeholder="Certificate number" data-lang-placeholder="certificate-number-placeholder">
             </div>
             <div class="form-group col-lg-6">
                 <label data-lang="issuer">Issuer <span class="text-danger">*</span></label>
-                <input type="text" name="cert_issuers[]" class="form-control" required placeholder="Issuer/certification body name" data-lang-placeholder="issuer-certification-body-name">
+                <input type="text" name="cert_issuers[]" class="form-control" required placeholder="Name of issuer/certification body" data-lang-placeholder="issuer-certification-body-name">
             </div>
         </div>
 
@@ -1031,7 +1253,7 @@ function addCertification() {
             <div class="file-upload-area">
                 <i class="fas fa-file-pdf"></i>
                 <input type="file" name="certifications[]" class="file-input" accept=".pdf" required>
-                <span class="file-text" data-lang="click-drag-certificate-file">Click or drag certificate file (PDF, Max 5MB)</span>
+                <span class="file-text" data-lang="upload-certificate-file-pdf">Upload certificate file (PDF, Max 5MB)</span>
                 <span class="file-name"></span>
             </div>
         </div>
@@ -1064,36 +1286,6 @@ function removeCertification(button) {
     if (confirm(confirmRemoveCert)) {
         certItem.remove();
         updateCertificationNumbers();
-    }
-}
-
-// Auto-select Scope of Work (ruang_lingkup) based on selected company
-function setRuangLingkupFromCompany() {
-    const companySelect = document.getElementById('contractor_company');
-    const ruangSelect = document.getElementById('ruang_lingkup');
-    if (!companySelect || !ruangSelect) return;
-
-    const mapping = {
-        'PT Meares Soputan Mining': 'PT Meares Soputan Mining (MSM)',
-        'PT Tambang Tondano Nusajaya': 'PT Tambang Tondano Nusajaya (TTN)'
-    };
-
-    const selectedCompany = companySelect.value;
-    const ruangValue = mapping[selectedCompany] || '';
-
-    // Set value if option exists
-    let found = false;
-    for (let i = 0; i < ruangSelect.options.length; i++) {
-        if (ruangSelect.options[i].value === ruangValue) {
-            ruangSelect.selectedIndex = i;
-            found = true;
-            break;
-        }
-    }
-
-    if (!found) {
-        // clear selection
-        ruangSelect.value = '';
     }
 }
 
@@ -1213,122 +1405,6 @@ function saveDraftAndLogout() {
         window.location.href = '../../../logout.php?reason=timeout';
     }
 }
-
-function setupFileUpload(area) {
-    area.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        area.classList.add('dragover');
-    });
-    area.addEventListener('dragleave', () => {
-        area.classList.remove('dragover');
-    });
-    area.addEventListener('drop', (e) => {
-        e.preventDefault();
-        area.classList.remove('dragover');
-        const input = area.querySelector('.file-input');
-        input.files = e.dataTransfer.files;
-        updateFileName(area, input.files[0]);
-    });
-    
-    const input = area.querySelector('.file-input');
-    input.addEventListener('change', () => {
-        updateFileName(area, input.files[0]);
-    });
-}
-
-document.querySelectorAll('.file-upload-area').forEach(area => {
-    setupFileUpload(area);
-});
-
-function updateFileName(area, file) {
-    if (file) {
-        area.querySelector('.file-name').textContent = file.name;
-        area.querySelector('.file-name').style.display = 'block';
-    }
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-    // Re-initialize event listeners for all certification items
-    document.querySelectorAll('.certification-item').forEach(item => {
-        const certTypeSelect = item.querySelector('.cert-type-select');
-        if (certTypeSelect) certTypeSelect.onchange = function() { toggleOtherType(this); };
-        
-        const certNameSelect = item.querySelector('.cert-name-select');
-        if (certNameSelect) {
-            certNameSelect.onchange = function() { updateIssuer(this); };
-            if (certNameSelect.value) updateIssuer(certNameSelect);
-        }
-        
-        const issueDate = item.querySelector('input[name="issue_dates[]"]');
-        if (issueDate) issueDate.onchange = function() { calculateExpiryDate(this); };
-        
-        const validityYears = item.querySelector('input[name="validity_years[]"]');
-        if (validityYears) validityYears.onchange = function() { calculateExpiryDate(this); };
-        
-        const noExpiryCheck = item.querySelector('input[name="no_expiry[]"]');
-        if (noExpiryCheck) {
-            noExpiryCheck.onchange = function() { toggleExpiryField(this); };
-            if (noExpiryCheck.checked) toggleExpiryField(noExpiryCheck);
-        }
-    });
-    
-    // Trigger toggleCompetencyField if competency_type has a value on page load
-    const compTypeEl = document.getElementById('competency_type');
-    if (compTypeEl && compTypeEl.value) {
-        toggleCompetencyField();
-        const compNameEl = document.getElementById('competency_name');
-        if (compNameEl && compNameEl.value) {
-            loadSubCompetencies();
-        }
-    }
-
-    // Client-side form validation before submit
-    const formEl = document.getElementById('addEmployeeForm') || document.querySelector('form.form-container');
-    if (formEl) {
-        formEl.addEventListener('submit', function(e) {
-            let isValid = true;
-            let firstInvalid = null;
-
-            // Clear previous invalid highlights
-            formEl.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
-            formEl.querySelectorAll('.file-upload-area').forEach(el => el.style.borderColor = '');
-
-            // Check required fields
-            const requiredFields = formEl.querySelectorAll('input[required], select[required], textarea[required]');
-            requiredFields.forEach(field => {
-                const group = field.closest('.form-group');
-                const isVisible = group ? (group.style.display !== 'none' && group.offsetHeight > 0) : true;
-                
-                if (isVisible) {
-                    if (field.type === 'file') {
-                        if (field.files.length === 0 && !field.dataset.hasExisting) {
-                            isValid = false;
-                            const area = field.closest('.file-upload-area');
-                            if (area) area.style.borderColor = '#ef4444';
-                            if (!firstInvalid) firstInvalid = field;
-                        }
-                    } else if (!field.value || field.value.trim() === '') {
-                        isValid = false;
-                        field.classList.add('is-invalid');
-                        field.style.borderColor = '#ef4444';
-                        if (!firstInvalid) firstInvalid = field;
-                    }
-                }
-            });
-
-            if (!isValid) {
-                e.preventDefault();
-                e.stopPropagation();
-                if (firstInvalid) {
-                    firstInvalid.focus();
-                    firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                alert('Mohon lengkapi semua data dan berkas yang wajib diisi (*) terlebih dahulu!');
-                return false;
-            }
-        });
-    }
-});
 </script>
 
 

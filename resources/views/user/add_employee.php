@@ -91,62 +91,82 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $ruang_lingkup = !empty($_POST['ruang_lingkup']) ? $db->escapeString(trim($_POST['ruang_lingkup'])) : '';
     $sub_competency = !empty($_POST['sub_competency']) ? $db->escapeString(trim($_POST['sub_competency'])) : '';
     $contractor_company = $db->escapeString(trim($_POST['contractor_company']));
-
+    $is_draft = isset($_POST['is_draft']) ? (int)$_POST['is_draft'] : 0;
+    
     // Validate required fields
-    if (empty($employee_code) || empty($full_name) || empty($position) || empty($department) || empty($competency_type) || empty($contractor_company)) {
-        $error = 'All fields are required!';
-    } elseif (in_array($competency_type, ['pengawas_teknis', 'pengawas_operasional']) && empty($ruang_lingkup)) {
-        $error = 'Scope of Work is required for Technical Supervisor and Operational Supervisor!';
-    } elseif ($competency_type == 'pengawas_operasional' && empty($supervision_area)) {
-        $error = 'Supervision Area is required for Operational Supervisor!';
-    } elseif (in_array($competency_type, ['pengawas_teknis', 'tenaga_teknis']) && empty($competency_name)) {
-        $error = 'Competency is required for Technical Supervisor and Technical Personnel types!';
-    } elseif (!isset($_FILES['cv_file']) || $_FILES['cv_file']['error'] != 0) {
-        $error = 'CV upload is required!';
-    } elseif (!isset($_FILES['statement_file']) || $_FILES['statement_file']['error'] != 0) {
-        $error = 'Statement Letter upload is required!';
+    if (!$is_draft) {
+        if (empty($employee_code) || empty($full_name) || empty($position) || empty($department) || empty($competency_type) || empty($contractor_company)) {
+            $error = 'All fields are required!';
+        } elseif (in_array($competency_type, ['pengawas_teknis', 'pengawas_operasional']) && empty($ruang_lingkup)) {
+            $error = 'Scope of Work is required for Technical Supervisor and Operational Supervisor!';
+        } elseif ($competency_type == 'pengawas_operasional' && empty($supervision_area)) {
+            $error = 'Supervision Area is required for Operational Supervisor!';
+        } elseif (in_array($competency_type, ['pengawas_teknis', 'tenaga_teknis']) && empty($competency_name)) {
+            $error = 'Competency is required for Technical Supervisor and Technical Personnel types!';
+        } elseif (!isset($_FILES['cv_file']) || $_FILES['cv_file']['error'] != 0) {
+            $error = 'CV upload is required!';
+        } elseif (!isset($_FILES['statement_file']) || $_FILES['statement_file']['error'] != 0) {
+            $error = 'Statement Letter upload is required!';
+        }
     } else {
+        // Validation for draft is very relaxed, just ensure employee_code exists if at all possible, though not strictly required
+    }
+    
+    if (empty($employee_code)) {
+        // Even for draft we need ID badge as it is a unique identifier (and part of filenames)
+        $error = 'ID BADGE is required even for drafts!';
+    }
+    
+    if (!$error) {
         // Check if employee code already exists
         $check = $db->query("SELECT id FROM employees WHERE employee_code = '$employee_code'");
         if ($check && $check->num_rows > 0) {
             $error = 'ID BADGE is already in use!';
         } else {
-            // Handle CV upload
+            // Handle CV upload (optional if draft)
             $cv_file = '';
-            $file_size = $_FILES['cv_file']['size'];
-            $max_size = 5 * 1024 * 1024; // 5MB
-            $file_extension = strtolower(pathinfo($_FILES['cv_file']['name'], PATHINFO_EXTENSION));
-            
-            // Validate by extension (more reliable)
-            $allowed_cv_extensions = ['pdf'];
-
-            if (!in_array($file_extension, $allowed_cv_extensions)) {
-                $error = 'File type not allowed! Only PDF.';
-            } elseif ($file_size > $max_size) {
-                $error = 'File size too large! Maximum 5MB.';
-            } else {
-                $upload_dir = '../../assets/uploads/cv/';
-                if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0755, true);
-                }
+            if (isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] == 0) {
+                $file_size = $_FILES['cv_file']['size'];
+                $max_size = 5 * 1024 * 1024; // 5MB
+                $file_extension = strtolower(pathinfo($_FILES['cv_file']['name'], PATHINFO_EXTENSION));
                 
-                $new_filename = 'cv_' . $employee_code . '_' . time() . '.' . $file_extension;
-                $upload_path = $upload_dir . $new_filename;
+                // Validate by extension (more reliable)
+                $allowed_cv_extensions = ['pdf'];
                 
-                if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                    $cv_file = 'uploads/cv/' . $new_filename;
+                if (!in_array($file_extension, $allowed_cv_extensions)) {
+                    $error = 'File type not allowed! Only PDF.';
+                } elseif ($file_size > $max_size) {
+                    $error = 'File size too large! Maximum 5MB.';
                 } else {
-                    $error = 'Failed to upload CV file.';
+                    // PERBAIKAN 1: Gunakan Absolute Path berbasis Document Root
+                    $base_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/'); 
+                    
+                    // Pastikan folder assets berada tepat di dalam public_html
+                    $upload_dir = $base_dir . '/assets/uploads/cv/'; 
+                    
+                    if (!file_exists($upload_dir)) {
+                        // PERBAIKAN 2: Gunakan 0755 alih-alih 0777
+                        mkdir($upload_dir, 0755, true); 
+                    }
+                    
+                    $new_filename = 'cv_' . $employee_code . '_' . time() . '.' . $file_extension;
+                    $upload_path = $upload_dir . $new_filename;
+                    
+                    if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
+                        $cv_file = 'assets/uploads/cv/' . $new_filename; 
+                    } else {
+                        $error = 'Failed to upload CV file.';
+                    }
                 }
             } 
             
-            // Handle Statement upload (required)
+            // Handle Statement upload (optional if draft)
             $statement_file = '';
-            if (!$error) {
+            if (!$error && isset($_FILES['statement_file']) && $_FILES['statement_file']['error'] == 0) {
                 $stmt_file_size = $_FILES['statement_file']['size'];
                 $stmt_max_size = 5 * 1024 * 1024; // 5MB
                 $stmt_file_extension = strtolower(pathinfo($_FILES['statement_file']['name'], PATHINFO_EXTENSION));
-
+                
                 if ($stmt_file_extension !== 'pdf') {
                     $error = 'Statement Letter must be in PDF format!';
                 } elseif ($stmt_file_size > $stmt_max_size) {
@@ -154,7 +174,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } else {
                     $stmt_upload_dir = dirname(__DIR__, 2) . '/assets/uploads/statements/';
                     if (!file_exists($stmt_upload_dir)) {
-                        mkdir($stmt_upload_dir, 0755, true);
+                        mkdir($stmt_upload_dir, 0755, true); // Diubah ke 0755 demi keamanan
                     }
                     
                     $stmt_new_filename = 'statement_' . $employee_code . '_' . time() . '.pdf';
@@ -177,9 +197,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $available_columns[] = $col['Field'];
                 }
                 
-                // Buat query INSERT dinamis berdasarkan kolom yang tersedia
+                $status_val = $is_draft ? 'draft' : 'pending';
+                // Create dynamic INSERT query based on available columns
                 $insert_fields = ['employee_code', 'full_name', 'position', 'department', 'competency_type', 'contractor_company', 'ruang_lingkup', 'cv_file', 'verification_status', 'is_active'];
-                $insert_values = ["'$employee_code'", "'$full_name'", "'$position'", "'$department'", "'$competency_type'", "'$contractor_company'", "'$ruang_lingkup'", "'$cv_file'", "'pending'", "1"];
+                $insert_values = ["'$employee_code'", "'$full_name'", "'$position'", "'$department'", "'$competency_type'", "'$contractor_company'", "'$ruang_lingkup'", "'$cv_file'", "'$status_val'", "1"];
                 
                 // Tambahkan field optional jika ada di tabel
                 if (in_array('competency_name', $available_columns) && !empty($competency_name)) {
@@ -408,6 +429,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     
     <form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate>
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+        <input type="hidden" name="is_draft" id="is_draft" value="0">
         <!-- Section 1: Identity & Competency Data -->
         <div class="form-section">
             <div class="section-header">
@@ -1256,6 +1278,84 @@ function getCertificationOptions() {
         options += `<option value="${id}" data-issuer="${certIssuer}">${certName}</option>`;
     }
     return options;
+}
+
+// ==========================================
+// Idle Timeout Auto-Draft Implementation
+// ==========================================
+let idleTime = 0;
+// 15 minutes timeout (15 * 60 = 900 seconds)
+const IDLE_TIMEOUT_SECONDS = 900; 
+let idleInterval = setInterval(timerIncrement, 1000); // 1 second
+
+// Zero the idle timer on user action
+const resetTimer = () => {
+    idleTime = 0;
+};
+window.onload = resetTimer;
+window.onmousemove = resetTimer;
+window.onmousedown = resetTimer;
+window.ontouchstart = resetTimer;
+window.onclick = resetTimer;
+window.onkeypress = resetTimer;
+
+function timerIncrement() {
+    idleTime++;
+    if (idleTime > IDLE_TIMEOUT_SECONDS) {
+        // Trigger auto draft
+        saveDraftAndLogout();
+        // Stop timer to prevent multiple triggers
+        clearInterval(idleInterval);
+    }
+}
+
+function saveDraftAndLogout() {
+    // Show a loading overlay so the user knows what's happening
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    overlay.style.zIndex = '9999';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    overlay.style.color = 'white';
+    overlay.innerHTML = `
+        <i class="fas fa-spinner fa-spin fa-3x" style="margin-bottom: 20px;"></i>
+        <h3>Sesi Berakhir karena tidak ada aktivitas</h3>
+        <p>Menyimpan data sebagai draft...</p>
+    `;
+    document.body.appendChild(overlay);
+
+    const form = document.getElementById('addEmployeeForm');
+    if(form) {
+        document.getElementById('is_draft').value = '1';
+        
+        const formData = new FormData(form);
+        
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Redirect to logout regardless of success/fail to protect account
+            window.location.href = '../../../logout.php?reason=timeout';
+        })
+        .catch(error => {
+            console.error('Error saving draft:', error);
+            window.location.href = '../../../logout.php?reason=timeout';
+        });
+    } else {
+        window.location.href = '../../../logout.php?reason=timeout';
+    }
 }
 </script>
 

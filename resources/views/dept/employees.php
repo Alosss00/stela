@@ -37,6 +37,7 @@ $total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $de
 $verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE $dept_filter AND verification_status = 'verified' AND is_active = 1")->fetch_assoc()['count'];
 $pending_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE $dept_filter AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
 $rejected_count_stat = $db->query("SELECT COUNT(*) as count FROM employees WHERE $dept_filter AND verification_status = 'rejected' AND is_active = 1")->fetch_assoc()['count'];
+$draft_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE $dept_filter AND verification_status = 'draft' AND is_active = 1")->fetch_assoc()['count'];
 
 // Get all employees for current department with appointment status
 $employees = $db->query("
