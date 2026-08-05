@@ -30,9 +30,77 @@ if (!defined('AUTH_BASE_URL')) {
 
 // Check if user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header('Location: ' . AUTH_BASE_URL . '/index.php');
+    // Attempt auto-login via remember_me cookie
+    if (isset($_COOKIE['remember_me'])) {
+        require_once dirname(__DIR__) . '/Models/Database.php';
+        $db = new Database();
+        $conn = $db->getConnection();
+        
+        list($selector, $validator) = explode(':', $_COOKIE['remember_me']);
+        
+        $stmt = $conn->prepare("SELECT user_tokens.hashed_validator, user_tokens.user_id, users.username, users.full_name, users.role, users.company_name, users.department FROM user_tokens JOIN users ON user_tokens.user_id = users.id WHERE user_tokens.selector = ? AND user_tokens.expires_at > NOW() AND users.is_active = 1");
+        if ($stmt) {
+            $stmt->bind_param("s", $selector);
+            $stmt->execute();
+            $result = $stmt->get_result();
+            if ($result && $result->num_rows == 1) {
+                $tokenData = $result->fetch_assoc();
+                if (hash_equals($tokenData['hashed_validator'], hash('sha256', $validator))) {
+                    // Valid token, log them in
+                    session_regenerate_id(true);
+                    $_SESSION['user_id'] = $tokenData['user_id'];
+                    $_SESSION['username'] = $tokenData['username'];
+                    $_SESSION['full_name'] = $tokenData['full_name'];
+                    $_SESSION['role'] = $tokenData['role'];
+                    $_SESSION['company_name'] = $tokenData['company_name'];
+                    $_SESSION['department'] = $tokenData['department'];
+                    $_SESSION['last_activity'] = time();
+                    
+                    // Fetch permissions
+                    $perm_stmt = $conn->prepare("SELECT p.name FROM permissions p JOIN role_permissions rp ON p.id = rp.permission_id JOIN roles r ON rp.role_id = r.id WHERE r.name = ?");
+                    if ($perm_stmt) {
+                        $perm_stmt->bind_param("s", $tokenData['role']);
+                        $perm_stmt->execute();
+                        $perm_result = $perm_stmt->get_result();
+                        $permissions = [];
+                        if ($perm_result) {
+                            while ($p_row = $perm_result->fetch_assoc()) {
+                                $permissions[] = $p_row['name'];
+                            }
+                        }
+                        $_SESSION['permissions'] = $permissions;
+                        $perm_stmt->close();
+                    } else {
+                        $_SESSION['permissions'] = [];
+                    }
+                } else {
+                    // Invalid validator
+                    header('Location: ' . AUTH_BASE_URL . '/index.php');
+                    exit();
+                }
+            } else {
+                // Token not found or expired
+                header('Location: ' . AUTH_BASE_URL . '/index.php');
+                exit();
+            }
+            $stmt->close();
+        }
+    } else {
+        header('Location: ' . AUTH_BASE_URL . '/index.php');
+        exit();
+    }
+}
+
+// Session Idle Timeout Logic (30 minutes = 1800 seconds)
+$timeout_duration = 1800;
+if (isset($_SESSION['last_activity']) && (time() - $_SESSION['last_activity']) > $timeout_duration) {
+    session_unset();
+    session_destroy();
+    header('Location: ' . AUTH_BASE_URL . '/index.php?error=timeout');
     exit();
 }
+$_SESSION['last_activity'] = time();
+
 
 // Function to check if user has a specific permission
 function hasPermission($permission_name) {

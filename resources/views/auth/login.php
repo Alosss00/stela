@@ -77,7 +77,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 ensureSuperadminAccount($db);
             }
 
-            $stmt = $db->prepare("SELECT id, username, password, full_name, role, company_name, department, is_active FROM users WHERE username = ? AND is_active = 1");
+            $stmt = $db->prepare("SELECT id, username, password, full_name, role, company_name, department, is_active, failed_login_attempts, locked_until FROM users WHERE username = ? AND is_active = 1");
             $stmt->bind_param("s", $username);
             $stmt->execute();
             $result = $stmt->get_result();
@@ -85,39 +85,93 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($result && $result->num_rows == 1) {
                 $user = $result->fetch_assoc();
                 
-                if (password_verify($password, $user['password'])) {
-                    session_regenerate_id(true);
-                    
-                    $_SESSION['user_id'] = $user['id'];
-                    $_SESSION['username'] = $user['username'];
-                    $_SESSION['full_name'] = $user['full_name'];
-                    $_SESSION['role'] = $user['role'];
-                    $_SESSION['company_name'] = $user['company_name'];
-                    $_SESSION['department'] = $user['department'];
-                    
-                    // Fetch permissions based on role
-                    $perm_stmt = $db->prepare("SELECT p.name FROM permissions p JOIN role_permissions rp ON p.id = rp.permission_id JOIN roles r ON rp.role_id = r.id WHERE r.name = ?");
-                    if ($perm_stmt) {
-                        $perm_stmt->bind_param("s", $user['role']);
-                        $perm_stmt->execute();
-                        $perm_result = $perm_stmt->get_result();
-                        $permissions = [];
-                        if ($perm_result) {
-                            while ($p_row = $perm_result->fetch_assoc()) {
-                                $permissions[] = $p_row['name'];
+                // Cek apakah akun sedang terkunci
+                if (!empty($user['locked_until']) && strtotime($user['locked_until']) > time()) {
+                    $error = 'Akun terkunci karena terlalu banyak percobaan gagal. Silakan coba lagi nanti.';
+                } else {
+                    if (password_verify($password, $user['password'])) {
+                        // Reset failed attempts
+                        $reset_stmt = $db->prepare("UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = ?");
+                        if ($reset_stmt) {
+                            $reset_stmt->bind_param("i", $user['id']);
+                            $reset_stmt->execute();
+                            $reset_stmt->close();
+                        }
+
+                        session_regenerate_id(true);
+                        
+                        $_SESSION['user_id'] = $user['id'];
+                        $_SESSION['username'] = $user['username'];
+                        $_SESSION['full_name'] = $user['full_name'];
+                        $_SESSION['role'] = $user['role'];
+                        $_SESSION['company_name'] = $user['company_name'];
+                        $_SESSION['department'] = $user['department'];
+                        $_SESSION['last_activity'] = time();
+                        
+                        // Fitur Remember Me
+                        if (isset($_POST['remember'])) {
+                            $selector = bin2hex(random_bytes(16));
+                            $validator = bin2hex(random_bytes(32));
+                            $hashed_validator = hash('sha256', $validator);
+                            $expires = date('Y-m-d H:i:s', time() + (86400 * 30)); // 30 days
+                            
+                            $token_stmt = $db->prepare("INSERT INTO user_tokens (user_id, selector, hashed_validator, expires_at) VALUES (?, ?, ?, ?)");
+                            if ($token_stmt) {
+                                $token_stmt->bind_param("isss", $user['id'], $selector, $hashed_validator, $expires);
+                                $token_stmt->execute();
+                                $token_stmt->close();
+                                
+                                setcookie(
+                                    'remember_me',
+                                    $selector . ':' . $validator,
+                                    time() + (86400 * 30),
+                                    '/',
+                                    '',
+                                    isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', // Secure
+                                    true // HttpOnly
+                                );
                             }
                         }
-                        $_SESSION['permissions'] = $permissions;
-                        $perm_stmt->close();
+                        
+                        // Fetch permissions based on role
+                        $perm_stmt = $db->prepare("SELECT p.name FROM permissions p JOIN role_permissions rp ON p.id = rp.permission_id JOIN roles r ON rp.role_id = r.id WHERE r.name = ?");
+                        if ($perm_stmt) {
+                            $perm_stmt->bind_param("s", $user['role']);
+                            $perm_stmt->execute();
+                            $perm_result = $perm_stmt->get_result();
+                            $permissions = [];
+                            if ($perm_result) {
+                                while ($p_row = $perm_result->fetch_assoc()) {
+                                    $permissions[] = $p_row['name'];
+                                }
+                            }
+                            $_SESSION['permissions'] = $permissions;
+                            $perm_stmt->close();
+                        } else {
+                            $_SESSION['permissions'] = []; // Fallback if tables don't exist yet
+                        }
+                        
+                        unset($_SESSION['csrf_token']);
+                        
+                        redirect_to_dashboard();
                     } else {
-                        $_SESSION['permissions'] = []; // Fallback if tables don't exist yet
+                        // Increment failed attempts
+                        $attempts = (int)($user['failed_login_attempts'] ?? 0) + 1;
+                        $locked_until = null;
+                        if ($attempts >= 5) {
+                            $locked_until = date('Y-m-d H:i:s', time() + 900); // 15 minutes lockout
+                            $error = 'Akun Anda telah dikunci karena 5 kali gagal login. Silakan tunggu 15 menit.';
+                        } else {
+                            $error = 'Incorrect username or password!';
+                        }
+                        
+                        $fail_stmt = $db->prepare("UPDATE users SET failed_login_attempts = ?, locked_until = ? WHERE id = ?");
+                        if ($fail_stmt) {
+                            $fail_stmt->bind_param("isi", $attempts, $locked_until, $user['id']);
+                            $fail_stmt->execute();
+                            $fail_stmt->close();
+                        }
                     }
-                    
-                    unset($_SESSION['csrf_token']);
-                    
-                    redirect_to_dashboard();
-                } else {
-                    $error = 'Incorrect username or password!';
                 }
             } else {
                 $error = 'Incorrect username or password!';
