@@ -6,7 +6,9 @@ $script_path = str_replace('\\', '/', dirname($_SERVER['SCRIPT_NAME']));
 
 // Determine how deep we are in the folder structure
 $depth = 0;
-if (preg_match('#/pages/(admin|user|dept|ktt)$#', $script_path)) {
+if (preg_match('#/resources/views/(admin|user|dept|ktt|layouts)$#', $script_path)) {
+    $depth = 3;
+} elseif (preg_match('#/pages/(admin|user|dept|ktt)$#', $script_path)) {
     $depth = 2;
 } elseif (preg_match('#/(api|utils|migrations)$#', $script_path)) {
     $depth = 1;

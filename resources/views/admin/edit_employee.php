@@ -1313,6 +1313,84 @@ function getCertificationOptions() {
     }
     return options;
 }
+
+// ==========================================
+// Idle Timeout Auto-Draft Implementation
+// ==========================================
+let idleTime = 0;
+// 15 minutes timeout (15 * 60 = 900 seconds)
+const IDLE_TIMEOUT_SECONDS = 900; 
+let idleInterval = setInterval(timerIncrement, 1000); // 1 second
+
+// Zero the idle timer on user action
+const resetTimer = () => {
+    idleTime = 0;
+};
+window.onload = resetTimer;
+window.onmousemove = resetTimer;
+window.onmousedown = resetTimer;
+window.ontouchstart = resetTimer;
+window.onclick = resetTimer;
+window.onkeypress = resetTimer;
+
+function timerIncrement() {
+    idleTime++;
+    if (idleTime > IDLE_TIMEOUT_SECONDS) {
+        // Trigger auto draft
+        saveDraftAndLogout();
+        // Stop timer to prevent multiple triggers
+        clearInterval(idleInterval);
+    }
+}
+
+function saveDraftAndLogout() {
+    // Show a loading overlay so the user knows what's happening
+    const overlay = document.createElement('div');
+    overlay.style.position = 'fixed';
+    overlay.style.top = '0';
+    overlay.style.left = '0';
+    overlay.style.width = '100%';
+    overlay.style.height = '100%';
+    overlay.style.backgroundColor = 'rgba(0,0,0,0.7)';
+    overlay.style.zIndex = '9999';
+    overlay.style.display = 'flex';
+    overlay.style.flexDirection = 'column';
+    overlay.style.justifyContent = 'center';
+    overlay.style.alignItems = 'center';
+    overlay.style.color = 'white';
+    overlay.innerHTML = `
+        <i class="fas fa-spinner fa-spin fa-3x" style="margin-bottom: 20px;"></i>
+        <h3>Sesi Berakhir karena tidak ada aktivitas</h3>
+        <p>Menyimpan data sebagai draft...</p>
+    `;
+    document.body.appendChild(overlay);
+
+    const form = document.getElementById('addEmployeeForm');
+    if(form) {
+        document.getElementById('is_draft').value = '1';
+        
+        const formData = new FormData(form);
+        
+        fetch(window.location.href, {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-Requested-With': 'XMLHttpRequest'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Redirect to logout regardless of success/fail to protect account
+            window.location.href = '../../../logout.php?reason=timeout';
+        })
+        .catch(error => {
+            console.error('Error saving draft:', error);
+            window.location.href = '../../../logout.php?reason=timeout';
+        });
+    } else {
+        window.location.href = '../../../logout.php?reason=timeout';
+    }
+}
 </script>
 
 
