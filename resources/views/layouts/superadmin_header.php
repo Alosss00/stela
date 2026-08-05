@@ -116,6 +116,33 @@ $current_page = get_current_page();
                     </a>
                 </li>
 
+                <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Monitoring Center</li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_employees.php" class="<?php echo $current_page == 'monitoring_employees.php' || $current_page == 'monitoring_employee_detail.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-users-viewfinder"></i> <span>Employee Monitoring</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_appointments.php" class="<?php echo $current_page == 'monitoring_appointments.php' || $current_page == 'monitoring_appointment_detail.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-file-signature"></i> <span>Appointment Monitoring</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_certificates.php" class="<?php echo $current_page == 'monitoring_certificates.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-certificate"></i> <span>Certificate Monitoring</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_approvals.php" class="<?php echo $current_page == 'monitoring_approvals.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-clipboard-check"></i> <span>Approval Monitoring</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_status_history.php" class="<?php echo $current_page == 'monitoring_status_history.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-timeline"></i> <span>Status History</span>
+                    </a>
+                </li>
+
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">System Maintenance</li>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/settings.php" class="<?php echo $current_page == 'settings.php' ? 'active' : ''; ?>">
