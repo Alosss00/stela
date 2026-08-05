@@ -91,10 +91,11 @@ try {
                     } elseif (!empty($company)) {
                         $syncWhere[] = "e.contractor_company = '" . $db->escapeString($company) . "'";
                     }
+                    // Use LEFT JOIN so all employees (pending/rejected/verified) are synced, not just those with approved appointments
                     $syncSql = "SELECT e.*, u.full_name as verified_by_name, a.appointment_number, a.appointment_date 
                                 FROM employees e 
                                 LEFT JOIN users u ON e.verified_by = u.id 
-                                INNER JOIN appointments a ON a.employee_id = e.id AND a.status = 'approved'
+                                LEFT JOIN appointments a ON a.employee_id = e.id AND a.status = 'approved'
                                 WHERE " . implode(' AND ', $syncWhere) . " 
                                 GROUP BY e.id
                                 ORDER BY e.id DESC LIMIT 500";
@@ -195,7 +196,12 @@ try {
                             $ids = array_filter(array_map(function($i) { return (int)($i['id'] ?? 0); }, $items));
                             if (!empty($ids)) {
                                 $idsStr = implode(',', $ids);
-                                $dbRes = $dbHydrate->query("SELECT e.id, e.competency_name, e.sub_competency, e.verified_date, e.employee_status, e.resign_date, u.full_name as verified_by_name, a.appointment_number, a.appointment_date 
+                                // Always fetch fresh data from MySQL to avoid showing stale Elasticsearch cache
+                                $dbRes = $dbHydrate->query("SELECT e.id, e.verification_status as approval_status, e.competency_name, e.sub_competency,
+                                                             e.verified_date, e.employee_status, e.resign_date,
+                                                             CASE WHEN e.verification_status = 'pending' THEN NULL ELSE u.full_name END as verified_by_name,
+                                                             CASE WHEN e.verification_status = 'pending' THEN NULL ELSE e.verified_date END as verified_date_clean,
+                                                             a.appointment_number, a.appointment_date 
                                                      FROM employees e 
                                                      LEFT JOIN users u ON e.verified_by = u.id 
                                                      LEFT JOIN appointments a ON a.employee_id = e.id AND a.status = 'approved'
@@ -208,17 +214,14 @@ try {
                                 }
                                 foreach ($items as &$item) {
                                     $id = (int)($item['id'] ?? 0);
-                                    $status = strtolower($item['approval_status'] ?? $item['verification_status'] ?? 'pending');
-                                    if ($status === 'pending') {
-                                        $item['verified_by_name'] = null;
-                                        $item['verified_date'] = null;
-                                    } else if (isset($metaMap[$id])) {
-                                        if (empty($item['competency_name'])) $item['competency_name'] = $metaMap[$id]['competency_name'] ?? '';
-                                        if (empty($item['sub_competency'])) $item['sub_competency'] = $metaMap[$id]['sub_competency'] ?? '';
-                                        if (empty($item['verified_by_name'])) $item['verified_by_name'] = $metaMap[$id]['verified_by_name'] ?? '';
-                                        if (empty($item['verified_date'])) $item['verified_date'] = $metaMap[$id]['verified_date'] ?? '';
-                                    }
                                     if (isset($metaMap[$id])) {
+                                        // Always override approval_status from MySQL (ES may be stale)
+                                        $item['approval_status'] = $metaMap[$id]['approval_status'] ?? $item['approval_status'];
+                                        $item['verification_status'] = $metaMap[$id]['approval_status'] ?? $item['verification_status'];
+                                        $item['competency_name'] = $metaMap[$id]['competency_name'] ?? $item['competency_name'] ?? '';
+                                        $item['sub_competency'] = $metaMap[$id]['sub_competency'] ?? $item['sub_competency'] ?? '';
+                                        $item['verified_by_name'] = $metaMap[$id]['verified_by_name'];
+                                        $item['verified_date'] = $metaMap[$id]['verified_date_clean'];
                                         $item['employee_status'] = $metaMap[$id]['employee_status'] ?? ($item['employee_status'] ?? 'active');
                                         $item['resign_date'] = $metaMap[$id]['resign_date'] ?? ($item['resign_date'] ?? null);
                                         $item['appointment_number'] = $metaMap[$id]['appointment_number'] ?? ($item['appointment_number'] ?? '-');
