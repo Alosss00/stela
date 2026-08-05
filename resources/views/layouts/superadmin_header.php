@@ -143,6 +143,13 @@ $current_page = get_current_page();
                     </a>
                 </li>
 
+                <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Reports & Analytics</li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/superadmin/reports_dashboard.php" class="<?php echo strpos($current_page, 'reports_') === 0 && $current_page !== 'reports_dashboard.php' ? 'active' : ($current_page == 'reports_dashboard.php' ? 'active' : ''); ?>">
+                        <i class="fas fa-chart-line"></i> <span>Reports Center</span>
+                    </a>
+                </li>
+
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">System Maintenance</li>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/settings.php" class="<?php echo $current_page == 'settings.php' ? 'active' : ''; ?>">
