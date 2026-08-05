@@ -67,14 +67,19 @@ if ($competencies_table_exists) {
 // Get supervision areas from database
 $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_name");
 
-// Handle form submission
+$supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_name");
 
-// Pastikan session sudah berjalan di bagian atas file
-if (session_status() === PHP_SESSION_NONE) {
-    session_start();
+$draft_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+if ($draft_id && $_SERVER['REQUEST_METHOD'] != 'POST') {
+    $draft_data = $db->query("SELECT * FROM employees WHERE id = $draft_id AND verification_status = 'draft'")->fetch_assoc();
+    if ($draft_data) {
+        $_POST = $draft_data;
+    } else {
+        $error = "Draft not found or already submitted.";
+    }
 }
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
     // ==========================================
     // IMPLEMENTASI VALIDASI ANTI-CSRF
     // ==========================================
@@ -205,37 +210,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $available_columns[] = $col['Field'];
                 }
                 
-                // Buat query INSERT dinamis berdasarkan kolom yang tersedia
+                // Buat query UPDATE dinamis
                 $verification_status = $is_draft ? 'draft' : 'pending';
-                $insert_fields = ['employee_code', 'full_name', 'position', 'department', 'competency_type', 'contractor_company', 'ruang_lingkup', 'cv_file', 'verification_status', 'is_active'];
-                $insert_values = ["'$employee_code'", "'$full_name'", "'$position'", "'$department'", "'$competency_type'", "'$contractor_company'", "'$ruang_lingkup'", "'$cv_file'", "'$verification_status'", "1"];
+                $update_fields = [
+                    "employee_code = '$employee_code'",
+                    "full_name = '$full_name'",
+                    "position = '$position'",
+                    "department = '$department'",
+                    "competency_type = '$competency_type'",
+                    "contractor_company = '$contractor_company'",
+                    "ruang_lingkup = '$ruang_lingkup'",
+                    "verification_status = '$verification_status'"
+                ];
                 
-                // Tambahkan field optional jika ada di tabel
+                if ($cv_file) {
+                    $update_fields[] = "cv_file = '$cv_file'";
+                }
+                
                 if (in_array('competency_name', $available_columns) && !empty($competency_name)) {
-                    $insert_fields[] = 'competency_name';
-                    $insert_values[] = "'$competency_name'";
+                    $update_fields[] = "competency_name = '$competency_name'";
                 }
-                
                 if (in_array('supervision_area', $available_columns) && !empty($supervision_area)) {
-                    $insert_fields[] = 'supervision_area';
-                    $insert_values[] = "'$supervision_area'";
+                    $update_fields[] = "supervision_area = '$supervision_area'";
                 }
-
                 if (in_array('sub_competency', $available_columns) && !empty($sub_competency)) {
-                    $insert_fields[] = 'sub_competency';
-                    $insert_values[] = "'$sub_competency'";
+                    $update_fields[] = "sub_competency = '$sub_competency'";
                 }
-
                 if (in_array('statement_file', $available_columns) && !empty($statement_file)) {
-                    $insert_fields[] = 'statement_file';
-                    $insert_values[] = "'$statement_file'";
+                    $update_fields[] = "statement_file = '$statement_file'";
                 }
                 
-                $sql = "INSERT INTO employees (" . implode(', ', $insert_fields) . ") 
-                        VALUES (" . implode(', ', $insert_values) . ")";
+                $sql = "UPDATE employees SET " . implode(', ', $update_fields) . " WHERE id = $draft_id";
                 
                 if ($db->query($sql)) {
-                    $employee_id = $db->lastInsertId();
+                    $employee_id = $draft_id;
                     
                     // Handle multiple certification uploads
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
@@ -401,7 +409,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     <!-- Page Header -->
     <div class="page-header-add">
         <div class="header-left">
-            <h2><i class="fas fa-user-plus"></i> <span data-lang="add-new-request-employee">Add New Request Employee</span></h2>
+            <h2><i class="fas fa-edit"></i> <span data-lang="edit-draft-employee">Edit Draft Employee</span></h2>
             <?php if (!empty($current_department)): ?>
             <p><span data-lang="department">Department</span>: <strong><?php echo htmlspecialchars($current_department); ?></strong></p>
             <?php else: ?>
@@ -433,7 +441,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     </div>
     <?php endif; ?>
     
-<form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate> 
+<form method="POST" action="?id=<?php echo $draft_id; ?>" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate> 
         <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
         <input type="hidden" name="is_draft" id="is_draft" value="0">
 

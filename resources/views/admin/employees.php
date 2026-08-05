@@ -330,6 +330,7 @@ $employees = $db->query("
                WHEN MAX(CASE WHEN ka.action = 'reject' THEN 1 ELSE 0 END) = 1 THEN 'rejected'
                WHEN MAX(a.status) = 'rejected' THEN 'rejected'
                WHEN e.verification_status = 'rejected' THEN 'rejected'
+               WHEN e.verification_status = 'draft' THEN 'draft'
                ELSE e.verification_status
            END as combined_status
     FROM employees e
@@ -463,7 +464,8 @@ $companies = $db->query("
                 $filter_labels = [
                     'pending' => 'Pending',
                     'verified' => 'Verified',
-                    'rejected' => 'Rejected'
+                    'rejected' => 'Rejected',
+                    'draft' => 'Draft'
                 ];
                 echo $filter_labels[$filter] ?? $filter;
                 ?>
@@ -531,6 +533,17 @@ $companies = $db->query("
                 <div class="stat-text" data-lang="reject">Reject</div>
             </div>
         </div>
+
+        <?php
+        $draft_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'draft' AND is_active = 1")->fetch_assoc()['count'];
+        ?>
+        <div class="stat-box-emp stat-draft" style="border-left-color: #6c757d; background: linear-gradient(to right, #f8f9fa, #ffffff);">
+            <div class="stat-icon-emp" style="color: #6c757d; background: rgba(108,117,125,0.1);"><i class="fas fa-file-alt"></i></div>
+            <div class="stat-info">
+                <div class="stat-number" style="color: #6c757d;"><?php echo $draft_count; ?></div>
+                <div class="stat-text">Draft</div>
+            </div>
+        </div>
     </div>
     
     <!-- Bonsai.io Pagination Search Section -->
@@ -571,6 +584,7 @@ $companies = $db->query("
                 <option value="pending">Pending</option>
                 <option value="verified">Verified</option>
                 <option value="rejected">Rejected</option>
+                <option value="draft">Draft</option>
             </select>
             <!-- Page Size -->
             <select id="bonsaiPageLimit" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:90px;">
@@ -632,7 +646,8 @@ $companies = $db->query("
                 const statusColors = {
                     'verified': 'success',
                     'pending': 'warning',
-                    'rejected': 'danger'
+                    'rejected': 'danger',
+                    'draft': 'secondary'
                 };
 
                 window.empPagination = new BonsaiPagination({
@@ -691,7 +706,10 @@ $companies = $db->query("
                             <td class="col-verified-by">${verifiedBy}</td>
                             <td class="col-action">
                                 <div class="action-buttons-emp">
-                                    <a href="verify_employee.php?id=${item.id}" class="btn-action-emp open-btn" title="Open"><i class="fas fa-folder-open"></i></a>
+                                    ${status.toLowerCase() === 'draft' ? 
+                                        `<a href="edit_employee.php?id=${item.id}" class="btn-action-emp edit-btn" title="Edit Draft"><i class="fas fa-edit"></i></a>` :
+                                        `<a href="verify_employee.php?id=${item.id}" class="btn-action-emp open-btn" title="Open"><i class="fas fa-folder-open"></i></a>`
+                                    }
                                     ${resubmitBtn}
                                 </div>
                             </td>
