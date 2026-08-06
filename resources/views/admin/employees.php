@@ -94,15 +94,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } elseif ($file_size > $max_size) {
                 $error = stela_t('cv-file-size-max-5mb');
             } else {
-                $upload_dir = '../../assets/uploads/cv/';
-                if (!file_exists($upload_dir)) {
-                    mkdir($upload_dir, 0777, true);
-                }
+                $upload_dir = upload_physical_dir('cv');
                 
                 $cv_file = 'cv_' . $employee_code . '_' . time() . '.' . $file_ext;
                 
                 if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_dir . $cv_file)) {
-                    $cv_file = 'uploads/cv/' . $cv_file;
+                    $cv_file = 'cv/' . $cv_file;
                 } else {
                     $error = stela_t('failed-upload-cv-file');
                 }
@@ -121,13 +118,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } elseif ($statement_size > $statement_max_size) {
                     $error = stela_t('statement-file-size-max-5mb');
                 } else {
-                    $statement_upload_dir = '../../assets/uploads/statements/';
-                    if (!file_exists($statement_upload_dir)) {
-                        mkdir($statement_upload_dir, 0777, true);
-                    }
-                    $statement_file = 'statement_' . $employee_code . '_' . time() . '.' . $statement_ext;
-                    if (!move_uploaded_file($_FILES['statement_file']['tmp_name'], $statement_upload_dir . $statement_file)) {
+                    $statement_upload_dir = upload_physical_dir('statements');
+                    
+                    $statement_filename = 'statement_' . $employee_code . '_' . time() . '.' . $statement_ext;
+                    if (!move_uploaded_file($_FILES['statement_file']['tmp_name'], $statement_upload_dir . $statement_filename)) {
                         $error = stela_t('failed-upload-statement-file');
+                    } else {
+                        $statement_file = 'statements/' . $statement_filename;
                     }
                 }
             }
@@ -202,10 +199,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
                 // Handle multiple certification uploads
                 if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
-                    $upload_dir = '../../assets/uploads/certifications/';
-                    if (!file_exists($upload_dir)) {
-                        mkdir($upload_dir, 0777, true);
-                    }
+                    $upload_dir = upload_physical_dir('certifications');
                     
                     $cert_ids = $_POST['certification_ids'] ?? [];
                     $cert_numbers = $_POST['cert_numbers'] ?? [];
@@ -221,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                             
                             if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
-                                $cert_path = 'uploads/certifications/' . $cert_file;
+                                $cert_path = 'certifications/' . $cert_file;
                                 $cert_id = intval($cert_ids[$key] ?? 0);
                                 $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
                                 $cert_issuer = $db->escapeString($cert_issuers[$key] ?? '');

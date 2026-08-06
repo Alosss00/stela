@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
@@ -87,24 +87,21 @@ $certifications = $db->query("
     ORDER BY ec.created_at DESC
 ")->fetch_all(MYSQLI_ASSOC);
 
-// Format file paths dengan prefix 'assets/'
+// Build full URLs for file paths
+// Build public URLs using upload_url() helper
 if ($appointment['cv_file']) {
-    $appointment['cv_file'] = 'assets/' . $appointment['cv_file'];
+    $appointment['cv_file'] = upload_url($appointment['cv_file']);
 }
-
 if ($appointment['signature_file']) {
-    $appointment['signature_file'] = 'assets/' . $appointment['signature_file'];
+    $appointment['signature_file'] = upload_url($appointment['signature_file']);
 }
-
 if ($appointment['statement_file']) {
-    $appointment['statement_file'] = 'assets/' . $appointment['statement_file'];
+    $appointment['statement_file'] = upload_url($appointment['statement_file']);
 }
-
-// Format sertifikat file paths
 if (is_array($certifications)) {
     foreach ($certifications as &$cert) {
         if ($cert['document_file']) {
-            $cert['document_file'] = 'assets/' . $cert['document_file'];
+            $cert['document_file'] = upload_url($cert['document_file']);
         }
     }
 }

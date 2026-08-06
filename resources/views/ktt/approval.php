@@ -800,7 +800,7 @@ function showReviewModal(appointmentId) {
                                 ${employee.cv_file ? `
                                     <div class="review-doc-item">
                                         <div class="review-info-label"><i class="fas fa-file-pdf"></i> ${i18n('ktt-curriculum-vitae')}</div>
-                                        <a href="/${employee.cv_file}" target="_blank" class="btn btn-sm btn-info">
+                                        <a href="${employee.cv_file}" target="_blank" class="btn btn-sm btn-info">
                                             <i class="fas fa-file-pdf"></i>
                                             <span data-lang="ktt-view-cv">${i18n('ktt-view-cv')}</span>
                                         </a>
@@ -809,7 +809,7 @@ function showReviewModal(appointmentId) {
                                 ${employee.statement_file ? `
                                     <div class="review-doc-item">
                                         <div class="review-info-label"><i class="fas fa-file-contract"></i> ${i18n('ktt-statement-letter')}</div>
-                                        <a href="/${employee.statement_file}" target="_blank" class="btn btn-sm btn-info">
+                                        <a href="${employee.statement_file}" target="_blank" class="btn btn-sm btn-info">
                                             <i class="fas fa-download"></i> ${i18n('ktt-view-statement')}
                                         </a>
                                     </div>
@@ -869,7 +869,7 @@ function showReviewModal(appointmentId) {
                                     
                                     ${cert.document_file ? `
                                         <div class="review-cert-document">
-                                            <a href="/${cert.document_file}" target="_blank" class="btn btn-sm btn-info">
+                                            <a href="${cert.document_file}" target="_blank" class="btn btn-sm btn-info">
                                                 <i class="fas fa-file-pdf"></i> ${i18n('ktt-view-certificate')}
                                             </a>
                                         </div>

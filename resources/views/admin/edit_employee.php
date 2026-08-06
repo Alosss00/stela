@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $page_title = 'Add Employee';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
@@ -149,16 +149,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                 } elseif ($file_size > $max_size) {
                     $error = 'File size too large! Maximum 5MB.';
                 } else {
-                    $upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/cv/';
-                    if (!file_exists($upload_dir)) {
-                        mkdir($upload_dir, 0755, true);
-                    }
+                    $upload_dir = upload_physical_dir('cv');
                     
                     $new_filename = 'cv_' . $employee_code . '_' . time() . '.' . $file_extension;
                     $upload_path = $upload_dir . $new_filename;
                     
                     if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                        $cv_file = 'public/assets/uploads/cv/' . $new_filename; 
+                        $cv_file = 'cv/' . $new_filename; 
                     } else {
                         $error = 'Failed to upload CV file.';
                     }
@@ -177,16 +174,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                 } elseif ($stmt_file_size > $stmt_max_size) {
                     $error = 'Statement Letter file size too large! Maximum 5MB.';
                 } else {
-                    $stmt_upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/statements/';
-                    if (!file_exists($stmt_upload_dir)) {
-                        mkdir($stmt_upload_dir, 0755, true);
-                    }
+                    $stmt_upload_dir = upload_physical_dir('statements');
                     
                     $stmt_new_filename = 'statement_' . $employee_code . '_' . time() . '.pdf';
                     $stmt_upload_path = $stmt_upload_dir . $stmt_new_filename;
                     
                     if (move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
-                        $statement_file = 'public/assets/uploads/statements/' . $stmt_new_filename;
+                        $statement_file = 'statements/' . $stmt_new_filename;
                     } else {
                         $error = 'Failed to upload Statement Letter file.';
                     }
@@ -239,10 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                     
                     // Handle multiple certification uploads
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
-                        $upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/certifications/';
-                        if (!file_exists($upload_dir)) {
-                            mkdir($upload_dir, 0755, true);
-                        }
+                        $upload_dir = upload_physical_dir('certifications');
                         
                         $cert_ids = $_POST['certification_ids'] ?? [];
                         $cert_numbers = $_POST['cert_numbers'] ?? [];
@@ -267,7 +258,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                                 
                                 if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
-                                    $cert_path = 'public/assets/uploads/certifications/' . $cert_file;
+                                    $cert_path = 'certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
                                     $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
                                     

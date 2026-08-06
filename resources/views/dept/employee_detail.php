@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $page_title = 'Detail Karyawan';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
@@ -191,7 +191,7 @@ $competency_type_labels = [
                 <span class="info-label" data-lang="cv-file">CV File:</span>
                 <span class="info-value">
                     <?php if (!empty($employee['cv_file'])): ?>
-                        <a href="<?php echo rtrim(BASE_URL, '/') . '/' . htmlspecialchars($employee['cv_file']); ?>" target="_blank" class="btn btn-sm btn-secondary">
+                        <a href="<?php echo upload_url(htmlspecialchars($employee['cv_file'])); ?>" target="_blank" class="btn btn-sm btn-secondary">
                             <i class="fas fa-file-pdf"></i> <span data-lang="view-cv">View CV</span>
                         </a>
                     <?php else: ?>
@@ -295,7 +295,7 @@ $competency_type_labels = [
                             </td>
                             <td>
                                 <?php if (!empty($cert['document_file'])): ?>
-                                <a href="<?php echo rtrim(BASE_URL, '/') . '/' . htmlspecialchars($cert['document_file']); ?>" target="_blank" class="btn btn-sm btn-info">
+                                <a href="<?php echo upload_url(htmlspecialchars($cert['document_file'])); ?>" target="_blank" class="btn btn-sm btn-info">
                                     <i class="fas fa-eye"></i> View
                                 </a>
                                 <?php else: ?>
@@ -306,7 +306,7 @@ $competency_type_labels = [
                         <?php endwhile; ?>
                     <?php else: ?>
                         <tr>
-                            <td colspan="7" class="no-data-row">
+                            <td colspan="8" class="no-data-row">
                                 <i class="fas fa-inbox" style="font-size: 48px; color: #ddd; display: block; margin-bottom: 10px;"></i>
                                 No certificate data
                             </td>

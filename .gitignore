@@ -1,5 +1,6 @@
 # Ignore uploaded files
 assets/uploads/
+public/assets/uploads/
 
 #password
 .env

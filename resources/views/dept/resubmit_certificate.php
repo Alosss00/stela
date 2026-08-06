@@ -130,10 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         }
     }
     if (!$error) {
-        $upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/certifications/';
-        if (!file_exists($upload_dir)) {
-            mkdir($upload_dir, 0755, true);
-        }
+        $upload_dir = upload_physical_dir('certifications');
 
         $employee_code = $certificate['employee_code'];
         $new_filename = $employee_code . '_resubmit_' . time() .'.pdf';
@@ -145,7 +142,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         $upload_path)) 
     {
 
-    $document_file = 'public/assets/uploads/certifications/' . $new_filename;
+    $document_file = 'certifications/' . $new_filename;
     $conn = $db->getConnection();
     $conn->begin_transaction();
 
@@ -381,7 +378,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         <div class="form-group col-lg-6">
         <label>Current Certificate</label>
         <br>
-    <a class="btn btn-info" target="_blank" href="<?php echo rtrim(BASE_URL, '/') . '/' . $certificate['document_file']; ?>">
+    <a class="btn btn-info" target="_blank" href="<?php echo upload_url($certificate['document_file']); ?>">
         <i class="fas fa-eye"></i> View Certificate
     </a>
 
