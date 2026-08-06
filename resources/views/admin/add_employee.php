@@ -461,72 +461,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 </div>
             </div>
             
-            <div class="form-row">
-                <div class="form-group col-lg-6">
-                    <label for="competency_type" data-lang="competency-type">Competency Type <span class="text-danger">*</span></label>
-                    <select class="form-control" id="competency_type" name="competency_type" onchange="toggleCompetencyField()" required>
-                        <option value="" data-lang="select-competency-type">-- Select Competency Type --</option>
-                        <option value="pengawas_operasional" data-lang="competency-type-operational-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_operasional') ? 'selected' : ''; ?>>Operational Supervisor</option>
-                        <option value="pengawas_teknis" data-lang="competency-type-technical-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_teknis') ? 'selected' : ''; ?>>Technical Supervisor</option>
-                        <option value="tenaga_teknis" data-lang="competency-type-technical-personnel" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'tenaga_teknis') ? 'selected' : ''; ?>>Technical Personnel</option>
-                    </select>
-                </div>
-
-                <div class="form-group col-lg-6" id="supervision_area_group" style="display: none;">
-                    <label for="supervision_area" data-lang="supervision-area">Supervision Area <span class="text-danger">*</span></label>
-                    <select class="form-control" id="supervision_area" name="supervision_area">
-                        <option value="" data-lang="select-supervision-area">-- Select Supervision Area --</option>
-                        <?php
-                        if ($supervision_areas && $supervision_areas->num_rows > 0) {
-                            $supervision_areas->data_seek(0);
-                            while ($area = $supervision_areas->fetch_assoc()):
-                                $selected = (isset($_POST['supervision_area']) && $_POST['supervision_area'] == $area['area_name']) ? 'selected' : '';
-                        ?>
-                        <option value="<?php echo htmlspecialchars($area['area_name']); ?>" <?php echo $selected; ?>>
-                            <?php echo htmlspecialchars($area['area_name']); ?>
-                        </option>
-                        <?php
-                            endwhile;
-                        }
-                        ?>
-                    </select>
-                </div>
-
-                <div class="form-group col-lg-6" id="competency_group" style="display: none;">
-                    <label for="competency_name" data-lang="competency">Competency <span class="text-danger">*</span></label>
-                    <select class="form-control" id="competency_name" name="competency_name" onchange="loadSubCompetencies()">
-                        <option value="" data-lang="select-competency">-- Select Competency --</option>
-                        <?php
-                        if (!empty($competencies_by_type['pengawas_operasional'])) {
-                            foreach ($competencies_by_type['pengawas_operasional'] as $comp):
-                        ?>
-                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="pengawas_operasional" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($comp['competency_name']); ?>
-                            </option>
-                        <?php
-                            endforeach;
-                        }
-                        
-                        if (!empty($competencies_by_type['tenaga_teknis'])) {
-                            foreach ($competencies_by_type['tenaga_teknis'] as $comp):
-                        ?>
-                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="tenaga_teknis" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($comp['competency_name']); ?>
-                            </option>
-                        <?php
-                            endforeach;
-                        }
-                        ?>
-                    </select>
-                </div>
-
-                <div class="form-group col-lg-6" id="sub_competency_group" style="display: none;">
-                    <label for="sub_competency" data-lang="sub-competency">Sub Competency</label>
-                    <select class="form-control" id="sub_competency" name="sub_competency">
-                        <option value="" data-lang="select-sub-competency">-- Select Sub Competency --</option>
-                    </select>
-                </div>
-            </div>
+           
 
             <div class="form-row">
                 <div class="form-group col-lg-6">
