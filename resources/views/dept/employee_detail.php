@@ -191,7 +191,7 @@ $competency_type_labels = [
                 <span class="info-label" data-lang="cv-file">CV File:</span>
                 <span class="info-value">
                     <?php if (!empty($employee['cv_file'])): ?>
-                        <a href="../../assets/<?php echo htmlspecialchars($employee['cv_file']); ?>" target="_blank" class="btn btn-sm btn-secondary">
+                        <a href="<?php echo rtrim(BASE_URL, '/') . '/' . htmlspecialchars($employee['cv_file']); ?>" target="_blank" class="btn btn-sm btn-secondary">
                             <i class="fas fa-file-pdf"></i> <span data-lang="view-cv">View CV</span>
                         </a>
                     <?php else: ?>
@@ -295,7 +295,7 @@ $competency_type_labels = [
                             </td>
                             <td>
                                 <?php if (!empty($cert['document_file'])): ?>
-                                <a href="../../assets/<?php echo htmlspecialchars($cert['document_file']); ?>" target="_blank" class="btn btn-sm btn-info">
+                                <a href="<?php echo rtrim(BASE_URL, '/') . '/' . htmlspecialchars($cert['document_file']); ?>" target="_blank" class="btn btn-sm btn-info">
                                     <i class="fas fa-eye"></i> View
                                 </a>
                                 <?php else: ?>

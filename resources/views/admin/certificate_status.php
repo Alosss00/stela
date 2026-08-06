@@ -255,20 +255,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 			} elseif ($file_size > $max_size) {
 				$error = 'File size too large. Maximum 5MB.';
 			} else {
-				$upload_dir = '../../assets/uploads/certifications/';
+				$upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/certifications/';
 				if (!is_dir($upload_dir)) {
-					mkdir($upload_dir, 0775, true);
+					mkdir($upload_dir, 0755, true);
 				}
 
 				$new_filename = 'cert_' . $cert_row['employee_code'] . '_' . time() . '.' . $file_extension;
 				$upload_path = $upload_dir . $new_filename;
 
 				if (move_uploaded_file($_FILES['document_file']['tmp_name'], $upload_path)) {
-					if (!empty($cert_row['document_file']) && file_exists('../../assets/' . $cert_row['document_file'])) {
-						@unlink('../../assets/' . $cert_row['document_file']);
+					if (!empty($cert_row['document_file']) && file_exists(rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $cert_row['document_file'])) {
+						@unlink(rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $cert_row['document_file']);
 					}
 
-					$document_file = 'uploads/certifications/' . $new_filename;
+					$document_file = 'public/assets/uploads/certifications/' . $new_filename;
 					$update_stmt = $db->prepare('UPDATE employee_certifications SET document_file = ?, verification_status = ?, updated_at = NOW() WHERE id = ? AND employee_id = ?');
 					if ($update_stmt) {
 						$new_status = 'pending';
@@ -551,7 +551,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 									</td>
 									<td>
 										<?php if (!empty($cert['document_file'])): ?>
-											<a class="btn btn-sm btn-info" href="../../assets/<?php echo htmlspecialchars($cert['document_file']); ?>" target="_blank" rel="noopener noreferrer">
+											<a class="btn btn-sm btn-info" href="<?php echo rtrim(BASE_URL, '/') . '/' . htmlspecialchars($cert['document_file']); ?>" target="_blank" rel="noopener noreferrer">
 												<i class="fas fa-eye"></i> View
 											</a>
 										<?php else: ?>

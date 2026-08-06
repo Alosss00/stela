@@ -277,7 +277,7 @@ $competency_type_labels = [
                 <span class="info-label" data-lang="cv-file">CV File:</span>
                 <span class="info-value">
                     <?php if ($employee['cv_file']): ?>
-                        <a href="../../assets/<?php echo htmlspecialchars($employee['cv_file']); ?>" target="_blank" class="btn btn-sm btn-secondary">
+                        <a href="<?php echo rtrim(BASE_URL, '/') . '/' . htmlspecialchars($employee['cv_file']); ?>" target="_blank" class="btn btn-sm btn-secondary">
                             <i class="fas fa-file-pdf"></i> <span data-lang="view-cv">View CV</span>
                         </a>
                     <?php else: ?>

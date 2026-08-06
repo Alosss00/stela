@@ -154,24 +154,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                 } elseif ($file_size > $max_size) {
                     $error = 'File size too large! Maximum 5MB.';
                 } else {
-                    // Gunakan Absolute Path berbasis Document Root
-                    // rtrim digunakan untuk mencegah double slash (//) pada path
-                    $base_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/'); 
-                    
-                    // Pastikan folder assets berada tepat di dalam public_html
-                    $upload_dir = $base_dir . '/assets/uploads/cv/'; 
-                    
+                    $upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/cv/';
                     if (!file_exists($upload_dir)) {
-                        // Gunakan 0755 alih-alih 0777
-                        mkdir($upload_dir, 0755, true); 
+                        mkdir($upload_dir, 0755, true);
                     }
                     
                     $new_filename = 'cv_' . $employee_code . '_' . time() . '.' . $file_extension;
                     $upload_path = $upload_dir . $new_filename;
                     
                     if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                        // Path ini yang disimpan ke database, sudah benar tidak perlu diubah
-                        $cv_file = 'assets/uploads/cv/' . $new_filename; 
+                        $cv_file = 'public/assets/uploads/cv/' . $new_filename; 
                     } else {
                         $error = 'Failed to upload CV file.';
                     }
@@ -190,16 +182,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                 } elseif ($stmt_file_size > $stmt_max_size) {
                     $error = 'Statement Letter file size too large! Maximum 5MB.';
                 } else {
-                    $stmt_upload_dir = '../../assets/uploads/statements/';
+                    $stmt_upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/statements/';
                     if (!file_exists($stmt_upload_dir)) {
-                        mkdir($stmt_upload_dir, 0777, true);
+                        mkdir($stmt_upload_dir, 0755, true);
                     }
                     
                     $stmt_new_filename = 'statement_' . $employee_code . '_' . time() . '.pdf';
                     $stmt_upload_path = $stmt_upload_dir . $stmt_new_filename;
                     
                     if (move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
-                        $statement_file = 'uploads/statements/' . $stmt_new_filename;
+                        $statement_file = 'public/assets/uploads/statements/' . $stmt_new_filename;
                     } else {
                         $error = 'Failed to upload Statement Letter file.';
                     }
@@ -252,9 +244,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                     
                     // Handle multiple certification uploads
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {
-                        $upload_dir = '../../assets/uploads/certifications/';
+                        $upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/certifications/';
                         if (!file_exists($upload_dir)) {
-                            mkdir($upload_dir, 0777, true);
+                            mkdir($upload_dir, 0755, true);
                         }
                         
                         $cert_ids = $_POST['certification_ids'] ?? [];
@@ -280,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                                 
                                 if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
-                                    $cert_path = 'uploads/certifications/' . $cert_file;
+                                    $cert_path = 'public/assets/uploads/certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
                                     $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
                                     

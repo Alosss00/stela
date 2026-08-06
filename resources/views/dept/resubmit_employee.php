@@ -191,20 +191,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } elseif ($file_size > $max_size) {
                     $error = 'File size too large! Maximum 5MB.';
                 } else {
-                    $upload_dir = '../../assets/uploads/cv/';
+                    $upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/cv/';
                     if (!file_exists($upload_dir)) {
-                        mkdir($upload_dir, 0777, true);
+                        mkdir($upload_dir, 0755, true);
                     }
                     
                     $new_filename = 'cv_' . $employee['employee_code'] . '_' . time() . '.' . $file_extension;
                     $upload_path = $upload_dir . $new_filename;
                     
                     if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
-                        // Delete old CV file
-                        if ($cv_file && file_exists('assets/' . $cv_file)) {
-                            @unlink('assets/' . $cv_file);
+                        // Delete old CV file if it exists in public/assets/uploads
+                        if ($cv_file && file_exists(rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $cv_file)) {
+                            @unlink(rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $cv_file);
                         }
-                        $cv_file = 'uploads/cv/' . $new_filename;
+                        $cv_file = 'public/assets/uploads/cv/' . $new_filename;
                     } else {
                         $error = 'Failed to upload CV file.';
                     }
@@ -223,20 +223,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 } elseif ($stmt_file_size > $stmt_max_size) {
                     $error = 'Statement Letter file size too large! Maximum 5MB.';
                 } else {
-                    $stmt_upload_dir = '../../assets/uploads/statements/';
+                    $stmt_upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/statements/';
                     if (!file_exists($stmt_upload_dir)) {
-                        mkdir($stmt_upload_dir, 0777, true);
+                        mkdir($stmt_upload_dir, 0755, true);
                     }
                     
                     $stmt_new_filename = 'statement_' . $employee['employee_code'] . '_' . time() . '.pdf';
                     $stmt_upload_path = $stmt_upload_dir . $stmt_new_filename;
                     
                     if (move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
-                        // Delete old statement file
-                        if ($statement_file && file_exists('assets/' . $statement_file)) {
-                            @unlink('assets/' . $statement_file);
+                        // Delete old statement file if it exists
+                        if ($statement_file && file_exists(rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $statement_file)) {
+                            @unlink(rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/' . $statement_file);
                         }
-                        $statement_file = 'uploads/statements/' . $stmt_new_filename;
+                        $statement_file = 'public/assets/uploads/statements/' . $stmt_new_filename;
                     } else {
                         $error = 'Failed to upload Statement Letter file.';
                     }
@@ -312,9 +312,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                     
                     // Handle certification updates/additions
-                    $upload_dir = '../../assets/uploads/certifications/';
+                    $upload_dir = rtrim($_SERVER['DOCUMENT_ROOT'], '/') . '/public/assets/uploads/certifications/';
                     if (!file_exists($upload_dir)) {
-                        mkdir($upload_dir, 0777, true);
+                        mkdir($upload_dir, 0755, true);
                     }
                     
                     $cert_ids = $_POST['certification_ids'] ?? [];
@@ -354,7 +354,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $cert_file = $employee['employee_code'] . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                             
                             if (move_uploaded_file($_FILES['certifications']['tmp_name'][$key], $upload_dir . $cert_file)) {
-                                $cert_path = 'uploads/certifications/' . $cert_file;
+                                $cert_path = 'public/assets/uploads/certifications/' . $cert_file;
                             }
                         }
                         
@@ -693,7 +693,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 <?php if ($employee['cv_file']): ?>
                 <div class="current-file-info">
                     <i class="fas fa-file-pdf"></i>
-                    <span><span data-lang="current-file">Current file:</span> <a href="../../assets/<?php echo htmlspecialchars($employee['cv_file']); ?>" target="_blank" data-lang="view-cv">View CV</a></span>
+                    <span><span data-lang="current-file">Current file:</span> <a href="<?php echo rtrim(BASE_URL, '/') . '/' . htmlspecialchars($employee['cv_file']); ?>" target="_blank" data-lang="view-cv">View CV</a></span>
                 </div>
                 <?php endif; ?>
                 <div class="file-upload-area">
@@ -709,7 +709,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 <?php if ($employee['statement_file']): ?>
                 <div class="current-file-info">
                     <i class="fas fa-file-signature"></i>
-                    <span><span data-lang="current-file">Current file:</span> <a href="../../assets/<?php echo htmlspecialchars($employee['statement_file']); ?>" target="_blank" data-lang="view-statement-letter">View Statement Letter</a></span>
+                    <span><span data-lang="current-file">Current file:</span> <a href="<?php echo rtrim(BASE_URL, '/') . '/' . htmlspecialchars($employee['statement_file']); ?>" target="_blank" data-lang="view-statement-letter">View Statement Letter</a></span>
                 </div>
                 <?php endif; ?>
                 <div class="file-upload-area">
@@ -847,7 +847,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                         <?php if ($cert['document_file']): ?>
                         <div class="current-file-info">
                             <i class="fas fa-file-pdf"></i>
-                            <span><span data-lang="current-file">Current file:</span> <a href="../../assets/<?php echo htmlspecialchars($cert['document_file']); ?>" target="_blank" data-lang="view-certificate">View Certificate</a></span>
+                            <span><span data-lang="current-file">Current file:</span> <a href="<?php echo rtrim(BASE_URL, '/') . '/' . htmlspecialchars($cert['document_file']); ?>" target="_blank" data-lang="view-certificate">View Certificate</a></span>
                         </div>
                         <?php endif; ?>
                         <div class="file-upload-area">
