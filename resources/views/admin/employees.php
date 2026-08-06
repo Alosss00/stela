@@ -633,9 +633,9 @@ $companies = $db->query("
                 const baseUrl = '../../api/search_elasticsearch.php';
 
                 const competencyLabels = {
-                    'pengawas_operasional': 'Pengawas Operasional',
-                    'pengawas_teknis': 'Pengawas Teknis',
-                    'tenaga_teknis': 'Tenaga Teknis'
+                    'pengawas_operasional': 'Operational Supervisor',
+                    'pengawas_teknis': 'Technical Supervisor',
+                    'tenaga_teknis': 'Technical Personnel'
                 };
                 const statusColors = {
                     'verified': 'success',
