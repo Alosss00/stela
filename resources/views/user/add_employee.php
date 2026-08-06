@@ -463,9 +463,9 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     <label for="competency_type" data-lang="competency-type">Competency Type <span class="text-danger">*</span></label>
                     <select class="form-control" id="competency_type" name="competency_type" onchange="toggleCompetencyField()" required>
                         <option value="" data-lang="select-competency-type">-- Select Competency Type --</option>
-                        <option value="pengawas_operasional" data-lang="competency-type-operational-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_operasional') ? 'selected' : ''; ?>>Pengawas Operasional</option>
-                        <option value="pengawas_teknis" data-lang="competency-type-technical-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'pengawas_teknis') ? 'selected' : ''; ?>>Pengawas Teknis</option>
-                        <option value="tenaga_teknis" data-lang="competency-type-technical-personnel" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'tenaga_teknis') ? 'selected' : ''; ?>>Tenaga Teknis</option>
+                        <option value="Operational Supervisor" data-lang="competency-type-operational-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'Operational Supervisor') ? 'selected' : ''; ?>>Operational Supervisor</option>
+                        <option value="Technical Supervisor" data-lang="competency-type-technical-supervisor" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'Technical Supervisor') ? 'selected' : ''; ?>>Technical Supervisor</option>
+                        <option value="Technical Personnel" data-lang="competency-type-technical-personnel" <?php echo (isset($_POST['competency_type']) && $_POST['competency_type'] == 'Technical Personnel') ? 'selected' : ''; ?>>Technical Personnel</option>
                     </select>
                 </div>
 
