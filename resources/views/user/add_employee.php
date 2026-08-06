@@ -504,11 +504,11 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                         <?php
                             endforeach;
                         }
-                        // Populate competencies for pengawas_teknis
-                        if (!empty($competencies_by_type['pengawas_teknis'])) {
-                            foreach ($competencies_by_type['pengawas_teknis'] as $comp):
+                        // Populate competencies for pengawas_teknis (menggunakan data tenaga_teknis sesuai permintaan)
+                        if (!empty($competencies_by_type['tenaga_teknis'])) {
+                            foreach ($competencies_by_type['tenaga_teknis'] as $comp):
                         ?>
-                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="tenaga_teknis" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
+                            <option value="<?php echo htmlspecialchars($comp['competency_name']); ?>" data-id="<?php echo $comp['id']; ?>" data-type="pengawas_teknis" <?php echo (isset($_POST['competency_name']) && $_POST['competency_name'] == $comp['competency_name']) ? 'selected' : ''; ?>>
                                 <?php echo htmlspecialchars($comp['competency_name']); ?>
                             </option>
                         <?php

@@ -1,4 +1,4 @@
-<?php
+﻿<?php
 $page_title = 'User Add Employee';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
