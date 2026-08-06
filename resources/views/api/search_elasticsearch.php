@@ -22,6 +22,11 @@ try {
     if (file_exists($esServicePath)) {
         require_once $esServicePath;
     }
+    
+    $authHelperPath = dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+    if (file_exists($authHelperPath)) {
+        require_once $authHelperPath;
+    }
 
     // Authentication check
     if (function_exists('is_logged_in') && !is_logged_in()) {
