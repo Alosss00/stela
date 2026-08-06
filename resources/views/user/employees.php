@@ -221,9 +221,9 @@ $rejected_count = $db->query("
             (function() {
                 const companyName = <?php echo json_encode($_SESSION['company_name'] ?? ''); ?>;
                 const competencyLabels = {
-                    'pengawas_operasional': 'Pengawas Operasional',
-                    'pengawas_teknis': 'Pengawas Teknis',
-                    'tenaga_teknis': 'Tenaga Teknis'
+                    'pengawas_operasional': 'Operational Supervisor',
+                    'pengawas_teknis': 'Technical Supervisor',
+                    'tenaga_teknis': 'Technical Personnel'
                 };
                 const statusBadges = {
                     'verified': '<span class="badge badge-success" data-lang="accept">Disetujui</span>',
