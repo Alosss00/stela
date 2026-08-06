@@ -452,8 +452,8 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     <label for="ruang_lingkup" data-lang="scope-of-work">Scope of Work <span class="text-danger">*</span></label>
                     <select class="form-control" id="ruang_lingkup" name="ruang_lingkup">
                         <option value="" data-lang="select-scope-of-work">-- Select Scope of Work --</option>
-                        <option value="PT Meares Soputan Mining (MSM)" data-lang="scope-of-work-msm" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Meares Soputan Mining (MSM)') ? 'selected' : ''; ?>>PT MSM</option>
-                        <option value="PT Tambang Tondano Nusajaya (TTN)" data-lang="scope-of-work-ttn" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Tambang Tondano Nusajaya (TTN)') ? 'selected' : ''; ?>>PT TTN</option>
+                        <option value="PT Meares Soputan Mining" data-lang="scope-of-work-msm" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Meares Soputan Mining') ? 'selected' : ''; ?>>PT Meares Soputan Mining</option>
+                        <option value="PT Tambang Tondano Nusajaya" data-lang="scope-of-work-ttn" <?php echo (isset($_POST['ruang_lingkup']) && $_POST['ruang_lingkup'] == 'PT Tambang Tondano Nusajaya') ? 'selected' : ''; ?>>PT Tambang Tondano Nusajaya</option>
                     </select>
                 </div>
             </div>
