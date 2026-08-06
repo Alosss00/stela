@@ -280,7 +280,7 @@ $work_scopes = $db->query("
                                 $status = $row['verification_status'];
                                 $statusDisplay = ucfirst($status);
                         ?>
-                        <tr class="detail-row" data-status="<?php echo htmlspecialchars($status); ?>">
+                        <tr class="" data-status="<?php echo htmlspecialchars($status); ?>">
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
@@ -393,7 +393,7 @@ $work_scopes = $db->query("
                             }
                             $supervision_area = htmlspecialchars($row['supervision_area'] ?: '');
                         ?>
-                        <tr class="detail-row" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>">
+                        <tr class="" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>">
                             <td class="col-number">
                                 <strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong>
                             </td>
@@ -535,7 +535,7 @@ $work_scopes = $db->query("
                             $rejection_id = 'rejection_' . $row['id'];
                             $supervision_area = htmlspecialchars($row['supervision_area'] ?: '');
                         ?>
-                        <tr class="detail-row rejected-row" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>">
+                        <tr class="" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>">
                             <td class="col-number">
                                 <strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong>
                             </td>
@@ -634,7 +634,7 @@ $work_scopes = $db->query("
                                 $status_icon = 'fa-clock';
                             }
                         ?>
-                        <tr class="detail-row expiring-row">
+                        <tr class="">
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($cert['full_name']); ?></strong>
