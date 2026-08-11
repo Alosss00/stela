@@ -232,13 +232,13 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                             <?php foreach($users as $user): ?>
                                 <tr>
                                     <td>
-                                        <div class="fw-bold text-dark"><?php echo htmlspecialchars($user['full_name']); ?></div>
+                                        <div class="fw-bold text-dark"><?php echo htmlspecialchars($user['full_name'] ?? ''); ?></div>
                                         <div class="small text-muted">
-                                            @<?php echo htmlspecialchars($user['username']); ?> &bull; <?php echo htmlspecialchars($user['email']); ?>
+                                            @<?php echo htmlspecialchars($user['username'] ?? ''); ?> &bull; <?php echo htmlspecialchars($user['email'] ?? ''); ?>
                                         </div>
                                     </td>
                                     <td>
-                                        <span class="badge-modern badge-role"><?php echo htmlspecialchars(ucfirst($user['role'])); ?></span>
+                                        <span class="badge-modern badge-role"><?php echo htmlspecialchars(ucfirst($user['role'] ?? '')); ?></span>
                                     </td>
                                     <td>
                                         <div class="small fw-bold"><?php echo htmlspecialchars($user['company_name'] ?: '-'); ?></div>
@@ -259,13 +259,13 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                                         <?php endif; ?>
                                         
                                         <?php if(hasPermission('user.resetpassword')): ?>
-                                        <button class="action-btn key" onclick='resetPass(<?php echo $user['id']; ?>, "<?php echo htmlspecialchars($user['username'], ENT_QUOTES); ?>")' title="Reset Password">
+                                        <button class="action-btn key" onclick='resetPass(<?php echo $user['id']; ?>, "<?php echo htmlspecialchars($user['username'] ?? '', ENT_QUOTES); ?>")' title="Reset Password">
                                             <i class="fas fa-key"></i>
                                         </button>
                                         <?php endif; ?>
 
                                         <?php if(hasPermission('user.delete') && $user['id'] != $currentUserId): ?>
-                                        <button class="action-btn delete" onclick='deleteUser(<?php echo $user['id']; ?>, "<?php echo htmlspecialchars($user['username'], ENT_QUOTES); ?>")' title="Delete/Deactivate User">
+                                        <button class="action-btn delete" onclick='deleteUser(<?php echo $user['id']; ?>, "<?php echo htmlspecialchars($user['username'] ?? '', ENT_QUOTES); ?>")' title="Delete/Deactivate User">
                                             <i class="fas fa-trash-alt"></i>
                                         </button>
                                         <?php endif; ?>
