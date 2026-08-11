@@ -209,6 +209,9 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-end">
+                                        <a href="<?php echo BASE_URL; ?>/pages/superadmin/verify_employee.php?id=<?php echo $emp['id'] ?? 0; ?>" class="action-btn text-warning" title="Verify Data">
+                                            <i class="fas fa-user-check"></i> Verify
+                                        </a>
                                         <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_employee_detail.php?id=<?php echo $emp['id'] ?? 0; ?>" class="action-btn" title="View 360° Profile">
                                             <i class="fas fa-eye"></i> View
                                         </a>

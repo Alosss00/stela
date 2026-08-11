@@ -1,10 +1,11 @@
-﻿<?php
+<?php
 $page_title = 'Verifikasi Tenaga Kerja';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
 if (!isset($_GET['id'])) {
-    header('Location: employees.php');
+    $redirectUrl = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/pages/superadmin/monitoring_employees.php' : 'employees.php';
+    header('Location: ' . $redirectUrl);
     exit();
 }
 
@@ -497,7 +498,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         error_log("Notification error (admin rejected): " . $e->getMessage());
                     }
                     // Redirect ke employees setelah 2 seconds
-                    header("refresh:2;url=employees.php");
+                    $redirectUrl = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/pages/superadmin/monitoring_employees.php' : 'employees.php';
+                    header("refresh:2;url=" . $redirectUrl);
                 }
             }
         }
@@ -556,7 +558,11 @@ if ($position_id > 0) {
     $position = $db->query("SELECT * FROM positions WHERE id = $position_id")->fetch_assoc();
 }
 
-require_once dirname(__DIR__) . '/layouts/header.php';
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
+    require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
+} else {
+    require_once dirname(__DIR__) . '/layouts/header.php';
+}
 ?>
 
 <?php if (isset($_SESSION['success_message'])): ?>
@@ -594,7 +600,8 @@ require_once dirname(__DIR__) . '/layouts/header.php';
         <div class="header-content-verify">
             <h3><i class="fas fa-user-check"></i> <span data-lang="verify-employee-data">Verify Employee Data</span></h3>
         </div>
-        <a href="employees.php" class="btn-back-verify">
+        <?php $backLink = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/pages/superadmin/monitoring_employees.php' : 'employees.php'; ?>
+        <a href="<?php echo $backLink; ?>" class="btn-back-verify">
             <i class="fas fa-arrow-left"></i>
             <span data-lang="back">Back</span>
         </a>
@@ -860,4 +867,10 @@ function submitVerification(status) {
 }
 </script>
 
-<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
+<?php 
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
+    require_once dirname(__DIR__) . '/layouts/superadmin_footer.php';
+} else {
+    require_once dirname(__DIR__) . '/layouts/footer.php';
+}
+?>
