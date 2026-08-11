@@ -1,17 +1,36 @@
 <?php
 $page_title = 'Detail Resigned Employee';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
+
+// Only department access permitted
+requirePermission('employee.view');
+if (!hasPermission('dept.access') && !(hasPermission('user.access') && hasDepartment()) && !isSuperadmin()) {
+    header('Location: ../admin/dashboard.php');
+    exit();
+}
+
 require_once dirname(__DIR__) . '/layouts/header.php';
 
 $db = new Database();
+$department = $_SESSION['department'] ?? '';
 $company_name = $_SESSION['company_name'] ?? '';
 
-$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$safeCompany = $db->escapeString($company_name);
+$safeDept = $db->escapeString($department);
 
-$whereClauseDetail = "e.id = $id";
-if (!isSuperadmin() && !hasPermission('admin.access') && !empty($company_name)) {
-    $whereClauseDetail .= " AND e.contractor_company = '" . $db->escapeString($company_name) . "'";
+$filter_parts = [];
+if (!empty($safeDept)) {
+    $filter_parts[] = "e.department = '$safeDept'";
+    $filter_parts[] = "e.contractor_company = '$safeDept'";
 }
+if (!empty($safeCompany) && $safeCompany !== $safeDept) {
+    $filter_parts[] = "e.contractor_company = '$safeCompany'";
+    $filter_parts[] = "e.department = '$safeCompany'";
+}
+$dept_filter = !empty($filter_parts) ? "(" . implode(" OR ", array_unique($filter_parts)) . ")" : "1=1";
+
+$id = isset($_GET['id']) ? intval($_GET['id']) : 0;
+$whereClauseDetail = "e.id = $id AND $dept_filter";
 
 // Get employee and appointment details
 $employee_result = $db->query("

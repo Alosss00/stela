@@ -4,14 +4,9 @@ require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 require_once dirname(__DIR__) . '/layouts/header.php';
 
 $db = new Database();
-$company_name = $_SESSION['company_name'] ?? '';
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-
 $whereClauseDetail = "e.id = $id";
-if (!isSuperadmin() && !hasPermission('admin.access') && !empty($company_name)) {
-    $whereClauseDetail .= " AND e.contractor_company = '" . $db->escapeString($company_name) . "'";
-}
 
 // Get employee and appointment details
 $employee_result = $db->query("
