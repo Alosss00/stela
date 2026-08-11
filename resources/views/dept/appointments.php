@@ -80,7 +80,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
     <!-- Statistics Cards -->
     <div class="stats-row-appt">
         <div class="stat-box-appt stat-all">
-            <div class="stat-icon-appt"><i class="fas fa-file"></i></div>
+            <div class="stat-icon-appt"><i class="fas fa-users"></i></div>
             <div class="stat-info">
                 <div class="stat-number"><?php echo $all_count; ?></div>
                 <div class="stat-text" data-lang="all-assign-letter">Semua Surat Penunjukan</div>
@@ -96,7 +96,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
         </div>
         
         <div class="stat-box-appt stat-approved">
-            <div class="stat-icon-appt"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-icon-appt"><i class="fas fa-user-check"></i></div>
             <div class="stat-info">
                 <div class="stat-number"><?php echo $approved_count; ?></div>
                 <div class="stat-text" data-lang="accepted">Disetujui</div>
@@ -104,7 +104,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
         </div>
         
         <div class="stat-box-appt stat-rejected">
-            <div class="stat-icon-appt"><i class="fas fa-times-circle"></i></div>
+            <div class="stat-icon-appt"><i class="fas fa-user-times"></i></div>
             <div class="stat-info">
                 <div class="stat-number"><?php echo $rejected_count; ?></div>
                 <div class="stat-text" data-lang="rejected">Tidak disetujui</div>

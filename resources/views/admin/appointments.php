@@ -550,7 +550,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
     <!-- Statistics Cards -->
     <div class="stats-grid-appt-admin">
         <div class="stat-box-appt stat-total">
-            <div class="stat-icon-appt"><i class="fas fa-file"></i></div>
+            <div class="stat-icon-appt"><i class="fas fa-users"></i></div>
             <div class="stat-info">
                 <div class="stat-number"><?php echo $total_appointments; ?></div>
                 <div class="stat-text" data-lang="total-letters">Total Letters</div>
@@ -574,7 +574,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
         </div>
 
         <div class="stat-box-appt stat-approved">
-            <div class="stat-icon-appt"><i class="fas fa-check-circle"></i></div>
+            <div class="stat-icon-appt"><i class="fas fa-user-check"></i></div>
             <div class="stat-info">
                 <div class="stat-number"><?php echo $approved_count; ?></div>
                 <div class="stat-text" data-lang="accept">Accept</div>
@@ -582,7 +582,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
         </div>
 
         <div class="stat-box-appt stat-rejected">
-            <div class="stat-icon-appt"><i class="fas fa-times-circle"></i></div>
+            <div class="stat-icon-appt"><i class="fas fa-user-times"></i></div>
             <div class="stat-info">
                 <div class="stat-number"><?php echo $rejected_count; ?></div>
                 <div class="stat-text" data-lang="reject">Reject</div>
