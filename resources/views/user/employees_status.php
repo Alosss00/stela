@@ -204,52 +204,66 @@ AND a.status='approved'
     <h4><span data-lang="overall-statistics">Overall Statistics</span></h4>
 </div>
 
-<div class="stats-grid-emp">
-
-    <div class="stat-box-emp stat-total">
-        <div class="stat-icon-emp">
-            <i class="fas fa-users"></i>
-        </div>
-
+<style>
+    .custom-stat-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border: 1px solid #f0f0f0;
+        border-left: 4px solid;
+    }
+    .custom-stat-card .stat-info { display: flex; flex-direction: column; }
+    .custom-stat-card .stat-title { font-size: 14px; color: #6c757d; font-weight: 600; margin-bottom: 8px; }
+    .custom-stat-card .stat-number { font-size: 32px; font-weight: bold; margin-bottom: 5px; line-height: 1; }
+    .custom-stat-card .stat-desc { font-size: 12px; color: #adb5bd; font-weight: 500; }
+    .custom-stat-card .stat-icon { width: 55px; height: 55px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 28px; }
+    
+    .stat-variant-blue { border-left-color: #1A73E8; } .stat-variant-blue .stat-number { color: #1A73E8; } .stat-variant-blue .stat-icon { background: #E8F0FE; color: #1A73E8; }
+    .stat-variant-green { border-left-color: #1E8E3E; } .stat-variant-green .stat-number { color: #1E8E3E; } .stat-variant-green .stat-icon { background: #E6F4EA; color: #1E8E3E; }
+    .stat-variant-orange { border-left-color: #F57C00; } .stat-variant-orange .stat-number { color: #F57C00; } .stat-variant-orange .stat-icon { background: #FFF3E0; color: #F57C00; }
+    .stat-variant-red { border-left-color: #D93025; } .stat-variant-red .stat-number { color: #D93025; } .stat-variant-red .stat-icon { background: #FCE8E6; color: #D93025; }
+    .stat-variant-grey { border-left-color: #6B7280; } .stat-variant-grey .stat-number { color: #6B7280; } .stat-variant-grey .stat-icon { background: #F3F4F6; color: #6B7280; }
+</style>
+<div class="stats-grid-emp" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+    <div class="custom-stat-card stat-variant-blue">
         <div class="stat-info">
+            <div class="stat-title" data-lang="total-employee">Total Employee</div>
             <div class="stat-number"><?= $total_employees ?></div>
-            <div class="stat-text">Total Employee</div>
+            <div class="stat-desc" data-lang="total-registered">Total registered workforce</div>
         </div>
+        <div class="stat-icon"><i class="fas fa-users"></i></div>
     </div>
-
-    <div class="stat-box-emp stat-active">
-        <div class="stat-icon-emp">
-            <i class="fas fa-user-check"></i>
-        </div>
-
+    
+    <div class="custom-stat-card stat-variant-green">
         <div class="stat-info">
+            <div class="stat-title" data-lang="active">Active</div>
             <div class="stat-number"><?= $active_count ?></div>
-            <div class="stat-text">Active</div>
+            <div class="stat-desc" data-lang="currently-working">Currently working</div>
         </div>
+        <div class="stat-icon"><i class="fas fa-user-check"></i></div>
     </div>
-
-    <div class="stat-box-emp stat-resigned">
-        <div class="stat-icon-emp">
-            <i class="fas fa-user-times"></i>
-        </div>
-
+    
+    <div class="custom-stat-card stat-variant-red">
         <div class="stat-info">
+            <div class="stat-title" data-lang="resigned">Resigned</div>
             <div class="stat-number"><?= $resigned_count ?></div>
-            <div class="stat-text">Resigned</div>
+            <div class="stat-desc" data-lang="left-company">Left the company</div>
         </div>
+        <div class="stat-icon"><i class="fas fa-user-times"></i></div>
     </div>
-
-    <div class="stat-box-emp stat-inactive">
-        <div class="stat-icon-emp">
-            <i class="fas fa-user-slash"></i>
-        </div>
-
+    
+    <div class="custom-stat-card stat-variant-grey">
         <div class="stat-info">
+            <div class="stat-title" data-lang="inactive">Inactive</div>
             <div class="stat-number"><?= $inactive_count ?></div>
-            <div class="stat-text">Inactive</div>
+            <div class="stat-desc" data-lang="not-active">Not active</div>
         </div>
+        <div class="stat-icon"><i class="fas fa-user-slash"></i></div>
     </div>
-
 </div>
     
     <!-- Bonsai.io Pagination Search Section -->
