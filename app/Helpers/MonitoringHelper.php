@@ -266,7 +266,7 @@ class MonitoringHelper {
         $offset = ($page - 1) * $limit;
         
         $sql = "SELECT ec.*, 
-                       c.name as master_cert_name,
+                       c.cert_name as master_cert_name,
                        e.full_name as employee_name, e.employee_code, e.contractor_company as company, e.department, e.position
                 FROM employee_certifications ec
                 LEFT JOIN certifications c ON ec.certification_id = c.id
@@ -277,7 +277,7 @@ class MonitoringHelper {
         $types = "";
         
         if (!empty($search)) {
-            $sql .= " AND (e.full_name LIKE ? OR ec.cert_number LIKE ? OR c.name LIKE ?)";
+            $sql .= " AND (e.full_name LIKE ? OR ec.cert_number LIKE ? OR c.cert_name LIKE ?)";
             $searchParam = "%{$search}%";
             $params[] = $searchParam;
             $params[] = $searchParam;
@@ -291,7 +291,7 @@ class MonitoringHelper {
         $types .= $filterTypes;
         
         $countSql = str_replace("SELECT ec.*, 
-                       c.name as master_cert_name,
+                       c.cert_name as master_cert_name,
                        e.full_name as employee_name, e.employee_code, e.contractor_company as company, e.department, e.position", "SELECT COUNT(ec.id) as total", $sql);
         $totalResult = $this->db->query($countSql, $params, $types)->fetch_assoc();
         $total = $totalResult['total'] ?? 0;
@@ -299,7 +299,7 @@ class MonitoringHelper {
         $allowedSorts = ['expiry_date', 'employee_name', 'company', 'master_cert_name'];
         if ($sort == 'employee_name') $sortCol = 'e.full_name';
         else if ($sort == 'company') $sortCol = 'e.contractor_company';
-        else if ($sort == 'master_cert_name') $sortCol = 'c.name';
+        else if ($sort == 'master_cert_name') $sortCol = 'c.cert_name';
         else $sortCol = "ec.{$sort}";
         
         $order = strtoupper($order) === 'DESC' ? 'DESC' : 'ASC';
