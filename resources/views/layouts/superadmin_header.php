@@ -176,18 +176,25 @@ $current_page = get_current_page();
                         <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                     </a>
                 </li>
+                <?php if(hasPermission('user.view') || hasPermission('role.view')): ?>
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Access Control</li>
+                <?php if(hasPermission('user.view')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/users.php" class="<?php echo $current_page == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users-cog"></i> <span>User Management</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if(hasPermission('role.view')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/roles_permissions.php" class="<?php echo $current_page == 'roles_permissions.php' ? 'active' : ''; ?>">
                         <i class="fas fa-user-shield"></i> <span>Role & Permissions</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php endif; ?>
                 
+                <?php if(hasPermission('admin.access') || hasPermission('settings.view')): ?>
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Organization</li>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/companies.php" class="<?php echo $current_page == 'companies.php' ? 'active' : ''; ?>">
@@ -206,23 +213,32 @@ $current_page = get_current_page();
                         <i class="fas fa-database"></i> <span>Master Data</span>
                     </a>
                 </li>
+                <?php endif; ?>
 
+                <?php if(hasPermission('monitoring.view') || hasPermission('employee.view') || hasPermission('appointment.view') || hasPermission('certificate.view')): ?>
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Monitoring Center</li>
+                <?php if(hasPermission('employee.view') || hasPermission('monitoring.view')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_employees.php" class="<?php echo $current_page == 'monitoring_employees.php' || $current_page == 'monitoring_employee_detail.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users-viewfinder"></i> <span>Employee Monitoring</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if(hasPermission('appointment.view') || hasPermission('monitoring.view')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_appointments.php" class="<?php echo $current_page == 'monitoring_appointments.php' || $current_page == 'monitoring_appointment_detail.php' ? 'active' : ''; ?>">
                         <i class="fas fa-file-signature"></i> <span>Appointment Monitoring</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if(hasPermission('certificate.view') || hasPermission('monitoring.view')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_certificates.php" class="<?php echo $current_page == 'monitoring_certificates.php' ? 'active' : ''; ?>">
                         <i class="fas fa-certificate"></i> <span>Certificate Monitoring</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if(hasPermission('monitoring.view')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_approvals.php" class="<?php echo $current_page == 'monitoring_approvals.php' ? 'active' : ''; ?>">
                         <i class="fas fa-clipboard-check"></i> <span>Approval Monitoring</span>
@@ -233,35 +249,49 @@ $current_page = get_current_page();
                         <i class="fas fa-timeline"></i> <span>Status History</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php endif; ?>
 
+                <?php if(hasPermission('reports.view')): ?>
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Reports & Analytics</li>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/reports_dashboard.php" class="<?php echo strpos($current_page, 'reports_') === 0 && $current_page !== 'reports_dashboard.php' ? 'active' : ($current_page == 'reports_dashboard.php' ? 'active' : ''); ?>">
                         <i class="fas fa-chart-line"></i> <span>Reports Center</span>
                     </a>
                 </li>
+                <?php endif; ?>
 
+                <?php if(hasPermission('settings.view') || hasPermission('monitoring.view') || hasPermission('elasticsearch.view') || hasPermission('backup.create')): ?>
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">System Maintenance</li>
+                <?php if(hasPermission('settings.view')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/settings.php" class="<?php echo $current_page == 'settings.php' ? 'active' : ''; ?>">
                         <i class="fas fa-cogs"></i> <span>System Settings</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if(hasPermission('monitoring.view')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_logs.php" class="<?php echo $current_page == 'monitoring_logs.php' ? 'active' : ''; ?>">
                         <i class="fas fa-clipboard-list"></i> <span>Audit & Monitoring Logs</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if(hasPermission('elasticsearch.view')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/elasticsearch_manage.php" class="<?php echo $current_page == 'elasticsearch_manage.php' ? 'active' : ''; ?>">
                         <i class="fas fa-search"></i> <span>Elasticsearch Config</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php if(hasPermission('backup.create')): ?>
                 <li>
                     <a href="<?php echo BASE_URL; ?>/superadmin/backup_restore.php" class="<?php echo $current_page == 'backup_restore.php' ? 'active' : ''; ?>">
                         <i class="fas fa-hdd"></i> <span>Backup & Restore</span>
                     </a>
                 </li>
+                <?php endif; ?>
+                <?php endif; ?>
 
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Account</li>
                 <li>
