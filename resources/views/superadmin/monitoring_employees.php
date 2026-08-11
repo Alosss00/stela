@@ -184,31 +184,32 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                             <?php foreach($employees as $emp): ?>
                                 <tr>
                                     <td>
-                                        <div class="fw-bold text-dark"><?php echo htmlspecialchars($emp['full_name']); ?></div>
-                                        <div class="small text-muted">ID: <?php echo htmlspecialchars($emp['employee_code'] ?: '-'); ?></div>
+                                        <div class="fw-bold text-dark"><?php echo htmlspecialchars($emp['full_name'] ?? ''); ?></div>
+                                        <div class="small text-muted">ID: <?php echo htmlspecialchars($emp['employee_code'] ?? '-'); ?></div>
                                     </td>
                                     <td>
-                                        <div class="small"><i class="far fa-id-card text-muted me-1"></i> <?php echo htmlspecialchars($emp['nik'] ?: '-'); ?></div>
-                                        <div class="small text-muted"><i class="fas fa-phone text-muted me-1"></i> <?php echo htmlspecialchars($emp['phone_number'] ?: '-'); ?></div>
+                                        <div class="small"><i class="far fa-id-card text-muted me-1"></i> <?php echo htmlspecialchars($emp['nik'] ?? '-'); ?></div>
+                                        <div class="small text-muted"><i class="fas fa-phone text-muted me-1"></i> <?php echo htmlspecialchars($emp['phone_number'] ?? '-'); ?></div>
                                     </td>
                                     <td>
-                                        <div class="small fw-bold text-dark"><?php echo htmlspecialchars($emp['contractor_company'] ?: 'Internal'); ?></div>
-                                        <div class="small text-muted"><?php echo htmlspecialchars($emp['department'] ?: '-'); ?></div>
+                                        <div class="small fw-bold text-dark"><?php echo htmlspecialchars($emp['contractor_company'] ?? 'Internal'); ?></div>
+                                        <div class="small text-muted"><?php echo htmlspecialchars($emp['department'] ?? '-'); ?></div>
                                     </td>
                                     <td>
-                                        <div class="small fw-bold"><?php echo htmlspecialchars($emp['position'] ?: '-'); ?></div>
+                                        <div class="small fw-bold"><?php echo htmlspecialchars($emp['position'] ?? '-'); ?></div>
                                     </td>
                                     <td>
-                                        <?php if($emp['verification_status'] === 'verified'): ?>
+                                        <?php $vStatus = $emp['verification_status'] ?? ($emp['approval_status'] ?? 'pending'); ?>
+                                        <?php if($vStatus === 'verified'): ?>
                                             <span class="status-badge status-verified"><i class="fas fa-check"></i> Verified</span>
-                                        <?php elseif($emp['verification_status'] === 'rejected'): ?>
-                                            <span class="status-badge status-rejected" title="<?php echo htmlspecialchars($emp['verification_notes']); ?>"><i class="fas fa-times"></i> Rejected</span>
+                                        <?php elseif($vStatus === 'rejected'): ?>
+                                            <span class="status-badge status-rejected" title="<?php echo htmlspecialchars($emp['verification_notes'] ?? ''); ?>"><i class="fas fa-times"></i> Rejected</span>
                                         <?php else: ?>
                                             <span class="status-badge status-pending"><i class="fas fa-clock"></i> Pending</span>
                                         <?php endif; ?>
                                     </td>
                                     <td class="text-end">
-                                        <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_employee_detail.php?id=<?php echo $emp['id']; ?>" class="action-btn" title="View 360° Profile">
+                                        <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_employee_detail.php?id=<?php echo $emp['id'] ?? 0; ?>" class="action-btn" title="View 360° Profile">
                                             <i class="fas fa-eye"></i> View
                                         </a>
                                     </td>
