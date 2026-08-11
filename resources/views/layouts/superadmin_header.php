@@ -48,25 +48,116 @@ $current_page = get_current_page();
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/datatable-custom.css?v=<?php echo time(); ?>">
     
     <style>
+        /* Premium Glassmorphism Dark Sidebar */
         .superadmin-sidebar {
-            background-color: #212529 !important; /* Dark mode for Superadmin */
+            background: rgba(15, 23, 42, 0.85) !important;
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 4px 0 24px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .superadmin-sidebar .sidebar-menu a {
-            color: #adb5bd !important;
-        }
-        .superadmin-sidebar .sidebar-menu a:hover, .superadmin-sidebar .sidebar-menu a.active {
-            color: #fff !important;
-            background-color: #343a40 !important;
-            border-left: 4px solid #ffc107 !important;
-        }
+        
         .superadmin-sidebar .sidebar-header {
-            background-color: #1a1e21 !important;
-            border-bottom: 1px solid #343a40;
+            background: transparent !important;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 24px 20px;
             color: #fff;
+            position: relative;
+            overflow: hidden;
         }
+        
+        .superadmin-sidebar .sidebar-header::after {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: linear-gradient(135deg, rgba(255,193,7,0.1) 0%, transparent 100%);
+            z-index: -1;
+        }
+
+        .superadmin-sidebar .sidebar-header h3 {
+            font-weight: 700;
+            letter-spacing: 1px;
+            background: linear-gradient(to right, #fff, #ffc107);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
         .superadmin-badge {
-            background-color: #ffc107;
-            color: #000;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.3);
+            border-radius: 6px;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+            padding: 4px 8px;
+            margin-top: 8px;
+            display: inline-block;
+        }
+
+        .superadmin-sidebar .sidebar-menu {
+            padding: 10px 0;
+        }
+
+        .superadmin-sidebar .menu-header {
+            color: rgba(255, 255, 255, 0.4) !important;
+            font-weight: 600;
+            letter-spacing: 1.2px;
+            margin-top: 15px;
+        }
+
+        .superadmin-sidebar .sidebar-menu li a {
+            color: #94a3b8 !important;
+            border-left: 3px solid transparent !important;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            margin: 4px 12px;
+            border-radius: 8px;
+            padding: 12px 15px;
+        }
+
+        .superadmin-sidebar .sidebar-menu li a i {
+            transition: transform 0.3s ease, color 0.3s ease;
+            width: 24px;
+            text-align: center;
+        }
+
+        .superadmin-sidebar .sidebar-menu li a:hover {
+            color: #fff !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            transform: translateX(4px);
+        }
+
+        .superadmin-sidebar .sidebar-menu li a:hover i {
+            transform: scale(1.15);
+            color: #ffc107;
+        }
+
+        .superadmin-sidebar .sidebar-menu li a.active {
+            color: #fff !important;
+            background: linear-gradient(90deg, rgba(255, 193, 7, 0.15) 0%, transparent 100%) !important;
+            border-left: 3px solid #ffc107 !important;
+            box-shadow: inset 2px 0 10px rgba(255, 193, 7, 0.05);
+        }
+        
+        .superadmin-sidebar .sidebar-menu li a.active i {
+            color: #ffc107;
+        }
+
+        /* Glassmorphism scrollbar for the sidebar */
+        .superadmin-sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .superadmin-sidebar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .superadmin-sidebar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+        .superadmin-sidebar::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
 </head>

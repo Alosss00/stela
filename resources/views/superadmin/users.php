@@ -84,24 +84,52 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 
 <style>
     .um-dashboard { font-family: 'Inter', sans-serif; padding: 20px 0; }
-    .um-card { background: #fff; border: none; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
-    .um-card-header { background: transparent; border-bottom: 1px solid #f0f2f5; padding: 18px 24px; font-weight: 600; }
-    .table-modern { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
-    .table-modern th { border: none; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.8rem; padding: 10px 15px; }
-    .table-modern td { background: #f8fafc; padding: 12px 15px; border: none; vertical-align: middle; }
-    .table-modern td:first-child { border-radius: 8px 0 0 8px; }
-    .table-modern td:last-child { border-radius: 0 8px 8px 0; }
+    .um-card { 
+        background: #fff; border: none; border-radius: 16px; 
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03); 
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    .um-card-header { background: transparent; border-bottom: 1px solid #f1f5f9; padding: 20px 24px; font-weight: 600; }
     
-    .badge-modern { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
-    .badge-success { background: #dcfce7; color: #166534; }
-    .badge-danger { background: #fee2e2; color: #991b1b; }
-    .badge-role { background: #e0f2fe; color: #075985; }
+    .table-modern { width: 100%; border-collapse: separate; border-spacing: 0 8px; }
+    .table-modern th { border: none; color: #64748b; font-weight: 600; text-transform: uppercase; font-size: 0.75rem; padding: 12px 15px; letter-spacing: 0.5px; }
+    .table-modern td { background: #f8fafc; padding: 15px; border: none; vertical-align: middle; transition: all 0.2s ease; }
+    .table-modern td:first-child { border-radius: 12px 0 0 12px; }
+    .table-modern td:last-child { border-radius: 0 12px 12px 0; }
+    
+    /* Row hover effect */
+    .table-modern tbody tr { transition: transform 0.2s ease; }
+    .table-modern tbody tr:hover td { background: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); transform: translateY(-2px); z-index: 10; position: relative; }
+    .table-modern tbody tr:hover td:first-child { border-left: 3px solid #3b82f6; }
+    
+    .badge-modern { padding: 6px 14px; border-radius: 30px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.3px; }
+    .badge-success { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #166534; }
+    .badge-danger { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #991b1b; }
+    .badge-role { background: linear-gradient(135deg, #e0f2fe, #bae6fd); color: #075985; }
 
-    .action-btn { background: transparent; border: none; color: #64748b; padding: 5px 8px; border-radius: 6px; transition: 0.2s; }
-    .action-btn:hover { background: #e2e8f0; color: #0f172a; }
-    .action-btn.edit:hover { color: #2563eb; background: #dbeafe; }
-    .action-btn.delete:hover { color: #dc2626; background: #fee2e2; }
-    .action-btn.key:hover { color: #d97706; background: #fef3c7; }
+    .action-btn { 
+        background: transparent; border: none; color: #94a3b8; padding: 8px; 
+        border-radius: 8px; transition: all 0.2s ease; 
+        display: inline-flex; align-items: center; justify-content: center;
+        width: 32px; height: 32px;
+    }
+    .action-btn:hover { transform: scale(1.1); }
+    .action-btn.edit:hover { color: #2563eb; background: #dbeafe; box-shadow: 0 2px 8px rgba(37,99,235,0.2); }
+    .action-btn.delete:hover { color: #dc2626; background: #fee2e2; box-shadow: 0 2px 8px rgba(220,38,38,0.2); }
+    .action-btn.key:hover { color: #d97706; background: #fef3c7; box-shadow: 0 2px 8px rgba(217,119,6,0.2); }
+
+    /* Button Animations */
+    .btn-primary.rounded-pill {
+        background: linear-gradient(135deg, #3b82f6, #2563eb);
+        border: none;
+        box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        transition: all 0.3s ease;
+    }
+    .btn-primary.rounded-pill:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(37, 99, 235, 0.4);
+    }
+
 </style>
 
 <div class="container-fluid um-dashboard">
