@@ -43,43 +43,42 @@ class Database {
     }
     
     public function query($sql, $params = [], $types = "") {
-        try {
-            if (!empty($params)) {
-                $stmt = $this->conn->prepare($sql);
-                if (!$stmt) {
-                    error_log("Prepare failed: " . $this->conn->error);
-                    return false;
-                }
-                
-                if (empty($types)) {
-                    $types = str_repeat('s', count($params));
-                }
-                
-                // Bind parameters by reference to avoid PHP Warnings with spread operator
-                $bindParams = [$types];
-                foreach ($params as $key => $val) {
-                    $bindParams[] = &$params[$key];
-                }
-                call_user_func_array([$stmt, 'bind_param'], $bindParams);
-                
-                if (!$stmt->execute()) {
-                    error_log("Execute failed: " . $stmt->error);
-                    return false;
-                }
-                
-                $result = $stmt->get_result();
-                // If the query doesn't produce a result set (e.g., INSERT/UPDATE), get_result returns false
-                // but errno will be 0 if execute was successful.
-                if ($result === false && $stmt->errno === 0) {
-                    return true;
-                }
-                return $result;
-            } else {
-                return $this->conn->query($sql);
+        if (!empty($params)) {
+            $stmt = $this->conn->prepare($sql);
+            if (!$stmt) {
+                throw new Exception("Prepare failed: " . $this->conn->error . " | SQL: " . $sql);
             }
-        } catch (Exception $e) {
-            error_log("Database Exception: " . $e->getMessage());
-            return false;
+            
+            if (empty($types)) {
+                $types = str_repeat('s', count($params));
+            }
+            
+            $bindParams = [$types];
+            foreach ($params as $key => $val) {
+                $bindParams[] = &$params[$key];
+            }
+            if (!call_user_func_array([$stmt, 'bind_param'], $bindParams)) {
+                throw new Exception("Bind param failed: " . $stmt->error);
+            }
+            
+            if (!$stmt->execute()) {
+                throw new Exception("Execute failed: " . $stmt->error . " | SQL: " . $sql);
+            }
+            
+            $result = $stmt->get_result();
+            if ($result === false && $stmt->errno === 0) {
+                return true;
+            }
+            if ($result === false) {
+                 throw new Exception("Get result failed: " . $stmt->error);
+            }
+            return $result;
+        } else {
+            $result = $this->conn->query($sql);
+            if ($result === false) {
+                throw new Exception("Query failed: " . $this->conn->error . " | SQL: " . $sql);
+            }
+            return $result;
         }
     }
     
