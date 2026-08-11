@@ -2,7 +2,11 @@
 $page_title = 'Detail Employee';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
-require_once dirname(__DIR__) . '/layouts/header.php';
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
+    require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
+} else {
+    require_once dirname(__DIR__) . '/layouts/header.php';
+}
 
 // Only allowed users can access this page
 requirePermission('employee.view');
@@ -131,14 +135,19 @@ if (!$employee) {
                 <p style="margin-bottom: 25px; line-height: 1.6; font-size: 16px;">
                     Data karyawan tidak ditemukan atau Anda <strong>tidak memiliki hak akses</strong> untuk melihat data karyawan dari perusahaan lain.
                 </p>
-                <a href="employees.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;">
+                <?php $backLink = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/pages/superadmin/monitoring_employees.php' : 'employees.php'; ?>
+                <a href="<?php echo $backLink; ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;">
                     <i class="fas fa-arrow-left"></i> Kembali ke Daftar Karyawan
                 </a>
             </div>
         </div>
     </div>
     <?php
-    require_once dirname(__DIR__) . '/layouts/footer.php';
+    if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
+        require_once dirname(__DIR__) . '/layouts/superadmin_footer.php';
+    } else {
+        require_once dirname(__DIR__) . '/layouts/footer.php';
+    }
     exit();
 }
 
@@ -395,9 +404,8 @@ $competency_type_labels = [
     </div>
     
     <div class="action-buttons">
-        <a href="employees.php" class="btn btn-secondary">
-            <i class="fas fa-arrow-left"></i> <span data-lang="back">Back</span>
-        </a>
+        <?php $backLink2 = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/pages/superadmin/monitoring_employees.php' : 'employees.php'; ?>
+        <a href="<?php echo $backLink2; ?>" class="btn btn-secondary mb-3"><i class="fas fa-arrow-left"></i> <span data-lang="back">Back</span></a>
     </div>
 </div>
 
@@ -534,4 +542,10 @@ function toggleExpiryField(checkboxElement) {
 }
 </script>
 
-<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
+<?php 
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
+    require_once dirname(__DIR__) . '/layouts/superadmin_footer.php';
+} else {
+    require_once dirname(__DIR__) . '/layouts/footer.php';
+}
+?>
