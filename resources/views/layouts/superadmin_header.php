@@ -180,14 +180,14 @@ $current_page = get_current_page();
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Access Control</li>
                 <?php if(hasPermission('user.view')): ?>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/superadmin/users.php" class="<?php echo $current_page == 'users.php' ? 'active' : ''; ?>">
+                    <a href="<?php echo BASE_URL; ?>pages/superadmin/users.php" class="<?php echo $current_page == 'users.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users-cog"></i> <span>User Management</span>
                     </a>
                 </li>
                 <?php endif; ?>
                 <?php if(hasPermission('role.view')): ?>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/superadmin/roles_permissions.php" class="<?php echo $current_page == 'roles_permissions.php' ? 'active' : ''; ?>">
+                    <a href="<?php echo BASE_URL; ?>pages/superadmin/roles_permissions.php" class="<?php echo $current_page == 'roles_permissions.php' ? 'active' : ''; ?>">
                         <i class="fas fa-user-shield"></i> <span>Role & Permissions</span>
                     </a>
                 </li>
@@ -198,21 +198,21 @@ $current_page = get_current_page();
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Monitoring Center</li>
                 <?php if(hasPermission('employee.view') || hasPermission('monitoring.view')): ?>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_employees.php" class="<?php echo $current_page == 'monitoring_employees.php' || $current_page == 'monitoring_employee_detail.php' ? 'active' : ''; ?>">
+                    <a href="<?php echo BASE_URL; ?>pages/superadmin/monitoring_employees.php" class="<?php echo $current_page == 'monitoring_employees.php' || $current_page == 'monitoring_employee_detail.php' ? 'active' : ''; ?>">
                         <i class="fas fa-users-viewfinder"></i> <span>Employee Monitoring</span>
                     </a>
                 </li>
                 <?php endif; ?>
                 <?php if(hasPermission('appointment.view') || hasPermission('monitoring.view')): ?>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_appointments.php" class="<?php echo $current_page == 'monitoring_appointments.php' || $current_page == 'monitoring_appointment_detail.php' ? 'active' : ''; ?>">
+                    <a href="<?php echo BASE_URL; ?>pages/superadmin/monitoring_appointments.php" class="<?php echo $current_page == 'monitoring_appointments.php' || $current_page == 'monitoring_appointment_detail.php' ? 'active' : ''; ?>">
                         <i class="fas fa-file-signature"></i> <span>Appointment Monitoring</span>
                     </a>
                 </li>
                 <?php endif; ?>
                 <?php if(hasPermission('certificate.view') || hasPermission('monitoring.view')): ?>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_certificates.php" class="<?php echo $current_page == 'monitoring_certificates.php' ? 'active' : ''; ?>">
+                    <a href="<?php echo BASE_URL; ?>pages/superadmin/monitoring_certificates.php" class="<?php echo $current_page == 'monitoring_certificates.php' ? 'active' : ''; ?>">
                         <i class="fas fa-certificate"></i> <span>Certificate Monitoring</span>
                     </a>
                 </li>
@@ -222,7 +222,7 @@ $current_page = get_current_page();
                 <?php if(hasPermission('settings.view')): ?>
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">System Maintenance</li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/superadmin/settings.php" class="<?php echo $current_page == 'settings.php' ? 'active' : ''; ?>">
+                    <a href="<?php echo BASE_URL; ?>pages/superadmin/settings.php" class="<?php echo $current_page == 'settings.php' ? 'active' : ''; ?>">
                         <i class="fas fa-cogs"></i> <span>System Settings</span>
                     </a>
                 </li>
