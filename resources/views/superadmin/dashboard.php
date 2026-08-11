@@ -27,7 +27,7 @@ $recentAppointments = $helper->getRecentAppointments(7);
 $certAlerts = $helper->getCertificateExpirationAlerts(10);
 $recentActivity = $helper->getRecentActivity(8);
 
-require_once dirname(__DIR__) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 ?>
 
 <style>

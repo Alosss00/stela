@@ -79,7 +79,7 @@ $availableRoles = $helper->getAvailableRoles();
 $availableCompanies = $helper->getUniqueCompanies();
 $availableDepartments = $helper->getUniqueDepartments();
 
-require_once dirname(__DIR__) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 ?>
 
 <style>
