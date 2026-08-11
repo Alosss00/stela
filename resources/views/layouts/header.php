@@ -58,15 +58,9 @@ $current_page = get_current_page();
             border: none !important;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
             border-radius: 16px !important;
-            padding: 12px !important;
-            width: 340px !important;
-            box-sizing: border-box !important;
+            padding: 15px !important;
+            box-sizing: content-box !important;
             font-family: inherit !important;
-        }
-        .flatpickr-days, .flatpickr-innerContainer, .flatpickr-rContainer, .dayContainer {
-            width: 100% !important;
-            min-width: 100% !important;
-            max-width: 100% !important;
         }
         .flatpickr-months .flatpickr-month {
             background: transparent !important;
