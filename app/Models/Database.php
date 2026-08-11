@@ -46,21 +46,39 @@ class Database {
         try {
             if (!empty($params)) {
                 $stmt = $this->conn->prepare($sql);
-                if (!$stmt) return false;
-                
-                if (!empty($types)) {
-                    $stmt->bind_param($types, ...$params);
-                } else {
-                    $types = str_repeat('s', count($params));
-                    $stmt->bind_param($types, ...$params);
+                if (!$stmt) {
+                    error_log("Prepare failed: " . $this->conn->error);
+                    return false;
                 }
                 
-                $stmt->execute();
-                return $stmt->get_result();
+                if (empty($types)) {
+                    $types = str_repeat('s', count($params));
+                }
+                
+                // Bind parameters by reference to avoid PHP Warnings with spread operator
+                $bindParams = [$types];
+                foreach ($params as $key => $val) {
+                    $bindParams[] = &$params[$key];
+                }
+                call_user_func_array([$stmt, 'bind_param'], $bindParams);
+                
+                if (!$stmt->execute()) {
+                    error_log("Execute failed: " . $stmt->error);
+                    return false;
+                }
+                
+                $result = $stmt->get_result();
+                // If the query doesn't produce a result set (e.g., INSERT/UPDATE), get_result returns false
+                // but errno will be 0 if execute was successful.
+                if ($result === false && $stmt->errno === 0) {
+                    return true;
+                }
+                return $result;
             } else {
                 return $this->conn->query($sql);
             }
         } catch (Exception $e) {
+            error_log("Database Exception: " . $e->getMessage());
             return false;
         }
     }
