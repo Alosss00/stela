@@ -51,6 +51,63 @@ $current_page = get_current_page();
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.8/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.5.0/css/responsive.bootstrap5.min.css">
     <link rel="stylesheet" href="<?php echo BASE_URL; ?>/assets/css/datatable-custom.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        /* Custom Flatpickr Theme - Cally DaisyUI Style */
+        .flatpickr-calendar {
+            border: none !important;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05) !important;
+            border-radius: 16px !important;
+            padding: 10px !important;
+            font-family: inherit !important;
+        }
+        .flatpickr-months .flatpickr-month {
+            background: transparent !important;
+            color: #1f2937 !important;
+            height: 40px !important;
+        }
+        .flatpickr-months .flatpickr-prev-month, .flatpickr-months .flatpickr-next-month {
+            fill: #1f2937 !important;
+            padding: 10px !important;
+        }
+        .flatpickr-months .flatpickr-prev-month:hover, .flatpickr-months .flatpickr-next-month:hover {
+            fill: #503cf3 !important;
+        }
+        .flatpickr-current-month .flatpickr-monthDropdown-months {
+            font-weight: 700 !important;
+            font-size: 1.1rem !important;
+        }
+        .flatpickr-current-month .numInputWrapper {
+            font-weight: 700 !important;
+            font-size: 1.1rem !important;
+        }
+        span.flatpickr-weekday {
+            color: #9ca3af !important;
+            font-weight: 600 !important;
+            font-size: 0.9rem !important;
+        }
+        .flatpickr-day {
+            border-radius: 8px !important;
+            color: #374151 !important;
+            font-weight: 500 !important;
+            margin: 2px !important;
+        }
+        .flatpickr-day.selected, .flatpickr-day.startRange, .flatpickr-day.endRange, .flatpickr-day.selected.inRange, .flatpickr-day.startRange.inRange, .flatpickr-day.endRange.inRange, .flatpickr-day.selected:focus, .flatpickr-day.startRange:focus, .flatpickr-day.endRange:focus, .flatpickr-day.selected:hover, .flatpickr-day.startRange:hover, .flatpickr-day.endRange:hover, .flatpickr-day.selected.prevMonthDay, .flatpickr-day.startRange.prevMonthDay, .flatpickr-day.endRange.prevMonthDay, .flatpickr-day.selected.nextMonthDay, .flatpickr-day.startRange.nextMonthDay, .flatpickr-day.endRange.nextMonthDay {
+            background: #503cf3 !important;
+            border-color: #503cf3 !important;
+            color: #fff !important;
+        }
+        .flatpickr-day:hover {
+            background: #f3f4f6 !important;
+            border-color: #f3f4f6 !important;
+        }
+        .flatpickr-day.today {
+            border-color: #e5e7eb !important;
+        }
+        .flatpickr-innerContainer {
+            margin-top: 10px;
+        }
+    </style>
 
 </head>
 <body>

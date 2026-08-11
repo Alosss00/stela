@@ -43,6 +43,17 @@
     <script src="https://cdn.datatables.net/responsive/2.5.0/js/responsive.bootstrap5.min.js"></script>
 
     <script src="<?php echo BASE_URL; ?>/assets/js/datatable-init.js?v=<?php echo time(); ?>"></script>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Initialize flatpickr on all date inputs
+            flatpickr("input[type='date']", {
+                dateFormat: "Y-m-d",
+                disableMobile: true, // Prevents mobile from using native date picker, forcing the custom UI
+                allowInput: true
+            });
+        });
+    </script>
 </body>
 </html>
 
