@@ -113,16 +113,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         ];
                         
                         // Map ruang_lingkup to code
-                        $scope_code = 'UNK';
-                        if (stripos($ruang_lingkup, 'MSM') !== false && stripos($ruang_lingkup, 'TTN') !== false) {
+                        $scope_code = 'TEST';
+                        $is_msm = (stripos($ruang_lingkup, 'MSM') !== false || stripos($ruang_lingkup, 'Meares Soputan Mining') !== false);
+                        $is_ttn = (stripos($ruang_lingkup, 'TTN') !== false || stripos($ruang_lingkup, 'Tambang Tondano Nusajaya') !== false);
+                        
+                        if ($is_msm && $is_ttn) {
                             $scope_code = 'MSM/TTN';
-                        } elseif (stripos($ruang_lingkup, 'MSM') !== false) {
+                        } elseif ($is_msm) {
                             $scope_code = 'MSM';
-                        } elseif (stripos($ruang_lingkup, 'TTN') !== false) {
+                        } elseif ($is_ttn) {
                             $scope_code = 'TTN';
                         }
                         
-                        $type_code = $type_codes[$competency_type] ?? 'UNK';
+                        $comp_normalized = strtolower(str_replace(' ', '_', trim($competency_type)));
+                        $type_code = $type_codes[$comp_normalized] ?? 'TEST';
                         
                         // Get month and year - WITH LEADING ZERO
                         $month = date('m'); // 01-12 with leading zero
