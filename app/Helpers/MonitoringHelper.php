@@ -12,7 +12,7 @@ class MonitoringHelper {
         if (file_exists(dirname(__DIR__) . '/Services/ElasticsearchService.php')) {
             require_once dirname(__DIR__) . '/Services/ElasticsearchService.php';
             if (class_exists('ElasticsearchService')) {
-                $this->es = new ElasticsearchService();
+                $this->es = ElasticsearchService::getInstance();
             }
         }
     }
