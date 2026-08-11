@@ -6,7 +6,60 @@ require_once dirname(__DIR__, 3) . '/app/Helpers/MonitoringHelper.php';
 
 checkPageAccess(['superadmin']);
 
+if (empty($_SESSION['csrf_token'])) {
+    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
 $db = new Database();
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'submit') {
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request');
+        exit;
+    }
+    
+    $id = intval($_POST['id']);
+    
+    $appt = $db->query("SELECT requires_ktt_msm_review, requires_ktt_ttn_review, ktt_msm_status, ktt_ttn_status, status FROM appointments WHERE id = $id")->fetch_assoc();
+    $is_resubmit = ($appt['requires_ktt_msm_review'] == 1 || $appt['requires_ktt_ttn_review'] == 1);
+
+    if ($is_resubmit) {
+        $update_parts = ["status = 'pending'"];
+        if ($appt['requires_ktt_msm_review'] == 1) {
+            $update_parts[] = "ktt_msm_status = 'pending'";
+            $update_parts[] = "ktt1_approved_by = NULL";
+            $update_parts[] = "ktt1_approved_date = NULL";
+        }
+        if ($appt['requires_ktt_ttn_review'] == 1) {
+            $update_parts[] = "ktt_ttn_status = 'pending'";
+            $update_parts[] = "ktt2_approved_by = NULL";
+            $update_parts[] = "ktt2_approved_date = NULL";
+        }
+        $sql = "UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $id";
+    } else {
+        $sql = "UPDATE appointments SET status = 'pending', requires_ktt_msm_review = 1, requires_ktt_ttn_review = 1, ktt_msm_status = 'pending', ktt_ttn_status = 'pending' WHERE id = $id";
+    }
+
+    if ($db->query($sql)) {
+        if ($is_resubmit) {
+            if ($appt['requires_ktt_msm_review'] == 1) $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 7");
+            if ($appt['requires_ktt_ttn_review'] == 1) $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 8");
+        } else {
+            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id");
+        }
+
+        try {
+            $notifService = new NotificationService();
+            $notifService->notifyKttForApproval($id, !$is_resubmit || $appt['requires_ktt_msm_review'] == 1, !$is_resubmit || $appt['requires_ktt_ttn_review'] == 1);
+        } catch (Exception $e) {}
+
+        $_SESSION['success_message'] = 'Appointment successfully submitted to KTT for approval.';
+    } else {
+        $_SESSION['error_message'] = 'Failed to submit appointment.';
+    }
+    header("Location: " . BASE_URL . "/pages/superadmin/monitoring_appointments.php");
+    exit();
+}
 $monitoring = new MonitoringHelper($db);
 
 // Pagination
@@ -87,6 +140,19 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
             <p class="text-muted mb-0">Track all employee working appointments (STELA) across the site</p>
         </div>
     </div>
+
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i><?php echo $_SESSION['success_message']; unset($_SESSION['success_message']); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
+    <?php if (isset($_SESSION['error_message'])): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-triangle me-2"></i><?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
     <!-- Stats Row -->
     <div class="row g-4 mb-4">
@@ -213,7 +279,17 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                         ?>
                                     </td>
                                     <td class="text-end">
-                                        <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_appointment_detail.php?id=<?php echo $appt['id']; ?>" class="action-btn" title="View Detail">
+                                        <?php if ($s === 'draft'): ?>
+                                        <form method="POST" style="display:inline;">
+                                            <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
+                                            <input type="hidden" name="action" value="submit">
+                                            <input type="hidden" name="id" value="<?php echo $appt['id']; ?>">
+                                            <button type="submit" class="action-btn text-primary border-0 bg-transparent" onclick="return confirm('Submit this appointment letter to KTT for approval?')" title="Submit to KTT">
+                                                <i class="fas fa-paper-plane"></i> Submit
+                                            </button>
+                                        </form>
+                                        <?php endif; ?>
+                                        <a href="<?php echo BASE_URL; ?>/pages/superadmin/monitoring_appointment_detail.php?id=<?php echo $appt['id']; ?>" class="action-btn" title="View Detail">
                                             <i class="fas fa-eye"></i> View
                                         </a>
                                     </td>
