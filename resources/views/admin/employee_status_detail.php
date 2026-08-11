@@ -70,7 +70,7 @@ if (!function_exists('getKttType')) {
             <div class="employee-avatar">
                 <?php echo strtoupper(substr($employee['full_name'], 0, 1)); ?>
             </div>
-            <div class="employee-header-info">
+            <div class="employee-header-info" style="color: #495057;">
                 <h2><?php echo htmlspecialchars($employee['full_name']); ?></h2>
                 <p><i class="fas fa-id-badge"></i> ID Badge: <?php echo htmlspecialchars($employee['employee_code']); ?></p>
                 <p><i class="fas fa-briefcase"></i> <?php echo htmlspecialchars($employee['position'] ?? '-'); ?></p>
