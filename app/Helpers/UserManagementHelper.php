@@ -60,7 +60,7 @@ class UserManagementHelper {
         $stmtCount->close();
 
         // Get data
-        $query = "SELECT id, username, full_name, email, company_name, department, role, is_active, last_login, created_at, updated_at 
+        $query = "SELECT id, username, full_name, email, company_name, department, role, is_active, created_at, updated_at 
                   FROM users 
                   WHERE $whereClause 
                   ORDER BY created_at DESC 
