@@ -356,11 +356,9 @@ AND a.status='approved'
                                     </button>
                                     <?php else: ?>
                                         <a href="employee_status_detail.php?id=<?= $row['id']; ?>"
-                                        class="btn-action-emp detail-btn">
-
+                                        class="btn btn-secondary btn-sm detail-btn">
                                             <i class="fas fa-eye"></i>
                                             Detail
-
                                         </a>
 
                                         <?php endif; ?>
@@ -425,7 +423,7 @@ AND a.status='approved'
                                                 <i class="fas fa-user-times"></i> Resign
                                              </button>`;
                             } else {
-                                actionBtn = `<a href="employee_status_detail.php?id=${item.id}" class="btn-action-emp detail-btn">
+                                actionBtn = `<a href="employee_status_detail.php?id=${item.id}" class="btn btn-secondary btn-sm detail-btn">
                                                 <i class="fas fa-eye"></i> Detail
                                              </a>`;
                             }

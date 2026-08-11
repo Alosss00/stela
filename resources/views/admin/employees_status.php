@@ -307,11 +307,9 @@ WHERE e.is_active=0 AND a.status='approved'
                                     </button>
                                     <?php else: ?>
                                         <a href="employee_status_detail.php?id=<?= $row['id']; ?>"
-                                        class="btn-action-emp detail-btn">
-
+                                        class="btn btn-secondary btn-sm detail-btn">
                                             <i class="fas fa-eye"></i>
                                             Detail
-
                                         </a>
 
                                         <?php endif; ?>
