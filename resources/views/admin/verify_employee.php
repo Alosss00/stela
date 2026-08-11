@@ -482,12 +482,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     } catch (Exception $e) {
                         error_log("Notification error (admin accepted): " . $e->getMessage());
                     }
+                    $appt_redirect = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/pages/superadmin/monitoring_appointments.php' : 'appointments.php';
                     if ($appointment_id) {
-                        header("Location: appointments.php?highlight=" . $appointment_id);
+                        header("Location: " . $appt_redirect . "?highlight=" . $appointment_id);
                         exit();
                     } else {
                         // Fallback jika appointment_id tidak ada
-                        header("Location: appointments.php");
+                        header("Location: " . $appt_redirect);
                         exit();
                     }
                 } else {
