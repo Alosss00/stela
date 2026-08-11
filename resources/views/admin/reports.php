@@ -244,7 +244,7 @@ if ($rejected_appointments && $rejected_appointments->num_rows > 0) {
     $rejected_appointments->data_seek(0);
 }
 
-// Get employees with certificates expiring in 2 months or less
+// Get employees with certificates expiring
 $expiring_certs = $db->query("
     SELECT 
         e.id as employee_id,
@@ -264,8 +264,14 @@ $expiring_certs = $db->query("
     LEFT JOIN certifications c ON ec.certification_id = c.id
     WHERE ec.expiry_date IS NOT NULL
     AND ec.verification_status = 'verified'
-    AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 2 MONTH)
+    AND ec.expiry_date < CURDATE()
     AND e.is_active = 1
+    AND NOT EXISTS (
+        SELECT 1 FROM employee_certifications ec2 
+        WHERE ec2.employee_id = ec.employee_id 
+        AND ec2.certification_id = ec.certification_id 
+        AND ec2.id > ec.id
+    )
     ORDER BY ec.expiry_date ASC, e.contractor_company, e.full_name
 ");
 
@@ -407,7 +413,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
             <?php endif; ?>
             <?php if ($expiring_certs && $expiring_certs->num_rows > 0): ?>
             <a href="#certificate-expiration" class="quick-nav-btn nav-warning" onclick="return jumpToReportSection('certificate-expiration', 'expiringCertsTable', null, event)">
-                <i class="fas fa-exclamation-triangle"></i> Sertifikat Kedaluwarsa
+                <i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Sertifikat Kedaluwarsa</span>
                 <span class="nav-badge"><?php echo $expiring_certs_count; ?></span>
             </a>
             <?php endif; ?>
@@ -1219,9 +1225,14 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active
     <div class="card-report" id="certificate-expiration">
         <div class="card-header-report">
             <div class="card-hd-left">
-                <h3> Sertifikat Kedaluwarsa (<= 2 Bulan)</h3>
+                <h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Expired Certificates</span></h3>
                 <span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span>
             </div>
+        </div>
+
+        <div class="alert-warning-report">
+            <i class="fas fa-info-circle"></i>
+            <span data-lang="expired-certs-renew-immediately">The following is a list of employees with expired certificates. Please renew certificates immediately.</span>
         </div>
 
         <!-- Filter by Company -->
@@ -2010,7 +2021,6 @@ function exportToExcel(tableId, filename) {
     xl += `<tr><td colspan="${cols}">${schema.title}</td></tr>`;
     xl += `<tr><td colspan="${cols}">Export Date: ${new Date().toLocaleDateString('id-ID')} ${new Date().toLocaleTimeString('id-ID')}</td></tr>`;
     if (filterLabel) xl += `<tr><td colspan="${cols}">Filter: ${filterLabel}</td></tr>`;
-    xl += `<tr><td colspan="${cols}">Total: ${rows.length} rows</td></tr>`;
     xl += `<tr><td colspan="${cols}"></td></tr>`;
     xl += '<tr>' + schema.headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
 

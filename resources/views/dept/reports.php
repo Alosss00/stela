@@ -78,7 +78,23 @@ $rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
 $total_processed = $approved_total + $rejected_total;
 
 // Get request data for user's department
-$accepted_requests = $db->query("\n    SELECT e.*, e.created_at as request_date, e.updated_at as verification_date, u.full_name as verified_by_name\n    FROM employees e\n    LEFT JOIN users u ON e.verified_by = u.id\n    WHERE e.verification_status = 'verified' AND e.department = '" . $db->escapeString($department) . "'\n    ORDER BY e.updated_at DESC\n");
+$dept_filter = "e.department = '" . $db->escapeString($department) . "'";
+$accepted_requests = $db->query("
+    SELECT ec.*, e.full_name, e.employee_code, cert.cert_name, DATEDIFF(CURDATE(), ec.expiry_date) as days_expired
+    FROM employee_certifications ec
+    JOIN employees e ON ec.employee_id = e.id
+    JOIN certifications cert ON ec.certification_id = cert.id
+    WHERE ec.expiry_date IS NOT NULL
+    AND ec.expiry_date < CURDATE()
+    AND e.is_active = 1
+    AND $dept_filter
+    AND NOT EXISTS (
+        SELECT 1 FROM employee_certifications ec2 
+        WHERE ec2.employee_id = ec.employee_id 
+        AND ec2.certification_id = ec.certification_id 
+        AND ec2.id > ec.id
+    )
+    ORDER BY ec.expiry_date ASC, e.full_name");
 
 $rejected_requests = $db->query("\n    SELECT e.*, e.created_at as request_date, e.updated_at as verification_date, u.full_name as verified_by_name\n    FROM employees e\n    LEFT JOIN users u ON e.verified_by = u.id\n    WHERE e.verification_status = 'rejected' AND e.department = '" . $db->escapeString($department) . "'\n    ORDER BY e.updated_at DESC\n");
 
@@ -217,11 +233,6 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
                         <tr>
                             <th class="col-employee" data-lang="employee">Employee</th>
                             <th class="col-code" data-lang="employee-code">Code</th>
-                </div>
-                <div class="table-info-report" id="approvedTableInfo"><span data-lang="showing-all-data">Showing all data</span></div>
-            </div>
-            <div class="table-info-report" id="approvedTableInfo"><span data-lang="showing-all-data">Showing all data</span></div>
-        </div>
                             <th class="col-request-date" data-lang="request-date">Request Date</th>
                             <th class="col-status" data-lang="status">Status</th>
                             <th class="col-verified-date" data-lang="verification-date">Verification Date</th>
@@ -304,8 +315,8 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
 
     <?php if ($expiring_certs && $expiring_certs->num_rows > 0): ?>
     <div class="card-report" id="certificate-expiration">
-        <div class="card-header-report"><div style="display: flex; align-items: center; gap: 10px; flex: 1;"><h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="certificate-expiration-2-months">Certificate Expiration (=2 Months)</span></h3><span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span></div><button class="btn btn-export-small" onclick="exportExpiringCertsToExcel()"><i class="fas fa-file-excel"></i> <span data-lang="export-to-excel">Export to Excel</span></button></div>
-        <div class="alert-warning-report"><i class="fas fa-info-circle"></i><span data-lang="expiring-certs-renew-immediately">The following is a list of employees with certificates expiring within =2 months. Please renew certificates immediately.</span></div>
+        <div class="card-header-report"><div style="display: flex; align-items: center; gap: 10px; flex: 1;"><h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Expired Certificates</span></h3><span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span></div><button class="btn btn-export-small" onclick="exportExpiringCertsToExcel()"><i class="fas fa-file-excel"></i> <span data-lang="export-to-excel">Export to Excel</span></button></div>
+        <div class="alert-warning-report"><i class="fas fa-info-circle"></i><span data-lang="expired-certs-renew-immediately">The following is a list of employees with expired certificates. Please renew certificates immediately.</span></div>
         <div class="card-body-report"><div class="table-responsive"><table class="table-report table-expiring" style="width: 100%; min-width: 950px;" id="expiringCertsTable"><thead><tr><th class="col-employee" data-lang="employee">Employee</th><th class="col-cert-name" data-lang="certificate-name">Certificate Name</th><th class="col-cert-number" data-lang="certificate-number">Certificate Number</th><th class="col-expiry-date" data-lang="expiry-date">Expiry Date</th><th class="col-days-left" data-lang="days-left">Days Left</th><th class="col-status-expiry" data-lang="status">Status</th></tr></thead><tbody><?php $expiring_certs->data_seek(0); while ($cert = $expiring_certs->fetch_assoc()): ?><tr class="detail-row expiring-row"><td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><span class="emp-code-detail"><?php echo htmlspecialchars($cert['employee_code']); ?></span></div></td><td class="col-cert-name"><span class="cert-name-badge"><?php echo htmlspecialchars($cert['cert_name'] ?: 'N/A'); ?></span></td><td class="col-cert-number"><?php echo htmlspecialchars($cert['cert_number'] ?: 'N/A'); ?></td><td class="col-expiry-date"><?php echo !empty($cert['expiry_date']) ? date('d/m/Y', strtotime($cert['expiry_date'])) : 'N/A'; ?></td><td class="col-days-left"><span class="days-badge <?php echo ($cert['days_until_expiry'] <= 30) ? 'days-critical' : (($cert['days_until_expiry'] <= 60) ? 'days-urgent' : 'days-warning'); ?>"><?php echo (int)$cert['days_until_expiry']; ?> days</span></td><td class="col-status-expiry"><span class="status-badge <?php echo ($cert['days_until_expiry'] <= 30) ? 'status-critical' : (($cert['days_until_expiry'] <= 60) ? 'status-urgent' : 'status-warning'); ?>"><?php echo ($cert['days_until_expiry'] <= 30) ? 'Critical' : (($cert['days_until_expiry'] <= 60) ? 'Urgent' : 'Warning'); ?></span></td></tr><?php endwhile; ?></tbody></table></div></div>
     </div>
     <?php endif; ?>

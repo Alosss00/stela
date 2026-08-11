@@ -132,9 +132,15 @@ $expiring_certs = $db->query("
     LEFT JOIN certifications c ON ec.certification_id = c.id
     WHERE ec.expiry_date IS NOT NULL
     AND ec.verification_status = 'verified'
-    AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 2 MONTH)
+    AND ec.expiry_date < CURDATE()
     AND e.is_active = 1
     AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    AND NOT EXISTS (
+        SELECT 1 FROM employee_certifications ec2 
+        WHERE ec2.employee_id = ec.employee_id 
+        AND ec2.certification_id = ec.certification_id 
+        AND ec2.id > ec.id
+    )
     ORDER BY ec.expiry_date ASC, e.full_name
 ");
 
@@ -584,7 +590,7 @@ $work_scopes = $db->query("
     <div class="card-report" id="certificate-expiration">
         <div class="card-header-report">
             <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-                <h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="certificate-expiration-2-months">Certificate Expiration (=2 Months)</span></h3>
+                <h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Expired Certificates</span></h3>
                 <span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span>
             </div>
             <button class="btn btn-export-small" onclick="exportExpiringCertsToExcel()">
@@ -594,7 +600,7 @@ $work_scopes = $db->query("
         
         <div class="alert-warning-report">
             <i class="fas fa-info-circle"></i>
-            <span data-lang="expiring-certs-renew-immediately">The following is a list of employees with certificates expiring within =2 months. Please renew certificates immediately.</span>
+            <span data-lang="expired-certs-renew-immediately">The following is a list of employees with expired certificates. Please renew certificates immediately.</span>
         </div>
         
         <div class="card-body-report">
@@ -1400,7 +1406,7 @@ function exportExpiringCertsToExcel() {
     excelContent += '</x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body>';
 
     // Add title and info
-    excelContent += '<table><tr><td colspan="7"><h2>Certificate Expiration Report (=2 Months)</h2></td></tr>';
+    excelContent += '<table><tr><td colspan="7"><h2>Expired Certificates Report</h2></td></tr>';
     excelContent += '<tr><td colspan="7">Company: ' + companyName + '</td></tr>';
     excelContent += '<tr><td colspan="7">Export Date: ' + new Date().toLocaleDateString('en-US') + ' ' + new Date().toLocaleTimeString('en-US') + '</td></tr>';
     excelContent += '<tr><td colspan="7">Total Expiring Certificates: ' + filteredRows.length + '</td></tr>';
