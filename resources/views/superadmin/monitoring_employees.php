@@ -214,7 +214,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                             <i class="fas fa-user-check"></i> Verify
                                         </a>
                                         <?php endif; ?>
-                                        <a href="<?php echo BASE_URL; ?>/superadmin/monitoring_employee_detail.php?id=<?php echo $emp['id'] ?? 0; ?>" class="action-btn" title="View 360° Profile">
+                                        <a href="<?php echo BASE_URL; ?>/pages/superadmin/monitoring_employee_detail.php?id=<?php echo $emp['id'] ?? 0; ?>" class="action-btn" title="View 360° Profile">
                                             <i class="fas fa-eye"></i> View
                                         </a>
                                     </td>
