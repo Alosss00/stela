@@ -104,6 +104,9 @@ $current_page = get_current_page();
         .flatpickr-day.today {
             border-color: #e5e7eb !important;
         }
+        .flatpickr-day.prevMonthDay, .flatpickr-day.nextMonthDay {
+            opacity: 0.5 !important;
+        }
         .flatpickr-innerContainer {
             margin-top: 10px;
         }
