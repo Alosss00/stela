@@ -42,9 +42,24 @@ class Database {
         return $this->conn;
     }
     
-    public function query($sql) {
+    public function query($sql, $params = [], $types = "") {
         try {
-            return $this->conn->query($sql);
+            if (!empty($params)) {
+                $stmt = $this->conn->prepare($sql);
+                if (!$stmt) return false;
+                
+                if (!empty($types)) {
+                    $stmt->bind_param($types, ...$params);
+                } else {
+                    $types = str_repeat('s', count($params));
+                    $stmt->bind_param($types, ...$params);
+                }
+                
+                $stmt->execute();
+                return $stmt->get_result();
+            } else {
+                return $this->conn->query($sql);
+            }
         } catch (Exception $e) {
             return false;
         }
