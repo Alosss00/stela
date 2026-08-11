@@ -572,6 +572,14 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
         .stat-variant-red { border-left-color: #D93025; } .stat-variant-red .stat-number { color: #D93025; } .stat-variant-red .stat-icon { background: #FCE8E6; color: #D93025; }
         .stat-variant-grey { border-left-color: #6B7280; } .stat-variant-grey .stat-number { color: #6B7280; } .stat-variant-grey .stat-icon { background: #F3F4F6; color: #6B7280; }
         .stat-variant-dark { border-left-color: #37474F; } .stat-variant-dark .stat-number { color: #37474F; } .stat-variant-dark .stat-icon { background: #ECEFF1; color: #37474F; }
+        
+        .action-buttons-appt-admin {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            justify-content: flex-start;
+            flex-wrap: nowrap;
+        }
     </style>
     <div class="stats-grid-appt-admin" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
         <div class="custom-stat-card stat-variant-blue">
