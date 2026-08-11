@@ -3,10 +3,16 @@ $page_title = 'Appointment Letter Detail';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-// Only USER role can access this page
-checkPageAccess(['user']);
+// Only allowed users can access this page
+if (!isset($_SESSION['role']) || ($_SESSION['role'] !== 'superadmin' && $_SESSION['role'] !== 'user')) {
+    checkPageAccess(['user']);
+}
 
-require_once dirname(__DIR__) . '/layouts/header.php';
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
+    require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
+} else {
+    require_once dirname(__DIR__) . '/layouts/header.php';
+}
 
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
@@ -32,7 +38,7 @@ $appointment = $db->query("
     LEFT JOIN users u_admin ON e.verified_by = u_admin.id
     LEFT JOIN users ktt1 ON a.ktt1_approved_by = ktt1.id
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
-    WHERE a.id = $id AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    WHERE a.id = $id " . ((isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? "" : "AND e.contractor_company = '" . $db->escapeString($company_name) . "'") . "
 ")->fetch_assoc();
 // Ambil tanggal verifikasi admin dari field yang benar
 $admin_verified_date = $appointment['verified_date'] ?? $appointment['admin_verified_date'] ?? $appointment['admin_verified_at'] ?? null;
@@ -48,14 +54,19 @@ if (!$appointment) {
                 <p style="margin-bottom: 25px; line-height: 1.6; font-size: 16px;">
                     Data tidak ditemukan atau Anda <strong>tidak memiliki hak akses</strong> untuk melihat surat pengangkatan dari perusahaan lain.
                 </p>
-                <a href="appointments.php" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;">
+                <?php $backLink = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/pages/superadmin/monitoring_appointments.php' : 'appointments.php'; ?>
+                <a href="<?php echo $backLink; ?>" class="btn btn-secondary" style="display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px;">
                     <i class="fas fa-arrow-left"></i> Kembali ke Daftar
                 </a>
             </div>
         </div>
     </div>
     <?php
-    require_once dirname(__DIR__) . '/layouts/footer.php';
+    if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
+        require_once dirname(__DIR__) . '/layouts/superadmin_footer.php';
+    } else {
+        require_once dirname(__DIR__) . '/layouts/footer.php';
+    }
     exit();
 }
 
@@ -348,7 +359,8 @@ function getKttType($user_id) {
     
     <!-- Action Buttons -->
     <div class="action-buttons">
-        <a href="appointments.php" class="btn btn-secondary">
+        <?php $backLink2 = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/pages/superadmin/monitoring_appointments.php' : 'appointments.php'; ?>
+        <a href="<?php echo $backLink2; ?>" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> <span data-lang="back">Back</span>
         </a>
         
@@ -360,4 +372,10 @@ function getKttType($user_id) {
     </div>
 </div>
 
-<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
+<?php 
+if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
+    require_once dirname(__DIR__) . '/layouts/superadmin_footer.php';
+} else {
+    require_once dirname(__DIR__) . '/layouts/footer.php';
+}
+?>
