@@ -159,37 +159,65 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
     <?php endif; ?>
 
     <!-- Statistics Cards -->
-    <div class="stats-row-appt">
-        <div class="stat-box-appt stat-all">
-            <div class="stat-icon-appt"><i class="fas fa-users"></i></div>
+    <style>
+        .custom-stat-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 1px solid #f0f0f0;
+            border-left: 4px solid;
+        }
+        .custom-stat-card .stat-info { display: flex; flex-direction: column; }
+        .custom-stat-card .stat-title { font-size: 14px; color: #6c757d; font-weight: 600; margin-bottom: 8px; }
+        .custom-stat-card .stat-number { font-size: 32px; font-weight: bold; margin-bottom: 5px; line-height: 1; }
+        .custom-stat-card .stat-desc { font-size: 12px; color: #adb5bd; font-weight: 500; }
+        .custom-stat-card .stat-icon { width: 55px; height: 55px; border-radius: 12px; display: flex; justify-content: center; align-items: center; font-size: 28px; }
+        
+        .stat-variant-blue { border-left-color: #1A73E8; } .stat-variant-blue .stat-number { color: #1A73E8; } .stat-variant-blue .stat-icon { background: #E8F0FE; color: #1A73E8; }
+        .stat-variant-green { border-left-color: #1E8E3E; } .stat-variant-green .stat-number { color: #1E8E3E; } .stat-variant-green .stat-icon { background: #E6F4EA; color: #1E8E3E; }
+        .stat-variant-orange { border-left-color: #F57C00; } .stat-variant-orange .stat-number { color: #F57C00; } .stat-variant-orange .stat-icon { background: #FFF3E0; color: #F57C00; }
+        .stat-variant-red { border-left-color: #D93025; } .stat-variant-red .stat-number { color: #D93025; } .stat-variant-red .stat-icon { background: #FCE8E6; color: #D93025; }
+    </style>
+    
+    <div class="stats-row-appt" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; margin-bottom: 30px;">
+        <div class="custom-stat-card stat-variant-blue">
             <div class="stat-info">
+                <div class="stat-title" data-lang="all-employees">All Employees</div>
                 <div class="stat-number"><?php echo $all_count; ?></div>
-                <div class="stat-text" data-lang="all-assign-letter">All Assign Letter</div>
+                <div class="stat-desc" data-lang="total-registered">Total registered workforce</div>
             </div>
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
         </div>
         
-        <div class="stat-box-appt stat-pending">
-            <div class="stat-icon-appt"><i class="fas fa-hourglass-half"></i></div>
+        <div class="custom-stat-card stat-variant-green">
             <div class="stat-info">
-                <div class="stat-number"><?php echo $pending_count; ?></div>
-                <div class="stat-text" data-lang="pending">Menunggu</div>
-            </div>
-        </div>
-        
-        <div class="stat-box-appt stat-approved">
-            <div class="stat-icon-appt"><i class="fas fa-user-check"></i></div>
-            <div class="stat-info">
+                <div class="stat-title" data-lang="accept">Accept</div>
                 <div class="stat-number"><?php echo $approved_count; ?></div>
-                <div class="stat-text" data-lang="accept">Accept</div>
+                <div class="stat-desc" data-lang="verified-active">Verified & active</div>
             </div>
+            <div class="stat-icon"><i class="fas fa-user-check"></i></div>
         </div>
         
-        <div class="stat-box-appt stat-rejected">
-            <div class="stat-icon-appt"><i class="fas fa-user-times"></i></div>
+        <div class="custom-stat-card stat-variant-orange">
             <div class="stat-info">
-                <div class="stat-number"><?php echo $rejected_count; ?></div>
-                <div class="stat-text" data-lang="reject">Reject</div>
+                <div class="stat-title" data-lang="pending">Pending</div>
+                <div class="stat-number"><?php echo $pending_count; ?></div>
+                <div class="stat-desc" data-lang="awaiting-review">Awaiting review</div>
             </div>
+            <div class="stat-icon"><i class="fas fa-hourglass-half"></i></div>
+        </div>
+        
+        <div class="custom-stat-card stat-variant-red">
+            <div class="stat-info">
+                <div class="stat-title" data-lang="reject">Reject</div>
+                <div class="stat-number"><?php echo $rejected_count; ?></div>
+                <div class="stat-desc" data-lang="needs-correction">Needs correction</div>
+            </div>
+            <div class="stat-icon"><i class="fas fa-user-times"></i></div>
         </div>
     </div>
     
