@@ -676,6 +676,9 @@ function i18n(key, fallback = '') {
 function showReviewModal(appointmentId) {
     const loadingText = i18n('ktt-loading-data');
     document.getElementById('reviewContent').innerHTML = '<div style="text-align: center; padding: 40px;"><i class="fas fa-spinner fa-spin" style="font-size: 30px; color: #667eea;"></i><p style="color: #667eea; margin-top: 15px; font-weight: 600;">' + loadingText + '</p></div>';
+    
+    // Buka modal segera agar loading terlihat
+    openModal('reviewModal');
 
     // Add cache busting parameter
     const timestamp = new Date().getTime();
