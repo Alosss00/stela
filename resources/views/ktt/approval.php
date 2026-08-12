@@ -495,32 +495,43 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 <!-- Card Body -->
                 <div class="card-body-approval">
                     <!-- Employee Info -->
-                    <div class="info-section">
-                        <div class="info-block">
-                            <div class="info-item">
-                                <label><i class="fas fa-id-card"></i> <span data-lang="employee">Employee</span></label>
-                                <p class="info-value"><?php echo htmlspecialchars($row['employee_name']); ?></p>
-                                <p class="info-sub"><?php echo htmlspecialchars($row['employee_code']); ?></p>
-                            </div>
-                            <div class="info-item">
-                                <label><i class="fas fa-building"></i> <span data-lang="company">Company</span></label>
-                                <p class="info-value"><?php echo htmlspecialchars($row['contractor_company']); ?></p>
-                            </div>
-                        </div>
-                        
-                        <div class="info-block">
-                            <div class="info-item">
-                                <label><i class="fas fa-briefcase"></i> <span data-lang="position">Position</span></label>
-                                <p class="info-value"><?php echo htmlspecialchars($row['position']); ?></p>
-                            </div>
-                            <div class="info-item">
-                                <label><i class="fas fa-calendar-check"></i> <span data-lang="valid">Valid</span></label>
-                                <p class="info-value"><?php echo date('d M Y', strtotime($row['effective_date'])); ?></p>
-                                <?php if ($row['expiry_date']): ?>
-                                    <p class="info-sub"><span data-lang="until-short">s/d</span> <?php echo date('d M Y', strtotime($row['expiry_date'])); ?></p>
-                                <?php endif; ?>
-                            </div>
-                        </div>
+                    <div class="info-section p-2">
+                        <table class="table table-borderless table-sm mb-0">
+                            <tbody>
+                                <tr>
+                                    <td style="width: 50%; padding-bottom: 12px;">
+                                        <label class="text-muted small fw-bold mb-1" style="text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <i class="fas fa-id-card text-warning"></i> <span data-lang="employee">Employee</span>
+                                        </label>
+                                        <div class="fw-bold text-dark"><?php echo htmlspecialchars($row['employee_name']); ?></div>
+                                        <div class="small text-muted"><?php echo htmlspecialchars($row['employee_code']); ?></div>
+                                    </td>
+                                    <td style="width: 50%; padding-bottom: 12px;">
+                                        <label class="text-muted small fw-bold mb-1" style="text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <i class="fas fa-briefcase text-warning"></i> <span data-lang="position">Position</span>
+                                        </label>
+                                        <div class="fw-bold text-dark"><?php echo htmlspecialchars($row['position']); ?></div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <label class="text-muted small fw-bold mb-1" style="text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <i class="fas fa-building text-warning"></i> <span data-lang="company">Company</span>
+                                        </label>
+                                        <div class="fw-bold text-dark"><?php echo htmlspecialchars($row['contractor_company']); ?></div>
+                                    </td>
+                                    <td>
+                                        <label class="text-muted small fw-bold mb-1" style="text-transform: uppercase; letter-spacing: 0.5px;">
+                                            <i class="fas fa-calendar-check text-warning"></i> <span data-lang="valid">Valid</span>
+                                        </label>
+                                        <div class="fw-bold text-dark"><?php echo date('d M Y', strtotime($row['effective_date'])); ?></div>
+                                        <?php if ($row['expiry_date']): ?>
+                                            <div class="small text-muted"><span data-lang="until-short">s/d</span> <?php echo date('d M Y', strtotime($row['expiry_date'])); ?></div>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                     
                     <!-- Sertifikasi Summary -->
