@@ -147,13 +147,27 @@ class DashboardHelper {
     }
 
     public function getRecentActivity($limit = 5) {
-        // We fetch from employee_status_logs
+        // Fallback since employee_status_logs is missing
         $query = "
-            SELECT l.action, l.notes, l.created_at, u.full_name as user_name, e.full_name as employee_name
-            FROM employee_status_logs l
-            LEFT JOIN users u ON l.created_by = u.id
-            LEFT JOIN employees e ON l.employee_id = e.id
-            ORDER BY l.created_at DESC
+            SELECT 
+                'Admin Verification' as action, 
+                '' as notes,
+                e.verified_date as created_at, 
+                u.full_name as user_name, 
+                e.full_name as employee_name
+            FROM employees e
+            JOIN users u ON e.verified_by = u.id
+            WHERE e.verified_date IS NOT NULL
+            UNION ALL
+            SELECT 
+                'Appointment Initiated' as action, 
+                '' as notes,
+                a.created_at as created_at, 
+                'System' as user_name,
+                e.full_name as employee_name 
+            FROM appointments a
+            JOIN employees e ON a.employee_id = e.id
+            ORDER BY created_at DESC
             LIMIT " . (int)$limit;
         return $this->fetchAll($query);
     }
