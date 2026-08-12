@@ -115,7 +115,7 @@ class DashboardHelper {
 
     public function getRecentRequests($limit = 5) {
         $query = "
-            SELECT full_name, badge_id, contractor_company, department, position, verification_status, created_at
+            SELECT full_name, employee_code, contractor_company, department, position, verification_status, created_at
             FROM employees
             ORDER BY created_at DESC
             LIMIT " . (int)$limit;
