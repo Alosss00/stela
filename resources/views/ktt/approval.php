@@ -21,7 +21,7 @@ $current_user_id = $_SESSION['user_id'];
 // Determine KTT type: user_id 7 = KTT MSM, user_id 8 = KTT TTN
 $ktt_type = ($current_user_id == 7) ? 'msm' : 'ttn';
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && !$is_superadmin) {
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (isset($_POST['action'])) {
         // Minimal safe handler to avoid parse errors and preserve page load.
         // Detailed processing should be implemented in the API or elsewhere.

@@ -219,6 +219,13 @@ $current_page = get_current_page();
                 <?php endif; ?>
                 <?php endif; ?>
 
+                <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">KTT Operations</li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/pages/ktt/approval.php" class="<?php echo $current_page == 'approval.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-check-circle"></i> <span>Approval KTT</span>
+                    </a>
+                </li>
+
                 <?php if(hasPermission('settings.view')): ?>
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">System Maintenance</li>
                 <li>
