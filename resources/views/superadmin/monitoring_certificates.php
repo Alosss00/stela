@@ -175,11 +175,12 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                             <th>Company & Dept</th>
                             <th>Expiry Date</th>
                             <th>Status</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if(empty($certificates)): ?>
-                            <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-certificate fa-3x mb-3 d-block opacity-25"></i>No certificates found.</td></tr>
+                            <tr><td colspan="7" class="text-center py-5 text-muted"><i class="fas fa-certificate fa-3x mb-3 d-block opacity-25"></i>No certificates found.</td></tr>
                         <?php else: ?>
                             <?php foreach($certificates as $cert): ?>
                                 <tr>
@@ -219,6 +220,15 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                             echo '<span class="status-badge status-expired"><i class="fas fa-times-circle"></i> Expired</span>';
                                         }
                                         ?>
+                                    </td>
+                                    <td>
+                                        <?php if ($cert['monitoring_status'] === 'Expired'): ?>
+                                            <a href="../admin/resubmit_certificate.php?id=<?php echo (int)$cert['id']; ?>" class="action-btn text-decoration-none" title="Resubmit Certificate">
+                                                <i class="fas fa-upload text-warning"></i> Resubmit
+                                            </a>
+                                        <?php else: ?>
+                                            <span class="text-muted small">-</span>
+                                        <?php endif; ?>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
