@@ -222,7 +222,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                         ?>
                                     </td>
                                     <td>
-                                        <?php if ($cert['monitoring_status'] === 'Expired'): ?>
+                                        <?php if ($cert['monitoring_status'] === 'Expired' || $cert['monitoring_status'] === 'Expiring Soon'): ?>
                                             <a href="../admin/resubmit_certificate.php?id=<?php echo (int)$cert['id']; ?>" class="action-btn text-decoration-none" title="Resubmit Certificate">
                                                 <i class="fas fa-upload text-warning"></i> Resubmit
                                             </a>
