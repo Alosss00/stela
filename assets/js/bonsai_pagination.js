@@ -364,16 +364,18 @@ class BonsaiPagination {
                 iconClass = 'fa-file-signature';
             }
 
-            const highlightedTitle = self.highlightQuery(titleText, self.query);
+            const safeTitleText = escapeHtml(titleText);
+            const safeSubtitleText = escapeHtml(subtitleText);
+            const highlightedTitle = self.highlightQuery(safeTitleText, self.query);
             const badgeClass = 'bonsai-badge-' + status;
 
             div.innerHTML = `
                 <div class="bonsai-suggest-icon"><i class="fas ${iconClass}"></i></div>
                 <div class="bonsai-suggest-content">
                     <div class="bonsai-suggest-title">${highlightedTitle}</div>
-                    <div class="bonsai-suggest-subtitle">${subtitleText}</div>
+                    <div class="bonsai-suggest-subtitle">${safeSubtitleText}</div>
                 </div>
-                <div class="bonsai-suggest-badge ${badgeClass}">${status}</div>
+                <div class="bonsai-suggest-badge ${badgeClass}">${escapeHtml(status)}</div>
             `;
 
             div.addEventListener('click', function(e) {

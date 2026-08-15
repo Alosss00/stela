@@ -1256,9 +1256,9 @@ function getCertificationOptions() {
     let options = '';
     for (const id in certificationsData) {
         const cert = certificationsData[id];
-        const certName = cert.cert_name || cert;
-        const certIssuer = cert.cert_issuer || '';
-        options += `<option value="${id}" data-issuer="${certIssuer}">${certName}</option>`;
+        const certName = escapeHtml(cert.cert_name || cert);
+        const certIssuer = escapeHtml(cert.cert_issuer || '');
+        options += `<option value="${escapeHtml(id)}" data-issuer="${certIssuer}">${certName}</option>`;
     }
     return options;
 }

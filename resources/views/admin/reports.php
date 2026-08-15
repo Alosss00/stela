@@ -1793,14 +1793,7 @@ function closeRequestRejectionModal() {
     document.getElementById('requestRejectionModal').style.display = 'none';
 }
 
-function escapeHtml(unsafe) {
-    return unsafe
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-}
+
 
 function exportApprovedByCompany() {
     const table = document.getElementById('approvedTable');

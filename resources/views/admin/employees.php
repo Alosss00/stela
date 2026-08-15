@@ -685,15 +685,15 @@ $companies = $db->query("
                         }
 
                         const resubmitBtn = (status.toLowerCase() === 'rejected')
-                            ? `<a href="resubmit_employee.php?id=${item.id}" class="btn-action-emp resubmit-btn" title="Resubmit"><i class="fas fa-upload"></i></a>`
+                            ? `<a href="resubmit_employee.php?id=${escapeHtml(item.id)}" class="btn-action-emp resubmit-btn" title="Resubmit"><i class="fas fa-upload"></i></a>`
                             : '';
                         const compVal = item.competency_name || item.sub_competency || '';
-                        const compDisplay = compVal ? `<span class="competency-tag">${compVal}</span>` : '<span class="text-muted">-</span>';
-                        return `<tr class="emp-row" data-id="${item.id}">
-                            <td class="col-code"><span class="code-badge">${item.employee_code || '-'}</span></td>
-                            <td class="col-name"><strong>${item.full_name || '-'}</strong></td>
-                            <td class="col-position"><span class="position-tag-emp">${item.position || '-'}</span></td>
-                            <td class="col-company"><span class="company-tag-emp">${item.contractor_company || '-'}</span></td>
+                        const compDisplay = compVal ? `<span class="competency-tag">${escapeHtml(compVal)}</span>` : '<span class="text-muted">-</span>';
+                        return `<tr class="emp-row" data-id="${escapeHtml(item.id)}">
+                            <td class="col-code"><span class="code-badge">${escapeHtml(item.employee_code || '-')}</span></td>
+                            <td class="col-name"><strong>${escapeHtml(item.full_name || '-')}</strong></td>
+                            <td class="col-position"><span class="position-tag-emp">${escapeHtml(item.position || '-')}</span></td>
+                            <td class="col-company"><span class="company-tag-emp">${escapeHtml(item.contractor_company || '-')}</span></td>
                             <td class="col-competency-type"><span class="competency-type-badge competency-${compType}">${compLabel}</span></td>
                             <td class="col-competency">${compDisplay}</td>
                             <td class="col-status"><span class="badge-status badge-${statusClass}">${status.toUpperCase()}</span></td>

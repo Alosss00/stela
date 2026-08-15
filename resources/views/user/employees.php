@@ -257,12 +257,12 @@ $rejected_count = $db->query("
                         const resubmitBtn = status === 'rejected'
                             ? `<a href="resubmit_employee.php?id=${item.id}" class="btn btn-sm btn-warning" title="Resubmit"><i class="fas fa-upload"></i> <span data-lang="resubmit">Resubmit</span></a>`
                             : '';
-                        return `<tr class="emp-row" data-id="${item.id}">
-                            <td><strong>${item.employee_code || '-'}</strong></td>
-                            <td>${item.full_name || '-'}</td>
-                            <td>${item.position || '-'}</td>
-                            <td>${compLabel}</td>
-                            <td>${item.competency_name || item.sub_competency || '-'}</td>
+                        return `<tr class="emp-row" data-id="${escapeHtml(item.id)}">
+                            <td><strong>${escapeHtml(item.employee_code || '-')}</strong></td>
+                            <td>${escapeHtml(item.full_name || '-')}</td>
+                            <td>${escapeHtml(item.position || '-')}</td>
+                            <td>${escapeHtml(compLabel)}</td>
+                            <td>${escapeHtml(item.competency_name || item.sub_competency || '-')}</td>
                             <td>${badge}</td>
                             <td>
                                 <div class="action-buttons">

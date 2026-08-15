@@ -111,7 +111,18 @@ $current_page = get_current_page();
             margin-top: 10px;
         }
     </style>
-
+    <script>
+        // Global HTML escaping function for XSS prevention in JS rendering
+        function escapeHtml(unsafe) {
+            if (unsafe == null) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
 </head>
 <body>
     
