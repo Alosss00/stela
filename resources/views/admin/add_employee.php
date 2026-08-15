@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (!$error) {
         // Check if employee code already exists
-        $check = $db->query("SELECT id FROM employees WHERE employee_code = '$employee_code'");
+        $check = $db->query("SELECT id FROM employees WHERE employee_code = ?", [$employee_code]);
         if ($check && $check->num_rows > 0) {
             if ($is_draft) {
                 $employee_code = $employee_code . '_' . rand(100,999);
@@ -191,34 +191,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
                 // Buat query INSERT dinamis berdasarkan kolom yang tersedia
                 $verification_status = $is_draft ? 'draft' : 'pending';
-                $insert_fields = ['employee_code', 'full_name', 'position', 'department', 'competency_type', 'contractor_company', 'ruang_lingkup', 'cv_file', 'verification_status', 'is_active'];
-                $insert_values = ["'$employee_code'", "'$full_name'", "'$position'", "'$department'", "'$competency_type'", "'$contractor_company'", "'$ruang_lingkup'", "'$cv_file'", "'$verification_status'", "1"];
+                $insert_data = [
+                    'employee_code' => $employee_code,
+                    'full_name' => $full_name,
+                    'position' => $position,
+                    'department' => $department,
+                    'competency_type' => $competency_type,
+                    'contractor_company' => $contractor_company,
+                    'ruang_lingkup' => $ruang_lingkup,
+                    'cv_file' => $cv_file,
+                    'verification_status' => $verification_status,
+                    'is_active' => 1
+                ];
                 
                 // Tambahkan field optional jika ada di tabel
                 if (in_array('competency_name', $available_columns) && !empty($competency_name)) {
-                    $insert_fields[] = 'competency_name';
-                    $insert_values[] = "'$competency_name'";
+                    $insert_data['competency_name'] = $competency_name;
                 }
                 
                 if (in_array('supervision_area', $available_columns) && !empty($supervision_area)) {
-                    $insert_fields[] = 'supervision_area';
-                    $insert_values[] = "'$supervision_area'";
+                    $insert_data['supervision_area'] = $supervision_area;
                 }
 
                 if (in_array('sub_competency', $available_columns) && !empty($sub_competency)) {
-                    $insert_fields[] = 'sub_competency';
-                    $insert_values[] = "'$sub_competency'";
+                    $insert_data['sub_competency'] = $sub_competency;
                 }
 
                 if (in_array('statement_file', $available_columns) && !empty($statement_file)) {
-                    $insert_fields[] = 'statement_file';
-                    $insert_values[] = "'$statement_file'";
+                    $insert_data['statement_file'] = $statement_file;
                 }
                 
-                $sql = "INSERT INTO employees (" . implode(', ', $insert_fields) . ") 
-                        VALUES (" . implode(', ', $insert_values) . ")";
-                
-                if ($db->query($sql)) {
+                if ($db->insert('employees', $insert_data)) {
                     $employee_id = $db->lastInsertId();
                     
                     // Handle multiple certification uploads

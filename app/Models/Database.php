@@ -101,6 +101,31 @@ class Database {
         return $this->conn->insert_id;
     }
     
+    public function insert($table, $data) {
+        if (empty($data)) return false;
+        $fields = array_keys($data);
+        $placeholders = array_fill(0, count($fields), '?');
+        $sql = "INSERT INTO $table (" . implode(', ', $fields) . ") VALUES (" . implode(', ', $placeholders) . ")";
+        $params = array_values($data);
+        return $this->query($sql, $params);
+    }
+    
+    public function update($table, $data, $where, $whereParams = []) {
+        if (empty($data)) return false;
+        $set = [];
+        foreach (array_keys($data) as $key) {
+            $set[] = "$key = ?";
+        }
+        $sql = "UPDATE $table SET " . implode(', ', $set) . " WHERE $where";
+        $params = array_merge(array_values($data), $whereParams);
+        return $this->query($sql, $params);
+    }
+    
+    public function delete($table, $where, $whereParams = []) {
+        $sql = "DELETE FROM $table WHERE $where";
+        return $this->query($sql, $whereParams);
+    }
+    
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();
