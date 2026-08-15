@@ -242,6 +242,10 @@ try {
                 $scopeConds[] = "e.contractor_company = '$safeCompany'";
                 $scopeConds[] = "e.department = '$safeCompany'";
             }
+            if (!empty($department)) {
+                $safeDept = $db->escapeString($department);
+                $scopeConds[] = "e.department = '$safeDept'";
+            }
             if (!empty($scopeConds)) {
                 $where[] = "(" . implode(' OR ', array_unique($scopeConds)) . ")";
             }
