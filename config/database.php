@@ -14,4 +14,4 @@ if (!defined('DB_PASS')) {
 }
 if (!defined('DB_NAME')) {
     define('DB_NAME', 'u136581265_Toka_STELA');
-}
+} 
