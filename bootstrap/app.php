@@ -11,6 +11,10 @@ if (basename($_SERVER['PHP_SELF'] ?? '') === 'app.php') {
     die('Direct access not permitted');
 }
 
+// 0. Security Firewall (WAF & Rate Limiter)
+require_once dirname(__DIR__) . '/app/Security/Firewall.php';
+Firewall::run();
+
 // 1. Load Configurations
 require_once dirname(__DIR__) . '/config/app.php';
 
