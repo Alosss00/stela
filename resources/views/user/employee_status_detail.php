@@ -166,11 +166,11 @@ if (!function_exists('getKttType')) {
             <table class="approval-table" style="width: 100% !important; table-layout: fixed !important;">
                 <thead>
                     <tr>
-                        <th>Step</th>
-                        <th>Name / Username</th>
-                        <th>Action</th>
-                        <th>Date</th>
-                        <th>Notes</th>
+                        <th data-lang="step">Step</th>
+                        <th data-lang="name-username">Name / Username</th>
+                        <th data-lang="action">Action</th>
+                        <th data-lang="date">Date</th>
+                        <th data-lang="notes">Notes</th>
                     </tr>
                 </thead>
                 <tbody>

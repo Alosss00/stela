@@ -7,7 +7,18 @@ const runtimeDefaults = {};
 const missingKeyWarnings = new Set();
 
 const translations = {
+    id: {
+        'certificate-list': 'Daftar Sertifikat',
+        'monitoring': 'Pemantauan',
+        'dashboard': 'Dashboard',
+        'request': 'Request',
+        'assign-letter': 'Assign Letter',
+        'reports': 'Reports',
+        'settings': 'Settings',
+    },
     en: {
+        'certificate-list': 'Certificate List',
+        'monitoring': 'Monitoring',
         'dashboard': 'Dashboard',
         'request': 'Request',
         'assign-letter': 'Assign Letter',
@@ -1706,6 +1717,7 @@ function setLanguage(lang) {
     document.documentElement.lang = lang;
     applyTranslations();
     updateLanguageButton();
+    window.location.reload();
 }
 
 function changeLanguage(lang) {

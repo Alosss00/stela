@@ -1161,11 +1161,11 @@ function exportApprovedByCompany() {
             <table>
                 <thead>
                     <tr>
-                        <th style="width: 15%;">Letter No.</th>
-                        <th style="width: 25%;">Employee Name</th>
-                        <th style="width: 20%;">Position</th>
-                        <th style="width: 13%;">Effective Date</th>
-                        <th style="width: 27%;">Approved By</th>
+                        <th style="width: 15%;">${getLanguageText('assign-letter-no', 'Letter No.')}</th>
+                        <th style="width: 25%;">${getLanguageText('employee', 'Employee Name')}</th>
+                        <th style="width: 20%;">${getLanguageText('position', 'Position')}</th>
+                        <th style="width: 13%;">${getLanguageText('effective-date', 'Effective Date')}</th>
+                        <th style="width: 27%;">${getLanguageText('approved-by', 'Approved By')}</th>
                     </tr>
                 </thead>
                 <tbody>

@@ -451,7 +451,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 
 	<div class="card cert-card">
 		<div class="card-header cert-card-header">
-			<h3><i class="fas fa-list"></i> Daftar Sertifikat</h3> <span>status</span>
+			<h3><i class="fas fa-list"></i> <span data-lang="certificate-list">Daftar Sertifikat</span></h3> <span>status</span>
 		</div>
 		<div class="card-body cert-card-body">
 			<?php if (!empty($certificates)): ?>
@@ -459,13 +459,13 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 					<table class="table cert-table datatable">
 						<thead>
 							<tr>
-								<th>Employee</th>
-								<th>Certification</th>
-								<th>Certificate No.</th>
-								<th>Expiry</th>
-								<th>Monitoring</th>
-								<th>Document</th>
-								<th>Action</th>
+								<th data-lang="employee">Employee</th>
+								<th data-lang="certification">Certification</th>
+								<th data-lang="certificate-number">Certificate No.</th>
+								<th data-lang="expiry">Expiry</th>
+								<th data-lang="monitoring">Monitoring</th>
+								<th data-lang="document">Document</th>
+								<th data-lang="action">Action</th>
 							</tr>
 						</thead>
 						<tbody>

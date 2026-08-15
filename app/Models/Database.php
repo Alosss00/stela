@@ -25,12 +25,15 @@ class Database {
             }
             
             $this->conn->set_charset("utf8mb4");
+            // Nonaktifkan ONLY_FULL_GROUP_BY agar query kompleks yang tidak menggunakan aggregate pada semua kolom non-grouped tetap berjalan (kompatibilitas dengan versi MySQL yang lama/hosting)
+            $this->conn->query("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
         } catch (\Throwable $e) {
             // Try emergency fallback to root
             try {
                 $this->conn = @new mysqli('127.0.0.1', 'root', '', 'mining_appointment');
                 if (!$this->conn->connect_error) {
                     $this->conn->set_charset("utf8mb4");
+                    $this->conn->query("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
                     return;
                 }
             } catch (\Throwable $ex) {}

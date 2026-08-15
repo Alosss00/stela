@@ -78,8 +78,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             $stmt = $db->prepare("SELECT id, username, password, full_name, role, company_name, department, is_active, failed_login_attempts, locked_until FROM users WHERE username = ? AND is_active = 1");
-            $stmt->bind_param("s", $username);
-            $stmt->execute();
+            if (!$stmt) {
+                // Fallback jika kolom failed_login_attempts tidak ada di localhost
+                $stmt = $db->prepare("SELECT id, username, password, full_name, role, company_name, department, is_active, 0 as failed_login_attempts, NULL as locked_until FROM users WHERE username = ? AND is_active = 1");
+            }
+            
+            if ($stmt) {
+                $stmt->bind_param("s", $username);
+                $stmt->execute();
             $result = $stmt->get_result();
             
             if ($result && $result->num_rows == 1) {
@@ -175,6 +181,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             } else {
                 $error = 'Incorrect username or password!';
+            }
+            } else {
+                $error = 'Database error! Could not prepare login query.';
             }
         } else {
             $error = 'Please fill in all fields!';

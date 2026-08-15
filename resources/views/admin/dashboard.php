@@ -178,12 +178,12 @@ if ($check_email_logs_table && $check_email_logs_table->num_rows > 0) {
                     <table class="email-log-table">
                         <thead>
                             <tr>
-                                <th>Recipient</th>
-                                <th>Email</th>
-                                <th>Valid</th>
-                                <th>Sent</th>
-                                <th>Subject</th>
-                                <th>Time</th>
+                                <th data-lang="recipient">Recipient</th>
+                                <th data-lang="email">Email</th>
+                                <th data-lang="valid">Valid</th>
+                                <th data-lang="sent">Sent</th>
+                                <th data-lang="subject">Subject</th>
+                                <th data-lang="time">Time</th>
                             </tr>
                         </thead>
                         <tbody>
