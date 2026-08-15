@@ -78,94 +78,6 @@ try {
     // Initialize Database instance
     $db = class_exists('Database') ? new Database() : null;
 
-    // Auto-sync MySQL employee records for this company to Elasticsearch to guarantee zero missing data
-    if ($db && class_exists('ElasticsearchService')) {
-        try {
-            $esSync = ElasticsearchService::getInstance();
-            if ($esSync && $esSync->isAvailable()) {
-                if ($target === 'employees' || $target === 'employee_status') {
-                    $syncWhere = ["e.is_active = 1"];
-                    if ($target === 'employee_status') {
-                        $syncWhere[] = "a.status = 'approved'";
-                    }
-                    if (!empty($createdByFilter)) {
-                        if (!empty($company)) {
-                            $syncWhere[] = "(e.created_by = " . intval($createdByFilter) . " OR (e.created_by IS NULL AND e.contractor_company = '" . $db->escapeString($company) . "'))";
-                        } else {
-                            $syncWhere[] = "e.created_by = " . intval($createdByFilter);
-                        }
-                    } elseif (!empty($company)) {
-                        $syncWhere[] = "e.contractor_company = '" . $db->escapeString($company) . "'";
-                    }
-                    // Use LEFT JOIN so all employees (pending/rejected/verified) are synced, not just those with approved appointments
-                    $syncSql = "SELECT e.*, u.full_name as verified_by_name, a.appointment_number, a.appointment_date 
-                                FROM employees e 
-                                LEFT JOIN users u ON e.verified_by = u.id 
-                                LEFT JOIN appointments a ON a.employee_id = e.id AND a.status = 'approved'
-                                WHERE " . implode(' AND ', $syncWhere) . " 
-                                GROUP BY e.id
-                                ORDER BY e.id DESC LIMIT 500";
-                    $syncRes = $db->query($syncSql);
-                    if ($syncRes && $syncRes->num_rows > 0) {
-                        while ($empRow = $syncRes->fetch_assoc()) {
-                            $esSync->indexEmployee([
-                                'id' => (int)$empRow['id'],
-                                'employee_code' => $empRow['employee_code'] ?? '',
-                                'full_name' => $empRow['full_name'] ?? '',
-                                'position' => $empRow['position'] ?? '',
-                                'department' => $empRow['department'] ?? '',
-                                'contractor_company' => $empRow['contractor_company'] ?? '',
-                                'competency_type' => $empRow['competency_type'] ?? '',
-                                'competency_name' => $empRow['competency_name'] ?? '',
-                                'verified_by_name' => $empRow['verified_by_name'] ?? '',
-                                'ruang_lingkup' => $empRow['ruang_lingkup'] ?? '',
-                                'sub_competency' => $empRow['sub_competency'] ?? '',
-                                'supervision_area' => $empRow['supervision_area'] ?? '',
-                                'approval_status' => $empRow['verification_status'] ?? ($empRow['status'] ?? 'pending'),
-                                'employee_status' => $empRow['employee_status'] ?? 'active',
-                                'appointment_number' => $empRow['appointment_number'] ?? '',
-                                'resign_date' => $empRow['resign_date'] ?? null,
-                                'is_active' => isset($empRow['is_active']) ? (int)$empRow['is_active'] : 1,
-                                'created_by' => isset($empRow['created_by']) ? (int)$empRow['created_by'] : null,
-                                'created_at' => $empRow['created_at'] ?? date('Y-m-d H:i:s')
-                            ]);
-                        }
-                    }
-                } else {
-                    $syncWhere = ["1=1"];
-                    if (!empty($createdByFilter)) {
-                        if (!empty($company)) {
-                            $syncWhere[] = "(a.created_by = " . intval($createdByFilter) . " OR e.created_by = " . intval($createdByFilter) . " OR (a.created_by IS NULL AND e.contractor_company = '" . $db->escapeString($company) . "'))";
-                        } elseif (!empty($department)) {
-                            $syncWhere[] = "(a.created_by = " . intval($createdByFilter) . " OR e.created_by = " . intval($createdByFilter) . " OR (a.created_by IS NULL AND e.department = '" . $db->escapeString($department) . "'))";
-                        } else {
-                            $syncWhere[] = "(a.created_by = " . intval($createdByFilter) . " OR e.created_by = " . intval($createdByFilter) . ")";
-                        }
-                    } elseif (!empty($company)) {
-                        $syncWhere[] = "e.contractor_company = '" . $db->escapeString($company) . "'";
-                    } elseif (!empty($department)) {
-                        $syncWhere[] = "e.department = '" . $db->escapeString($department) . "'";
-                    }
-
-                    $syncSql = "SELECT a.*, e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
-                                FROM appointments a 
-                                LEFT JOIN employees e ON a.employee_id = e.id 
-                                LEFT JOIN positions p ON a.position_id = p.id 
-                                WHERE " . implode(' AND ', $syncWhere) . " 
-                                ORDER BY a.id DESC LIMIT 50";
-                    $syncRes = $db->query($syncSql);
-                    if ($syncRes && $syncRes->num_rows > 0) {
-                        while ($apptRow = $syncRes->fetch_assoc()) {
-                            $esSync->indexAppointment($apptRow);
-                        }
-                    }
-                }
-            }
-        } catch (\Throwable $t) {
-            // Ignore auto-sync error
-        }
-    }
-
     // 1. Try Elasticsearch Search first if class exists (except for employee_status which requires strict direct DB joining for approved appointments)
     if ($target !== 'employee_status' && class_exists('ElasticsearchService')) {
         $es = ElasticsearchService::getInstance();
@@ -310,21 +222,7 @@ try {
 
     $db = new Database();
 
-    // Auto-sync MySQL data to Bonsai in background if Bonsai was empty
-    if (class_exists('ElasticsearchService')) {
-        try {
-            $esSync = ElasticsearchService::getInstance();
-            if ($esSync && $esSync->isAvailable()) {
-                if ($target === 'appointments') {
-                    $esSync->bulkIndexAppointments($db);
-                } else {
-                    $esSync->bulkIndexEmployees($db);
-                }
-            }
-        } catch (\Throwable $t) {
-            // Ignore background sync errors
-        }
-    }
+    // MySQL Fallback Data (if ES sync needed, run bin/sync manually)
 
     $items = [];
     $total = 0;
