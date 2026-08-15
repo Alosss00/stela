@@ -11,8 +11,49 @@ class Firewall {
     private static $blockDuration = 600; // 10 minutes in seconds
 
     public static function run() {
+        self::checkCors();
         self::checkWafRules();
         self::checkRateLimit();
+    }
+
+    private static function checkCors() {
+        // Define explicitly allowed origins (no wildcard '*')
+        $allowedOrigins = [
+            'http://localhost',
+            'http://localhost:8000',
+            'http://127.0.0.1',
+            'http://127.0.0.1:8000'
+        ];
+
+        // Automatically allow the current server's host
+        $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
+        $currentHost = $_SERVER['HTTP_HOST'] ?? '';
+        if ($currentHost) {
+            $allowedOrigins[] = $protocol . '://' . $currentHost;
+        }
+
+        $origin = $_SERVER['HTTP_ORIGIN'] ?? '';
+
+        // If Origin header is present, check against whitelist
+        if ($origin) {
+            if (in_array($origin, $allowedOrigins)) {
+                header("Access-Control-Allow-Origin: $origin");
+                header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
+                header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Cache-Control");
+                header("Access-Control-Allow-Credentials: true");
+            } else {
+                // If it's a preflight request from an unauthorized origin, block it
+                if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+                    self::abort(403, "CORS Policy: Origin not allowed.");
+                }
+            }
+        }
+
+        // Always intercept preflight OPTIONS requests to avoid executing app logic
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
+            http_response_code(200);
+            exit;
+        }
     }
 
     private static function getClientIp() {
