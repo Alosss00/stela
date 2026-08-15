@@ -241,7 +241,7 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
                     <tbody>
                         <?php if ($accepted_requests_count > 0): ?>
                             <?php $accepted_requests->data_seek(0); while ($row = $accepted_requests->fetch_assoc()): ?>
-                            <tr class="" data-status="verified">
+                            <tr data-status="verified">
                                 <td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($row['full_name']); ?></strong><span class="emp-code-detail"><?php echo htmlspecialchars($row['department']); ?></span></div></td>
                                 <td class="col-code"><strong><?php echo htmlspecialchars($row['employee_code']); ?></strong></td>
                                 <td class="col-request-date"><?php echo !empty($row['request_date']) ? date('d/m/Y H:i', strtotime($row['request_date'])) : 'N/A'; ?></td>
@@ -254,7 +254,7 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
 
                         <?php if ($rejected_requests_count > 0): ?>
                             <?php $rejected_requests->data_seek(0); while ($row = $rejected_requests->fetch_assoc()): ?>
-                            <tr class="" data-status="rejected">
+                            <tr data-status="rejected">
                                 <td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($row['full_name']); ?></strong><span class="emp-code-detail"><?php echo htmlspecialchars($row['department']); ?></span></div></td>
                                 <td class="col-code"><strong><?php echo htmlspecialchars($row['employee_code']); ?></strong></td>
                                 <td class="col-request-date"><?php echo !empty($row['request_date']) ? date('d/m/Y H:i', strtotime($row['request_date'])) : 'N/A'; ?></td>
@@ -267,7 +267,7 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
 
                         <?php if ($pending_requests_count > 0): ?>
                             <?php $pending_requests->data_seek(0); while ($row = $pending_requests->fetch_assoc()): ?>
-                            <tr class="" data-status="pending">
+                            <tr data-status="pending">
                                 <td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($row['full_name']); ?></strong><span class="emp-code-detail"><?php echo htmlspecialchars($row['department']); ?></span></div></td>
                                 <td class="col-code"><strong><?php echo htmlspecialchars($row['employee_code']); ?></strong></td>
                                 <td class="col-request-date"><?php echo !empty($row['request_date']) ? date('d/m/Y H:i', strtotime($row['request_date'])) : 'N/A'; ?></td>
