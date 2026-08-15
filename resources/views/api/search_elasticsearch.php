@@ -57,6 +57,7 @@ try {
     // Non-admin roles (User, Dept, etc.) can ONLY search data input by the current user.
     // Admin roles (admin, superadmin) can search across ALL data.
     $userCompany = $_SESSION['company_name'] ?? '';
+    $userDept = $_SESSION['department'] ?? '';
     $currentUserId = (int)($_SESSION['user_id'] ?? 0);
     $isAdmin = isSuperadmin() || hasPermission('admin.access');
     $createdByFilter = null;
