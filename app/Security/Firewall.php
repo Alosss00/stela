@@ -72,6 +72,28 @@ class Firewall {
         $ip = self::getClientIp();
         if ($ip === 'UNKNOWN') return;
 
+        // Determine if this is a sensitive endpoint that requires stricter limits
+        $isSensitive = false;
+        $maxLimit = self::$maxRequestsPerMinute;
+        
+        $scriptPath = $_SERVER['SCRIPT_NAME'] ?? '';
+        $sensitiveEndpoints = [
+            'login.php',
+            'change_password.php',
+            'users.php',
+            'add_employee.php'
+        ];
+        
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            foreach ($sensitiveEndpoints as $endpoint) {
+                if (strpos($scriptPath, $endpoint) !== false) {
+                    $isSensitive = true;
+                    $maxLimit = 10; // Strict limit: 10 requests per minute for sensitive POST actions
+                    break;
+                }
+            }
+        }
+
         // Use system temp directory for high-speed, volatile storage (RAM disk on many systems)
         $cacheDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'stela_waf_cache';
         
@@ -111,10 +133,13 @@ class Firewall {
         $data['count']++;
 
         // Block if limit exceeded
-        if ($data['count'] > self::$maxRequestsPerMinute) {
+        if ($data['count'] > $maxLimit) {
             $data['blocked_until'] = $currentTime + self::$blockDuration;
             @file_put_contents($file, json_encode($data), LOCK_EX);
-            self::abort(429, "Too Many Requests. Rate limit exceeded. IP blocked.");
+            $message = $isSensitive 
+                ? "Too Many Requests. Security rate limit exceeded for sensitive operation. IP blocked for 10 minutes."
+                : "Too Many Requests. Global rate limit exceeded. IP blocked for 10 minutes.";
+            self::abort(429, $message);
         }
 
         // Save state
