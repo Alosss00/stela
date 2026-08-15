@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $page_title = 'User Add Employee';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     if (!$error) {
         // Check if employee code already exists
-        $check = $db->query("SELECT id FROM employees WHERE employee_code = '$employee_code'");
+        $check = $db->query("SELECT id FROM employees WHERE employee_code = ?", [$employee_code]);
         if ($check && $check->num_rows > 0) {
             $error = 'ID BADGE is already in use!';
         } else {
@@ -189,43 +189,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $available_columns[] = $col['Field'];
                 }
                 
-                $status_val = $is_draft ? 'draft' : 'pending';
-                // Create dynamic INSERT query based on available columns
-                $insert_fields = ['employee_code', 'full_name', 'position', 'department', 'competency_type', 'contractor_company', 'ruang_lingkup', 'cv_file', 'verification_status', 'is_active'];
-                $insert_values = ["'$employee_code'", "'$full_name'", "'$position'", "'$department'", "'$competency_type'", "'$contractor_company'", "'$ruang_lingkup'", "'$cv_file'", "'$status_val'", "1"];
+                // Buat query UPDATE dinamis
+                $verification_status = $is_draft ? 'draft' : 'pending';
+                $update_data = [
+                    'employee_code' => $employee_code,
+                    'full_name' => $full_name,
+                    'position' => $position,
+                    'department' => $department,
+                    'competency_type' => $competency_type,
+                    'contractor_company' => $contractor_company,
+                    'ruang_lingkup' => $ruang_lingkup,
+                    'verification_status' => $verification_status
+                ];
                 
-                // Tambahkan field optional jika ada di tabel
+                if ($cv_file) {
+                    $update_data['cv_file'] = $cv_file;
+                }
+                
                 if (in_array('competency_name', $available_columns) && !empty($competency_name)) {
-                    $insert_fields[] = 'competency_name';
-                    $insert_values[] = "'$competency_name'";
+                    $update_data['competency_name'] = $competency_name;
                 }
-                
                 if (in_array('supervision_area', $available_columns) && !empty($supervision_area)) {
-                    $insert_fields[] = 'supervision_area';
-                    $insert_values[] = "'$supervision_area'";
+                    $update_data['supervision_area'] = $supervision_area;
                 }
-
                 if (in_array('sub_competency', $available_columns) && !empty($sub_competency)) {
-                    $insert_fields[] = 'sub_competency';
-                    $insert_values[] = "'$sub_competency'";
+                    $update_data['sub_competency'] = $sub_competency;
                 }
-
                 if (in_array('statement_file', $available_columns) && !empty($statement_file)) {
-                    $insert_fields[] = 'statement_file';
-                    $insert_values[] = "'$statement_file'";
-                }
-
-                if (in_array('created_by', $available_columns)) {
-                    $insert_fields[] = 'created_by';
-                    $current_user_id = intval($_SESSION['user_id'] ?? 0);
-                    $insert_values[] = "'$current_user_id'";
+                    $update_data['statement_file'] = $statement_file;
                 }
                 
-                $sql = "INSERT INTO employees (" . implode(', ', $insert_fields) . ") 
-                        VALUES (" . implode(', ', $insert_values) . ")";
-                
-                if ($db->query($sql)) {
-                    $employee_id = $db->lastInsertId();
+                if ($db->update('employees', $update_data, "id = ?", [$draft_id])) {
+                    $employee_id = $draft_id;
                     
                     // Handle multiple certification uploads
                     if (isset($_FILES['certifications']) && !empty($_FILES['certifications']['name'][0])) {

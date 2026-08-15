@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
 
     if (!$error) {
         // Check if employee code already exists
-        $check = $db->query("SELECT id FROM employees WHERE employee_code = '$employee_code'");
+        $check = $db->query("SELECT id FROM employees WHERE employee_code = ?", [$employee_code]);
         if ($check && $check->num_rows > 0) {
             if ($is_draft) {
                 $employee_code = $employee_code . '_' . rand(100,999);
@@ -203,37 +203,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                 
                 // Buat query UPDATE dinamis
                 $verification_status = $is_draft ? 'draft' : 'pending';
-                $update_fields = [
-                    "employee_code = '$employee_code'",
-                    "full_name = '$full_name'",
-                    "position = '$position'",
-                    "department = '$department'",
-                    "competency_type = '$competency_type'",
-                    "contractor_company = '$contractor_company'",
-                    "ruang_lingkup = '$ruang_lingkup'",
-                    "verification_status = '$verification_status'"
+                $update_data = [
+                    'employee_code' => $employee_code,
+                    'full_name' => $full_name,
+                    'position' => $position,
+                    'department' => $department,
+                    'competency_type' => $competency_type,
+                    'contractor_company' => $contractor_company,
+                    'ruang_lingkup' => $ruang_lingkup,
+                    'verification_status' => $verification_status
                 ];
                 
                 if ($cv_file) {
-                    $update_fields[] = "cv_file = '$cv_file'";
+                    $update_data['cv_file'] = $cv_file;
                 }
                 
                 if (in_array('competency_name', $available_columns) && !empty($competency_name)) {
-                    $update_fields[] = "competency_name = '$competency_name'";
+                    $update_data['competency_name'] = $competency_name;
                 }
                 if (in_array('supervision_area', $available_columns) && !empty($supervision_area)) {
-                    $update_fields[] = "supervision_area = '$supervision_area'";
+                    $update_data['supervision_area'] = $supervision_area;
                 }
                 if (in_array('sub_competency', $available_columns) && !empty($sub_competency)) {
-                    $update_fields[] = "sub_competency = '$sub_competency'";
+                    $update_data['sub_competency'] = $sub_competency;
                 }
                 if (in_array('statement_file', $available_columns) && !empty($statement_file)) {
-                    $update_fields[] = "statement_file = '$statement_file'";
+                    $update_data['statement_file'] = $statement_file;
                 }
                 
-                $sql = "UPDATE employees SET " . implode(', ', $update_fields) . " WHERE id = $draft_id";
-                
-                if ($db->query($sql)) {
+                if ($db->update('employees', $update_data, "id = ?", [$draft_id])) {
                     $employee_id = $draft_id;
                     
                     // Handle multiple certification uploads
