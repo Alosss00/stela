@@ -434,7 +434,7 @@ AND a.status='approved'
                             const typeClass = compType.toLowerCase().replace(/ /g, '_');
                             const compBadge = compType ? `<span class="competency-type-badge competency-${typeClass}">${compType}</span>` : '-';
                             const compName = item.competency_name ? `<span class="competency-tag">${item.competency_name}</span>` : '<span class="text-muted">-</span>';
-                            const empCompany = item.contractor_company || companyName || '-';
+                            const empCompany = item.contractor_company || item.department || '-';
                             const apptNo = item.appointment_number || '-';
                             const fullName = item.full_name || '-';
                             const empCode = item.employee_code || '-';
