@@ -485,11 +485,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 										<?php echo $cert['expiry_date'] ? date('d M Y', strtotime($cert['expiry_date'])) : '-'; ?><br>
 										<small class="text-muted">
 											<?php if ((int) $cert['days_left'] >= 0): ?>
-												<?php
-													echo $cert['days_left'] < 0
-														? abs($cert['days_left']) . ' hari yang lalu'
-														: $cert['days_left'] . ' hari';
-													?> 
+												<?php echo (int)$cert['days_left']; ?> hari
 											<?php else: ?>
 												Lewat <?php echo abs((int) $cert['days_left']); ?> hari
 											<?php endif; ?>
