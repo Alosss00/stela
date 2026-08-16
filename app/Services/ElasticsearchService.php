@@ -529,15 +529,51 @@ class ElasticsearchService {
             $filterQueries = [];
 
             if (!empty($queryText)) {
+                $cleanQuery = strtolower(trim($queryText));
                 $mustQueries[] = [
-                    'multi_match' => [
-                        'query' => $queryText,
-                        'fields' => [
-                            'appointment_number^3',
-                            'employee_name^2',
-                            'contractor_company'
+                    'bool' => [
+                        'should' => [
+                            [
+                                'multi_match' => [
+                                    'query' => $queryText,
+                                    'type' => 'phrase_prefix',
+                                    'fields' => [
+                                        'appointment_number.text^4',
+                                        'employee_code^3',
+                                        'employee_name^3',
+                                        'contractor_company^2'
+                                    ]
+                                ]
+                            ],
+                            [
+                                'multi_match' => [
+                                    'query' => $queryText,
+                                    'fields' => [
+                                        'appointment_number^3',
+                                        'employee_code^2',
+                                        'employee_name^2',
+                                        'contractor_company'
+                                    ],
+                                    'fuzziness' => 'AUTO',
+                                    'operator' => 'or'
+                                ]
+                            ],
+                            [
+                                'query_string' => [
+                                    'query' => '*' . addcslashes($cleanQuery, '+-&&||!(){}[]^"~*?:\\/') . '*',
+                                    'fields' => ['appointment_number.text', 'employee_name', 'employee_code', 'contractor_company']
+                                ]
+                            ],
+                            [
+                                'wildcard' => [
+                                    'appointment_number' => [
+                                        'value' => '*' . $cleanQuery . '*',
+                                        'case_insensitive' => true
+                                    ]
+                                ]
+                            ]
                         ],
-                        'fuzziness' => 'AUTO'
+                        'minimum_should_match' => 1
                     ]
                 ];
             } else {
