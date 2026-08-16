@@ -30,3 +30,5 @@ vendor/
 # Ignore node_modules (if using npm)
 node_modules/
 storage/
+
+/uploads/

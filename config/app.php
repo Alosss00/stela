@@ -76,10 +76,8 @@ if (!defined('ALLOWED_DOC_TYPES')) {
 // ============================================================
 
 if (!defined('UPLOAD_PHYSICAL_PATH')) {
-    // Default: satu level di atas root project (keluar dari folder git repo)
-    // Contoh: jika project ada di /public_html/stela-2/
-    //         maka uploads masuk ke /public_html/uploads_stela/
-    define('UPLOAD_PHYSICAL_PATH', dirname(dirname(__DIR__)) . '/uploads_stela');
+    // Diubah agar menyimpan di dalam folder project (localhost)
+    define('UPLOAD_PHYSICAL_PATH', dirname(__DIR__) . '/uploads');
 }
 
 if (!defined('UPLOAD_URL')) {
