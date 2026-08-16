@@ -267,7 +267,13 @@ class MonitoringHelper {
         
         $sql = "SELECT ec.*, 
                        c.cert_name as master_cert_name,
-                       e.full_name as employee_name, e.employee_code, e.contractor_company as company, e.department, e.position
+                       e.full_name as employee_name, e.employee_code, e.contractor_company as company, e.department, e.position,
+                       (
+                           SELECT COUNT(*)
+                           FROM employee_certifications ec_count
+                           WHERE ec_count.employee_id = ec.employee_id
+                           AND ec_count.certification_id = ec.certification_id
+                       ) AS submission_count
                 FROM employee_certifications ec
                 LEFT JOIN certifications c ON ec.certification_id = c.id
                 LEFT JOIN employees e ON ec.employee_id = e.id

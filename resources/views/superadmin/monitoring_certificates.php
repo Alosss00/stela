@@ -186,6 +186,9 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                 <tr>
                                     <td>
                                         <div class="fw-bold text-dark"><?php echo htmlspecialchars($cert['master_cert_name'] ?: 'Custom/Other'); ?></div>
+                                        <?php if (isset($cert['submission_count']) && (int)$cert['submission_count'] > 1): ?>
+                                            <span class="badge bg-info text-white" style="font-size: 0.75em; margin-top: 4px;"><i class="fas fa-sync-alt"></i> Resubmitted</span>
+                                        <?php endif; ?>
                                     </td>
                                     <td>
                                         <div class="font-monospace small"><?php echo htmlspecialchars($cert['cert_number']); ?></div>
