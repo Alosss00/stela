@@ -588,8 +588,8 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     <select class="form-control" id="ruang_lingkup" name="ruang_lingkup" required>
                         <option value="" data-lang="select-scope-of-work">-- Select Scope of Work --</option>
                         <?php $stored_rl = isset($_POST['ruang_lingkup']) ? $_POST['ruang_lingkup'] : ($employee['ruang_lingkup'] ?? ''); ?>
-                        <option value="PT MSM" <?php echo (stripos($stored_rl, 'MSM') !== false) ? 'selected' : ''; ?>>PT MSM</option>
-                        <option value="PT TTN" <?php echo (stripos($stored_rl, 'TTN') !== false) ? 'selected' : ''; ?>>PT TTN</option>
+                        <option value="PT Meares Soputan Mining (MSM)" data-lang="scope-of-work-msm" <?php echo ($stored_rl == 'PT Meares Soputan Mining (MSM)' || stripos($stored_rl, 'MSM') !== false) ? 'selected' : ''; ?>>PT Meares Soputan Mining</option>
+                        <option value="PT Tambang Tondano Nusajaya (TTN)" data-lang="scope-of-work-ttn" <?php echo ($stored_rl == 'PT Tambang Tondano Nusajaya (TTN)' || stripos($stored_rl, 'TTN') !== false) ? 'selected' : ''; ?>>PT Tambang Tondano Nusajaya</option>
                     </select>
                 </div>
             </div>
@@ -1213,13 +1213,13 @@ function removeCertification(button) {
 
     // Don't remove if it's the only one
     if (certItems.length <= 1) {
-        const mustHaveOneCert = window.getLanguageText('');
+        const mustHaveOneCert = window.getLanguageText('must-have-one-cert', 'Must have at least one certification!');
         alert(mustHaveOneCert);
         return;
     }
 
     // Confirm before removing
-    const confirmRemoveCert = window.getLanguageText('');
+    const confirmRemoveCert = window.getLanguageText('confirm-remove-cert', 'Are you sure you want to remove this certification?');
     if (confirm(confirmRemoveCert)) {
         certItem.remove();
         updateCertificationNumbers();
@@ -1232,7 +1232,7 @@ function updateCertificationNumbers() {
 
     certItems.forEach((item, index) => {
         const header = item.querySelector('.cert-item-header h5');
-        const certLabel = window.getLanguageText('');
+        const certLabel = window.getLanguageText('certification', 'Certification');
         header.innerHTML = `<i class="fas fa-file-certificate"></i> ${certLabel} #${index + 1}`;
     });
 }
