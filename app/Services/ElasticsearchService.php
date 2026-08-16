@@ -554,8 +554,7 @@ class ElasticsearchService {
                                         'employee_name^2',
                                         'contractor_company'
                                     ],
-                                    'fuzziness' => 'AUTO',
-                                    'operator' => 'or'
+                                    'operator' => 'and'
                                 ]
                             ],
                             [
