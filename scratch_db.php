@@ -1,7 +1,7 @@
 <?php
 require 'bootstrap/app.php';
 $db = new Database();
-$res = $db->query("SELECT id, full_name, employee_status, contractor_company FROM employees WHERE employee_status = 'resign'");
+$res = $db->query("SELECT id, full_name, employee_status, contractor_company FROM employees WHERE employee_status = 'resigned'");
 $count = $res ? $res->num_rows : 0;
 echo "Count of resigned: " . $count . "\n";
 if ($count > 0) {
