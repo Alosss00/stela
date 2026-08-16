@@ -153,7 +153,7 @@ $expiring_certs_count = $expiring_certs ? $expiring_certs->num_rows : 0;
 $resigned_employees = $db->query("
     SELECT e.*
     FROM employees e
-    WHERE e.employee_status = 'resign' AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    WHERE e.employee_status = 'resigned' AND e.contractor_company = '" . $db->escapeString($company_name) . "'
     ORDER BY e.resign_date DESC, e.full_name ASC
 ");
 
@@ -301,7 +301,7 @@ $work_scopes = $db->query("
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
-                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resign'): ?>
+                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resigned'): ?>
                                         <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span>
                                     <?php endif; ?>
                                 </div>
@@ -420,7 +420,7 @@ $work_scopes = $db->query("
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($row['employee_name']); ?></strong>
-                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resign'): ?>
+                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resigned'): ?>
                                         <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span>
                                     <?php endif; ?>
                                     <span class="emp-code-detail"><?php echo htmlspecialchars($row['employee_code']); ?></span>
@@ -565,7 +565,7 @@ $work_scopes = $db->query("
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($row['employee_name']); ?></strong>
-                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resign'): ?>
+                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resigned'): ?>
                                         <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span>
                                     <?php endif; ?>
                                     <span class="emp-code-detail"><?php echo htmlspecialchars($row['employee_code']); ?></span>
@@ -664,7 +664,7 @@ $work_scopes = $db->query("
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($cert['full_name']); ?></strong>
-                                    <?php if (isset($cert['employee_status']) && $cert['employee_status'] === 'resign'): ?>
+                                    <?php if (isset($cert['employee_status']) && $cert['employee_status'] === 'resigned'): ?>
                                         <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($cert['resign_date']) ? date('d/m/Y', strtotime($cert['resign_date'])) : '-'; ?>)</span>
                                     <?php endif; ?>
                                     <span class="emp-code-detail"><?php echo htmlspecialchars($cert['employee_code']); ?></span>
