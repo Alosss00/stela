@@ -714,8 +714,8 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                 <i class="fas fa-exclamation-triangle"></i>
                 <div>
                     <strong data-lang="important-statement-letter">Important - Statement Letter:</strong>
-                    <p style="margin-bottom: 8px;" data-lang="statement-letter-original-signature-note">The statement letter must be signed with an<strong>original wet signature</strong> by the concerned party, then scanned in PDF format.</p>
-                    <a href="https://drive.google.com/drive/folders/1z_LkU7C0bgz5VnVKyZBmmbP8mUuZGr06?usp=sharing" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
+                    <p style="margin-bottom: 8px;" data-lang="statement-letter-original-signature-note">The statement letter must be signed with an original wet signature, then scanned in PDF format.</p>
+                    <a href="https://drive.google.com/drive/folders/176NPnFCvAnzp2Mb9vrA2RC5OMA45Hga1" class="btn btn-info btn-sm" target="_blank" style="margin-top: 5px;">
                         <i class="fas fa-download"></i> <span data-lang="download-statement-letter-template">Download Statement Letter Template</span>
                     </a>
                 </div>
