@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 $page_title = 'Upload Employee Correction' ;
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
@@ -261,15 +261,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 // Add optional fields
                 if (in_array('competency_name', $available_columns)) {
-                    $update_fields[] = "competency_name = '$competency_name'";
+                    $comp_val = $competency_name !== '' ? "'$competency_name'" : "NULL";
+                    $update_fields[] = "competency_name = $comp_val";
                 }
 
                 if (in_array('supervision_area', $available_columns)) {
-                    $update_fields[] = "supervision_area = '$supervision_area'";
+                    $sup_val = $supervision_area !== '' ? "'$supervision_area'" : "NULL";
+                    $update_fields[] = "supervision_area = $sup_val";
                 }
 
                 if (in_array('sub_competency', $available_columns)) {
-                    $update_fields[] = "sub_competency = '$sub_competency'";
+                    $sub_val = $sub_competency !== '' ? "'$sub_competency'" : "NULL";
+                    $update_fields[] = "sub_competency = $sub_val";
                 }
 
                 if (in_array('statement_file', $available_columns)) {
