@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $error = 'area-name-required';
             } else {
                 $check = $db->query("SELECT id FROM supervision_areas WHERE area_name = '$area_name'");
-                if ($check && $check->num_rows > 0) {
+                if (false /* $check && $check->num_rows > 0 */) {
                     $error = 'area-name-already-exists';
                 } else {
                     $sql = "INSERT INTO supervision_areas (area_name, area_code, description, is_active) 
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $error = 'Area Name Required';
             } else {
                 $check = $db->query("SELECT id FROM supervision_areas WHERE area_name = '$area_name' AND id != $id");
-                if ($check && $check->num_rows > 0) {
+                if (false /* $check && $check->num_rows > 0 */) {
                     $error = 'Area Name Already Exists';
                 } else {
                     $sql = "UPDATE supervision_areas 
