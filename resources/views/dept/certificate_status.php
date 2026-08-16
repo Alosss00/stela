@@ -304,7 +304,14 @@ SELECT
     a.appointment_number,
     a.status AS appointment_status,
 
-    DATEDIFF(ec.expiry_date,CURDATE()) AS days_left
+    DATEDIFF(ec.expiry_date,CURDATE()) AS days_left,
+
+    (
+        SELECT COUNT(*)
+        FROM employee_certifications ec_count
+        WHERE ec_count.employee_id = ec.employee_id
+        AND ec_count.certification_id = ec.certification_id
+    ) AS submission_count
 
 FROM employee_certifications ec
 
@@ -469,6 +476,9 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 									<td>
 										<?php echo htmlspecialchars($cert['cert_name'] ?: '-'); ?><br>
 										<small><?php echo htmlspecialchars($cert['cert_type'] ?: '-'); ?></small>
+										<?php if (isset($cert['submission_count']) && (int)$cert['submission_count'] > 1): ?>
+											<br><span class="badge badge-info" style="font-size: 0.75em; margin-top: 4px;"><i class="fas fa-sync-alt"></i> Resubmitted</span>
+										<?php endif; ?>
 									</td>
 									<td><?php echo htmlspecialchars($cert['cert_number'] ?: '-'); ?></td>
 									<td>
