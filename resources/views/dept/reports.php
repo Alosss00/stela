@@ -118,6 +118,15 @@ $expiring_certs = $db->query("
 
 $expiring_certs_count = $expiring_certs ? $expiring_certs->num_rows : 0;
 
+
+// Get resigned employees
+$resigned_employees = $db->query("
+    SELECT e.*
+    FROM employees e
+    WHERE e.employee_status = 'resign' AND e.department = '" . $db->escapeString($department) . "'
+    ORDER BY e.resign_date DESC, e.full_name ASC
+");
+
 require_once dirname(__DIR__) . '/layouts/header.php';
 
 // Get all supervision areas for filter
@@ -317,6 +326,57 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
         <div class="card-header-report"><div style="display: flex; align-items: center; gap: 10px; flex: 1;"><h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Expired Certificates</span></h3><span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span></div><button class="btn btn-export-small" onclick="exportExpiringCertsToExcel()"><i class="fas fa-file-excel"></i> <span data-lang="export-to-excel">Export to Excel</span></button></div>
         <div class="alert-warning-report"><i class="fas fa-info-circle"></i><span data-lang="expired-certs-renew-immediately">The following is a list of employees with expired certificates. Please renew certificates immediately.</span></div>
         <div class="card-body-report"><div class="table-responsive"><table class="table-report table-expiring" style="width: 100%; min-width: 950px;" id="expiringCertsTable"><thead><tr><th class="col-employee" data-lang="employee">Employee</th><th class="col-cert-name" data-lang="certificate-name">Certificate Name</th><th class="col-cert-number" data-lang="certificate-number">Certificate Number</th><th class="col-expiry-date" data-lang="expiry-date">Expiry Date</th><th class="col-days-left" data-lang="days-left">Days Left</th><th class="col-status-expiry" data-lang="status">Status</th></tr></thead><tbody><?php $expiring_certs->data_seek(0); while ($cert = $expiring_certs->fetch_assoc()): ?><tr class="expiring-row"><td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><?php if (isset($cert['employee_status']) && $cert['employee_status'] === 'resign'): ?> <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($cert['resign_date']) ? date('d/m/Y', strtotime($cert['resign_date'])) : '-'; ?>)</span> <?php endif; ?><span class="emp-code-detail"><?php echo htmlspecialchars($cert['employee_code']); ?></span></div></td><td class="col-cert-name"><span class="cert-name-badge"><?php echo htmlspecialchars($cert['cert_name'] ?: 'N/A'); ?></span></td><td class="col-cert-number"><?php echo htmlspecialchars($cert['cert_number'] ?: 'N/A'); ?></td><td class="col-expiry-date"><?php echo !empty($cert['expiry_date']) ? date('d/m/Y', strtotime($cert['expiry_date'])) : 'N/A'; ?></td><td class="col-days-left"><span class="days-badge <?php echo ($cert['days_until_expiry'] <= 30) ? 'days-critical' : (($cert['days_until_expiry'] <= 60) ? 'days-urgent' : 'days-warning'); ?>"><?php echo (int)$cert['days_until_expiry']; ?> days</span></td><td class="col-status-expiry"><span class="status-badge <?php echo ($cert['days_until_expiry'] <= 30) ? 'status-critical' : (($cert['days_until_expiry'] <= 60) ? 'status-urgent' : 'status-warning'); ?>"><?php echo ($cert['days_until_expiry'] <= 30) ? 'Critical' : (($cert['days_until_expiry'] <= 60) ? 'Urgent' : 'Warning'); ?></span></td></tr><?php endwhile; ?></tbody></table></div></div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Resigned Employees -->
+    <?php if ($resigned_employees && $resigned_employees->num_rows > 0): ?>
+    <div class="card-report" id="resigned-employees">
+        <div class="card-header-report">
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                <h3 style="margin: 0;"><i class="fas fa-user-times"></i> <span data-lang="resigned-employees">Resigned Employees</span></h3>
+                <span class="badge-header danger"><?php echo $resigned_employees->num_rows; ?></span>
+            </div>
+        </div>
+        
+        <div class="card-body-report">
+            <div class="table-responsive">
+                <table class="table-report" style="width: 100%; min-width: 950px;" id="resignedEmployeesTable">
+                    <thead>
+                        <tr>
+                            <th class="col-employee" data-lang="employee">Employee</th>
+                            <th class="col-position" data-lang="position">Position</th>
+                            <th class="col-date" data-lang="resign-date">Resign Date</th>
+                            <th class="col-notes" data-lang="resign-reason">Resign Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $resigned_employees->data_seek(0);
+                        while ($row = $resigned_employees->fetch_assoc()): 
+                        ?>
+                        <tr>
+                            <td class="col-employee">
+                                <div class="employee-detail">
+                                    <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
+                                    <span class="emp-code-detail"><?php echo htmlspecialchars($row['employee_code']); ?></span>
+                                </div>
+                            </td>
+                            <td class="col-position">
+                                <span class="position-badge-report"><?php echo htmlspecialchars($row['position']); ?></span>
+                            </td>
+                            <td class="col-date">
+                                <i class="fas fa-calendar-times"></i> <?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : 'N/A'; ?>
+                            </td>
+                            <td class="col-notes">
+                                <?php echo nl2br(htmlspecialchars($row['resign_reason'] ?: '-')); ?>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
     <?php endif; ?>
 </div>

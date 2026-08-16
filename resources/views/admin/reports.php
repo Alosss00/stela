@@ -290,6 +290,15 @@ if ($expiring_certs && $expiring_certs->num_rows > 0) {
     $expiring_certs->data_seek(0);
 }
 
+
+// Get resigned employees
+$resigned_employees = $db->query("
+    SELECT e.*
+    FROM employees e
+    WHERE e.employee_status = 'resign'
+    ORDER BY e.resign_date DESC, e.full_name ASC
+");
+
 require_once dirname(__DIR__) . '/layouts/header.php';
 
 // Get unique companies for filter

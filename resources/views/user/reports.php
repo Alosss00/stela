@@ -148,6 +148,15 @@ $expiring_certs = $db->query("
 
 $expiring_certs_count = $expiring_certs ? $expiring_certs->num_rows : 0;
 
+
+// Get resigned employees
+$resigned_employees = $db->query("
+    SELECT e.*
+    FROM employees e
+    WHERE e.employee_status = 'resign' AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    ORDER BY e.resign_date DESC, e.full_name ASC
+");
+
 require_once dirname(__DIR__) . '/layouts/header.php';
 
 // Get all supervision areas for filter
@@ -679,6 +688,57 @@ $work_scopes = $db->query("
                                 <span class="status-badge <?php echo $status_class; ?>" data-lang="<?php echo $status_lang_key; ?>">
                                     <i class="fas <?php echo $status_icon; ?>"></i> <?php echo $status_text; ?>
                                 </span>
+                            </td>
+                        </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Resigned Employees -->
+    <?php if ($resigned_employees && $resigned_employees->num_rows > 0): ?>
+    <div class="card-report" id="resigned-employees">
+        <div class="card-header-report">
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                <h3 style="margin: 0;"><i class="fas fa-user-times"></i> <span data-lang="resigned-employees">Resigned Employees</span></h3>
+                <span class="badge-header danger"><?php echo $resigned_employees->num_rows; ?></span>
+            </div>
+        </div>
+        
+        <div class="card-body-report">
+            <div class="table-responsive">
+                <table class="table-report" style="width: 100%; min-width: 950px;" id="resignedEmployeesTable">
+                    <thead>
+                        <tr>
+                            <th class="col-employee" data-lang="employee">Employee</th>
+                            <th class="col-position" data-lang="position">Position</th>
+                            <th class="col-date" data-lang="resign-date">Resign Date</th>
+                            <th class="col-notes" data-lang="resign-reason">Resign Reason</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php 
+                        $resigned_employees->data_seek(0);
+                        while ($row = $resigned_employees->fetch_assoc()): 
+                        ?>
+                        <tr>
+                            <td class="col-employee">
+                                <div class="employee-detail">
+                                    <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
+                                    <span class="emp-code-detail"><?php echo htmlspecialchars($row['employee_code']); ?></span>
+                                </div>
+                            </td>
+                            <td class="col-position">
+                                <span class="position-badge-report"><?php echo htmlspecialchars($row['position']); ?></span>
+                            </td>
+                            <td class="col-date">
+                                <i class="fas fa-calendar-times"></i> <?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : 'N/A'; ?>
+                            </td>
+                            <td class="col-notes">
+                                <?php echo nl2br(htmlspecialchars($row['resign_reason'] ?: '-')); ?>
                             </td>
                         </tr>
                         <?php endwhile; ?>
