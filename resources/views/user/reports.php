@@ -699,7 +699,6 @@ $work_scopes = $db->query("
     <?php endif; ?>
 
     <!-- Resigned Employees -->
-    <?php if ($resigned_employees && $resigned_employees->num_rows > 0): ?>
     <div class="card-report" id="resigned-employees">
         <div class="card-header-report">
             <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
@@ -720,6 +719,13 @@ $work_scopes = $db->query("
                         </tr>
                     </thead>
                     <tbody>
+                        <?php if (!$resigned_employees || $resigned_employees->num_rows === 0): ?>
+                        <tr>
+                            <td colspan="4" class="text-center text-muted" style="padding: 20px;">
+                                No resigned employees data available
+                            </td>
+                        </tr>
+                        <?php else: ?>
                         <?php 
                         $resigned_employees->data_seek(0);
                         while ($row = $resigned_employees->fetch_assoc()): 
@@ -741,13 +747,13 @@ $work_scopes = $db->query("
                                 <?php echo nl2br(htmlspecialchars($row['resign_reason'] ?: '-')); ?>
                             </td>
                         </tr>
-                        <?php endwhile; ?>
+                        <?php endwhile; endif; ?>
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <?php endif; ?>
+    
 </div>
 
 <!-- Request Rejection Details Modal -->
