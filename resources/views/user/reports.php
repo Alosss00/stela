@@ -25,7 +25,7 @@ $report_data = $db->query("
 
 // Get detailed approved appointments for user's company
 $approved_appointments = $db->query("
-    SELECT a.*, e.full_name as employee_name, e.employee_code, e.contractor_company, e.ruang_lingkup, e.supervision_area,
+    SELECT a.*, e.full_name as employee_name, e.employee_code, e.contractor_company, e.ruang_lingkup, e.supervision_area, e.employee_status, e.resign_date,
            p.position_name, p.position_type,
            u.full_name as created_by_name,
            au.full_name as approved_by_name,
@@ -47,7 +47,7 @@ $approved_appointments = $db->query("
 
 // Get detailed rejected appointments for user's company
 $rejected_appointments = $db->query("
-    SELECT a.*, e.full_name as employee_name, e.employee_code, e.contractor_company, e.ruang_lingkup, e.supervision_area,
+    SELECT a.*, e.full_name as employee_name, e.employee_code, e.contractor_company, e.ruang_lingkup, e.supervision_area, e.employee_status, e.resign_date,
            p.position_name, p.position_type,
            u.full_name as created_by_name,
            au.full_name as approved_by_name,
@@ -122,6 +122,8 @@ $expiring_certs = $db->query("
         e.employee_code,
         e.contractor_company,
         e.ruang_lingkup,
+        e.employee_status,
+        e.resign_date,
         ec.id as cert_id,
         ec.cert_number,
         ec.expiry_date,
@@ -290,6 +292,9 @@ $work_scopes = $db->query("
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
+                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resign'): ?>
+                                        <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span>
+                                    <?php endif; ?>
                                 </div>
                             </td>
                             <td class="col-code">
@@ -406,6 +411,9 @@ $work_scopes = $db->query("
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($row['employee_name']); ?></strong>
+                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resign'): ?>
+                                        <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span>
+                                    <?php endif; ?>
                                     <span class="emp-code-detail"><?php echo htmlspecialchars($row['employee_code']); ?></span>
                                 </div>
                             </td>
@@ -548,6 +556,9 @@ $work_scopes = $db->query("
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($row['employee_name']); ?></strong>
+                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resign'): ?>
+                                        <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span>
+                                    <?php endif; ?>
                                     <span class="emp-code-detail"><?php echo htmlspecialchars($row['employee_code']); ?></span>
                                 </div>
                             </td>
@@ -644,6 +655,9 @@ $work_scopes = $db->query("
                             <td class="col-employee">
                                 <div class="employee-detail">
                                     <strong><?php echo htmlspecialchars($cert['full_name']); ?></strong>
+                                    <?php if (isset($cert['employee_status']) && $cert['employee_status'] === 'resign'): ?>
+                                        <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($cert['resign_date']) ? date('d/m/Y', strtotime($cert['resign_date'])) : '-'; ?>)</span>
+                                    <?php endif; ?>
                                     <span class="emp-code-detail"><?php echo htmlspecialchars($cert['employee_code']); ?></span>
                                 </div>
                             </td>
