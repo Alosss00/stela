@@ -260,19 +260,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 ];
 
                 // Add optional fields
-                if (in_array('competency_name', $available_columns)) {
-                    $comp_val = $competency_name !== '' ? "'$competency_name'" : "NULL";
-                    $update_fields[] = "competency_name = $comp_val";
+                if (in_array('competency_name', $available_columns) && !empty($competency_name)) {
+                    $update_fields[] = "competency_name = '$competency_name'";
                 }
 
-                if (in_array('supervision_area', $available_columns)) {
-                    $sup_val = $supervision_area !== '' ? "'$supervision_area'" : "NULL";
-                    $update_fields[] = "supervision_area = $sup_val";
+                if (in_array('supervision_area', $available_columns) && !empty($supervision_area)) {
+                    $update_fields[] = "supervision_area = '$supervision_area'";
                 }
 
-                if (in_array('sub_competency', $available_columns)) {
-                    $sub_val = $sub_competency !== '' ? "'$sub_competency'" : "NULL";
-                    $update_fields[] = "sub_competency = $sub_val";
+                if (in_array('sub_competency', $available_columns) && !empty($sub_competency)) {
+                    $update_fields[] = "sub_competency = '$sub_competency'";
                 }
 
                 if (in_array('statement_file', $available_columns)) {
