@@ -10,7 +10,7 @@ foreach ($files as $role => $file) {
     $content = file_get_contents($file);
     
     // Inject Query
-    $query = "";
+    $query = "";                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
     if ($role === 'user') {
         $query = "
 // Get resigned employees
@@ -37,7 +37,7 @@ foreach ($files as $role => $file) {
 \$resigned_employees = \$db->query(\"
     SELECT e.*
     FROM employees e
-    WHERE e.employee_status = 'resign'
+    WHERE e.employee_status = 'resign'                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              
     ORDER BY e.resign_date DESC, e.full_name ASC
 \");
 ";
