@@ -12016,6 +12016,7 @@ textarea.form-control-modal {
 
 .cert-body {
     padding: 10px 0;
+    text-align: left !important;
 }
 
 .cert-body .info-item span {
