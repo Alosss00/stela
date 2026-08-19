@@ -1,10 +1,10 @@
-﻿<?php
+<?php
 $page_title = 'Upload Employee Correction';
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
 // Only department access permitted
-requirePermission('employee.update');
+requirePermission('employee.view');
 if (!hasPermission('dept.access') && !(hasPermission('user.access') && hasDepartment()) && !isSuperadmin()) {
     header('Location: ../admin/dashboard.php');
     exit();
