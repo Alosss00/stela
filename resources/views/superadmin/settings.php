@@ -5,20 +5,31 @@ require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 
 checkPageAccess(['superadmin'], 'manage_settings');
 
-// Dummy data for now, since we don't have a settings table yet
-$settings = [
+// Fetch settings from DB
+$db = new Database();
+$settings_query = $db->query("SELECT setting_key, setting_value FROM settings");
+$settings = [];
+if ($settings_query) {
+    while ($row = $settings_query->fetch_assoc()) {
+        $settings[$row['setting_key']] = $row['setting_value'];
+    }
+}
+
+// Fallbacks for defaults if not exist
+$settings = array_merge([
     'app_name' => 'STELA System',
     'app_env' => 'production',
     'maintenance_mode' => '0',
     'support_email' => 'support@stela-app.local',
-    'smtp_host' => 'smtp.mailtrap.io',
-    'smtp_port' => '2525',
-    'smtp_user' => 'stela_user',
+    'smtp_host' => 'smtp.hostinger.com',
+    'smtp_port' => '465',
+    'smtp_user' => 'sentry@tokaguard.com',
+    'fonnte_token' => 'BVru1eLXHL2it4WozxLH',
     'default_pagination' => '20',
     'session_timeout' => '1800',
     'password_policy_strict' => '1',
     'primary_color' => '#2563eb'
-];
+], $settings);
 
 require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 ?>
@@ -107,7 +118,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     <button class="nav-link active" data-bs-toggle="tab" data-bs-target="#general" type="button" role="tab">General</button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab">Email & SMTP</button>
+                    <button class="nav-link" data-bs-toggle="tab" data-bs-target="#email" type="button" role="tab">Email & WhatsApp</button>
                 </li>
                 <li class="nav-item" role="presentation">
                     <button class="nav-link" data-bs-toggle="tab" data-bs-target="#security" type="button" role="tab">Security & Performance</button>
@@ -210,6 +221,15 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                 <input type="password" class="form-control" name="smtp_pass" placeholder="********">
                             </div>
                         </div>
+                        <div class="setting-group row">
+                            <div class="col-md-4">
+                                <label class="setting-label">Fonnte Token (WhatsApp API)</label>
+                                <div class="setting-desc">Token from your <a href="https://app.fonnte.com" target="_blank">Fonnte</a> account for WhatsApp notifications.</div>
+                            </div>
+                            <div class="col-md-6">
+                                <input type="text" class="form-control" name="fonnte_token" value="<?php echo htmlspecialchars($settings['fonnte_token']); ?>">
+                            </div>
+                        </div>
                     </div>
                     
                     <!-- Security Settings -->
@@ -280,7 +300,34 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 
 <script>
     function saveSettings() {
-        alert("Module under construction. Settings saved successfully!");
+        const form = document.getElementById('settingsForm');
+        const formData = new FormData(form);
+        const btn = document.querySelector('button[onclick="saveSettings()"]');
+        const originalText = btn.innerHTML;
+        
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Saving...';
+
+        fetch('../../api/save_settings.php', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert("Settings saved successfully!");
+            } else {
+                alert("Error: " + data.message);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An unexpected error occurred while saving settings.');
+        })
+        .finally(() => {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        });
     }
 </script>
 

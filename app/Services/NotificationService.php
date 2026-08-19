@@ -19,22 +19,41 @@ use PHPMailer\PHPMailer\Exception;
 class NotificationService {
     private $db;
     
-    // Email Configuration - Gmail SMTP
-    private $smtp_host = 'smtp.hostinger.com';
-private $smtp_port = 465;
-private $smtp_username = 'sentry@tokaguard.com';
-private $smtp_password = 'Tosar123@';
-private $email_from = 'sentry@tokaguard.com';
-private $email_from_name = 'Mining Appointment System';
+    // Email Configuration
+    private $smtp_host;
+    private $smtp_port;
+    private $smtp_username;
+    private $smtp_password;
+    private $email_from;
+    private $email_from_name;
 
     // Fonnte WhatsApp Configuration
-    // Replace with your Fonnte token from https://app.fonnte.com
-    private $fonnte_token = 'BVru1eLXHL2it4WozxLH';
+    private $fonnte_token;
     private $fonnte_url   = 'https://api.fonnte.com/send';
 
     public function __construct() {
         $this->db = new Database();
+        $this->loadSettings();
         $this->ensureEmailDeliveryLogTable();
+    }
+    
+    private function loadSettings() {
+        $res = $this->db->query("SELECT setting_key, setting_value FROM settings");
+        $settings = [];
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $settings[$row['setting_key']] = $row['setting_value'];
+            }
+        }
+        
+        $this->smtp_host = $settings['smtp_host'] ?? 'smtp.hostinger.com';
+        $this->smtp_port = $settings['smtp_port'] ?? 465;
+        $this->smtp_username = $settings['smtp_user'] ?? 'sentry@tokaguard.com';
+        $this->smtp_password = $settings['smtp_pass'] ?? 'Tosar123@';
+        $this->email_from = $this->smtp_username;
+        $this->email_from_name = $settings['app_name'] ?? 'Mining Appointment System';
+        
+        $this->fonnte_token = $settings['fonnte_token'] ?? 'BVru1eLXHL2it4WozxLH';
     }
     
     /**
