@@ -55,7 +55,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         if ($status == 'verified') {
             // Verify all pending certifications automatically
             $db->query("UPDATE employee_certifications SET
-                status = 'verified',
                 verification_status = 'verified',
                 verified_by = $verified_by,
                 verified_date = NOW()
