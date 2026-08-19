@@ -8,9 +8,9 @@ error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 header('Content-Type: application/json; charset=utf-8');
 
 try {
-    require_once dirname(__DIR__, 2) . '/config/app.php';
-    require_once dirname(__DIR__, 2) . '/app/Models/Database.php';
-    require_once dirname(__DIR__, 2) . '/app/Services/ElasticsearchService.php';
+    require_once dirname(__DIR__, 3) . '/config/app.php';
+    require_once dirname(__DIR__, 3) . '/app/Models/Database.php';
+    require_once dirname(__DIR__, 3) . '/app/Services/ElasticsearchService.php';
 
     $db = new Database();
     $es = ElasticsearchService::getInstance();

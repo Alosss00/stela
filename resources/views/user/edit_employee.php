@@ -326,7 +326,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                                         // Instantly index new employee to Bonsai.io / Elasticsearch
                     try {
-                        $esServicePath = dirname(__DIR__, 2) . '/app/Services/ElasticsearchService.php';
+                        $esServicePath = dirname(__DIR__, 3) . '/app/Services/ElasticsearchService.php';
                         if (file_exists($esServicePath)) {
                             require_once $esServicePath;
                             if (class_exists('ElasticsearchService')) {
