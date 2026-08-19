@@ -1,7 +1,7 @@
 <?php
-require 'config/app.php';
+require_once __DIR__ . '/bootstrap/app.php';
 $db = new Database();
-$res = $db->query("SELECT a.id, a.employee_id, e.department FROM appointments a LEFT JOIN employees e ON a.employee_id = e.id");
-while($row = $res->fetch_assoc()) {
-    echo $row['id'] . " - " . $row['department'] . "\n";
+$res = $db->query('SHOW TABLES');
+while($row = $res->fetch_array()) {
+    echo $row[0] . "\n";
 }
