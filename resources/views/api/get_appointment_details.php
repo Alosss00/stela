@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 require_once dirname(__DIR__, 3) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
@@ -130,5 +130,3 @@ echo json_encode([
     ],
     'certifications' => $certifications
 ]);
-?>
-
