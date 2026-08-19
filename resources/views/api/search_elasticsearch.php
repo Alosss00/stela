@@ -393,7 +393,7 @@ try {
 
         if (!empty($competencyType)) {
             $safeType = $db->escapeString($competencyType);
-            $where[] = "a.competency_type = '$safeType'";
+            $where[] = "e.competency_type = '$safeType'";
         }
 
         if (!empty($status)) {
@@ -410,7 +410,7 @@ try {
 
         $sql = "SELECT a.id, a.appointment_number, a.employee_id, 
                        e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, 
-                       COALESCE(p.position_name, a.competency_type) as competency_name, a.competency_type, a.status, a.created_at 
+                       COALESCE(p.position_name, e.competency_type) as competency_name, e.competency_type, a.status, a.created_at 
                 FROM appointments a 
                 LEFT JOIN employees e ON a.employee_id = e.id 
                 LEFT JOIN positions p ON a.position_id = p.id 
