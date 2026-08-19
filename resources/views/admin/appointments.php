@@ -336,6 +336,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $verify = $db->query("SELECT status, ktt_msm_status, ktt_ttn_status FROM appointments WHERE id = $id")->fetch_assoc();
                 error_log("SUBMIT DEBUG - After Update - Status: {$verify['status']}, MSM Status: {$verify['ktt_msm_status']}, TTN Status: {$verify['ktt_ttn_status']}");
 
+                // Sync appointment to Elasticsearch
+                try {
+                    if (class_exists('ElasticsearchService')) {
+                        $es = ElasticsearchService::getInstance();
+                        if ($es->isAvailable()) {
+                            $apptQuery = $db->query("SELECT a.*, e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
+                                                     FROM appointments a 
+                                                     LEFT JOIN employees e ON a.employee_id = e.id
+                                                     LEFT JOIN positions p ON a.position_id = p.id
+                                                     WHERE a.id = $id");
+                            if ($apptQuery && $apptRow = $apptQuery->fetch_assoc()) {
+                                $es->indexAppointment($apptRow);
+                            }
+                        }
+                    }
+                } catch (Exception $e) {
+                    error_log("Elasticsearch appointment sync error: " . $e->getMessage());
+                }
+
                 // Send email notification to KTT
                 try {
                     // Included via bootstrap/app.php
