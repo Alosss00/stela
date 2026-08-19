@@ -471,6 +471,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         $db->query("UPDATE employees SET appointment_number = '$existing_number' WHERE id = $employee_id");
                     }
                     
+                    // Sync appointment to Elasticsearch
+                    if (isset($appointment_id) && $appointment_id) {
+                        try {
+                            if (class_exists('ElasticsearchService')) {
+                                $es = ElasticsearchService::getInstance();
+                                if ($es->isAvailable()) {
+                                    $apptQuery = $db->query("SELECT a.*, e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
+                                                             FROM appointments a 
+                                                             LEFT JOIN employees e ON a.employee_id = e.id
+                                                             LEFT JOIN positions p ON a.position_id = p.id
+                                                             WHERE a.id = $appointment_id");
+                                    if ($apptQuery && $apptRow = $apptQuery->fetch_assoc()) {
+                                        $es->indexAppointment($apptRow);
+                                    }
+                                }
+                            }
+                        } catch (Exception $e) {
+                            error_log("Elasticsearch appointment sync error: " . $e->getMessage());
+                        }
+                    }
+                    
                     // Redirect langsung ke halaman appointments dengan ID appointment
                     // Notify user/dept that admin accepted the employee
                     try {
