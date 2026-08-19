@@ -32,7 +32,7 @@ $appointment = $db->query("
            ktt2.full_name as ktt2_name
     FROM appointments a
     JOIN employees e ON a.employee_id = e.id
-    JOIN positions p ON a.position_id = p.id
+    LEFT JOIN positions p ON a.position_id = p.id
     LEFT JOIN users u1 ON a.created_by = u1.id
     LEFT JOIN users u2 ON a.approved_by = u2.id
     LEFT JOIN users u_admin ON e.verified_by = u_admin.id
