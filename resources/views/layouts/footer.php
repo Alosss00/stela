@@ -54,6 +54,7 @@
             });
         });
     </script>
+    <script src="<?php echo BASE_URL; ?>/assets/js/global-action-handler.js?v=<?php echo time(); ?>"></script>
 </body>
 </html>
 

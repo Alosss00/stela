@@ -83,6 +83,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $admin_notes = $db->escapeString($_POST['admin_notes_value'] ?? 'No notes');
             $current_admin_id = $_SESSION['user_id'];
 
+            $appt_check = $db->query("SELECT status FROM appointments WHERE id = $id")->fetch_assoc();
+            if ($appt_check['status'] !== 'rejected_by_ktt') {
+                $error = "This appointment has already been reviewed.";
+            }
+
+            if (empty($error)) {
             // IMPORTANT: Save rejection history BEFORE any action (for both send_to_user and send_to_ktt)
             // Get rejection info to preserve for history
             $rejection_history = $db->query("
@@ -242,6 +248,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                 }
             }
+            }
         } elseif ($_POST['action'] == 'add') {
             $employee_id = intval($_POST['employee_id']);
             $appointment_date = $db->escapeString($_POST['appointment_date']);
@@ -278,6 +285,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 WHERE id = $id
             ")->fetch_assoc();
 
+            if ($appt['status'] !== 'draft' && $appt['status'] !== 'rejected') {
+                $error = "Appointment has already been submitted.";
+            }
+
+            if (empty($error)) {
             // Debug logging
             error_log("SUBMIT DEBUG - Appointment ID: $id");
             error_log("SUBMIT DEBUG - Current Status: {$appt['status']}");
@@ -374,6 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             } else {
                 error_log("SUBMIT DEBUG - Update FAILED: " . $db->getConnection()->error);
                 $error = stela_t('failed-submit-appointment');
+            }
             }
         } elseif ($_POST['action'] == 'update_content') {
             $id = intval($_POST['id']);

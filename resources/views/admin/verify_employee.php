@@ -37,22 +37,34 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $notes = $db->escapeString($_POST['notes']);
         $verified_by = $_SESSION['user_id'];
         
-        $sql = "UPDATE employee_certifications SET 
-                verification_status = '$status',
-                verified_by = $verified_by,
-                verified_date = NOW()
-                WHERE id = $cert_id";
+        $cert_check = $db->query("SELECT verification_status FROM employee_certifications WHERE id = $cert_id")->fetch_assoc();
+        if ($cert_check['verification_status'] !== 'pending') {
+            $error = "Certification verification has already been processed.";
+        }
         
-        if ($db->query($sql)) {
-            $message = stela_t('certification-verified');
+        if (!$error) {
+            $sql = "UPDATE employee_certifications SET 
+                    verification_status = '$status',
+                    verified_by = $verified_by,
+                    verified_date = NOW()
+                    WHERE id = $cert_id";
+            
+            if ($db->query($sql)) {
+                $message = stela_t('certification-verified');
+            }
         }
     } elseif ($_POST['action'] == 'verify_employee') {
         $status = $_POST['employee_status']; // verified or rejected
         $notes = $db->escapeString($_POST['employee_notes']);
         $verified_by = $_SESSION['user_id'];
         
+        $employee_check = $db->query("SELECT verification_status FROM employees WHERE id = $employee_id")->fetch_assoc();
+        if ($employee_check['verification_status'] !== 'pending') {
+            $error = "Employee verification has already been processed.";
+        }
+        
         // Auto-verify all pending certifications when employee is verified
-        if ($status == 'verified') {
+        if (!$error && $status == 'verified') {
             // Verify all pending certifications automatically
             $db->query("UPDATE employee_certifications SET
                 verification_status = 'verified',
@@ -60,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 verified_date = NOW()
             WHERE employee_id = $employee_id
             AND verification_status = 'pending'");
-            }
+        }
         
         if (!$error) {
             $sql = "UPDATE employees SET 
