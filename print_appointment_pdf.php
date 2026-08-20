@@ -491,6 +491,11 @@ $doc_name = 'Surat Penunjukan ' . $header_title;
 
 // Create mPDF instance
 try {
+    $tempDir = sys_get_temp_dir() . '/stela_mpdf';
+    if (!is_dir($tempDir)) {
+        mkdir($tempDir, 0777, true);
+    }
+
     $mpdf = new Mpdf([
         'mode' => 'utf-8',
         'format' => 'A4',
@@ -501,7 +506,8 @@ try {
         'margin_header' => 10,
         'margin_footer' => 10,
         'default_font' => 'times',
-        'img_dpi' => 96
+        'img_dpi' => 96,
+        'tempDir' => $tempDir
     ]);
 
     // Define header HTML
