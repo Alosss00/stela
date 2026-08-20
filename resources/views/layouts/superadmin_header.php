@@ -233,6 +233,11 @@ $current_page = get_current_page();
                         <i class="fas fa-cogs"></i> <span>System Settings</span>
                     </a>
                 </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/pages/admin/trash.php" class="<?php echo $current_page == 'trash.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-trash-restore"></i> <span>Trash & Recovery</span>
+                    </a>
+                </li>
                 <?php endif; ?>
 
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Account</li>

@@ -30,38 +30,30 @@ $department_condition_joined = $is_superadmin
     : "e.department = '" . $db->escapeString($_SESSION['department'] ?? '') . "'";
 
 // Get statistics for current department
-$total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $department_condition_single AND is_active = 1")->fetch_assoc()['count'];
-$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE $department_condition_single AND verification_status = 'verified' AND is_active = 1")->fetch_assoc()['count'];
-$pending_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE $department_condition_single AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
-$rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE $department_condition_single AND verification_status = 'rejected' AND is_active = 1")->fetch_assoc()['count'];
+$total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND $department_condition_single AND is_active = 1")->fetch_assoc()['count'];
+$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND $department_condition_single AND verification_status = 'verified' AND is_active = 1")->fetch_assoc()['count'];
+$pending_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND $department_condition_single AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
+$rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND $department_condition_single AND verification_status = 'rejected' AND is_active = 1")->fetch_assoc()['count'];
 
 // Get appointment statistics
 $total_appointments = $db->query("
     SELECT COUNT(*) as count 
-    FROM appointments a 
-    JOIN employees e ON a.employee_id = e.id 
-    WHERE $department_condition_joined
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND $department_condition_joined
 ")->fetch_assoc()['count'];
 
 $approved_appointments = $db->query("
     SELECT COUNT(*) as count 
-    FROM appointments a 
-    JOIN employees e ON a.employee_id = e.id 
-    WHERE $department_condition_joined AND a.status = 'approved'
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND $department_condition_joined AND a.status = 'approved'
 ")->fetch_assoc()['count'];
 
 $rejected_appointments = $db->query("
     SELECT COUNT(*) as count 
-    FROM appointments a 
-    JOIN employees e ON a.employee_id = e.id 
-    WHERE $department_condition_joined AND a.status = 'rejected'
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND $department_condition_joined AND a.status = 'rejected'
 ")->fetch_assoc()['count'];
 
 $pending_appointments = $db->query("
     SELECT COUNT(*) as count 
-    FROM appointments a 
-    JOIN employees e ON a.employee_id = e.id 
-    WHERE $department_condition_joined AND a.status = 'pending'
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND $department_condition_joined AND a.status = 'pending'
 ")->fetch_assoc()['count'];
 
 // Get certificate expiration statistics (certificates expiring in 2 months or less) for this department
@@ -293,7 +285,7 @@ $recent_appointments = $db->query("
                                         <div class="approval-steps" style="font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
                                             <?php
                                             $emp_id = $row['employee_id'];
-                                            $admin_verify = $db->query("SELECT verified_by FROM employees WHERE id = $emp_id AND verified_by IS NOT NULL")->fetch_assoc();
+                                            $admin_verify = $db->query("SELECT verified_by FROM employees WHERE deleted_at IS NULL AND id = $emp_id AND verified_by IS NOT NULL")->fetch_assoc();
                                             
                                             // Admin
                                             echo '<span class="step ' . ($admin_verify ? 'done' : 'pending') . '" style="padding: 2px 6px; border-radius: 4px; display: inline-block; text-align: center; margin-right: 2px;">Admin</span>';

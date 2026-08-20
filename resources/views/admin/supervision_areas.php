@@ -44,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (empty($area_name)) {
                 $error = 'area-name-required';
             } else {
-                $check = $db->query("SELECT id FROM supervision_areas WHERE area_name = '$area_name'");
+                $check = $db->query("SELECT id FROM supervision_areas WHERE deleted_at IS NULL AND area_name = '$area_name'");
                 if (false /* $check && $check->num_rows > 0 */) {
                     $error = 'area-name-already-exists';
                 } else {
@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (empty($area_name)) {
                 $error = 'Area Name Required';
             } else {
-                $check = $db->query("SELECT id FROM supervision_areas WHERE area_name = '$area_name' AND id != $id");
+                $check = $db->query("SELECT id FROM supervision_areas WHERE deleted_at IS NULL AND area_name = '$area_name' AND id != $id");
                 if (false /* $check && $check->num_rows > 0 */) {
                     $error = 'Area Name Already Exists';
                 } else {
@@ -112,7 +112,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 SELECT COUNT(*) as count 
                 FROM employees 
                 WHERE supervision_area IN (
-                    SELECT area_name FROM supervision_areas WHERE id = $id
+                    SELECT area_name FROM supervision_areas WHERE deleted_at IS NULL AND id = $id
                 ) AND is_active = 1
             ");
             
@@ -121,7 +121,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($usage['count'] > 0) {
                     $error = "Cannot delete! This area is being used by {$usage['count']} active employee(s).";
                 } else {
-                    $sql = "DELETE FROM supervision_areas WHERE id = $id";
+                    $sql = "DELETE FROM supervision_areas WHERE deleted_at IS NULL AND id = $id";
                     
                     if ($db->query($sql)) {
                         $message = 'Supervision Area Deleted';
@@ -137,8 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Get all supervision areas
 $areas = $db->query("
     SELECT sa.*, 
-           (SELECT COUNT(*) FROM employees e 
-            WHERE e.supervision_area = sa.area_name AND e.is_active = 1) as employee_count
+           (SELECT COUNT(*) FROM employees e WHERE e.deleted_at IS NULL AND e.supervision_area = sa.area_name AND e.is_active = 1) as employee_count
     FROM supervision_areas sa
     ORDER BY sa.is_active DESC, sa.area_name ASC
 ");

@@ -153,9 +153,9 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 
 // Get statistics
 $total_employees = $employees->num_rows;
-$pending_verification = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
-$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'verified' AND is_active = 1")->fetch_assoc()['count'];
-$rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'rejected' AND is_active = 1")->fetch_assoc()['count'];
+$pending_verification = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
+$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'verified' AND is_active = 1")->fetch_assoc()['count'];
+$rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'rejected' AND is_active = 1")->fetch_assoc()['count'];
 
 // Get unique companies for filter
 $companies = $db->query("

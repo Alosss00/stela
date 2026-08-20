@@ -60,9 +60,7 @@ $report_data = $db->query("
         SUM(CASE WHEN a.status = 'approved' THEN 1 ELSE 0 END) as approved_count,
         SUM(CASE WHEN a.status = 'rejected' THEN 1 ELSE 0 END) as rejected_count,
         COUNT(*) as total_count
-    FROM appointments a
-    JOIN employees e ON a.employee_id = e.id
-    WHERE a.status IN ('approved', 'rejected')
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected')
     GROUP BY e.contractor_company
     ORDER BY e.contractor_company
 ");
@@ -132,8 +130,8 @@ $rejected_appointments = $db->query("
 ");
 
 // Get statistics
-$approved_total = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'approved'")->fetch_assoc()['count'];
-$rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'rejected'")->fetch_assoc()['count'];
+$approved_total = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status = 'approved'")->fetch_assoc()['count'];
+$rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status = 'rejected'")->fetch_assoc()['count'];
 $total_processed = $approved_total + $rejected_total;
 
 // Get accepted requests (verified employees)
@@ -170,8 +168,7 @@ $waiting_requests = $db->query("
            (SELECT p.position_type FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_type,
            (SELECT p.position_name FROM appointments a JOIN positions p ON a.position_id = p.id WHERE a.employee_id = e.id ORDER BY a.created_at DESC LIMIT 1) as position_name,
            (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
-    FROM employees e
-    WHERE e.verification_status = 'pending'
+    FROM employees e WHERE e.deleted_at IS NULL AND e.verification_status = 'pending'
     ORDER BY e.contractor_company, e.created_at DESC
 ");
 
@@ -294,8 +291,7 @@ if ($expiring_certs && $expiring_certs->num_rows > 0) {
 // Get resigned employees
 $resigned_employees = $db->query("
     SELECT e.*
-    FROM employees e
-    WHERE e.employee_status = 'resigned'
+    FROM employees e WHERE e.deleted_at IS NULL AND e.employee_status = 'resigned'
     ORDER BY e.resign_date DESC, e.full_name ASC
 ");
 
@@ -304,14 +300,12 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 // Get unique companies for filter
 $companies = $db->query("
     SELECT DISTINCT e.contractor_company
-    FROM appointments a
-    JOIN employees e ON a.employee_id = e.id
-    WHERE a.status IN ('approved', 'rejected')
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected')
     ORDER BY e.contractor_company
 ");
 
 // Get all supervision areas for filter
-$supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE is_active = 1 ORDER BY area_name");
+$supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_at IS NULL AND is_active = 1 ORDER BY area_name");
 ?>
 
 <div class="reports-container">

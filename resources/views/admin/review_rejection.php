@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Get appointment details to determine which KTT rejected
                 $appointment = $db->query("
                     SELECT employee_id, last_rejected_by_ktt, ktt_msm_status, ktt_ttn_status
-                    FROM appointments WHERE id = $id
+                    FROM appointments WHERE deleted_at IS NULL AND id = $id
                 ")->fetch_assoc();
 
                 // Set flags for which KTT needs to review after resubmit
@@ -108,7 +108,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $appointment = $db->query("
                     SELECT last_rejected_by_ktt, rejected_by_ktt_user_id,
                            ktt_msm_status, ktt_ttn_status
-                    FROM appointments WHERE id = $id
+                    FROM appointments WHERE deleted_at IS NULL AND id = $id
                 ")->fetch_assoc();
 
                 $rejected_ktt = $appointment['last_rejected_by_ktt'];

@@ -46,7 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $competency_name = $db->escapeString($_POST['competency_name']);
             
             // Check if competency already exists
-            $check_comp = $db->query("SELECT id FROM competencies WHERE competency_name = '$competency_name' AND position_type = '$position_type'");
+            $check_comp = $db->query("SELECT id FROM competencies WHERE deleted_at IS NULL AND competency_name = '$competency_name' AND position_type = '$position_type'");
             if ($check_comp && $check_comp->num_rows > 0) {
                 $error = stela_t('competency-name-already-exists');
             } else {
@@ -92,7 +92,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $competency_name = $db->escapeString($_POST['competency_name']);
             
             // Check if competency name already exists (except current record)
-            $check_comp = $db->query("SELECT id FROM competencies WHERE competency_name = '$competency_name' AND position_type = '$position_type' AND id != $id");
+            $check_comp = $db->query("SELECT id FROM competencies WHERE deleted_at IS NULL AND competency_name = '$competency_name' AND position_type = '$position_type' AND id != $id");
             if ($check_comp && $check_comp->num_rows > 0) {
                 $error = stela_t('competency-name-already-exists');
             } else {
@@ -144,7 +144,7 @@ if (isset($_GET['delete'])) {
 
     $positions_unlinked = $db->query("UPDATE positions SET competency_id = NULL WHERE competency_id = $id");
     $sub_competencies_deleted = $db->query("DELETE FROM competency_sub_competencies WHERE competency_id = $id");
-    $competency_deleted = $db->query("DELETE FROM competencies WHERE id = $id");
+    $competency_deleted = $db->query("DELETE FROM competencies WHERE deleted_at IS NULL AND id = $id");
 
     if ($positions_unlinked && $sub_competencies_deleted && $competency_deleted) {
         $db->query("COMMIT");

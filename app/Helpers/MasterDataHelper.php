@@ -12,7 +12,9 @@ class MasterDataHelper {
      */
     public function getPaginatedData($table, $page = 1, $limit = 10, $search = '', $filters = [], $searchFields = ['name']) {
         $offset = ($page - 1) * $limit;
-        $where = ["1=1"];
+        // Exclude soft deleted records if the table supports it
+        $softDeleteTables = ['positions', 'supervision_areas', 'competencies'];
+        $where = in_array($table, $softDeleteTables) ? ["$table.deleted_at IS NULL"] : ["1=1"];
         $params = [];
         $types = "";
 
@@ -249,12 +251,9 @@ class MasterDataHelper {
                 return ['status' => 'error', 'message' => "This record is in use by other modules and cannot be deleted."];
             }
         } else {
-            // Hard Delete
-            $q = "DELETE FROM $table WHERE id = ?";
-            $stmt = $this->db->prepare($q);
-            $stmt->bind_param("i", $id);
-            if ($stmt->execute()) {
-                return ['status' => 'success', 'message' => "Record completely deleted from system."];
+            // Soft Delete via Database model or Hard Delete if not supported
+            if ($this->db->delete($table, "id = ?", [$id])) {
+                return ['status' => 'success', 'message' => "Record deleted from system."];
             }
             return ['status' => 'error', 'message' => "Failed to delete record."];
         }
@@ -264,7 +263,9 @@ class MasterDataHelper {
      * Get list for dropdowns
      */
     public function getList($table, $orderBy = 'id ASC', $columns = '*') {
-        $q = "SELECT $columns FROM $table ORDER BY $orderBy";
+        $softDeleteTables = ['positions', 'supervision_areas', 'competencies'];
+        $where = in_array($table, $softDeleteTables) ? "WHERE deleted_at IS NULL" : "";
+        $q = "SELECT $columns FROM $table $where ORDER BY $orderBy";
         $res = $this->db->query($q);
         $data = [];
         if ($res) {
@@ -279,7 +280,9 @@ class MasterDataHelper {
      * Utility Methods
      */
     private function checkExists($table, $field, $value, $excludeId = null) {
-        $query = "SELECT id FROM $table WHERE LOWER(TRIM($field)) = LOWER(TRIM(?))";
+        $softDeleteTables = ['positions', 'supervision_areas', 'competencies'];
+        $deletedClause = in_array($table, $softDeleteTables) ? " AND deleted_at IS NULL" : "";
+        $query = "SELECT id FROM $table WHERE LOWER(TRIM($field)) = LOWER(TRIM(?))$deletedClause";
         if ($excludeId) {
             $query .= " AND id != " . (int)$excludeId;
         }

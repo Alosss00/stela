@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = stela_t('all-required-fields-must-be-filled');
         }
         // Cek duplikat employee_code
-        elseif ($db->query("SELECT employee_code FROM employees WHERE employee_code = '$employee_code' AND is_active = 1")->num_rows > 0) {
+        elseif ($db->query("SELECT employee_code FROM employees WHERE deleted_at IS NULL AND employee_code = '$employee_code' AND is_active = 1")->num_rows > 0) {
             $error = stela_t('employee-code-already-registered');
         } elseif (in_array($competency_type, ['pengawas_teknis', 'pengawas_operasional']) && empty($ruang_lingkup)) {
             $error = stela_t('scope-required-tech-and-ops-supervisor');
@@ -374,11 +374,11 @@ $companies = $db->query("
 
 // Get statistics
 $total_employees = $employees->num_rows;
-$pending_verification = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
+$pending_verification = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
 // Count only verified/rejected by current logged-in admin
 $current_user_id = $_SESSION['user_id'];
-$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'verified' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
-$rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'rejected' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
+$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'verified' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
+$rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'rejected' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
 
 // Get statistics per company
 $companies_stats = [];
@@ -529,7 +529,7 @@ $companies = $db->query("
         </div>
 
         <?php
-        $draft_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'draft' AND is_active = 1")->fetch_assoc()['count'];
+        $draft_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'draft' AND is_active = 1")->fetch_assoc()['count'];
         ?>
         <div class="stat-box-emp stat-draft" style="border-left-color: #6c757d; background: linear-gradient(to right, #f8f9fa, #ffffff);">
             <div class="stat-icon-emp" style="color: #6c757d; background: rgba(108,117,125,0.1);"><i class="fas fa-file-alt"></i></div>
@@ -560,7 +560,7 @@ $companies = $db->query("
             <select id="filterCompany" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:160px;">
                 <option value="">Semua Perusahaan</option>
                 <?php
-                $companiesOpt = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE is_active = 1 ORDER BY contractor_company");
+                $companiesOpt = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE deleted_at IS NULL AND is_active = 1 ORDER BY contractor_company");
                 if ($companiesOpt) { while ($co = $companiesOpt->fetch_assoc()): ?>
                 <option value="<?php echo htmlspecialchars($co['contractor_company']); ?>"><?php echo htmlspecialchars($co['contractor_company']); ?></option>
                 <?php endwhile; } ?>

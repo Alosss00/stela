@@ -121,8 +121,14 @@ class Database {
         return $this->query($sql, $params);
     }
     
+    protected $softDeleteTables = ['appointments', 'employees', 'users', 'positions', 'supervision_areas', 'competencies'];
+
     public function delete($table, $where, $whereParams = []) {
-        $sql = "DELETE FROM $table WHERE $where";
+        if (in_array($table, $this->softDeleteTables)) {
+            $sql = "UPDATE $table SET deleted_at = CURRENT_TIMESTAMP WHERE $where";
+        } else {
+            $sql = "DELETE FROM $table WHERE $where";
+        }
         return $this->query($sql, $whereParams);
     }
     

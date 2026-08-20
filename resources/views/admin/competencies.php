@@ -77,7 +77,7 @@ if (isset($_GET['delete']) && $competencies_table_exists) {
 // Get all competencies
 $competencies = null;
 if ($competencies_table_exists) {
-    $competencies = $db->query("SELECT * FROM competencies WHERE is_active = 1 ORDER BY position_type, competency_name");
+    $competencies = $db->query("SELECT * FROM competencies WHERE deleted_at IS NULL AND is_active = 1 ORDER BY position_type, competency_name");
 }
 
 require_once dirname(__DIR__) . '/layouts/header.php';

@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         $employee_id = intval($_POST['employee_id']);
         
         // Verify employee belongs to this company
-        $emp_check_result = $db->query("SELECT id FROM employees WHERE id = $employee_id AND contractor_company = '" . $db->escapeString($company_name) . "'");
+        $emp_check_result = $db->query("SELECT id FROM employees WHERE deleted_at IS NULL AND id = $employee_id AND contractor_company = '" . $db->escapeString($company_name) . "'");
         if (!$emp_check_result) {
             $error = 'Database error during verification.';
         } else {

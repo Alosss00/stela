@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Use the appointment's KTT status field directly (more reliable than ktt_approvals table)
         $my_status_field = ($ktt_type == 'msm') ? 'ktt_msm_status' : 'ktt_ttn_status';
         $appt_check = $db->query("
-            SELECT $my_status_field as my_ktt_status FROM appointments WHERE id = $id
+            SELECT $my_status_field as my_ktt_status FROM appointments WHERE deleted_at IS NULL AND id = $id
         ")->fetch_assoc();
 
         if (!$appt_check || $appt_check['my_ktt_status'] != 'pending') {
@@ -50,7 +50,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($db->query($sql)) {
                     // Get current appointment status
                     $appointment = $db->query("
-                        SELECT ktt_msm_status, ktt_ttn_status FROM appointments WHERE id = $id
+                        SELECT ktt_msm_status, ktt_ttn_status FROM appointments WHERE deleted_at IS NULL AND id = $id
                     ")->fetch_assoc();
 
                     // Update KTT status based on which KTT is approving
@@ -367,9 +367,7 @@ $companies_decisions = $db->query("
 // Get unique companies for filter - Riwayat Keseluruhan
 $companies_history = $db->query("
     SELECT DISTINCT e.contractor_company
-    FROM appointments a
-    JOIN employees e ON a.employee_id = e.id
-    WHERE a.status IN ('approved', 'rejected')
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected')
     ORDER BY e.contractor_company
 ");
 

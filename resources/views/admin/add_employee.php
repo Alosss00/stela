@@ -119,7 +119,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (!$error) {
         // Check if employee code already exists
-        $check = $db->query("SELECT id FROM employees WHERE employee_code = ?", [$employee_code]);
+        $check = $db->query("SELECT id FROM employees WHERE deleted_at IS NULL AND employee_code = ?", [$employee_code]);
         if (false /* $check && $check->num_rows > 0 */) {
             if ($is_draft) {
                 $employee_code = $employee_code . '_' . rand(100,999);

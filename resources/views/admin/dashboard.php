@@ -13,16 +13,16 @@ $db = new Database();
 
 // Get statistics
 $total_appointments = $db->query("SELECT COUNT(*) as count FROM appointments")->fetch_assoc()['count'];
-$pending_approvals = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'pending'")->fetch_assoc()['count'];
-$rejected_appointments = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'rejected'")->fetch_assoc()['count'];
-$approved_appointments = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'approved'")->fetch_assoc()['count'];
+$pending_approvals = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status = 'pending'")->fetch_assoc()['count'];
+$rejected_appointments = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status = 'rejected'")->fetch_assoc()['count'];
+$approved_appointments = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status = 'approved'")->fetch_assoc()['count'];
 
 // Get employee verification statistics
-$pending_verification = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
+$pending_verification = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
 // Count only verified/rejected by current logged-in admin
 $current_user_id = $_SESSION['user_id'];
-$verified_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'verified' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
-$rejected_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE verification_status = 'rejected' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
+$verified_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'verified' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
+$rejected_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'rejected' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
 
 // Get certificate expiration statistics (certificates expiring in 2 months or less)
 $expiring_certs_count = $db->query("
@@ -37,7 +37,7 @@ $expiring_certs_count = $db->query("
 ")->fetch_assoc()['count'];
 
 // Get appointments rejected by KTT that need admin review
-$rejected_by_ktt_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'rejected_by_ktt'")->fetch_assoc()['count'];
+$rejected_by_ktt_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status = 'rejected_by_ktt'")->fetch_assoc()['count'];
 
 // Get recent appointments with approval history
 $recent_appointments = $db->query("

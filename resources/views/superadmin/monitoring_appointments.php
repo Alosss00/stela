@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     
     $id = intval($_POST['id']);
     
-    $appt = $db->query("SELECT requires_ktt_msm_review, requires_ktt_ttn_review, ktt_msm_status, ktt_ttn_status, status FROM appointments WHERE id = $id")->fetch_assoc();
+    $appt = $db->query("SELECT requires_ktt_msm_review, requires_ktt_ttn_review, ktt_msm_status, ktt_ttn_status, status FROM appointments WHERE deleted_at IS NULL AND id = $id")->fetch_assoc();
     $is_resubmit = ($appt['requires_ktt_msm_review'] == 1 || $appt['requires_ktt_ttn_review'] == 1);
 
     if ($is_resubmit) {

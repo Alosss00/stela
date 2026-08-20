@@ -24,7 +24,7 @@ $error = '';
 // Function to generate appointment number based on employee competency type
 function generateAppointmentNumber($db, $employee_id, $appointment_date) {
     // Get employee competency type and ruang_lingkup
-    $emp_result = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE id = $employee_id");
+    $emp_result = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = $employee_id");
     $emp_row = $emp_result->fetch_assoc();
     
     $competency_type = $emp_row['competency_type'];
@@ -111,7 +111,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $appointment = $db->query("
                     SELECT last_rejected_by_ktt, rejected_by_ktt_user_id,
                            ktt_msm_status, ktt_ttn_status, employee_id
-                    FROM appointments WHERE id = $id
+                    FROM appointments WHERE deleted_at IS NULL AND id = $id
                 ")->fetch_assoc();
 
                 // Set flags for which KTT needs to review after resubmit
@@ -133,7 +133,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 if ($db->query($update_sql)) {
                     // Update employee verification status
-                    $appointment = $db->query("SELECT employee_id FROM appointments WHERE id = $id")->fetch_assoc();
+                    $appointment = $db->query("SELECT employee_id FROM appointments WHERE deleted_at IS NULL AND id = $id")->fetch_assoc();
                     if ($appointment) {
                         $ktt_rejection = $db->query("SELECT approval_notes FROM ktt_approvals WHERE appointment_id = $id AND action = 'reject' ORDER BY approval_date DESC LIMIT 1")->fetch_assoc();
                         $rejection_notes = isset($ktt_rejection['approval_notes']) ? $ktt_rejection['approval_notes'] : '';
@@ -159,7 +159,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $appointment = $db->query("
                     SELECT last_rejected_by_ktt, rejected_by_ktt_user_id,
                            ktt_msm_status, ktt_ttn_status, employee_id
-                    FROM appointments WHERE id = $id
+                    FROM appointments WHERE deleted_at IS NULL AND id = $id
                 ")->fetch_assoc();
 
                 // Collect all rejected KTTs (can be one or both)
@@ -251,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $created_by = $_SESSION['user_id'];
             
             // Get employee data
-            $emp_result = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE id = $employee_id");
+            $emp_result = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = $employee_id");
             $emp_row = $emp_result->fetch_assoc();
             
             // Generate appointment number based on employee competency type
@@ -333,7 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 // Verify the update
-                $verify = $db->query("SELECT status, ktt_msm_status, ktt_ttn_status FROM appointments WHERE id = $id")->fetch_assoc();
+                $verify = $db->query("SELECT status, ktt_msm_status, ktt_ttn_status FROM appointments WHERE deleted_at IS NULL AND id = $id")->fetch_assoc();
                 error_log("SUBMIT DEBUG - After Update - Status: {$verify['status']}, MSM Status: {$verify['ktt_msm_status']}, TTN Status: {$verify['ktt_ttn_status']}");
 
                 // Sync appointment to Elasticsearch
@@ -406,7 +406,7 @@ if (isset($_GET['success'])) {
 // Handle delete
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    if ($db->query("DELETE FROM appointments WHERE id = $id AND status = 'draft'")) {
+    if ($db->query("DELETE FROM appointments WHERE deleted_at IS NULL AND id = $id AND status = 'draft'")) {
         $message = stela_t('appointment-deleted');
     }
 }
@@ -459,7 +459,7 @@ $employees = $db->query("
 ");
 
 // Get positions for form
-$positions = $db->query("SELECT id, position_name, position_type FROM positions WHERE is_active = 1 ORDER BY position_type, position_name");
+$positions = $db->query("SELECT id, position_name, position_type FROM positions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY position_type, position_name");
 
 // AUTO-FIX: Fix appointments status that should be rejected_by_ktt but still pending
 $auto_fix_query = "
@@ -499,10 +499,10 @@ ob_end_flush();
 
 // Get statistics
 $total_appointments = $appointments->num_rows;
-$draft_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'draft'")->fetch_assoc()['count'];
-$pending_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'pending'")->fetch_assoc()['count'];
-$approved_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status = 'approved'")->fetch_assoc()['count'];
-$rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE status IN ('rejected', 'rejected_by_ktt')")->fetch_assoc()['count'];
+$draft_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status = 'draft'")->fetch_assoc()['count'];
+$pending_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status = 'pending'")->fetch_assoc()['count'];
+$approved_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status = 'approved'")->fetch_assoc()['count'];
+$rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments WHERE deleted_at IS NULL AND status IN ('rejected', 'rejected_by_ktt')")->fetch_assoc()['count'];
 $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
 ?>
 

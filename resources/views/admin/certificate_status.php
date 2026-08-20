@@ -161,7 +161,7 @@ $error = '';
 
 
 // Get distinct companies list for Admin filter
-$companies_res = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE contractor_company IS NOT NULL AND TRIM(contractor_company) != '' ORDER BY contractor_company ASC");
+$companies_res = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE deleted_at IS NULL AND contractor_company IS NOT NULL AND TRIM(contractor_company) != '' ORDER BY contractor_company ASC");
 $companies_list = [];
 if ($companies_res) {
     while ($c_row = $companies_res->fetch_assoc()) {
@@ -170,7 +170,7 @@ if ($companies_res) {
 }
 
 // Get distinct departments list for Admin filter
-$depts_res = $db->query("SELECT DISTINCT department FROM employees WHERE department IS NOT NULL AND TRIM(department) != '' ORDER BY department ASC");
+$depts_res = $db->query("SELECT DISTINCT department FROM employees WHERE deleted_at IS NULL AND department IS NOT NULL AND TRIM(department) != '' ORDER BY department ASC");
 $depts_list = [];
 if ($depts_res) {
     while ($d_row = $depts_res->fetch_assoc()) {

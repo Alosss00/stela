@@ -25,7 +25,7 @@ $appointment = $db->query("
            e.cv_file, e.statement_file, COALESCE(a.resubmit_count, 0) as resubmit_count,
            CASE
                WHEN e.competency_name IS NOT NULL AND e.competency_name != '' THEN e.competency_name
-               ELSE (SELECT competency_name FROM competencies WHERE position_type = e.competency_type LIMIT 1)
+               ELSE (SELECT competency_name FROM competencies WHERE deleted_at IS NULL AND position_type = e.competency_type LIMIT 1)
            END as competency_name,
            e.competency_type,
            e.ruang_lingkup,

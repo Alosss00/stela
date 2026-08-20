@@ -335,7 +335,7 @@ try {
         $whereClause = implode(' AND ', $where);
 
         // Count
-        $countRes = $db->query("SELECT COUNT(*) as cnt FROM employees e WHERE $whereClause");
+        $countRes = $db->query("SELECT COUNT(*) as cnt FROM employees e WHERE e.deleted_at IS NULL AND $whereClause");
         if ($countRes) {
             $total = (int)($countRes->fetch_assoc()['cnt'] ?? 0);
         }

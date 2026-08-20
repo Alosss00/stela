@@ -9,7 +9,7 @@ class UserManagementHelper {
 
     public function getUsers($page = 1, $limit = 10, $search = '', $filters = []) {
         $offset = ($page - 1) * $limit;
-        $where = ["1=1"];
+        $where = ["deleted_at IS NULL"];
         $params = [];
         $types = "";
 
@@ -191,7 +191,7 @@ class UserManagementHelper {
             }
         } else {
             // Safe to hard delete
-            $query = "DELETE FROM users WHERE id=?";
+            $query = "UPDATE users SET deleted_at = CURRENT_TIMESTAMP WHERE id=?";
             $stmt = $this->db->prepare($query);
             $stmt->bind_param("i", $id);
             if ($stmt->execute()) {
@@ -203,7 +203,7 @@ class UserManagementHelper {
     }
 
     public function getUserById($id) {
-        $stmt = $this->db->prepare("SELECT id, username, full_name, email, company_name, department, role, is_active FROM users WHERE id = ?");
+        $stmt = $this->db->prepare("SELECT id, username, full_name, email, company_name, department, role, is_active FROM users WHERE id = ? AND deleted_at IS NULL");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $result = $stmt->get_result();
@@ -222,7 +222,7 @@ class UserManagementHelper {
     }
 
     public function getUniqueCompanies() {
-        $res = $this->db->query("SELECT DISTINCT company_name FROM users WHERE company_name IS NOT NULL AND company_name != '' ORDER BY company_name ASC");
+        $res = $this->db->query("SELECT DISTINCT company_name FROM users WHERE company_name IS NOT NULL AND company_name != '' AND deleted_at IS NULL ORDER BY company_name ASC");
         $comps = [];
         if ($res) {
             while ($row = $res->fetch_assoc()) {
@@ -233,7 +233,7 @@ class UserManagementHelper {
     }
 
     public function getUniqueDepartments() {
-        $res = $this->db->query("SELECT DISTINCT department FROM users WHERE department IS NOT NULL AND department != '' ORDER BY department ASC");
+        $res = $this->db->query("SELECT DISTINCT department FROM users WHERE department IS NOT NULL AND department != '' AND deleted_at IS NULL ORDER BY department ASC");
         $depts = [];
         if ($res) {
             while ($row = $res->fetch_assoc()) {
@@ -244,7 +244,7 @@ class UserManagementHelper {
     }
 
     private function checkExists($field, $value, $excludeId = null) {
-        $query = "SELECT id FROM users WHERE $field = ?";
+        $query = "SELECT id FROM users WHERE $field = ? AND deleted_at IS NULL";
         if ($excludeId) {
             $query .= " AND id != " . (int)$excludeId;
         }

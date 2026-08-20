@@ -29,10 +29,10 @@ if (!empty($safeDept) && $safeDept !== $safeCompany) {
 $user_filter = !empty($filter_parts) ? "(" . implode(" OR ", array_unique($filter_parts)) . ")" : "1=1";
 
 // Get statistics
-$total_employees = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter")->fetch_assoc()['count'];
-$verified_count = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter AND e.verification_status = 'verified'")->fetch_assoc()['count'];
-$pending_count = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter AND e.verification_status = 'pending'")->fetch_assoc()['count'];
-$rejected_count_stat = $db->query("SELECT COUNT(*) as count FROM employees e WHERE $user_filter AND e.verification_status = 'rejected'")->fetch_assoc()['count'];
+$total_employees = $db->query("SELECT COUNT(*) as count FROM employees e WHERE e.deleted_at IS NULL AND $user_filter")->fetch_assoc()['count'];
+$verified_count = $db->query("SELECT COUNT(*) as count FROM employees e WHERE e.deleted_at IS NULL AND $user_filter AND e.verification_status = 'verified'")->fetch_assoc()['count'];
+$pending_count = $db->query("SELECT COUNT(*) as count FROM employees e WHERE e.deleted_at IS NULL AND $user_filter AND e.verification_status = 'pending'")->fetch_assoc()['count'];
+$rejected_count_stat = $db->query("SELECT COUNT(*) as count FROM employees e WHERE e.deleted_at IS NULL AND $user_filter AND e.verification_status = 'rejected'")->fetch_assoc()['count'];
 
 // Get all employees for current company with appointment status
 $employees = $db->query("SELECT e.*, 

@@ -75,7 +75,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_n
 
 $draft_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($draft_id && $_SERVER['REQUEST_METHOD'] != 'POST') {
-    $draft_data = $db->query("SELECT * FROM employees WHERE id = $draft_id AND verification_status = 'draft'")->fetch_assoc();
+    $draft_data = $db->query("SELECT * FROM employees WHERE deleted_at IS NULL AND id = $draft_id AND verification_status = 'draft'")->fetch_assoc();
     if ($draft_data) {
         $_POST = $draft_data;
     } else {
@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
 
     if (!$error) {
         // Check if employee code already exists
-        $check = $db->query("SELECT id FROM employees WHERE employee_code = ?", [$employee_code]);
+        $check = $db->query("SELECT id FROM employees WHERE deleted_at IS NULL AND employee_code = ?", [$employee_code]);
         if (false /* $check && $check->num_rows > 0 */) {
             if ($is_draft) {
                 $employee_code = $employee_code . '_' . rand(100,999);

@@ -25,41 +25,33 @@ $company_condition = $is_superadmin
     : "contractor_company = '" . $db->escapeString($_SESSION['company_name'] ?? '') . "'";
 
 // Get statistics for this company
-$total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND is_active = 1")->fetch_assoc()['count'];
-$verified_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND is_active = 1 AND verification_status = 'verified'")->fetch_assoc()['count'];
-$pending_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND is_active = 1 AND verification_status = 'pending'")->fetch_assoc()['count'];
-$rejected_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE $company_condition AND is_active = 1 AND verification_status = 'rejected'")->fetch_assoc()['count'];
+$total_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND $company_condition AND is_active = 1")->fetch_assoc()['count'];
+$verified_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND $company_condition AND is_active = 1 AND verification_status = 'verified'")->fetch_assoc()['count'];
+$pending_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND $company_condition AND is_active = 1 AND verification_status = 'pending'")->fetch_assoc()['count'];
+$rejected_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND $company_condition AND is_active = 1 AND verification_status = 'rejected'")->fetch_assoc()['count'];
 
 // Get appointments for this company
 $total_appointments = $db->query("
     SELECT COUNT(*) as count
-    FROM appointments a
-    JOIN employees e ON a.employee_id = e.id
-    WHERE $company_condition
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND $company_condition
     AND e.is_active = 1
 ")->fetch_assoc()['count'];
 
 $approved_appointments = $db->query("
     SELECT COUNT(*) as count 
-    FROM appointments a
-    JOIN employees e ON a.employee_id = e.id
-	WHERE $company_condition AND a.status = 'approved'
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND $company_condition AND a.status = 'approved'
     AND e.is_active = 1
 ")->fetch_assoc()['count'];
 
 $rejected_appointments = $db->query("
     SELECT COUNT(*) as count 
-    FROM appointments a
-    JOIN employees e ON a.employee_id = e.id
-	WHERE $company_condition AND a.status = 'rejected'
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND $company_condition AND a.status = 'rejected'
     AND e.is_active = 1
 ")->fetch_assoc()['count'];
 
 $pending_appointments = $db->query("
     SELECT COUNT(*) as count 
-    FROM appointments a
-    JOIN employees e ON a.employee_id = e.id
-	WHERE $company_condition AND a.status = 'pending'
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND $company_condition AND a.status = 'pending'
     AND e.is_active = 1
 ")->fetch_assoc()['count'];
 
@@ -375,7 +367,7 @@ $recent_appointments = $db->query("
                                         <div class="approval-steps" style="font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
                                             <?php
                                             $emp_id = $row['employee_id'];
-                                            $admin_verify = $db->query("SELECT verified_by FROM employees WHERE id = $emp_id AND verified_by IS NOT NULL")->fetch_assoc();
+                                            $admin_verify = $db->query("SELECT verified_by FROM employees WHERE deleted_at IS NULL AND id = $emp_id AND verified_by IS NOT NULL")->fetch_assoc();
                                             
                                             // Admin
                                             echo '<span class="step ' . ($admin_verify ? 'done' : 'pending') . '" style="padding: 2px 6px; border-radius: 4px; display: inline-block; text-align: center; margin-right: 2px;">Admin</span>';

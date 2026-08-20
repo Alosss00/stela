@@ -100,7 +100,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     if (!$existing_appointment) {
                         // Create new appointment for first-time verification
                         // Get employee data for appointment number generation
-                        $emp_data = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE id = $employee_id")->fetch_assoc();
+                        $emp_data = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = $employee_id")->fetch_assoc();
                         $competency_type = $emp_data['competency_type'];
                         $ruang_lingkup = $emp_data['ruang_lingkup'];
                         
@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         
                         // Jika tidak ada position_id, gunakan position pertama yang tersedia
                         if ($position_id <= 0) {
-                            $default_position = $db->query("SELECT id FROM positions WHERE is_active = 1 LIMIT 1")->fetch_assoc();
+                            $default_position = $db->query("SELECT id FROM positions WHERE deleted_at IS NULL AND is_active = 1 LIMIT 1")->fetch_assoc();
                             $position_id = $default_position['id'] ?? 1;
                         }
                         
@@ -580,7 +580,7 @@ $certifications = $db->query("
 $position_id = isset($_SESSION['temp_position_' . $employee_id]) ? $_SESSION['temp_position_' . $employee_id] : 0;
 $position = null;
 if ($position_id > 0) {
-    $position = $db->query("SELECT * FROM positions WHERE id = $position_id")->fetch_assoc();
+    $position = $db->query("SELECT * FROM positions WHERE deleted_at IS NULL AND id = $position_id")->fetch_assoc();
 }
 
 if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
