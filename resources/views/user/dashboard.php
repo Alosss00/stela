@@ -334,13 +334,13 @@ $recent_appointments = $db->query("
                     <table class="table table-hover datatable">
                         <thead>
                             <tr>
-                                <th data-lang="registration-no" style="min-width: 160px;">Registration No.</th>
+                                <th data-lang="registration-no" style="min-width: 180px; white-space: nowrap;">Registration No.</th>
                                 <th data-lang="employee" style="min-width: 150px;">Employee</th>
                                 <th data-lang="competency">Competency</th>
-                                <th data-lang="effective-date">Effective Date</th>
+                                <th data-lang="effective-date" style="white-space: nowrap;">Effective Date</th>
                                 <th data-lang="status">Status</th>
-                                <th data-lang="approval">Approval</th>
-                                <th data-lang="action" style="white-space: nowrap;">Action</th>
+                                <th data-lang="approval" style="min-width: 160px;">Approval</th>
+                                <th data-lang="action" style="white-space: nowrap; width: 1%;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -372,7 +372,7 @@ $recent_appointments = $db->query("
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="approval-steps" style="font-size: 11px; display: flex; gap: 4px; flex-wrap: nowrap; align-items: center;">
+                                        <div class="approval-steps" style="font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
                                             <?php
                                             $emp_id = $row['employee_id'];
                                             $admin_verify = $db->query("SELECT verified_by FROM employees WHERE id = $emp_id AND verified_by IS NOT NULL")->fetch_assoc();
