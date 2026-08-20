@@ -155,6 +155,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     // Delete rejection records from ktt_approvals (rejection history already saved above)
                     $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND action = 'reject'");
 
+                    // Notify user/dept about the rejection
+                    try {
+                        $notifService = new NotificationService();
+                        $notifService->notifyAdminFinalRejectionToUserDept($id, $admin_notes);
+                    } catch (Exception $e) {
+                        error_log("Notification error (admin send_to_user): " . $e->getMessage());
+                    }
+
                     $message = stela_t('letter-returned-user-correction');
                 } else {
                     $error = stela_t('failed-process-decision');
