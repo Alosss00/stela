@@ -334,8 +334,8 @@ $recent_appointments = $db->query("
                     <table class="table table-hover datatable">
                         <thead>
                             <tr>
-                                <th data-lang="registration-no" style="white-space: nowrap;">Registration No.</th>
-                                <th data-lang="employee">Employee</th>
+                                <th data-lang="registration-no" style="min-width: 160px;">Registration No.</th>
+                                <th data-lang="employee" style="min-width: 150px;">Employee</th>
                                 <th data-lang="competency">Competency</th>
                                 <th data-lang="effective-date">Effective Date</th>
                                 <th data-lang="status">Status</th>
@@ -347,7 +347,7 @@ $recent_appointments = $db->query("
                             <?php if ($recent_appointments->num_rows > 0): ?>
                                 <?php while ($row = $recent_appointments->fetch_assoc()): ?>
                                 <tr>
-                                    <td style="white-space: nowrap;"><strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong></td>
+                                    <td style="word-break: break-word; min-width: 160px;"><strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong></td>
                                     <td>
                                         <div class="employee-info" style="display: flex; flex-direction: column; gap: 4px;">
                                             <span class="emp-code"><?php echo htmlspecialchars($row['employee_code']); ?></span>

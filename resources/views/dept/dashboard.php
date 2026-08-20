@@ -253,29 +253,29 @@ $recent_appointments = $db->query("
                     <table class="table table-hover">
                         <thead>
                             <tr>
-                                <th data-lang="registration-no">Registration No.</th>
-                                <th data-lang="employee">Employee</th>
+                                <th data-lang="registration-no" style="min-width: 160px;">Registration No.</th>
+                                <th data-lang="employee" style="min-width: 150px;">Employee</th>
                                 <th data-lang="position">Position</th>
                                 <th data-lang="effective-date">Effective Date</th>
                                 <th data-lang="status">Status</th>
                                 <th data-lang="approval">Approval</th>
-                                <th data-lang="action">Action</th>
+                                <th data-lang="action" style="white-space: nowrap;">Action</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php if ($recent_appointments && $recent_appointments->num_rows > 0): ?>
                                 <?php while ($row = $recent_appointments->fetch_assoc()): ?>
                                 <tr>
-                                    <td><strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong></td>
+                                    <td style="word-break: break-word; min-width: 160px;"><strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong></td>
                                     <td>
-                                        <div class="employee-info">
-                                            <span class="emp-code"><?php echo htmlspecialchars($row['employee_code']); ?></span>
-                                            <span class="emp-name"><?php echo htmlspecialchars($row['employee_name']); ?></span>
+                                        <div class="employee-info" style="display: flex; flex-direction: column; gap: 4px;">
+                                            <span class="emp-code" style="font-size: 11px; color: #6c757d; font-weight: 600;"><?php echo htmlspecialchars($row['employee_code']); ?></span>
+                                            <span class="emp-name" style="font-weight: 500;"><?php echo htmlspecialchars($row['employee_name']); ?></span>
                                         </div>
                                     </td>
                                     <td><?php echo htmlspecialchars($row['position_name'] ?? '-'); ?></td>
                                     <td><?php echo date('d/m/Y', strtotime($row['effective_date'])); ?></td>
-                                    <td>
+                                    <td style="white-space: nowrap;">
                                         <span class="badge badge-<?php echo $row['status_class']; ?>">
                                             <?php 
                                             $status_label = [
@@ -290,20 +290,20 @@ $recent_appointments = $db->query("
                                         </span>
                                     </td>
                                     <td>
-                                        <div class="approval-steps" style="font-size: 11px;">
+                                        <div class="approval-steps" style="font-size: 11px; display: flex; gap: 4px; flex-wrap: nowrap; align-items: center;">
                                             <?php
                                             $emp_id = $row['employee_id'];
                                             $admin_verify = $db->query("SELECT verified_by FROM employees WHERE id = $emp_id AND verified_by IS NOT NULL")->fetch_assoc();
                                             
                                             // Admin
-                                            echo '<span class="step ' . ($admin_verify ? 'done' : 'pending') . '">Admin</span>';
-                                            echo '<span class="step ' . ($row['ktt1_approved_by'] ? 'done' : 'pending') . '">KTT1</span>';
-                                            echo '<span class="step ' . ($row['ktt2_approved_by'] ? 'done' : 'pending') . '">KTT2</span>';
+                                            echo '<span class="step ' . ($admin_verify ? 'done' : 'pending') . '" style="padding: 2px 6px; border-radius: 4px; display: inline-block; text-align: center; margin-right: 2px;">Admin</span>';
+                                            echo '<span class="step ' . ($row['ktt1_approved_by'] ? 'done' : 'pending') . '" style="padding: 2px 6px; border-radius: 4px; display: inline-block; text-align: center; margin-right: 2px;">KTT1</span>';
+                                            echo '<span class="step ' . ($row['ktt2_approved_by'] ? 'done' : 'pending') . '" style="padding: 2px 6px; border-radius: 4px; display: inline-block; text-align: center;">KTT2</span>';
                                             ?>
                                         </div>
                                     </td>
-                                    <td>
-                                        <a href="employee_detail.php?id=<?php echo $row['employee_id']; ?>" class="btn btn-sm btn-info">
+                                    <td style="white-space: nowrap;">
+                                        <a href="employee_detail.php?id=<?php echo $row['employee_id']; ?>" class="btn btn-sm btn-info" style="white-space: nowrap; display: inline-flex; align-items: center; gap: 5px;">
                                             <i class="fas fa-eye"></i> <span data-lang="view">View</span>
                                         </a>
                                     </td>
