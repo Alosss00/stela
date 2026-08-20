@@ -515,7 +515,7 @@ try {
     <table width="100%" style="padding-bottom: 5px;">
         <tr>
             <td width="15%" style="text-align: center;">
-                <img src="assets/Logo/LOGO_MSM_TTN.png" style="width: 60px; height: 60px;">
+                <img src="' . __DIR__ . '/assets/Logo/LOGO_MSM_TTN.png" style="width: 60px; height: 60px;">
             </td>
             <td width="70%" style="text-align: center;">
                 <h1 style="margin: 0; font-size: 14pt; font-weight: bold;">TOKA TINDUNG PROJECT</h1>
@@ -523,7 +523,7 @@ try {
                 <p style="margin: 1px 0; font-size: 11pt; font-weight: bold;">' . htmlspecialchars($doc_code) . '</p>
             </td>
             <td width="15%" style="text-align: center;">
-                <img src="assets/Logo/LOGO_ARCHI.png" style="width: 60px; height: 60px;">
+                <img src="' . __DIR__ . '/assets/Logo/LOGO_ARCHI.png" style="width: 60px; height: 60px;">
             </td>
         </tr>
     </table>
@@ -664,14 +664,14 @@ try {
             <td style="height: 50px; border-left: none;">';
     
     if ($both_ktt_approved) {
-        $html .= '<img src="assets/uploads/signatures/signature_KTT_MSM.png" style="max-width: 120px; max-height: 50px;">';
+        $html .= '<img src="' . __DIR__ . '/assets/uploads/signatures/signature_KTT_MSM.png" style="max-width: 120px; max-height: 50px;">';
     }
     
     $html .= '</td>
             <td style="height: 50px; border-right: none;">';
     
     if ($both_ktt_approved) {
-        $html .= '<img src="assets/uploads/signatures/signature_KTT_TTN.png" style="max-width: 120px; max-height: 50px;">';
+        $html .= '<img src="' . __DIR__ . '/assets/uploads/signatures/signature_KTT_TTN.png" style="max-width: 120px; max-height: 50px;">';
     }
     
     $html .= '</td>
