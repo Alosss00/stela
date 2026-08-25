@@ -31,6 +31,8 @@ $expiring_certs_count = $db->query("
     JOIN employees e ON ec.employee_id = e.id
     WHERE ec.expiry_date IS NOT NULL
     AND ec.verification_status = 'verified'
+    AND ec.status != 'expired'
+    AND e.verification_status != 'pending'
     AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 2 MONTH)
     AND ec.expiry_date >= CURDATE()
     AND e.is_active = 1
