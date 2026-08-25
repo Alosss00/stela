@@ -386,7 +386,7 @@ class NotificationService {
         
         // Add system URL
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message .= "📍 {$base_url}/admin_review_rejection.php";
+        $message .= "📍 {$base_url}/review_rejection.php";
         
         return $message;
     }
