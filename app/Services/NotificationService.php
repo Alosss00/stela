@@ -854,19 +854,17 @@ class NotificationService {
             SELECT a.appointment_number,
                    e.full_name, e.employee_code, e.contractor_company, e.department,
                    p.position_name,
-                   ktt_rej.approval_notes as ktt_rejection_notes,
-                   ktt_user.full_name as ktt_rejector_name
+                   COALESCE(
+                       (SELECT approval_notes FROM ktt_approvals WHERE appointment_id = a.id AND action = 'reject' ORDER BY approval_date DESC LIMIT 1),
+                       a.last_rejection_notes
+                   ) as ktt_rejection_notes,
+                   COALESCE(
+                       (SELECT u.full_name FROM ktt_approvals ka JOIN users u ON ka.ktt_user_id = u.id WHERE ka.appointment_id = a.id AND ka.action = 'reject' ORDER BY ka.approval_date DESC LIMIT 1),
+                       a.last_rejection_by_name
+                   ) as ktt_rejector_name
             FROM appointments a
             JOIN employees e ON a.employee_id = e.id
             LEFT JOIN positions p ON a.position_id = p.id
-            LEFT JOIN ktt_approvals ktt_rej ON (
-                a.id = ktt_rej.appointment_id AND ktt_rej.action = 'reject'
-                AND ktt_rej.approval_date = (
-                    SELECT MAX(ka2.approval_date) FROM ktt_approvals ka2
-                    WHERE ka2.appointment_id = a.id AND ka2.action = 'reject'
-                )
-            )
-            LEFT JOIN users ktt_user ON ktt_rej.ktt_user_id = ktt_user.id
             WHERE a.id = $appointment_id
         ");
 
