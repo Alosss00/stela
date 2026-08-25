@@ -903,9 +903,7 @@ class NotificationService {
             }
             $message .= "{$appointment['ktt_rejection_notes']}\n\n";
         }
-        if (!empty($admin_notes)) {
-            $message .= "📝 *Admin Notes:*\n{$admin_notes}\n\n";
-        }
+
 
         $message .= "⚠️ Please login to update the employee data and resubmit.\n";
         $message .= "📍 {$base_url}/employees.php";
