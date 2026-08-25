@@ -605,6 +605,11 @@ if ($position_id > 0) {
     $position = $db->query("SELECT * FROM positions WHERE deleted_at IS NULL AND id = $position_id")->fetch_assoc();
 }
 
+// Get workflow history
+require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+$auditService = new AuditService();
+$workflow_history = $auditService->getHistoryByEmployee($employee_id);
+
 if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
     require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 } else {
@@ -875,6 +880,12 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
                 </div>
             </div>
             <?php endif; ?>
+            
+            <!-- Workflow History Timeline -->
+            <div class="section workflow-section" style="margin-top: 25px; margin-bottom: 25px;">
+                <h4><i class="fas fa-history"></i> <span data-lang="workflow-history">Workflow History</span></h4>
+                <?php include dirname(__DIR__) . '/components/workflow_timeline.php'; ?>
+            </div>
         </div>
     </div>
 </div>
