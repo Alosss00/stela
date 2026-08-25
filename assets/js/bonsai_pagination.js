@@ -132,8 +132,15 @@ class BonsaiPagination {
         Object.keys(this.filterSelectors).forEach(key => {
             const el = document.querySelector(this.filterSelectors[key]);
             if (el) {
+                // Read initial value from DOM (e.g., if set by PHP backend)
+                this.filters[key] = el.value;
+
                 if (urlParams.has(key)) {
                     el.value = urlParams.get(key);
+                    this.filters[key] = el.value;
+                } else if (key === 'status' && urlParams.has('filter')) {
+                    // Alias for 'filter' parameter used in admin dashboard links
+                    el.value = urlParams.get('filter');
                     this.filters[key] = el.value;
                 }
                 el.addEventListener('change', function() {
