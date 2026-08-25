@@ -12,7 +12,7 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-requireAdminOrSuperadmin();
+requirePermission('admin.access');
 
 $db = new Database();
 $message = '';
