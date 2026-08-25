@@ -900,16 +900,26 @@ function submitVerification(status) {
     // If rejected, notes are required
     if (status === 'rejected') {
         if (!notes) {
-            alert(window.getLanguageText(''));
+            const requiredMsg = (typeof window.getLanguageText === 'function') 
+                ? window.getLanguageText('verification-notes-required') || 'Verification notes are required when rejecting.' 
+                : 'Verification notes are required when rejecting.';
+            alert(requiredMsg);
             document.getElementById('employee_notes').focus();
             return false;
         }
-        if (!confirm(window.getLanguageText(''))) {
+        
+        const confirmRejectMsg = (typeof window.getLanguageText === 'function') 
+            ? window.getLanguageText('confirm-reject-employee') || 'Are you sure you want to reject this employee data?' 
+            : 'Are you sure you want to reject this employee data?';
+        if (!confirm(confirmRejectMsg)) {
             return false;
         }
     } else if (status === 'verified') {
         // If verified, notes are optional
-        if (!confirm(window.getLanguageText(''))) {
+        const confirmAcceptMsg = (typeof window.getLanguageText === 'function') 
+            ? window.getLanguageText('confirm-verify-employee') || 'Are you sure you want to verify this employee data?' 
+            : 'Are you sure you want to verify this employee data?';
+        if (!confirm(confirmAcceptMsg)) {
             return false;
         }
     }

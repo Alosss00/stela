@@ -443,6 +443,201 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 
 
 
+    </div>
+    
+    <?php if ($message): ?>
+    <div class="alert alert-success alert-approval">
+        <i class="fas fa-check-circle"></i>
+        <div>
+            <strong data-lang="success">Success!</strong>
+            <p><?php echo htmlspecialchars($message); ?></p>
+        </div>
+    </div>
+    <?php endif; ?>
+    
+    <?php if ($error): ?>
+    <div class="alert alert-error alert-approval">
+        <i class="fas fa-exclamation-circle"></i>
+        <div>
+            <strong data-lang="error">Error!</strong>
+            <p><?php echo htmlspecialchars($error); ?></p>
+        </div>
+    </div>
+    <?php endif; ?>
+    
+    <!-- Pending Admin Review Section -->
+    <div class="approval-section">
+        <div class="section-header">
+            <h3><i class="fas fa-hourglass-half"></i> <span data-lang="waiting-admin-review">Waiting for Admin Review</span></h3>
+            <span class="badge-count"><?php echo $rejected_by_ktt->num_rows; ?> <span data-lang="letters">Letters</span></span>
+        </div>
+        
+        <?php if ($rejected_by_ktt->num_rows > 0): ?>
+            <div class="approvals-grid">
+                <?php while ($row = $rejected_by_ktt->fetch_assoc()): ?>
+                <div class="approval-card card-rejection">
+                    <!-- Card Header -->
+                    <div class="card-header-approval">
+                        <div class="header-title">
+                            <h4>
+                                <?php echo htmlspecialchars($row['employee_name']); ?>
+                                <span class="employee-code">(<?php echo htmlspecialchars($row['employee_code']); ?>)</span>
+                                <?php if ($row['resubmit_count'] > 0): ?>
+                                    <span class="resubmit-badge" title="Resubmitted <?php echo $row['resubmit_count']; ?> time(s)">
+                                        <i class="fas fa-redo"></i> Resubmit #<?php echo $row['resubmit_count']; ?>
+                                    </span>
+                                <?php endif; ?>
+                            </h4>
+                        </div>
+                        <div class="status-badge status-rejected-ktt">
+                            <i class="fas fa-ban"></i> <span data-lang="rejected-by-ktt">Rejected by KTT</span>
+                        </div>
+                    </div>
+                    
+                    <!-- Card Content -->
+                    <div class="card-content">
+                        <div class="info-row">
+                            <span class="label" data-lang="letter-no">Letter No.:</span>
+                            <span class="value"><?php echo htmlspecialchars($row['appointment_number']); ?></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label" data-lang="position">Position:</span>
+                            <span class="value"><?php echo htmlspecialchars($row['position_name']); ?></span>
+                        </div>
+                        <div class="info-row">
+                            <span class="label" data-lang="company">Company:</span>
+                            <span class="value"><?php echo htmlspecialchars($row['contractor_company']); ?></span>
+                        </div>
+                        
+                        <!-- KTT Status Info -->
+                        <div class="info-row">
+                            <span class="label" data-lang="ktt-msm">KTT MSM:</span>
+                            <span class="value">
+                                <?php 
+                                if ($row['ktt_msm_status'] == 'approved') {
+                                    echo '<span class="status-mini status-approved"><i class="fas fa-check"></i> <span data-lang="approved">Approved</span></span>';
+                                } elseif ($row['ktt_msm_status'] == 'rejected') {
+                                    echo '<span class="status-mini status-rejected"><i class="fas fa-times"></i> <span data-lang="rejected">Rejected</span></span>';
+                                } else {
+                                    echo '<span class="status-mini status-pending"><i class="fas fa-clock"></i> <span data-lang="pending">Pending</span></span>';
+                                }
+                                ?>
+                            </span>
+                            <span class="label" style="margin-left: 15px;" data-lang="ktt-ttn">KTT TTN:</span>
+                            <span class="value">
+                                <?php 
+                                if ($row['ktt_ttn_status'] == 'approved') {
+                                    echo '<span class="status-mini status-approved"><i class="fas fa-check"></i> <span data-lang="approved">Approved</span></span>';
+                                } elseif ($row['ktt_ttn_status'] == 'rejected') {
+                                    echo '<span class="status-mini status-rejected"><i class="fas fa-times"></i> <span data-lang="rejected">Rejected</span></span>';
+                                } else {
+                                    echo '<span class="status-mini status-pending"><i class="fas fa-clock"></i> <span data-lang="pending">Pending</span></span>';
+                                }
+                                ?>
+                            </span>
+                        </div>
+                        
+                        <!-- KTT Rejection Reason -->
+                        <div class="rejection-reason">
+                            <strong><i class="fas fa-exclamation-triangle"></i> <span data-lang="rejection-reason">Rejection Reason:</span></strong>
+                            <?php echo nl2br(htmlspecialchars($row['ktt_rejection_notes'])); ?>
+                            <small>- <?php echo htmlspecialchars($row['ktt_rejector_name']); ?> | <?php echo isset($row['created_at']) ? date('d M Y H:i', strtotime($row['created_at'])) : ''; ?></small>
+                        </div>
+                    </div>
+                    
+                    <!-- Card Actions -->
+                    <div class="card-actions">
+                        <div class="form-group">
+                            <label for="admin_notes_<?php echo $row['id']; ?>" data-lang="ktt-admin-notes">Admin Notes:</label>
+                            <textarea name="admin_notes" id="admin_notes_<?php echo $row['id']; ?>"
+                                     placeholder="Enter notes or reason for decision..." data-lang-placeholder="enter-notes-or-reason-decision"></textarea>
+                            <small class="text-muted" style="display: block; margin-top: 4px; font-size: 11px;" data-lang="notes-required-if-rejecting">Notes are required when rejecting, optional when accepting.</small>
+                        </div>
+
+                        <div class="action-buttons">
+                    <form method="POST" class="inline-form" onsubmit="return confirmAccept(this);">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+
+                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                        <input type="hidden" name="admin_action" value="send_to_ktt">
+                        <input type="hidden" name="admin_notes_value" value="">
+                        <button type="submit" name="action" value="review" class="btn btn-accept">
+                        <i class="fas fa-check-circle"></i> <span data-lang="accept-send-to-ktt">Accept - Send to KTT</span>
+                            </button>
+                    </form>
+
+                    <form method="POST" class="inline-form" onsubmit="return confirmReject(this);">
+                        <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
+
+                        <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
+                        <input type="hidden" name="admin_action" value="send_to_user">
+                        <input type="hidden" name="admin_notes_value" value="">
+                        <button type="submit" name="action" value="review" class="btn btn-reject">
+                        <i class="fas fa-times-circle"></i> <span data-lang="reject-return-to-user">Reject - Return to User</span>
+                            </button>
+                    </form>
+                        </div>
+                    </div>
+                </div>
+                <?php endwhile; ?>
+            </div>
+        <?php else: ?>
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p data-lang="no-letters-waiting-admin-review">No letters waiting for admin review</p>
+            </div>
+        <?php endif; ?>
+    </div>
+    
+    <!-- Admin Review History Section -->
+    <div class="approval-section">
+        <div class="section-header">
+            <h3><i class="fas fa-history"></i> <span data-lang="admin-review-history">Admin Review History</span></h3>
+            <span class="badge-count"><?php echo $admin_reviewed->num_rows; ?> <span data-lang="letters">Letters</span></span>
+        </div>
+        
+        <?php if ($admin_reviewed->num_rows > 0): ?>
+            <div class="table-responsive">
+                <table class="table table-history" style="width: 100% !important; table-layout: fixed !important; width: 100% !important; table-layout: fixed !important;">
+                    <thead>
+                        <tr>
+                            <th data-lang="employee-name">Employee Name</th>
+                            <th data-lang="letter-number">Letter Number</th>
+                            <th data-lang="position">Position</th>
+                            <th data-lang="admin-action">Admin Action</th>
+                            <th data-lang="review-date">Review Date</th>
+                            <th data-lang="admin">Admin</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php while ($row = $admin_reviewed->fetch_assoc()): ?>
+                        <tr>
+                            <td><strong><?php echo htmlspecialchars($row['employee_name']); ?></strong></td>
+                            <td><?php echo htmlspecialchars($row['appointment_number']); ?></td>
+                            <td><?php echo htmlspecialchars($row['position_name']); ?></td>
+                            <td>
+                                <span class="badge <?php echo $row['admin_approval_action'] == 'send_to_user' ? 'badge-warning' : 'badge-info'; ?>">
+                                    <?php echo htmlspecialchars($row['admin_action_label']); ?>
+                                </span>
+                            </td>
+                            <td><?php echo date('d M Y H:i', strtotime($row['admin_approved_date'])); ?></td>
+                            <td><?php echo htmlspecialchars($row['admin_reviewer_name']); ?></td>
+                        </tr>
+                        <?php endwhile; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="empty-state">
+                <i class="fas fa-inbox"></i>
+                <p data-lang="no-admin-review-yet">No admin review has been done yet</p>
+            </div>
+        <?php endif; ?>
+    </div>
+</div>
+
+
+
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     // Note: Form validation is handled by confirmAccept() and confirmReject() functions
@@ -460,7 +655,10 @@ function confirmAccept(form) {
     }
 
     // Notes are optional for accept
-    return confirm(window.getLanguageText(''));
+    const confirmMessage = (typeof window.getLanguageText === 'function') 
+        ? window.getLanguageText('confirm-accept-ktt') || 'Are you sure you want to send this back to KTT?' 
+        : 'Are you sure you want to send this back to KTT?';
+    return confirm(confirmMessage);
 }
 
 // Confirm reject action (notes required)
@@ -476,12 +674,18 @@ function confirmReject(form) {
 
     // Validate textarea is not empty for reject
     if (!textarea.value.trim()) {
-        alert(window.getLanguageText(''));
+        const requiredMsg = (typeof window.getLanguageText === 'function') 
+            ? window.getLanguageText('notes-required-if-rejecting') || 'Notes are required when rejecting.' 
+            : 'Notes are required when rejecting.';
+        alert(requiredMsg);
         textarea.focus();
         return false;
     }
 
-    return confirm(window.getLanguageText(''));
+    const confirmMessage = (typeof window.getLanguageText === 'function') 
+        ? window.getLanguageText('confirm-reject-return-user') || 'Are you sure you want to reject and return this to the user?' 
+        : 'Are you sure you want to reject and return this to the user?';
+    return confirm(confirmMessage);
 }
 </script>
 
