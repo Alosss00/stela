@@ -372,8 +372,8 @@ class NotificationService {
      * Build message for appointment rejection review
      */
     private function buildRejectionReviewMessage($appointment) {
-        $message = "⚠️ *LETTER REJECTION NOTIFICATION*\n\n";
-        $message .= "An appointment letter has been rejected by KTT and requires admin review:\n\n";
+        $message = "❌ *ASSIGN LETTER REJECTED - DATA CORRECTION REQUIRED*\n\n";
+        $message .= "An appointment letter has been rejected by KTT and has been done admin review:\n\n";
         $message .= "📋 *Letter Details:*\n";
         $message .= "• Letter No.: {$appointment['appointment_number']}\n";
         $message .= "• Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
