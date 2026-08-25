@@ -70,6 +70,11 @@ $certs_query = "
 ";
 $certifications = @$conn->query($certs_query);
 
+// Get workflow history
+require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+$auditService = new AuditService();
+$workflow_history = $auditService->getHistoryByEmployee($id);
+
 // Define status class mapping
 $status_class = [
     'verified' => 'verified',
@@ -317,6 +322,12 @@ $competency_type_labels = [
         </div>
     </div>
     
+    <!-- Workflow History Timeline -->
+    <div class="info-card" style="margin-top: 25px; margin-bottom: 25px; grid-column: 1 / -1; width: 100%;">
+        <h4><i class="fas fa-history"></i> <span data-lang="workflow-history">Workflow History</span></h4>
+        <?php include dirname(__DIR__) . '/components/workflow_timeline.php'; ?>
+    </div>
+
     <div class="action-buttons">
         <a href="employees.php" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> <span data-lang="back">Back</span>

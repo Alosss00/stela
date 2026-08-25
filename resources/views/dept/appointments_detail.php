@@ -32,6 +32,11 @@ $ktt_approvals = $db->query("SELECT ka.*, u.full_name as ktt_name, u.username, u
 function getKttType($user_id) {
     return ($user_id == 7) ? 'MSM' : 'TTN';
 }
+
+// Get workflow history
+require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+$auditService = new AuditService();
+$workflow_history = $auditService->getHistoryByAppointment($id);
 ?>
 
 
@@ -273,6 +278,14 @@ function getKttType($user_id) {
         <?php endif; ?>
     </div>
     <?php endif; ?>
+    
+    <!-- Workflow History Timeline -->
+    <div class="appointment-header-card" style="margin-top: 25px; margin-bottom: 25px;">
+        <div class="appointment-header-content" style="display: block;">
+            <h4 style="margin-top: 0;"><i class="fas fa-history"></i> <span data-lang="workflow-history">Workflow History</span></h4>
+            <?php include dirname(__DIR__) . '/components/workflow_timeline.php'; ?>
+        </div>
+    </div>
     
     <!-- Status Alerts -->
     <?php if ($appointment['status'] == 'approved'): ?>

@@ -162,6 +162,11 @@ $certifications_result = $db->query("
 
 $certifications = $certifications_result;
 
+// Get workflow history
+require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+$auditService = new AuditService();
+$workflow_history = $auditService->getHistoryByEmployee($id);
+
 // Define type labels
 $competency_type_labels = [
     'pengawas_operasional' => 'Pengawas Operasional',
@@ -401,6 +406,12 @@ $competency_type_labels = [
                 </tbody>
             </table>
         </div>
+    </div>
+    
+    <!-- Workflow History Timeline -->
+    <div class="info-card" style="margin-top: 25px; margin-bottom: 25px; grid-column: 1 / -1; width: 100%;">
+        <h4><i class="fas fa-history"></i> <span data-lang="workflow-history">Workflow History</span></h4>
+        <?php include dirname(__DIR__) . '/components/workflow_timeline.php'; ?>
     </div>
     
     <div class="action-buttons">

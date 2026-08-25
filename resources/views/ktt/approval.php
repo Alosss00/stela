@@ -48,6 +48,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         VALUES ($id, $current_user_id, 'approve', '$approval_notes')";
 
                 if ($db->query($sql)) {
+                    // Log to Workflow History
+                    try {
+                        require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+                        $audit = new AuditService();
+                        $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = $id")->fetch_assoc()['employee_id'] ?? null;
+                        $action_name = ($ktt_type == 'msm') ? 'Approved by KTT MSM' : 'Approved by KTT TTN';
+                        $audit->log($employee_id, $id, $action_name, 'pending', 'approved', $approval_notes);
+                    } catch (Exception $e) {
+                        error_log("Audit error: " . $e->getMessage());
+                    }
+
                     // Get current appointment status
                     $appointment = $db->query("
                         SELECT ktt_msm_status, ktt_ttn_status FROM appointments WHERE deleted_at IS NULL AND id = $id
@@ -191,6 +202,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         VALUES ($id, $current_user_id, 'reject', '$approval_notes')";
 
                 if ($db->query($sql)) {
+                    // Log to Workflow History
+                    try {
+                        require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+                        $audit = new AuditService();
+                        $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = $id")->fetch_assoc()['employee_id'] ?? null;
+                        $action_name = ($ktt_type == 'msm') ? 'Rejected by KTT MSM' : 'Rejected by KTT TTN';
+                        $audit->log($employee_id, $id, $action_name, 'pending', 'rejected', $approval_notes);
+                    } catch (Exception $e) {
+                        error_log("Audit error: " . $e->getMessage());
+                    }
+
                     // Update KTT status based on which KTT is rejecting
                     if ($ktt_type == 'msm') {
                         // KTT MSM rejecting
@@ -908,6 +930,14 @@ function showReviewModal(appointmentId) {
                     console.log('Position HTML found:', jabatanMatch[1]);
                 } else {
                     console.log('Position HTML NOT FOUND!');
+                }
+
+                // Append workflow history if available
+                if (data.workflow_html && data.workflow_html.trim() !== '') {
+                    html += '<div class="approval-header" style="margin-top: 25px; margin-bottom: 25px; border-bottom: 2px solid #ddd; padding-bottom: 10px;">';
+                    html += '    <h3 style="color: #333; margin: 0; font-size: 1.25rem;"><i class="fas fa-history" style="color: #6c757d; margin-right: 8px;"></i> <span data-lang="workflow-history">Workflow History</span></h3>';
+                    html += '</div>';
+                    html += data.workflow_html;
                 }
 
                 document.getElementById('reviewContent').innerHTML = html;

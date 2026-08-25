@@ -138,6 +138,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                               WHERE id = $id AND status = 'rejected_by_ktt'";
 
                 if ($db->query($update_sql)) {
+                    // Log to Workflow History
+                    try {
+                        require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+                        $audit = new AuditService();
+                        $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = $id")->fetch_assoc()['employee_id'] ?? null;
+                        $audit->log($employee_id, $id, 'Return to User', 'rejected_by_ktt', 'rejected', $admin_notes);
+                    } catch (Exception $e) {
+                        error_log("Audit error: " . $e->getMessage());
+                    }
+
                     // Update employee verification status
                     $appointment = $db->query("SELECT employee_id FROM appointments WHERE deleted_at IS NULL AND id = $id")->fetch_assoc();
                     if ($appointment) {
@@ -236,6 +246,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                   WHERE id = $id";
 
                     if ($db->query($update_sql)) {
+                        // Log to Workflow History
+                        try {
+                            require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+                            $audit = new AuditService();
+                            $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = $id")->fetch_assoc()['employee_id'] ?? null;
+                            $audit->log($employee_id, $id, 'Return to KTT', 'rejected_by_ktt', 'pending', $admin_notes);
+                        } catch (Exception $e) {
+                            error_log("Audit error: " . $e->getMessage());
+                        }
+
                         // Send email notification to KTT
                         try {
                             // Included via bootstrap/app.php
@@ -355,6 +375,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Verify the update
                 $verify = $db->query("SELECT status, ktt_msm_status, ktt_ttn_status FROM appointments WHERE deleted_at IS NULL AND id = $id")->fetch_assoc();
                 error_log("SUBMIT DEBUG - After Update - Status: {$verify['status']}, MSM Status: {$verify['ktt_msm_status']}, TTN Status: {$verify['ktt_ttn_status']}");
+
+                // Log to Workflow History
+                try {
+                    require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+                    $audit = new AuditService();
+                    $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = $id")->fetch_assoc()['employee_id'] ?? null;
+                    $status_before = $is_resubmit ? 'rejected_by_ktt' : 'draft';
+                    $audit->log($employee_id, $id, 'Ajukan ke KTT', $status_before, 'pending', 'Admin submitted appointment to KTT');
+                } catch (Exception $e) {
+                    error_log("Audit error: " . $e->getMessage());
+                }
 
                 // Sync appointment to Elasticsearch
                 try {
@@ -1096,6 +1127,12 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                     <h4><i class="fas fa-check-circle"></i> <span data-lang="approval-information">Approval Information</span></h4>
                     <div id="detailApprovalInfo"></div>
                 </div>
+
+                <!-- Workflow History -->
+                <div class="detail-section" id="detailWorkflowSection" style="display: none; padding-top: 20px;">
+                    <h4><i class="fas fa-history"></i> <span data-lang="workflow-history">Workflow History</span></h4>
+                    <div id="detailWorkflowInfo"></div>
+                </div>
             </div>
             <div class="modal-footer-appt">
                 <button type="button" class="btn btn-secondary" onclick="closeModal('appointmentDetailModal')"><span data-lang="close">Close</span></button>
@@ -1210,6 +1247,12 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                 <div class="detail-section" id="detailRejApprovalSection" style="display: none;">
                     <h4><i class="fas fa-tasks"></i> KTT Approval Status</h4>
                     <div id="detailRejApprovalInfo"></div>
+                </div>
+
+                <!-- Workflow History -->
+                <div class="detail-section" id="detailRejWorkflowSection" style="display: none;">
+                    <h4><i class="fas fa-history"></i> <span data-lang="workflow-history">Workflow History</span></h4>
+                    <div id="detailRejWorkflowInfo"></div>
                 </div>
 
                 <!-- Rejection Details -->
@@ -1736,6 +1779,13 @@ function showRejectionDetailModal(appointmentId, employeeName, appointmentNumber
             // Set appointment ID for form submission
             document.getElementById('reviewActionAppointmentId').value = appointmentId;
 
+            if (data.workflow_html && data.workflow_html.trim() !== '') {
+                document.getElementById('detailRejWorkflowSection').style.display = 'block';
+                document.getElementById('detailRejWorkflowInfo').innerHTML = data.workflow_html;
+            } else {
+                document.getElementById('detailRejWorkflowSection').style.display = 'none';
+            }
+
             openModal('rejectionDetailModal');
         })
         .catch(error => {
@@ -1978,6 +2028,13 @@ function showAppointmentDetail(appointmentId) {
                     }
                 } else {
                     approvalSection.style.display = 'none';
+                }
+
+                if (data.workflow_html && data.workflow_html.trim() !== '') {
+                    document.getElementById('detailWorkflowSection').style.display = 'block';
+                    document.getElementById('detailWorkflowInfo').innerHTML = data.workflow_html;
+                } else {
+                    document.getElementById('detailWorkflowSection').style.display = 'none';
                 }
 
                 openModal('appointmentDetailModal');

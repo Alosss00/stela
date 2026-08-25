@@ -261,7 +261,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             }
                         }
                     }
-                    
+                    // Log to Workflow History
+                    try {
+                        require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+                        $audit = new AuditService();
+                        $audit_action = $is_draft ? 'Save Draft' : 'Submit Request';
+                        $audit->log($employee_id, null, $audit_action, null, $status_val, 'Submitted new employee request');
+                    } catch (Exception $e) {
+                        error_log("Audit error: " . $e->getMessage());
+                    }
+
                     // Send notification to admin - with timeout protection
                     try {
                         set_time_limit(60); // Allow extra time for email sending

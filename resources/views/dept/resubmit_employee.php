@@ -294,6 +294,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 error_log("User Resubmit - Employee ID: $employee_id, SQL: $sql");
 
                 if ($db->query($sql)) {
+                    // Log to Workflow History
+                    try {
+                        require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+                        $audit = new AuditService();
+                        $audit->log($employee_id, null, 'Resubmit Data', 'rejected', 'pending', 'Admin/User resubmitted employee data');
+                    } catch (Exception $e) {
+                        error_log("Audit error: " . $e->getMessage());
+                    }
+
                     // Update appointment status back to pending for admin re-review
                     if (!empty($employee['appointment_id'])) {
                         $appointment_id = intval($employee['appointment_id']);

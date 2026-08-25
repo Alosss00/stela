@@ -83,6 +83,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     WHERE id = $employee_id";
             
             if ($db->query($sql)) {
+                // Log to Workflow History
+                try {
+                    require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+                    $audit = new AuditService();
+                    $action_name = ($status == 'verified') ? 'Verified' : 'Rejected by Admin';
+                    $audit->log($employee_id, null, $action_name, 'pending', $status, $notes);
+                } catch (Exception $e) {
+                    error_log("Audit error: " . $e->getMessage());
+                }
+
                 if ($status == 'verified') {
                     // Auto-generate surat penunjukan
                     $position_id = isset($_SESSION['temp_position_' . $employee_id]) ? $_SESSION['temp_position_' . $employee_id] : 0;

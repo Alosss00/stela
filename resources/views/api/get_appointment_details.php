@@ -106,6 +106,15 @@ if (is_array($certifications)) {
     }
 }
 
+// Get workflow history HTML
+require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+$auditService = new AuditService();
+$workflow_history = $auditService->getHistoryByAppointment($id);
+
+ob_start();
+include dirname(__DIR__) . '/components/workflow_timeline.php';
+$workflow_html = ob_get_clean();
+
 echo json_encode([
     'success' => true,
     'appointment' => $appointment,
@@ -128,5 +137,6 @@ echo json_encode([
         'position_name' => $appointment['appointment_position_name'] ?? $appointment['position_name'],
         'position_type' => $appointment['position_type']
     ],
-    'certifications' => $certifications
+    'certifications' => $certifications,
+    'workflow_html' => $workflow_html
 ]);

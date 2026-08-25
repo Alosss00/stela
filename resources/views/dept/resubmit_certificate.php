@@ -261,6 +261,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
     COMMIT
     */
 
+    // Log to Workflow History
+    try {
+        require_once dirname(__DIR__, 3) . '/app/Services/AuditService.php';
+        $audit = new AuditService();
+        $audit->log($certificate['employee_id'], null, 'Update Certificate', 'rejected', 'pending', 'User updated rejected certificate');
+    } catch (Exception $e) {
+        error_log("Audit error: " . $e->getMessage());
+    }
+
     $conn->commit();
 
     $_SESSION['success_message'] = "Certificate resubmitted successfully.";
