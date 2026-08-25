@@ -148,6 +148,14 @@ try {
                                 }
                                 unset($item);
 
+                                // Filter out stale items that no longer match the requested status
+                                if (!empty($status) && ($target === 'employees' || $target === 'employee_status')) {
+                                    $items = array_values(array_filter($items, function($item) use ($status) {
+                                        return ($item['approval_status'] ?? '') === $status;
+                                    }));
+                                    $totalHits = count($items);
+                                }
+
                                 if ($target === 'employee_status') {
                                     $items = array_values(array_filter($items, function($item) use ($metaMap) {
                                         $id = (int)($item['id'] ?? 0);

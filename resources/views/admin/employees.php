@@ -575,10 +575,10 @@ $companies = $db->query("
             <!-- Status Filter -->
             <select id="filterStatus" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:130px;">
                 <option value="">Semua Status</option>
-                <option value="pending">Pending</option>
-                <option value="verified">Verified</option>
-                <option value="rejected">Rejected</option>
-                <option value="draft">Draft</option>
+                <option value="pending" <?php echo $filter === 'pending' ? 'selected' : ''; ?>>Pending</option>
+                <option value="verified" <?php echo $filter === 'verified' ? 'selected' : ''; ?>>Verified</option>
+                <option value="rejected" <?php echo $filter === 'rejected' ? 'selected' : ''; ?>>Rejected</option>
+                <option value="draft" <?php echo $filter === 'draft' ? 'selected' : ''; ?>>Draft</option>
             </select>
             <!-- Page Size -->
             <select id="bonsaiPageLimit" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:90px;">
