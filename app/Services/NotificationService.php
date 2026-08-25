@@ -890,19 +890,19 @@ class NotificationService {
 
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
         $message  = "❌ *ASSIGN LETTER REJECTED - DATA CORRECTION REQUIRED*\n\n";
-        $message .= "The assign letter for the following employee has been rejected and requires data correction:\n\n";
+        $message .= "An appointment letter has been rejected by KTT and has been done admin review:\n\n";
         $message .= "📋 *Letter Details:*\n";
         $message .= "• Letter No.: {$appointment['appointment_number']}\n";
         $message .= "• Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
         $message .= "• Position: {$appointment['position_name']}\n";
-        $message .= "• Company: {$appointment['contractor_company']}\n\n";
-        if (!empty($appointment['ktt_rejection_notes'])) {
-            $message .= "💬 *KTT Rejection Reason:*\n";
-            if (!empty($appointment['ktt_rejector_name'])) {
-                $message .= "By: {$appointment['ktt_rejector_name']}\n";
-            }
-            $message .= "{$appointment['ktt_rejection_notes']}\n\n";
-        }
+        $message .= "• Company: {$appointment['contractor_company']}\n";
+        
+        $rejector = !empty($appointment['ktt_rejector_name']) ? $appointment['ktt_rejector_name'] : 'Unknown';
+        $message .= "• Rejected by: {$rejector}\n\n";
+        
+        $message .= "💬 *Rejection Reason:*\n";
+        $reason = !empty($appointment['ktt_rejection_notes']) ? $appointment['ktt_rejection_notes'] : 'No rejection reason provided';
+        $message .= $reason . "\n\n";
 
 
         $message .= "⚠️ Please login to update the employee data and resubmit.\n";
