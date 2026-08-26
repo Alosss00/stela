@@ -63,7 +63,7 @@ $dataRes = $helper->getPaginatedData('supervision_areas', $page, $limit, $search
 $records = $dataRes['data'];
 $totalPages = $dataRes['pages'];
 
-require_once dirname(__DIR__) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 ?>
 
 <style>

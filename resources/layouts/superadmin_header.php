@@ -215,11 +215,6 @@ $current_page = get_current_page();
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/position_requirements.php" class="<?php echo $current_page == 'position_requirements.php' ? 'active' : ''; ?>">
-                        <i class="fas fa-clipboard-check"></i> <span>Pos. Requirements</span>
-                    </a>
-                </li>
-                <li>
                     <a href="<?php echo BASE_URL; ?>/resources/superadmin/supervision_areas.php" class="<?php echo $current_page == 'supervision_areas.php' ? 'active' : ''; ?>">
                         <i class="fas fa-map-marker-alt"></i> <span>Supervision Areas</span>
                     </a>

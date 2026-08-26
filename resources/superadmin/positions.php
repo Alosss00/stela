@@ -75,7 +75,7 @@ $totalRecords = $dataRes['total'];
 // Dropdowns
 $competencies = $helper->getList('competencies', 'competency_name ASC', 'id, competency_name');
 
-require_once dirname(__DIR__) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 ?>
 
 <style>
