@@ -13,7 +13,7 @@ if (!defined('CONFIG_PATH')) {
     define('CONFIG_PATH', ROOT_PATH . '/config');
 }
 if (!defined('VIEW_PATH')) {
-    define('VIEW_PATH', ROOT_PATH . '/resources/views');
+    define('VIEW_PATH', ROOT_PATH . '/resources');
 }
 if (!defined('STORAGE_PATH')) {
     define('STORAGE_PATH', ROOT_PATH . '/storage');
@@ -40,8 +40,8 @@ if (!defined('BASE_URL')) {
     if (!empty($doc_root) && strpos($current_path, $doc_root) === 0) {
         $relative = substr($current_path, strlen($doc_root));
         // Remove subdirectories from path detection if accessed from pages/ or resources/
-        $relative = preg_replace('#/(pages|resources/views)/(admin|user|dept|ktt|api|superadmin|auth)$#', '', $relative);
-        $relative = preg_replace('#/(api|resources/views)$#', '', $relative);
+        $relative = preg_replace('#/(pages|resources)/(admin|user|dept|ktt|api|superadmin|auth)$#', '', $relative);
+        $relative = preg_replace('#/(api|resources)$#', '', $relative);
         $root_dir = $relative;
     }
     define('BASE_URL', rtrim($protocol . '://' . $host . $root_dir, '/'));
@@ -113,22 +113,22 @@ if (!function_exists('redirect_to_dashboard')) {
         
         switch ($role) {
             case 'superadmin':
-                redirect(BASE_URL . '/pages/superadmin/dashboard.php');
+                redirect(BASE_URL . '/resources/superadmin/dashboard.php');
                 break;
             case 'ktt':
-                redirect(BASE_URL . '/pages/ktt/approval.php');
+                redirect(BASE_URL . '/resources/ktt/approval.php');
                 break;
             case 'admin':
-                redirect(BASE_URL . '/pages/admin/dashboard.php');
+                redirect(BASE_URL . '/resources/admin/dashboard.php');
                 break;
             case 'department_user':
-                redirect(BASE_URL . '/pages/dept/dashboard.php');
+                redirect(BASE_URL . '/resources/dept/dashboard.php');
                 break;
             case 'user':
                 if (!empty($department)) {
-                    redirect(BASE_URL . '/pages/dept/dashboard.php');
+                    redirect(BASE_URL . '/resources/dept/dashboard.php');
                 } else {
-                    redirect(BASE_URL . '/pages/user/dashboard.php');
+                    redirect(BASE_URL . '/resources/user/dashboard.php');
                 }
                 break;
             default:
