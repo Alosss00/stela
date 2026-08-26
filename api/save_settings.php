@@ -26,6 +26,7 @@ try {
     ];
 
     $updated_count = 0;
+    $values_sql = [];
     
     // Process form data
     foreach ($_POST as $key => $value) {
@@ -43,9 +44,7 @@ try {
             $key_esc = $db->escapeString($key);
             $val_esc = $db->escapeString($value);
             
-            // Update or insert setting
-            $db->query("INSERT INTO settings (setting_key, setting_value) VALUES ('$key_esc', '$val_esc') 
-                        ON DUPLICATE KEY UPDATE setting_value = '$val_esc'");
+            $values_sql[] = "('$key_esc', '$val_esc')";
             $updated_count++;
         }
     }
@@ -55,9 +54,15 @@ try {
     foreach ($checkboxes as $chk) {
         if (!isset($_POST[$chk])) {
             $key_esc = $db->escapeString($chk);
-            $db->query("INSERT INTO settings (setting_key, setting_value) VALUES ('$key_esc', '0') 
-                        ON DUPLICATE KEY UPDATE setting_value = '0'");
+            $values_sql[] = "('$key_esc', '0')";
+            $updated_count++;
         }
+    }
+
+    if (!empty($values_sql)) {
+        $query = "INSERT INTO settings (setting_key, setting_value) VALUES " . implode(', ', $values_sql) . " 
+                  ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)";
+        $db->query($query);
     }
 
     echo json_encode([

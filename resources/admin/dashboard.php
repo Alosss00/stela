@@ -262,24 +262,76 @@ if ($check_email_logs_table && $check_email_logs_table->num_rows > 0) {
             </button>
         </div>
 
-        <?php if ($recent_appointments && $recent_appointments->num_rows > 0): ?>
+        <?php 
+        // Pre-fetch data for N+1 optimization
+        $appointments_data = [];
+        $appointment_ids = [];
+        $employee_ids = [];
+        $admin_ids = [];
+
+        if ($recent_appointments && $recent_appointments->num_rows > 0) {
+            while ($row = $recent_appointments->fetch_assoc()) {
+                $appointments_data[] = $row;
+                $appointment_ids[] = $row['id'];
+                $employee_ids[] = $row['employee_id'];
+            }
+        }
+
+        // Fetch KTT Approvals
+        $ktt_approvals_map = [];
+        if (!empty($appointment_ids)) {
+            $ids_str = implode(',', $appointment_ids);
+            $approvals_result = $db->query("
+                SELECT ka.appointment_id, ka.ktt_user_id, ka.action, ka.approval_date, u.full_name, u.company_name
+                FROM ktt_approvals ka
+                JOIN users u ON ka.ktt_user_id = u.id
+                WHERE ka.appointment_id IN ($ids_str)
+                ORDER BY ka.approval_date ASC
+            ");
+            if ($approvals_result) {
+                while ($ap = $approvals_result->fetch_assoc()) {
+                    $ktt_approvals_map[$ap['appointment_id']][] = $ap;
+                }
+            }
+        }
+
+        // Fetch Employee Verification
+        $emp_verify_map = [];
+        if (!empty($employee_ids)) {
+            $e_ids_str = implode(',', array_unique($employee_ids));
+            $emp_result = $db->query("
+                SELECT id, verified_by, verified_date, verification_status
+                FROM employees
+                WHERE id IN ($e_ids_str)
+            ");
+            if ($emp_result) {
+                while ($emp = $emp_result->fetch_assoc()) {
+                    $emp_verify_map[$emp['id']] = $emp;
+                    if ($emp['verified_by']) {
+                        $admin_ids[] = $emp['verified_by'];
+                    }
+                }
+            }
+        }
+
+        // Fetch Admin Users for Verification
+        $admin_users_map = [];
+        if (!empty($admin_ids)) {
+            $a_ids_str = implode(',', array_unique($admin_ids));
+            $admin_result = $db->query("SELECT id, full_name FROM users WHERE id IN ($a_ids_str)");
+            if ($admin_result) {
+                while ($adm = $admin_result->fetch_assoc()) {
+                    $admin_users_map[$adm['id']] = $adm;
+                }
+            }
+        }
+        ?>
+
+        <?php if (!empty($appointments_data)): ?>
         <div class="appointments-list" id="appointmentsList" style="display: none; opacity: 0; max-height: 0;">
-            <?php while ($row = $recent_appointments->fetch_assoc()): 
-                // Get approval history
-                $approval_history = $db->query("
-                    SELECT ka.ktt_user_id, ka.action, ka.approval_date, u.full_name, u.company_name
-                    FROM ktt_approvals ka
-                    JOIN users u ON ka.ktt_user_id = u.id
-                    WHERE ka.appointment_id = " . $row['id'] . "
-                    ORDER BY ka.approval_date ASC
-                ");
-                
-                // Get employee verification
-                $emp_verify = $db->query("
-                    SELECT verified_by, verified_date, verification_status
-                    FROM employees
-                    WHERE id = " . $row['employee_id'] . "
-                ")->fetch_assoc();
+            <?php foreach ($appointments_data as $row): 
+                $approval_history_arr = $ktt_approvals_map[$row['id']] ?? [];
+                $emp_verify = $emp_verify_map[$row['employee_id']] ?? null;
             ?>
             <div class="appointment-item">
                 <div class="appointment-main">
@@ -327,20 +379,19 @@ if ($check_email_logs_table && $check_email_logs_table->num_rows > 0) {
                         <?php 
                         // Admin verification
                         if ($emp_verify && $emp_verify['verified_by']) {
-                            $admin_user = $db->query("SELECT full_name FROM users WHERE id = " . $emp_verify['verified_by'])->fetch_assoc();
+                            $admin_user = $admin_users_map[$emp_verify['verified_by']] ?? null;
                         ?>
                         <div class="timeline-step step-admin">
                             <div class="step-badge">Admin</div>
-                            <div class="step-name"><?php echo htmlspecialchars($admin_user['full_name']); ?></div>
+                            <div class="step-name"><?php echo htmlspecialchars($admin_user['full_name'] ?? '-'); ?></div>
                             <div class="step-time"><?php echo date('d/m/y', strtotime($emp_verify['verified_date'])); ?></div>
                         </div>
                         <?php 
                         }
                         
                         // KTT approvals
-                        if ($approval_history && $approval_history->num_rows > 0) {
-                            $approval_history->data_seek(0);
-                            while ($approval = $approval_history->fetch_assoc()): 
+                        if (!empty($approval_history_arr)) {
+                            foreach ($approval_history_arr as $approval): 
                                 // Determine KTT label based on company_name
                                 $ktt_label = 'KTT';
                                 if (!empty($approval['company_name'])) {
@@ -357,7 +408,7 @@ if ($check_email_logs_table && $check_email_logs_table->num_rows > 0) {
                             <div class="step-time"><?php echo date('d/m/y', strtotime($approval['approval_date'])); ?></div>
                         </div>
                         <?php 
-                            endwhile;
+                            endforeach;
                         } else {
                             if (!$emp_verify || !$emp_verify['verified_by']) {
                         ?>
@@ -369,7 +420,7 @@ if ($check_email_logs_table && $check_email_logs_table->num_rows > 0) {
                     </div>
                 </div>
             </div>
-            <?php endwhile; ?>
+            <?php endforeach; ?>
         </div>
         <?php else: ?>
         <div class="empty-state">

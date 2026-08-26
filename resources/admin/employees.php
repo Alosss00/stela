@@ -384,20 +384,32 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE dele
 // Get statistics per company
 $companies_stats = [];
 if ($companies && $companies->num_rows > 0) {
+    $all_stats = $db->query("
+        SELECT 
+            contractor_company,
+            COUNT(*) as total,
+            SUM(CASE WHEN verification_status = 'pending' THEN 1 ELSE 0 END) as pending,
+            SUM(CASE WHEN verification_status = 'verified' THEN 1 ELSE 0 END) as verified,
+            SUM(CASE WHEN verification_status = 'rejected' THEN 1 ELSE 0 END) as rejected
+        FROM employees 
+        WHERE is_active = 1
+        GROUP BY contractor_company
+    ");
+    
+    if ($all_stats) {
+        while ($stat = $all_stats->fetch_assoc()) {
+            $companies_stats[$stat['contractor_company']] = $stat;
+        }
+    }
+    
     $companies->data_seek(0);
     while ($comp = $companies->fetch_assoc()) {
         $company_name = $comp['contractor_company'];
-        $stats = $db->query("
-            SELECT 
-                COUNT(*) as total,
-                SUM(CASE WHEN verification_status = 'pending' THEN 1 ELSE 0 END) as pending,
-                SUM(CASE WHEN verification_status = 'verified' THEN 1 ELSE 0 END) as verified,
-                SUM(CASE WHEN verification_status = 'rejected' THEN 1 ELSE 0 END) as rejected
-            FROM employees 
-            WHERE contractor_company = '" . $db->escapeString($company_name) . "' AND is_active = 1
-        ")->fetch_assoc();
-        
-        $companies_stats[$company_name] = $stats;
+        if (!isset($companies_stats[$company_name])) {
+            $companies_stats[$company_name] = [
+                'total' => 0, 'pending' => 0, 'verified' => 0, 'rejected' => 0
+            ];
+        }
     }
 }
 

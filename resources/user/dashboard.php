@@ -337,8 +337,34 @@ $recent_appointments = $db->query("
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if ($recent_appointments->num_rows > 0): ?>
-                                <?php while ($row = $recent_appointments->fetch_assoc()): ?>
+                            <?php 
+                            if ($recent_appointments->num_rows > 0): 
+                                // Pre-fetch data for N+1 optimization
+                                $appointments_data = [];
+                                $employee_ids = [];
+                                while ($row = $recent_appointments->fetch_assoc()) {
+                                    $appointments_data[] = $row;
+                                    $employee_ids[] = $row['employee_id'];
+                                }
+
+                                // Fetch Employee Verification
+                                $admin_verify_map = [];
+                                if (!empty($employee_ids)) {
+                                    $e_ids_str = implode(',', array_unique($employee_ids));
+                                    $admin_verify_result = $db->query("
+                                        SELECT id, verified_by 
+                                        FROM employees 
+                                        WHERE deleted_at IS NULL AND id IN ($e_ids_str) AND verified_by IS NOT NULL
+                                    ");
+                                    if ($admin_verify_result) {
+                                        while ($av = $admin_verify_result->fetch_assoc()) {
+                                            $admin_verify_map[$av['id']] = $av;
+                                        }
+                                    }
+                                }
+
+                                foreach ($appointments_data as $row): 
+                            ?>
                                 <tr>
                                     <td style="word-break: break-word; min-width: 160px;"><strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong></td>
                                     <td>
@@ -368,7 +394,7 @@ $recent_appointments = $db->query("
                                         <div class="approval-steps" style="font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap; align-items: center;">
                                             <?php
                                             $emp_id = $row['employee_id'];
-                                            $admin_verify = $db->query("SELECT verified_by FROM employees WHERE deleted_at IS NULL AND id = $emp_id AND verified_by IS NOT NULL")->fetch_assoc();
+                                            $admin_verify = $admin_verify_map[$emp_id] ?? null;
                                             
                                             // Admin
                                             echo '<span class="step ' . ($admin_verify ? 'done' : 'pending') . '" style="padding: 2px 6px; border-radius: 4px; display: inline-block; text-align: center; margin-right: 2px;">Admin</span>';
@@ -383,7 +409,7 @@ $recent_appointments = $db->query("
                                         </a>
                                     </td>
                                 </tr>
-                                <?php endwhile; ?>
+                                <?php endforeach; ?>
                             <?php else: ?>
                                 <tr>
                                     <td colspan="7" class="text-center py-4">
