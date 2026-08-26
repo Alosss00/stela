@@ -305,7 +305,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                 </div>
                 <div class="sa-card-body p-0">
                     <div class="table-responsive p-3">
-                        <table class="table-modern">
+                        <table class="table-modern" id="certAlertsTable" style="width:100%">
                             <thead>
                                 <tr>
                                     <th>Employee</th>
@@ -550,6 +550,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         }
     });
+    
+    // Initialize DataTable for Certificate Alerts if jQuery is available
+    if (typeof jQuery !== 'undefined' && $.fn.DataTable) {
+        $('#certAlertsTable').DataTable({
+            pageLength: 10,
+            lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
+            responsive: true,
+            order: [], // Disable initial sorting to keep the query's sort order
+            dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'
+        });
+    }
 });
 </script>
 
