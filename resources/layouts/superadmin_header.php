@@ -176,6 +176,57 @@ $current_page = get_current_page();
                         <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                     </a>
                 </li>
+
+                <?php if(hasPermission('manage_master_data') || hasPermission('manage_companies') || hasPermission('manage_departments')): ?>
+                <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Master Data Center</li>
+                <?php if(hasPermission('manage_companies')): ?>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/companies.php" class="<?php echo $current_page == 'companies.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-building"></i> <span>Companies</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+                <?php if(hasPermission('manage_departments')): ?>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/departments.php" class="<?php echo $current_page == 'departments.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-network-wired"></i> <span>Departments</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+                <?php if(hasPermission('manage_master_data')): ?>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/competencies.php" class="<?php echo $current_page == 'competencies.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-award"></i> <span>Competencies</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/sub_competencies.php" class="<?php echo $current_page == 'sub_competencies.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-list-ul"></i> <span>Sub Competencies</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/certifications.php" class="<?php echo $current_page == 'certifications.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-certificate"></i> <span>Certifications</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/positions.php" class="<?php echo $current_page == 'positions.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-briefcase"></i> <span>Positions</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/position_requirements.php" class="<?php echo $current_page == 'position_requirements.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-clipboard-check"></i> <span>Pos. Requirements</span>
+                    </a>
+                </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/supervision_areas.php" class="<?php echo $current_page == 'supervision_areas.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-map-marker-alt"></i> <span>Supervision Areas</span>
+                    </a>
+                </li>
+                <?php endif; ?>
+                <?php endif; ?>
+
                 <?php if(hasPermission('user.view') || hasPermission('role.view')): ?>
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Access Control</li>
                 <?php if(hasPermission('user.view')): ?>
@@ -217,6 +268,13 @@ $current_page = get_current_page();
                     </a>
                 </li>
                 <?php endif; ?>
+                <?php if(hasPermission('view_logs')): ?>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/monitoring_logs.php" class="<?php echo $current_page == 'monitoring_logs.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-history"></i> <span>System Logs</span>
+                    </a>
+                </li>
+                <?php endif; ?>
                 <?php endif; ?>
 
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">KTT Operations</li>
@@ -226,6 +284,13 @@ $current_page = get_current_page();
                     </a>
                 </li>
 
+                <?php if(hasPermission('manage_elasticsearch')): ?>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/elasticsearch_manage.php" class="<?php echo $current_page == 'elasticsearch_manage.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-search"></i> <span>Elasticsearch Config</span>
+                    </a>
+                </li>
+                <?php endif; ?>
                 <?php if(hasPermission('settings.view')): ?>
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">System Maintenance</li>
                 <li>
