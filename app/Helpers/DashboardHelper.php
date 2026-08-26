@@ -65,6 +65,7 @@ class DashboardHelper {
             SELECT COUNT(*) as c FROM employee_certifications ec
             JOIN employees e ON ec.employee_id = e.id
             WHERE ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE() AND e.is_active = 1
+            AND ec.status != 'pending'
             AND ec.id = (SELECT MAX(ec2.id) FROM employee_certifications ec2 WHERE ec2.employee_id = ec.employee_id AND ec2.certification_id = ec.certification_id)
         ");
 
@@ -82,9 +83,9 @@ class DashboardHelper {
 
     public function getCertificateStats() {
         // Expiring soon logic: <= 60 days
-        $total = $this->fetchCount("SELECT COUNT(*) as c FROM employee_certifications ec JOIN employees e ON ec.employee_id = e.id WHERE e.is_active = 1 AND ec.id = (SELECT MAX(ec2.id) FROM employee_certifications ec2 WHERE ec2.employee_id = ec.employee_id AND ec2.certification_id = ec.certification_id)");
-        $expired = $this->fetchCount("SELECT COUNT(*) as c FROM employee_certifications ec JOIN employees e ON ec.employee_id = e.id WHERE ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE() AND e.is_active = 1 AND ec.id = (SELECT MAX(ec2.id) FROM employee_certifications ec2 WHERE ec2.employee_id = ec.employee_id AND ec2.certification_id = ec.certification_id)");
-        $expiring_soon = $this->fetchCount("SELECT COUNT(*) as c FROM employee_certifications ec JOIN employees e ON ec.employee_id = e.id WHERE ec.expiry_date IS NOT NULL AND ec.expiry_date >= CURDATE() AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 60 DAY) AND e.is_active = 1 AND ec.id = (SELECT MAX(ec2.id) FROM employee_certifications ec2 WHERE ec2.employee_id = ec.employee_id AND ec2.certification_id = ec.certification_id)");
+        $total = $this->fetchCount("SELECT COUNT(*) as c FROM employee_certifications ec JOIN employees e ON ec.employee_id = e.id WHERE e.is_active = 1 AND ec.status != 'pending' AND ec.id = (SELECT MAX(ec2.id) FROM employee_certifications ec2 WHERE ec2.employee_id = ec.employee_id AND ec2.certification_id = ec.certification_id)");
+        $expired = $this->fetchCount("SELECT COUNT(*) as c FROM employee_certifications ec JOIN employees e ON ec.employee_id = e.id WHERE ec.expiry_date IS NOT NULL AND ec.expiry_date < CURDATE() AND e.is_active = 1 AND ec.status != 'pending' AND ec.id = (SELECT MAX(ec2.id) FROM employee_certifications ec2 WHERE ec2.employee_id = ec.employee_id AND ec2.certification_id = ec.certification_id)");
+        $expiring_soon = $this->fetchCount("SELECT COUNT(*) as c FROM employee_certifications ec JOIN employees e ON ec.employee_id = e.id WHERE ec.expiry_date IS NOT NULL AND ec.expiry_date >= CURDATE() AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 60 DAY) AND e.is_active = 1 AND ec.status != 'pending' AND ec.id = (SELECT MAX(ec2.id) FROM employee_certifications ec2 WHERE ec2.employee_id = ec.employee_id AND ec2.certification_id = ec.certification_id)");
         $valid = $total - $expired - $expiring_soon;
         if ($valid < 0) $valid = 0; // Failsafe
         
@@ -143,6 +144,7 @@ class DashboardHelper {
             LEFT JOIN certifications c ON ec.certification_id = c.id
             WHERE ec.expiry_date IS NOT NULL AND e.is_active = 1
               AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 60 DAY)
+              AND ec.status != 'pending'
               AND ec.id = (SELECT MAX(ec2.id) FROM employee_certifications ec2 WHERE ec2.employee_id = ec.employee_id AND ec2.certification_id = ec.certification_id)
             ORDER BY remaining_days ASC
             LIMIT " . (int)$limit;
