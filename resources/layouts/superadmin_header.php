@@ -172,7 +172,7 @@ $current_page = get_current_page();
             
             <ul class="sidebar-menu">
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/superadmin/dashboard.php" class="<?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/dashboard.php" class="<?php echo $current_page == 'dashboard.php' ? 'active' : ''; ?>">
                         <i class="fas fa-tachometer-alt"></i> <span>Dashboard</span>
                     </a>
                 </li>
