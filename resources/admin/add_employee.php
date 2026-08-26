@@ -239,6 +239,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $no_expiry = $_POST['no_expiry'] ?? [];
                         $expiry_reasons = $_POST['expiry_reasons'] ?? [];
                         
+                        // Check if cert_type column exists in employee_certifications table (run once, outside loop to prevent N+1)
+                        $columns_check = $db->query("SHOW COLUMNS FROM employee_certifications LIKE 'cert_type'");
+                        $has_cert_type = ($columns_check && $columns_check->num_rows > 0);
+                        
                         foreach ($_FILES['certifications']['tmp_name'] as $key => $tmp_name) {
                             if (isset($_FILES['certifications']['error'][$key]) && $_FILES['certifications']['error'][$key] == 0) {
                                 $file_ext = strtolower(pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION));
@@ -275,10 +279,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     $today = date('Y-m-d');
                                     $status = ($expiry_date && $expiry_date < $today) ? 'expired' : 'pending';
                                     
-                                    // Check if cert_type column exists in employee_certifications table
-                                    $columns_check = $db->query("SHOW COLUMNS FROM employee_certifications LIKE 'cert_type'");
-                                    
-                                    if ($columns_check && $columns_check->num_rows > 0) {
+                                    if ($has_cert_type) {
                                         // Column cert_type EXISTS - include in INSERT
                                         $sql_cert = "INSERT INTO employee_certifications 
                                                     (employee_id, certification_id, cert_type, cert_number, cert_issuer, issue_date, expiry_date, 
