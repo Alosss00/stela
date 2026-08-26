@@ -261,7 +261,7 @@ $expiring_certs = $db->query("
     LEFT JOIN certifications c ON ec.certification_id = c.id
     WHERE ec.expiry_date IS NOT NULL
     AND ec.verification_status = 'verified'
-    AND ec.status != 'expired'
+    AND ec.status != 'active'
     AND e.verification_status != 'pending'
     AND ec.expiry_date < CURDATE()
     AND e.is_active = 1

@@ -141,6 +141,8 @@ class DashboardHelper {
             JOIN employees e ON ec.employee_id = e.id
             LEFT JOIN certifications c ON ec.certification_id = c.id
             WHERE ec.expiry_date IS NOT NULL AND e.is_active = 1
+              AND ec.expiry_date < CURDATE()
+              AND ec.status != 'active'
             ORDER BY remaining_days ASC
             LIMIT " . (int)$limit;
         return $this->fetchAll($query);

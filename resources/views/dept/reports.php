@@ -109,7 +109,9 @@ $expiring_certs = $db->query("
     FROM employee_certifications ec
     JOIN certifications cert ON ec.certification_id = cert.id
     JOIN employees e ON ec.employee_id = e.id
-    WHERE DATEDIFF(ec.expiry_date, NOW()) <= 60 
+    WHERE ec.expiry_date < CURDATE() 
+    AND ec.status != 'active'
+    AND e.is_active = 1
     AND e.department = '" . $db->escapeString($department) . "'
     ORDER BY ec.expiry_date ASC
 ");

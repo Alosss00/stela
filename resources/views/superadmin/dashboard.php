@@ -156,7 +156,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                         
                         <?php if(hasPermission('role.view')): ?>
                         <div class="col-md-2 col-sm-4 col-6">
-                            <a href="../superadmin/roles.php" class="qa-btn">
+                            <a href="../superadmin/roles_permissions.php" class="qa-btn">
                                 <i class="fas fa-user-shield"></i>
                                 Manage Roles
                             </a>

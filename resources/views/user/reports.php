@@ -133,6 +133,7 @@ $expiring_certs = $db->query("
     WHERE ec.expiry_date IS NOT NULL
     AND ec.verification_status = 'verified'
     AND ec.expiry_date < CURDATE()
+    AND ec.status != 'active'
     AND e.is_active = 1
     AND e.contractor_company = '" . $db->escapeString($company_name) . "'
     AND NOT EXISTS (
