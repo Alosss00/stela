@@ -1097,6 +1097,35 @@ document.addEventListener('DOMContentLoaded', function() {
                 alert('Mohon lengkapi semua data dan berkas yang wajib diisi (*) terlebih dahulu!');
                 return false;
             }
+
+            // UI Update for mutually exclusive buttons
+            const submitBtn = formEl.querySelector('button[type="submit"].btn-primary');
+            const cancelBtn = formEl.querySelector('a.btn-secondary');
+            
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
+                submitBtn.style.pointerEvents = 'none';
+                submitBtn.style.opacity = '0.7';
+            }
+            if (cancelBtn) {
+                cancelBtn.style.display = 'none';
+            }
+        });
+    }
+});
+
+// Also handle the cancel button click to prevent double clicks and hide submit
+document.addEventListener('DOMContentLoaded', function() {
+    const cancelBtn = document.querySelector('.form-actions a.btn-secondary');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', function(e) {
+            const submitBtn = document.querySelector('.form-actions button[type="submit"].btn-primary');
+            if (submitBtn) {
+                submitBtn.style.display = 'none';
+            }
+            this.style.pointerEvents = 'none';
+            this.style.opacity = '0.7';
+            this.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
         });
     }
 });
