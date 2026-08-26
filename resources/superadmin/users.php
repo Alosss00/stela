@@ -341,6 +341,10 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                             <input type="email" name="email" class="form-control" required>
                         </div>
                         <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="text" name="phone" class="form-control">
+                        </div>
+                        <div class="col-md-6">
                             <label class="form-label">Role *</label>
                             <select name="role" class="form-select" required>
                                 <option value="">Select Role</option>
@@ -412,6 +416,10 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                         <div class="col-md-6">
                             <label class="form-label">Email *</label>
                             <input type="email" name="email" id="edit_email" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Phone</label>
+                            <input type="text" name="phone" id="edit_phone" class="form-control">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Role *</label>
@@ -515,6 +523,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
         document.getElementById('edit_username').value = user.username;
         document.getElementById('edit_full_name').value = user.full_name;
         document.getElementById('edit_email').value = user.email;
+        document.getElementById('edit_phone').value = user.phone || '';
         document.getElementById('edit_role').value = user.role;
         document.getElementById('edit_company').value = user.company_name;
         document.getElementById('edit_department').value = user.department;

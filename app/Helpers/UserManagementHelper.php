@@ -98,13 +98,13 @@ class UserManagementHelper {
         }
 
         $hash = password_hash($data['password'], PASSWORD_DEFAULT);
-        $query = "INSERT INTO users (username, full_name, email, password, role, company_name, department, is_active, created_at, updated_at) 
-                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
+        $query = "INSERT INTO users (username, full_name, email, phone, password, role, company_name, department, is_active, created_at, updated_at) 
+                  VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())";
         
         $stmt = $this->db->prepare($query);
         $isActive = (int)($data['is_active'] ?? 1);
-        $stmt->bind_param("sssssssi", 
-            $data['username'], $data['full_name'], $data['email'], $hash, 
+        $stmt->bind_param("ssssssssi", 
+            $data['username'], $data['full_name'], $data['email'], $data['phone'], $hash, 
             $data['role'], $data['company_name'], $data['department'], $isActive
         );
         
@@ -136,11 +136,11 @@ class UserManagementHelper {
             return ['status' => 'error', 'message' => 'Email already exists.'];
         }
 
-        $query = "UPDATE users SET username=?, full_name=?, email=?, role=?, company_name=?, department=?, is_active=?, updated_at=NOW() WHERE id=?";
+        $query = "UPDATE users SET username=?, full_name=?, email=?, phone=?, role=?, company_name=?, department=?, is_active=?, updated_at=NOW() WHERE id=?";
         $stmt = $this->db->prepare($query);
         $isActive = (int)$data['is_active'];
-        $stmt->bind_param("ssssssii", 
-            $data['username'], $data['full_name'], $data['email'], 
+        $stmt->bind_param("sssssssii", 
+            $data['username'], $data['full_name'], $data['email'], $data['phone'],
             $data['role'], $data['company_name'], $data['department'], 
             $isActive, $id
         );
