@@ -331,7 +331,7 @@ $workflow_history = $auditService->getHistoryByAppointment($id);
         </a>
         
         <?php if ($appointment['status'] == 'approved'): ?>
-        <a href="../../print_appointment.php?id=<?php echo $appointment['id']; ?>" class="btn btn-primary" target="_blank">
+        <a href="../../exports/print_appointment.php?id=<?php echo $appointment['id']; ?>" class="btn btn-primary" target="_blank">
             <i class="fas fa-print"></i> <span data-lang="print">Print</span>
         </a>
         <?php endif; ?>

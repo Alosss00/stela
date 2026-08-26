@@ -942,7 +942,7 @@ function showReviewModal(appointmentId) {
                 }
 
                 document.getElementById('reviewContent').innerHTML = html;
-                document.getElementById('printLink').href = '../../print_appointment.php?id=' + appointmentId;
+                document.getElementById('printLink').href = '../../exports/print_appointment.php?id=' + appointmentId;
                 openModal('reviewModal');
             } else {
                 const fallbackLoadText = i18n('ktt-failed-load-data');

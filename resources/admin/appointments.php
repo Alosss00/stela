@@ -811,7 +811,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                         btns += `<button class="btn-action-appt view-btn" onclick="showAppointmentDetail(${id})" title="View Details"><i class="fas fa-eye"></i> Detail</button>`;
                     }
                     if (status === 'draft') {
-                        btns += `<a href="../../print_appointment.php?id=${id}" target="_blank" class="btn-action-appt edit-btn" title="Modify Letter"><i class="fas fa-edit"></i></a>`;
+                        btns += `<a href="../../exports/print_appointment.php?id=${id}" target="_blank" class="btn-action-appt edit-btn" title="Modify Letter"><i class="fas fa-edit"></i></a>`;
                         btns += `<form method="POST" style="display:inline;">
                             <input type="hidden" name="csrf_token" value="${csrfToken}">
                             <input type="hidden" name="action" value="submit">
@@ -819,7 +819,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                             <button type="submit" class="btn-action-appt ajukan-btn" onclick="return confirm('Submit this appointment letter to KTT for approval?')" title="Submit to KTT"><i class="fas fa-paper-plane"></i></button>
                         </form>`;
                     } else if (status === 'approved') {
-                        btns += `<a href="../../print_appointment_pdf.php?id=${id}" target="_blank" class="btn-action-appt cetak-btn" title="Print"><i class="fas fa-print"></i> Print</a>`;
+                        btns += `<a href="../../exports/print_appointment_pdf.php?id=${id}" target="_blank" class="btn-action-appt cetak-btn" title="Print"><i class="fas fa-print"></i> Print</a>`;
                     } else if (status === 'rejected_by_ktt') {
                         btns += `<button type="button" class="btn-action-appt review-detail-btn" onclick="showRejectionDetailModal(${id}, '${empName}', '${apptNum}', 'See details')" title="Review"><i class="fas fa-clipboard-check"></i> Review</button>`;
                     }

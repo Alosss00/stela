@@ -222,7 +222,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                                 <td class="col-action">
                                     <div class="action-buttons-appt">
                                         <?php if ($apt['status'] === 'approved'): ?>
-                                        <a href="../../print_appointment.php?id=<?php echo $apt['id']; ?>" class="btn-print-appt" target="_blank" title="Print"><i class="fas fa-print"></i></a>
+                                        <a href="../../exports/print_appointment.php?id=<?php echo $apt['id']; ?>" class="btn-print-appt" target="_blank" title="Print"><i class="fas fa-print"></i></a>
                                         <?php endif; ?>
                                         <a href="appointments_detail.php?id=<?php echo $apt['id']; ?>" class="btn-detail-appt"><i class="fas fa-eye"></i> View</a>
                                     </div>
@@ -272,7 +272,7 @@ $rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
                         const status = item.status || 'pending';
                         const sClass = statusClasses[status] || 'secondary';
                         const printBtn = status === 'approved'
-                            ? `<a href="../../print_appointment.php?id=${item.id}" class="btn-print-appt" target="_blank" title="Print"><i class="fas fa-print"></i></a>`
+                            ? `<a href="../../exports/print_appointment.php?id=${item.id}" class="btn-print-appt" target="_blank" title="Print"><i class="fas fa-print"></i></a>`
                             : '';
                         return `<tr class="appt-row" data-id="${item.id}">
                             <td class="col-number"><strong>${item.appointment_number || '-'}</strong></td>

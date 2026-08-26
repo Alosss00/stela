@@ -1,7 +1,7 @@
 <?php
-require_once dirname(__DIR__, 2) . '/bootstrap/app.php';
-require_once dirname(__DIR__, 2) . '/bootstrap/app.php';
-require_once dirname(__DIR__, 2) . '/app/Helpers/auth_helper.php';
+require_once dirname(__DIR__) . '/bootstrap/app.php';
+require_once dirname(__DIR__) . '/bootstrap/app.php';
+require_once dirname(__DIR__) . '/app/Helpers/auth_helper.php';
 
 header('Content-Type: application/json');
 

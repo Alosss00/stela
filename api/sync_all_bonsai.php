@@ -1,5 +1,5 @@
 <?php
-require_once dirname(__DIR__, 2) . '/bootstrap/app.php';
+require_once dirname(__DIR__) . '/bootstrap/app.php';
 /**
  * Web Endpoint to Full Sync MySQL DB to Bonsai.io / Elasticsearch
  */
@@ -9,9 +9,9 @@ error_reporting(E_ALL & ~E_NOTICE & ~E_WARNING);
 header('Content-Type: application/json; charset=utf-8');
 
 try {
-    require_once dirname(__DIR__, 2) . '/config/app.php';
-    require_once dirname(__DIR__, 2) . '/app/Models/Database.php';
-    require_once dirname(__DIR__, 2) . '/app/Services/ElasticsearchService.php';
+    require_once dirname(__DIR__) . '/config/app.php';
+    require_once dirname(__DIR__) . '/app/Models/Database.php';
+    require_once dirname(__DIR__) . '/app/Services/ElasticsearchService.php';
 
     $db = new Database();
     $es = ElasticsearchService::getInstance();

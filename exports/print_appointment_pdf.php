@@ -1,5 +1,8 @@
 <?php
-require_once __DIR__ . '/bootstrap/app.php';
+require_once dirname(__DIR__) . '/bootstrap/app.php';
+require_once dirname(__DIR__) . '/vendor/autoload.php';
+
+use Mpdf\Mpdf;
 
 if (!isset($_GET['id'])) {
     die('ID tidak valid');
@@ -54,15 +57,11 @@ if (!$appointment) {
 }
 
 // Check if both KTTs have approved (for digital signatures)
-$ktt_approvals_check = $db->query("
-    SELECT COUNT(*) as total_approvals,
-           SUM(CASE WHEN action = 'approve' THEN 1 ELSE 0 END) as approved_count
-    FROM ktt_approvals 
-    WHERE appointment_id = $id
-")->fetch_assoc();
-
-$both_ktt_approved = ($appointment['status'] == 'approved' && 
-                      $ktt_approvals_check['approved_count'] >= 2);
+// Use ktt1_approved_date and ktt2_approved_date from appointments table as the
+// reliable source — ktt_approvals records may be deleted after processing.
+$both_ktt_approved = ($appointment['status'] == 'approved' &&
+                      !empty($appointment['ktt1_approved_date']) &&
+                      !empty($appointment['ktt2_approved_date']));
 
 // Function to determine document code based on competency type
 function getDocumentCode($competency_type) {
@@ -113,14 +112,14 @@ function getLetterContent($competency_type, $competency_name, $appointment) {
             ]
         ],
         'pengawas_teknis' => [
-            'introduction' => '<p>Berdasarkan KEPMEN ESDM No. 1827 K/30/MEM/2018 tentang Pedoman Pelaksanaan kaidah Teknik Pertambangan yang Baik dan KEPDIRJEN ESDM 185.K/37.04/DJB/2019 Lampiran IV, Elemen III, terkait penunjukan Pengawas Teknis.</p>',
+            'introduction' => '<p>Berdasarkan KEPMEN ESDM No. 1827 K/30/MEM/2018 tentang Pedoman Pelaksanaan kaidah Teknik Pertambangan yang Baik dan KEPDIRJEN ESDM 185.K/37.04/DJB/2019 Lampiran IV, Elemen III, terkait penunjukan Tenaga Teknis pertambangan yang berkompeten.</p>',
             'responsibilities' => [
-                'Bertanggung jawab kepada KTT/PTL untuk keselamatan pemasangan dan pekerjaan serta pemeliharaan yang benar semua Sarana, Prasarana, Instalasi, dan Peralatan Pertambangan (SPIP) yang menjadi tugasnya;',
-                'Merencanakan dan menekankan dilaksanakannya jadwal pemeliharaan yang telah direncanakan serta semua perbaikan Sarana, Prasarana, Instalasi, dan Peralatan pertambangan (SPIP) yang dipergunakan.',
+                'Bertanggung jawab kepada KTT/PTL untuk keselamatan pemasangan dan pekerjaan serta pemeliharaan yang benar semua Sarana, Prasarana, Instalasi, dan Peralatan pertambangan (SPIP) yang menjadi tugasnya;',
+                'Merencanakan dan menekankan dilaksanakannya jadwal pemeliharaan yang telah direncanakan serta semua perbaikan Sarana, Prasarana, Instalasi, dan Peralatan pertambangan (SPIP) yang dipergunakan;',
                 'Mengawasi dan memeriksa semua Sarana, Prasarana, Instalasi, dan Peralatan pertambangan (SPIP) dalam ruang lingkup yang menjadi tanggung jawabnya;',
-                'Menjamin bahwa selalu dilaksanakan penyelidikan, pemeriksaan, dan pengujian Sarana, Prasarana, Instalasi, dan Peralatan Pertambangan (SPIP);',
+                'Menjamin bahwa selalu dilaksanakan penyelidikan, pemeriksaan, dan pengujian Sarana, Prasarana, Instalasi, dan Peralatan pertambangan (SPIP);',
                 'Melaksanakan penyelidikan, pemeriksaan, dan pengujian Sarana, Prasarana, Instalasi, dan Peralatan pertambangan (SPIP) sebelum digunakan, setelah dipasang kembali, dan/atau diperbaiki; dan',
-                'Membuat dan menandatangani laporan dari penyelidikan, pemeriksaan, dan pengujian Sarana, Prasarana, Instalasi, dan Peralatan pertambangan (SPIP);'
+                'Membuat dan menandatangani laporan dari penyelidikan, pemeriksaan, dan pengujian Sarana, Prasarana, Instalasi, dan Peralatan pertambangan (SPIP).'
             ]
         ],
         'tenaga_teknis' => [
@@ -134,6 +133,13 @@ function getLetterContent($competency_type, $competency_name, $appointment) {
             ]
         ]
     ];
+
+    // If competency type is explicitly Pengawas Teknis, always use the
+    // Pengawas Teknis template — do not override it with keyword-based
+    // templates (e.g., 'rigger', 'juru las', etc.).
+    if ($competency_type === 'pengawas_teknis' && isset($templatesByType['pengawas_teknis'])) {
+        return $templatesByType['pengawas_teknis'];
+    }
 
     $templatesByCompetencyKeywords = [
         'juru las' => [
@@ -154,7 +160,6 @@ function getLetterContent($competency_type, $competency_name, $appointment) {
                 'Bertanggung jawab atas catatan masalah bahan peledak harian, menjaga stok bahan peledak dan pembelian bahan peledak.',
                 'Bertanggung jawab untuk menjaga area Magazine serta administrasinya.',
                 'Bertanggung jawab untuk merekam kedalaman lubang bor yang sebenarnya, mengukur lubang ledakan basah/kering dan menyesuaikan dengan rencana.',
-                'Bertanggung jawab untuk optimalisasi pengeboran dan ledakan dengan mengelola faktor bubuk dan pemilihan area pengeboran berdasarkan jenis batuan.',
                 'Memastikan supervisor kontraktor memiliki rencana pengeboran dan rencana pengikatan saat ini di setiap lokasi pengeboran dan peledakan serta kepatuhan kontraktor dengan rencana pengeboran dan peledakan.',
                 'Mengelola sistem pengarsipan untuk data dan desain bor dan ledakan.',
                 'Mengatur tim Bor dan Ledakan',
@@ -411,12 +416,6 @@ function getLetterContent($competency_type, $competency_name, $appointment) {
             ]
         ],
     ];
-    // If competency type is explicitly Pengawas Teknis, always use the
-    // Pengawas Teknis template � do not override it with keyword-based
-    // templates (e.g., 'rigger', 'juru las', etc.).
-    if ($competency_type === 'pengawas_teknis' && isset($templatesByType['pengawas_teknis'])) {
-        return $templatesByType['pengawas_teknis'];
-    }
 
     if ($competency_name !== '' && strpos($competency_name, 'paramedis') !== false) {
         return [
@@ -484,797 +483,218 @@ if (!empty($appointment['letter_content'])) {
 $doc_code = getDocumentCode($appointment['competency_type']);
 $header_title = getHeaderTitle($appointment['competency_type']);
 
-// Handle AJAX save request
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'save_content') {
-    
-    // 1. Ambil token dari POST data atau dari HTTP Header
-    $csrf_token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    
-    // 2. Validasi token dengan session
-    if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
-        http_response_code(403); // Forbidden
-        echo json_encode([
-            'success' => false, 
-            'message' => 'Validasi keamanan (CSRF) gagal. Permintaan ditolak.'
-        ]);
-        exit();
+// Prepare date strings for footer
+$tanggal_terbit = '25 Maret 2025';
+$tanggal_tinjau = '25 Maret 2028';
+
+$doc_name = 'Surat Penunjukan ' . $header_title;
+
+// Create mPDF instance
+try {
+    $tempDir = sys_get_temp_dir() . '/stela_mpdf';
+    if (!is_dir($tempDir)) {
+        mkdir($tempDir, 0777, true);
     }
 
-    // 3. Jika lolos validasi, lanjutkan proses simpan data
-    $new_content = $_POST['content'] ?? '';
-    
-    $stmt = $db->prepare("UPDATE appointments SET letter_content = ? WHERE id = ?");
-    $stmt->bind_param("si", $new_content, $id);
-    
-    if ($stmt->execute()) {
-        echo json_encode(['success' => true, 'message' => 'Konten berhasil disimpan']);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Gagal menyimpan konten']);
-    }
-    exit();
-}
+    $mpdf = new Mpdf([
+        'mode' => 'utf-8',
+        'format' => 'A4',
+        'margin_top' => 35,
+        'margin_bottom' => 50,
+        'margin_left' => 10,
+        'margin_right' => 10,
+        'margin_header' => 10,
+        'margin_footer' => 10,
+        'default_font' => 'times',
+        'img_dpi' => 96,
+        'tempDir' => $tempDir
+    ]);
 
-// Check if user can edit (admin or ktt)
-$can_edit = isset($_SESSION['role']) && in_array($_SESSION['role'], ['admin', 'ktt']);
-?>
-<!DOCTYPE html>
-<html lang="id">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Surat Penunjukan - <?php echo htmlspecialchars($appointment['appointment_number']); ?></title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    // Define header HTML
+    $header = '
+    <table width="100%" style="padding-bottom: 5px;">
+        <tr>
+            <td width="15%" style="text-align: center;">
+                <img src="' . dirname(__DIR__) . '/assets/Logo/LOGO_MSM_TTN.png" style="width: 60px; height: 60px;">
+            </td>
+            <td width="70%" style="text-align: center;">
+                <h1 style="margin: 0; font-size: 14pt; font-weight: bold;">TOKA TINDUNG PROJECT</h1>
+                <h2 style="margin: 2px 0; font-size: 12pt; font-weight: bold;">Surat Penunjukan ' . htmlspecialchars($header_title) . '</h2>
+                <p style="margin: 1px 0; font-size: 11pt; font-weight: bold;">' . htmlspecialchars($doc_code) . '</p>
+            </td>
+            <td width="15%" style="text-align: center;">
+                <img src="' . dirname(__DIR__) . '/assets/Logo/LOGO_ARCHI.png" style="width: 60px; height: 60px;">
+            </td>
+        </tr>
+    </table>
+    <div style="width: 100%; height: 4px; background-color: #808080; margin-top: 5px;"></div>';
+    
+    // Define footer HTML
+    $footer = '
+    <div style="width: 100%; height: 4px; background-color: #808080; margin-bottom: 10px;"></div>
+    <table width="100%" style="padding-top: 10px; font-size: 7pt; border-collapse: collapse; table-layout: fixed;">
+        <tr>
+            <td style="border: 0.3px solid #000; border-left: none; padding: 2px 4px; font-weight: bold; width: 16%;">Nama Dokumen</td>
+            <td style="border: 0.3px solid #000; border-right: none; padding: 2px 4px;" colspan="3">' . htmlspecialchars($doc_name) . '</td>
+        </tr>
+        <tr>
+            <td style="border: 0.3px solid #000; border-left: none; padding: 2px 4px; font-weight: bold; width: 16%;">Ditetapkan Oleh</td>
+            <td style="border: 0.3px solid #000; padding: 2px 4px; width: 17%; text-align: left;">Kepala Teknik Tambang</td>
+            <td style="border: 0.3px solid #000; padding: 2px 4px; font-weight: bold; width: 50%;">Tanggal Terbit</td>
+            <td style="border: 0.3px solid #000; border-right: none; padding: 2px 4px; text-align: center; width: 17%;">' . htmlspecialchars($tanggal_terbit) . '</td>
+        </tr>
+        <tr>
+            <td style="border: 0.3px solid #000; border-left: none; padding: 2px 4px; font-weight: bold; width: 16%;">No Dokumen</td>
+            <td style="border: 0.3px solid #000; padding: 2px 4px; width: 17%; text-align: left;">' . htmlspecialchars($doc_code) . '</td>
+            <td style="border: 0.3px solid #000; padding: 2px 4px; font-weight: bold; width: 50%;">Tanggal Tinjau Ulang</td>
+            <td style="border: 0.3px solid #000; border-right: none; padding: 2px 4px; text-align: center; width: 17%;">' . htmlspecialchars($tanggal_tinjau) . '</td>
+        </tr>
+        <tr>
+            <td style="border: 0.3px solid #000; border-left: none; padding: 2px 4px; font-weight: bold; width: 16%;">No Revisi</td>
+            <td style="border: 0.3px solid #000; padding: 2px 4px; width: 17%; text-align: left;">00</td>
+            <td style="border: 0.3px solid #000; padding: 2px 4px; width: 50%;"><span style="color: #d32f2f;">Dokumen terkendali dan valid hanya ada di sharepoint Archi Indonesia</span></td>
+            <td style="border: 0.3px solid #000; border-right: none; padding: 2px 4px; text-align: center; width: 17%;">Halaman {PAGENO} dari {nb}</td>
+        </tr>
+    </table>';
+    
+    $mpdf->SetHTMLHeader($header);
+    $mpdf->SetHTMLFooter($footer);
+
+    // Build main content
+    $html = '
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #F9FAFB;
-        }
-        
-        /* Toolbar Styles */
-        .toolbar {
-            background: white;
-            padding: 15px 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-            display: flex;
-            gap: 10px;
-            align-items: center;
-            flex-wrap: wrap;
-            position: sticky;
-            top: 0;
-            z-index: 100;
-        }
-        
-        .toolbar h2 {
-            flex: 1;
-            margin: 0;
-            color: #333;
-            font-size: 18px;
-        }
-        
-        .btn {
-            padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            transition: all 0.3s;
-            text-decoration: none;
-            font-weight: 600;
-        }
-        
-        .btn-edit {
-            background: #f59e0b;
-            color: white;
-        }
-        
-        .btn-edit:hover {
-            background: #d97706;
-        }
-        
-        .btn-save {
-            background: #2E7D32;
-            color: white;
-        }
-        
-        .btn-save:hover {
-            background: #1B5E20;
-        }
-        
-        .btn-print {
-            background: #37474F;
-            color: white;
-        }
-        
-        .btn-print:hover {
-            background: #616161;
-        }
-        
-        .btn-close {
-            background: #6c757d;
-            color: white;
-        }
-        
-        .btn-close:hover {
-            background: #5a6268;
-        }
-        
-        /* Editor Container */
-        .editor-container {
-            max-width: 1200px;
-            margin: 20px auto;
-            background: white;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 30px;
-            display: none;
-        }
-        
-        .editor-container.active {
-            display: block;
-        }
-        
-        .ck-editor__editable {
-            min-height: 400px;
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 11pt;
-            line-height: 1.6;
-        }
-        
-        /* Table styling in CKEditor */
-        .ck-editor__editable table {
-            border-collapse: collapse;
-            font-size: 9pt;
-            font-family: 'Times New Roman', Times, serif;
-            line-height: 1.0;
-        }
-        
-        .ck-editor__editable table td,
-        .ck-editor__editable table th {
-            border: 0.3px solid #000;
-            padding: 1px 2px;
-        }
-        
-        .ck-editor__editable table th {
-            font-weight: bold;
-            background: #F9FAFB;
-        }
-        
-        /* Print Container */
-        .print-container {
-            max-width: 210mm;
-            margin: 20px auto;
-            background: white;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            padding: 20px;
-        }
-        
-        .print-container.hidden {
-            display: none;
-        }
-        
-        /* Header Styles */
-        .header {
-            border-bottom: 4px solid #808080;
-            padding-bottom: 15px;
-            margin-bottom: 20px;
-        }
-        
-        .header-table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        
-        .header-table td {
-            vertical-align: middle;
-        }
-        
-        .header-logo-cell {
-            width: 150px;
-            text-align: center;
-        }
-        
-        .header-logo {
-            width: 80px;
-            height: 80px;
-            object-fit: contain;
-        }
-        
-        .header-content {
-            text-align: center;
-            padding: 0 15px;
-        }
-        
-        .header h1 {
-            margin: 0;
-            font-size: 14pt;
-            font-weight: bold;
-            color: #000;
-            font-family: 'Times New Roman', Times, serif;
-        }
-        
-        .header h2 {
-            margin: 2px 0;
-            font-size: 12pt;
-            font-weight: normal;
-            font-family: 'Times New Roman', Times, serif;
-        }
-        
-        .header p {
-            margin: 1px 0;
-            font-size: 11pt;
-            font-weight: bold;
-            font-family: 'Times New Roman', Times, serif;
-        }
-        
-        /* Data Table Styles */
-        .data-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-bottom: 0;
-            font-size: 10pt;
-            font-family: 'Times New Roman', Times, serif;
-        }
-        
-        .data-table td {
-            padding: 6px 8px;
-            border-bottom: 1px solid #000;
-            vertical-align: top;
-        }
-        
-        .data-table tr:first-child td {
-            border-top: 1px solid #000;
-        }
-        
-        .data-table td:first-child {
-            width: 150px;
-            font-weight: normal;
-        }
-        
-        .data-table td:nth-child(2) {
-            width: 20px;
-            text-align: center;
-        }
-        
-        /* Content Section - Wrapper for data-table, content-area, signature-table */
-        .content {
-            margin: 20px 0;
-            position: relative;
-            z-index: 10;
-        }
-        
-        /* Content Area */
-        .content-area {
-            padding: 0;
-            font-family: 'Times New Roman', Times, serif;
-            font-size: 10pt;
-            line-height: 1.6;
-            text-align: justify;
-        }
-        
-        .content-area p {
-            margin: 8px 0;
-        }
-        
-        .content-area ul {
-            margin: 10px 0;
-            padding-left: 0;
-            list-style: none;
-        }
-        
-        .content-area ul li {
-            margin: 6px 0;
-            padding-left: 20px;
-            text-indent: -20px;
-        }
-        
-        .content-area ul li:before {
-            content: "� ";
-            font-weight: bold;
-        }
-        
-        .content-area ol {
-            margin: 10px 0;
-            padding-left: 20px;
-            list-style: decimal;
-        }
-        
-        .content-area ol li {
-            margin: 6px 0;
-            padding-left: 5px;
-            text-indent: 0;
-        }
-        
-        /* Tables in Content Area - Similar to Footer Style */
-        .content-area table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 5px 0;
-            font-size: 9pt;
-            font-family: 'Times New Roman', Times, serif;
-            line-height: 1.0;
-        }
-        
-        .content-area table td,
-        .content-area table th {
-            padding: 1px 2px;
-            border: 0.3px solid #000;
-            vertical-align: top;
-            text-align: left;
-        }
-        
-        .content-area table th {
-            font-weight: bold;
-            background: #F9FAFB;
-        }
-        
-        /* Figure from CKEditor */
-        .content-area figure {
-            margin: 10px 0;
-        }
-        
-        .content-area figure table {
-            margin: 0;
-        }
-        
-        /* Signature Table */
-        .signature-table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 0;
-            font-size: 10pt;
-            font-family: 'Times New Roman', Times, serif;
-        }
-        
-        .signature-table td {
-            padding: 8px;
-            border: 1px solid #000;
-            text-align: center;
-            vertical-align: middle;
-        }
-        
-        .signature-table td:first-child {
-            border-left: none;
-        }
-        
-        .signature-table td:last-child {
-            border-right: none;
-        }
-        
-        .signature-table td div {
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .signature-img {
-            max-width: 120px;
-            max-height: 50px;
-            object-fit: contain;
-        }
-        
-        /* Footer Styles */
-        .footer {
-            margin-top: 30px;
-            padding-top: 15px;
-            border-top: 4px solid #808080;
-        }
-        
-        .footer-table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 7pt;
-            font-family: 'Times New Roman', Times, serif;
-        }
-        
-        .footer-table td {
-            padding: 2px 4px;
-            border: 0.3px solid #000;
-            vertical-align: top;
-        }
-        
-        .footer-table td:first-child {
-            border-left: none;
-        }
-        
-        .footer-table td:last-child {
-            border-right: none;
-        }
-        
-        .footer-table .label {
-            font-weight: bold;
-            width: 110px;
-        }
-        
-        /* Alert */
-        .alert {
-            padding: 12px 20px;
-            border-radius: 5px;
-            margin: 20px auto;
-            max-width: 1200px;
-            display: none;
-        }
-        
-        .alert.show {
-            display: block;
-        }
-        
-        .alert-success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-        }
-        
-        .alert-error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-        }
-        
-        @media screen and (max-width: 768px) {
-            .toolbar h2 {
-                width: 100%;
-                margin-bottom: 10px;
-            }
-            
-            .print-container {
-                padding: 10px;
-            }
-        }
+        body { font-family: "Times New Roman", Times, serif; font-size: 10pt; }
+        table { border-collapse: collapse; width: 100%; }
+        .data-table td { padding: 6px 8px; border-bottom: 1px solid #000; vertical-align: top; }
+        .data-table tr:first-child td { border-top: 1px solid #000; }
+        .data-table td:first-child { width: 150px; }
+        .data-table td:nth-child(2) { width: 20px; text-align: center; }
+        .content-area { margin: 15px 0; text-align: justify; line-height: 1.6; }
+        .content-area p { margin: 8px 0; }
+        .content-area ul { margin: 10px 0; padding-left: 0; list-style: none; }
+        .content-area li { margin: 6px 0; padding-left: 20px; text-indent: -20px; }
+        .content-area ol { margin: 10px 0; padding-left: 20px; }
+        .content-area ol li { margin: 6px 0; padding-left: 5px; text-indent: 0; }
+        .content-area table { margin: 5px 0; font-size: 9pt; }
+        .content-area table td, .content-area table th { padding: 1px 2px; border: 0.3px solid #000; }
+        .signature-table { margin-top: 15px; font-size: 10pt; page-break-inside: avoid; }
+        .signature-table td { padding: 8px; border: 1px solid #000; text-align: center; vertical-align: middle; }
+        .signature-table td:first-child { border-left: none; }
+        .signature-table td:last-child { border-right: none; }
     </style>
-</head>
-<body>
-    <!-- Toolbar -->
-    <div class="toolbar">
-        <h2><i class="fas fa-file-alt"></i> Surat Penunjukan - <?php echo htmlspecialchars($appointment['appointment_number']); ?></h2>
-        
-        <?php if ($can_edit): ?>
-        <button class="btn btn-edit" id="btnToggleEdit" onclick="toggleEditMode()">
-            <i class="fas fa-edit"></i> <span id="editBtnText">Edit Surat</span>
-        </button>
-        <button class="btn btn-save" id="btnSave" onclick="saveContent()" style="display: none;">
-            <i class="fas fa-save"></i> Simpan
-        </button>
-        <?php endif; ?>
-
-        <?php if ($appointment['status'] != 'draft'): ?>
-        <a href="print_appointment_pdf.php?id=<?php echo $id; ?>" class="btn btn-print">
-            <i class="fas fa-print"></i> Print
-        </a>
-        <?php endif; ?>
-        <button class="btn btn-close" onclick="window.close()">
-            <i class="fas fa-times"></i> Tutup
-        </button>
-    </div>
     
-    <!-- Alert Container -->
-    <div id="alertContainer"></div>
+    <table class="data-table">
+        <tr>
+            <td>Nama Lengkap</td>
+            <td>:</td>
+            <td>' . htmlspecialchars($appointment['employee_name']) . '</td>
+        </tr>
+        <tr>
+            <td>Badge ID</td>
+            <td>:</td>
+            <td>' . htmlspecialchars($appointment['employee_code']) . '</td>
+        </tr>
+        <tr>
+            <td>Jabatan</td>
+            <td>:</td>
+            <td>' . htmlspecialchars($appointment['position']) . '</td>
+        </tr>
+        <tr>
+            <td>Perusahaan</td>
+            <td>:</td>
+            <td>' . htmlspecialchars($appointment['contractor_company'] ?? 'PT Mahakam Sumber Mandiri') . '</td>
+        </tr>';
     
-    <!-- Editor Container -->
-    <?php if ($can_edit): ?>
-    <div class="editor-container" id="editorContainer">
-        <h3 style="margin-bottom: 20px; color: #333;"><i class="fas fa-keyboard"></i> Edit Konten Surat</h3>
-        <div id="editor"><?php echo $custom_content; ?></div>
-    </div>
-    <?php endif; ?>
+    if (!empty($appointment['competency_name'])) {
+        $html .= '
+        <tr>
+            <td>Kompetensi</td>
+            <td>:</td>
+            <td>' . htmlspecialchars($appointment['competency_name']) . '</td>
+        </tr>';
+    }
     
-    <!-- Print Container -->
-    <div class="print-container" id="printContainer">
-        <div class="content-wrapper">
-            <!-- HEADER SECTION -->
-            <div class="header">
-                <table class="header-table">
-                    <tr>
-                        <td class="header-logo-cell">
-                            <img src="assets/Logo/LOGO_MSM_TTN.png" alt="Logo" class="header-logo">
-                        </td>
-                        <td class="header-content">
-                            <h1>TOKA TINDUNG PROJECT</h1>
-                            <h2><strong>Surat Penunjukan <?php echo htmlspecialchars($header_title); ?></strong></h2>
-                            <p><?php echo htmlspecialchars($doc_code); ?></p>
-                        </td>
-                        <td class="header-logo-cell">
-                            <img src="assets/Logo/LOGO_ARCHI.png" alt="Logo" class="header-logo">
-                        </td>
-                    </tr>
-                </table>
-            </div>
-            <!-- END HEADER SECTION -->
-            
-            <!-- CONTENT SECTION -->
-            <div class="content">
-                <!-- Data Table -->
-                <table class="data-table">
-                <tr>
-                    <td>Nama Lengkap</td>
-                    <td>:</td>
-                    <td><?php echo htmlspecialchars($appointment['employee_name']); ?></td>
-                </tr>
-                <tr>
-                    <td>Badge ID</td>
-                    <td>:</td>
-                    <td><?php echo htmlspecialchars($appointment['employee_code']); ?></td>
-                </tr>
-                <tr>
-                    <td>Jabatan</td>
-                    <td>:</td>
-                    <td><?php echo htmlspecialchars($appointment['position']); ?></td>
-                </tr>
-                <tr>
-                    <td>Perusahaan</td>
-                    <td>:</td>
-                    <td><?php echo htmlspecialchars($appointment['contractor_company'] ?? 'PT Mahakam Sumber Mandiri'); ?></td>
-                </tr>
-                <?php if (!empty($appointment['competency_name'])): ?>
-                <tr>
-                    <td>Kompetensi</td>
-                    <td>:</td>
-                    <td><?php echo htmlspecialchars($appointment['competency_name']); ?></td>
-                </tr>
-                <?php endif; ?>
-                <?php if ($appointment['competency_type'] == 'pengawas_operasional'): ?>
-                    <?php if (!empty($appointment['ruang_lingkup'])): ?>
-                    <tr>
-                        <td>Lingkup Tugas</td>
-                        <td>:</td>
-                        <td>
-                            <?php 
-                            $contractor_name = $appointment['contractor_company'] ?? 'PT Mahakam Sumber Mandiri';
-                            $ruang_lingkup = $appointment['ruang_lingkup'];
-                            echo 'Di ' . htmlspecialchars($contractor_name) . ' untuk area kerja ' . htmlspecialchars($ruang_lingkup);
-                            ?>
-                        </td>
-                    </tr>
-                    <?php endif; ?>
-                <?php endif; ?>
-                <?php if ($appointment['competency_type'] == 'pengawas_operasional'): ?>
-                    <?php if (!empty($appointment['supervision_area'])): ?>
-                    <tr>
-                        <td>Area Pengawasan</td>
-                        <td>:</td>
-                        <td><?php echo htmlspecialchars($appointment['supervision_area']); ?></td>
-                    </tr>
-                    <?php endif; ?>
-                <?php endif; ?>
-                <tr>
-                    <td>No Registrasi</td>
-                    <td>:</td>
-                    <td>
-                        <?php echo htmlspecialchars($appointment['appointment_number']); ?>
-                        <span style="margin-left: 50px;">Sertifikat No:
-                        <?php 
-                        if (!empty($appointment['cert_numbers'])) {
-                            echo htmlspecialchars($appointment['cert_numbers']);
-                        } else {
-                            echo '-';
-                        }
-                        ?></span>
-                    </td>
-                </tr>
-            </table>
-            
-            <!-- Content Area -->
-            <div class="content-area" id="contentDisplay">
-                <?php echo $custom_content; ?>
-            </div>
-            
-            <!-- Signature Table -->
-            <table class="signature-table">
-                <tr>
-                    <td style="width: 50%;">
-                        <strong>Ditunjuk oleh KTT MSM</strong>
-                    </td>
-                    <td style="width: 50%;">
-                        <strong>Ditunjuk oleh KTT TTN</strong>
-                    </td>
-                </tr>
-                <tr>
-                    <td>
-                        <div>
-                            <?php 
-                            if ($both_ktt_approved): 
-                                $ktt_msm_sig = 'assets/uploads/signatures/signature_KTT_MSM.png';
-                                if (file_exists($ktt_msm_sig)): 
-                            ?>
-                                <img src="<?php echo htmlspecialchars($ktt_msm_sig); ?>" alt="Tanda Tangan KTT MSM" class="signature-img">
-                            <?php 
-                                endif;
-                            endif; 
-                            ?>
-                        </div>
-                        <strong>TEJO PRIHANTORO</strong>
-                    </td>
-                    <td>
-                        <div>
-                            <?php 
-                            if ($both_ktt_approved): 
-                                $ktt_ttn_sig = 'assets/uploads/signatures/signature_KTT_TTN.png';
-                                if (file_exists($ktt_ttn_sig)): 
-                            ?>
-                                <img src="<?php echo htmlspecialchars($ktt_ttn_sig); ?>" alt="Tanda Tangan KTT TTN" class="signature-img">
-                            <?php 
-                                endif;
-                            endif; 
-                            ?>
-                        </div>
-                        <strong>AGUNG PRAPTONO</strong>
-                    </td>
-                </tr>
-                <tr>
-                    <td>Tgl: <?php echo date('d/m/Y', strtotime($appointment['appointment_date'])); ?></td>
-                    <td>Tgl: <?php echo date('d/m/Y', strtotime($appointment['appointment_date'])); ?></td>
-                </tr>
-            </table>
-            </div>
-            <!-- END CONTENT SECTION -->
-            
-            <!-- FOOTER SECTION -->
-            <div class="footer">
-                <?php
-                $doc_name = 'Surat Penunjukan ' . $header_title;
-                
-                // Prepare date strings for footer
-                $tanggal_terbit = '25 Maret 2025';
-                $tanggal_tinjau = '25 Maret 2028';
-                ?>
-                <table class="footer-table">
-                    <tr>
-                        <td class="label">Nama Dokumen</td>
-                        <td colspan="3"><?php echo htmlspecialchars($doc_name); ?></td>
-                    </tr>
-                    <tr>
-                        <td class="label">Ditetapkan Oleh</td>
-                        <td>Kepala Teknik Tambang</td>
-                        <td class="label">Tanggal Terbit</td>
-                        <td><?php echo htmlspecialchars($tanggal_terbit); ?></td>
-                    </tr>
-                    <tr>
-                        <td class="label">No Dokumen</td>
-                        <td><?php echo htmlspecialchars($doc_code); ?></td>
-                        <td class="label">Tanggal Tinjau Ulang</td>
-                        <td><?php echo htmlspecialchars($tanggal_tinjau); ?></td>
-                    </tr>
-                    <tr>
-                        <td class="label">No Revisi</td>
-                        <td>00</td>
-                        <td colspan="2"><span style="color: #d32f2f;">Dokumen terkendali dan valid hanya ada di sharepoint Archi Indonesia</span></td>
-                    </tr>
-                </table>
-            </div>
-            <!-- END FOOTER SECTION -->
-        </div>
-    </div>
-    
-    <?php if ($can_edit): ?>
-    <!-- CKEditor 5 Document Editor -->
-    <script src="https://cdn.ckeditor.com/ckeditor5/40.2.0/decoupled-document/ckeditor.js"></script>
-    
-    <script>
-        let editor;
-        let isEditMode = false;
-        
-        // Initialize CKEditor
-        DecoupledEditor
-            .create(document.querySelector('#editor'), {
-                toolbar: {
-                    items: [
-                        'heading', '|',
-                        'fontSize', 'fontFamily', 'fontColor', 'fontBackgroundColor', '|',
-                        'bold', 'italic', 'underline', 'strikethrough', '|',
-                        'alignment', '|',
-                        'numberedList', 'bulletedList', '|',
-                        'indent', 'outdent', '|',
-                        'link', 'blockQuote', 'insertTable', '|',
-                        'undo', 'redo'
-                    ]
-                },
-                heading: {
-                    options: [
-                        { model: 'paragraph', title: 'Paragraph', class: 'ck-heading_paragraph' },
-                        { model: 'heading1', view: 'h1', title: 'Heading 1', class: 'ck-heading_heading1' },
-                        { model: 'heading2', view: 'h2', title: 'Heading 2', class: 'ck-heading_heading2' },
-                        { model: 'heading3', view: 'h3', title: 'Heading 3', class: 'ck-heading_heading3' }
-                    ]
-                },
-                fontSize: {
-                    options: [9, 10, 11, 12, 14, 16, 18, 20, 22, 24]
-                },
-                table: {
-                    contentToolbar: ['tableColumn', 'tableRow', 'mergeTableCells']
-                }
-            })
-            .then(newEditor => {
-                editor = newEditor;
-                const toolbarContainer = document.querySelector('#editorContainer');
-                const editorElement = document.querySelector('#editor');
-                toolbarContainer.insertBefore(editor.ui.view.toolbar.element, editorElement);
-                
-                // Update preview on content change
-                editor.model.document.on('change:data', () => {
-                    updateContentDisplay();
-                });
-            })
-            .catch(error => {
-                console.error('Error initializing editor:', error);
-            });
-        
-        function toggleEditMode() {
-            isEditMode = !isEditMode;
-            const editorContainer = document.getElementById('editorContainer');
-            const printContainer = document.getElementById('printContainer');
-            const btnSave = document.getElementById('btnSave');
-            const editBtnText = document.getElementById('editBtnText');
-            
-            if (isEditMode) {
-                editorContainer.classList.add('active');
-                printContainer.classList.add('hidden');
-                btnSave.style.display = 'inline-flex';
-                editBtnText.textContent = 'Lihat Preview';
-            } else {
-                editorContainer.classList.remove('active');
-                printContainer.classList.remove('hidden');
-                btnSave.style.display = 'none';
-                editBtnText.textContent = 'Edit Surat';
-                updateContentDisplay();
-            }
+    if ($appointment['competency_type'] == 'pengawas_operasional') {
+        if (!empty($appointment['ruang_lingkup'])) {
+            $contractor_name = $appointment['contractor_company'] ?? 'PT Mahakam Sumber Mandiri';
+            $html .= '
+            <tr>
+                <td>Lingkup Tugas</td>
+                <td>:</td>
+                <td>Di ' . htmlspecialchars($contractor_name) . ' untuk area kerja ' . htmlspecialchars($appointment['ruang_lingkup']) . '</td>
+            </tr>';
         }
         
-        function updateContentDisplay() {
-            const content = editor.getData();
-            document.getElementById('contentDisplay').innerHTML = content;
+        if (!empty($appointment['supervision_area'])) {
+            $html .= '
+            <tr>
+                <td>Area Pengawasan</td>
+                <td>:</td>
+                <td>' . htmlspecialchars($appointment['supervision_area']) . '</td>
+            </tr>';
         }
-        
-      function saveContent() {
-    const content = editor.getData();
-    const csrfToken = "<?php echo $_SESSION['csrf_token']; ?>"; 
+    }
+    
+    $html .= '
+        <tr>
+            <td>No Registrasi</td>
+            <td>:</td>
+            <td>' . htmlspecialchars($appointment['appointment_number']) . ' &nbsp;&nbsp;&nbsp;&nbsp; Sertifikat No: ';
+    
+    if (!empty($appointment['cert_numbers'])) {
+        $html .= htmlspecialchars($appointment['cert_numbers']);
+    } else {
+        $html .= '-';
+    }
+    
+    $html .= '</td>
+        </tr>
+    </table>
+    
+    <div class="content-area">
+        ' . $custom_content . '
+    </div>
+    
+    <table class="signature-table">
+        <tr>
+            <td style="width: 50%; border-left: none;"><strong>Ditunjuk oleh KTT MSM</strong></td>
+            <td style="width: 50%; border-right: none;"><strong>Ditunjuk oleh KTT TTN</strong></td>
+        </tr>
+        <tr>
+            <td style="height: 50px; border-left: none;">';
+    
+    if ($both_ktt_approved) {
+        $html .= '<img src="' . dirname(__DIR__) . '/assets/uploads/signatures/signature_KTT_MSM.png" style="max-width: 120px; max-height: 50px;">';
+    }
+    
+    $html .= '</td>
+            <td style="height: 50px; border-right: none;">';
+    
+    if ($both_ktt_approved) {
+        $html .= '<img src="' . dirname(__DIR__) . '/assets/uploads/signatures/signature_KTT_TTN.png" style="max-width: 120px; max-height: 50px;">';
+    }
+    
+    $html .= '</td>
+        </tr>
+        <tr>
+            <td style="border-left: none;"><strong>TEJO PRIHANTORO</strong></td>
+            <td style="border-right: none;"><strong>AGUNG PRAPTONO</strong></td>
+        </tr>
+        <tr>
+            <td style="border-left: none;">Tgl: ' . (!empty($appointment['ktt1_approved_date']) ? date('d/m/Y', strtotime($appointment['ktt1_approved_date'])) : '-') . '</td>
+            <td style="border-right: none;">Tgl: ' . (!empty($appointment['ktt2_approved_date']) ? date('d/m/Y', strtotime($appointment['ktt2_approved_date'])) : '-') . '</td>
+        </tr>
+    </table>';
 
-    // Membuat objek FormData baru
-    const formData = new FormData();
-    formData.append('action', 'save_content');
-    formData.append('csrf_token', csrfToken); // Masukkan token ke FormData
-    formData.append('content', content);
+    $mpdf->WriteHTML($html);
+    
+    // Output PDF with dynamic filename: appointment_number + employee_name
+    $employee_name_clean = preg_replace('/[^A-Za-z0-9_\-]/', '_', $appointment['employee_name']);
+    $appointment_number_clean = preg_replace('/[^A-Za-z0-9_\-]/', '_', $appointment['appointment_number']);
+    $filename = $appointment_number_clean . '_' . $employee_name_clean . '.pdf';
+    $mpdf->Output($filename, 'D'); // 'D' = force download
 
-    fetch(window.location.href, {
-        method: 'POST',
-        body: formData // Langsung kirim objek formData tanpa mengubah headers
-    })
-    .then(response => response.json())
-    .then(data => {
-        showAlert(data.success ? 'success' : 'error', data.message);
-        if (data.success) {
-            updateContentDisplay();
-        }
-    })
-    .catch(error => {
-        showAlert('error', 'Terjadi kesalahan: ' + error);
-    });
+} catch (\Mpdf\MpdfException $e) {
+    echo 'Error creating PDF: ' . $e->getMessage();
 }
-        function showAlert(type, message) {
-            const alertContainer = document.getElementById('alertContainer');
-            const alertClass = type === 'success' ? 'alert-success' : 'alert-error';
-            const iconClass = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-            
-            alertContainer.innerHTML = `
-                <div class="alert ${alertClass} show">
-                    <i class="fas ${iconClass}"></i> ${message}
-                </div>
-            `;
-            
-            setTimeout(() => {
-                alertContainer.innerHTML = '';
-            }, 5000);
-        }
-    </script>
-    <?php endif; ?>
-</body>
-</html>
 
