@@ -358,7 +358,12 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Company Name</label>
-                            <input type="text" name="company_name" class="form-control" placeholder="For User / Dept scope">
+                            <select name="company_name" class="form-select">
+                                <option value="">Select Company (Optional)</option>
+                                <?php foreach($availableCompanies as $c): ?>
+                                    <option value="<?php echo htmlspecialchars($c); ?>"><?php echo htmlspecialchars($c); ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Department</label>
@@ -417,7 +422,12 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Company Name</label>
-                            <input type="text" name="company_name" id="edit_company" class="form-control">
+                            <select name="company_name" id="edit_company" class="form-select">
+                                <option value="">Select Company (Optional)</option>
+                                <?php foreach($availableCompanies as $c): ?>
+                                    <option value="<?php echo htmlspecialchars($c); ?>"><?php echo htmlspecialchars($c); ?></option>
+                                <?php endforeach; ?>
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Department</label>
