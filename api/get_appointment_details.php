@@ -113,7 +113,7 @@ $auditService = new AuditService();
 $workflow_history = $auditService->getHistoryByAppointment($id);
 
 ob_start();
-include dirname(__DIR__) . '/components/workflow_timeline.php';
+include dirname(__DIR__) . '/resources/components/workflow_timeline.php';
 $workflow_html = ob_get_clean();
 
 echo json_encode([
