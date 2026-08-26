@@ -277,7 +277,13 @@ class MonitoringHelper {
                 FROM employee_certifications ec
                 LEFT JOIN certifications c ON ec.certification_id = c.id
                 LEFT JOIN employees e ON ec.employee_id = e.id
-                WHERE 1=1";
+                WHERE 1=1
+                AND NOT EXISTS (
+                    SELECT 1 FROM employee_certifications ec2 
+                    WHERE ec2.employee_id = ec.employee_id 
+                    AND ec2.certification_id = ec.certification_id 
+                    AND ec2.id > ec.id
+                )";
                 
         $params = [];
         $types = "";
@@ -346,7 +352,13 @@ class MonitoringHelper {
         $sql = "SELECT ec.expiry_date
                 FROM employee_certifications ec
                 LEFT JOIN employees e ON ec.employee_id = e.id
-                WHERE 1=1";
+                WHERE 1=1
+                AND NOT EXISTS (
+                    SELECT 1 FROM employee_certifications ec2 
+                    WHERE ec2.employee_id = ec.employee_id 
+                    AND ec2.certification_id = ec.certification_id 
+                    AND ec2.id > ec.id
+                )";
                 
         list($filterSql, $filterParams, $filterTypes) = $this->buildCertificateFilterParams($filters);
         $sql .= $filterSql;
