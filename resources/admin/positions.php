@@ -4,6 +4,7 @@ $page_title = 'Competency Management';
 $page_title_lang = 'competency-management';
 require_once dirname(__DIR__, 2) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
+requirePermission('admin.access');
 
 $db = new Database();
 $message = '';
