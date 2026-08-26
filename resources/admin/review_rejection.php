@@ -659,7 +659,24 @@ function confirmAccept(form) {
     const confirmMessage = (typeof window.getLanguageText === 'function') 
         ? window.getLanguageText('confirm-accept-ktt') || 'Are you sure you want to send this back to KTT?' 
         : 'Are you sure you want to send this back to KTT?';
-    return confirm(confirmMessage);
+        
+    if (confirm(confirmMessage)) {
+        const btnAccept = form.querySelector('.btn-accept');
+        const btnReject = card.querySelector('.btn-reject');
+        
+        if (btnAccept && btnReject) {
+            btnAccept.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
+            // We cannot disable a submit button directly without stopping the form submission on some browsers,
+            // but returning true and then modifying works. Wait, disabling it might prevent its value from being sent!
+            // Wait, the action value="review" is on the button!
+            // To be safe, we just hide the other button and show loading.
+            btnReject.closest('form').style.display = 'none';
+            btnAccept.style.pointerEvents = 'none';
+            btnAccept.style.opacity = '0.7';
+        }
+        return true;
+    }
+    return false;
 }
 
 // Confirm reject action (notes required)
@@ -686,7 +703,21 @@ function confirmReject(form) {
     const confirmMessage = (typeof window.getLanguageText === 'function') 
         ? window.getLanguageText('confirm-reject-return-user') || 'Are you sure you want to reject and return this to the user?' 
         : 'Are you sure you want to reject and return this to the user?';
-    return confirm(confirmMessage);
+        
+    if (confirm(confirmMessage)) {
+        const btnReject = form.querySelector('.btn-reject');
+        const btnAccept = card.querySelector('.btn-accept');
+        
+        if (btnAccept && btnReject) {
+            btnReject.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
+            // Hide the other form entirely
+            btnAccept.closest('form').style.display = 'none';
+            btnReject.style.pointerEvents = 'none';
+            btnReject.style.opacity = '0.7';
+        }
+        return true;
+    }
+    return false;
 }
 </script>
 

@@ -1148,6 +1148,20 @@ if (!window.__approvalFormFallbackAttached) {
                     notes.focus();
                     return false;
                 }
+                
+                // UI Update for mutually exclusive buttons
+                var submitBtn = document.getElementById('submitBtn');
+                var cancelBtn = form.querySelector('.btn-modal-cancel');
+                
+                if (submitBtn) {
+                    submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
+                    submitBtn.style.pointerEvents = 'none';
+                    submitBtn.style.opacity = '0.7';
+                }
+                if (cancelBtn) {
+                    cancelBtn.style.display = 'none';
+                }
+                
                 return true;
             });
         }

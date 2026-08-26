@@ -1834,6 +1834,19 @@ function submitReview(action) {
         : (window.getLanguageText ? window.getLanguageText('confirm-reject-return-user', defaultRejectMessage) : defaultRejectMessage);
 
     if (confirm(confirmMessage)) {
+        const btnAccept = form.querySelector('.btn-accept-modal');
+        const btnReject = form.querySelector('.btn-reject-modal');
+        
+        if (action === 'send_to_ktt' && btnAccept && btnReject) {
+            btnAccept.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
+            btnAccept.disabled = true;
+            btnReject.style.display = 'none';
+        } else if (action === 'send_to_user' && btnAccept && btnReject) {
+            btnReject.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
+            btnReject.disabled = true;
+            btnAccept.style.display = 'none';
+        }
+        
         form.submit();
     }
 
@@ -1842,6 +1855,23 @@ function submitReview(action) {
 
 // Show Admin Review Modal
 function showAdminReviewModal(appointmentId, adminAction, employeeName, appointmentNumber) {
+    // Attach submit listener to handle UI state once (idempotent)
+    if (!window.__adminReviewFormListenerAttached) {
+        document.getElementById('adminReviewForm').addEventListener('submit', function(e) {
+            const submitBtn = document.getElementById('reviewSubmitBtn');
+            const cancelBtn = this.querySelector('.btn-secondary');
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
+                submitBtn.style.pointerEvents = 'none';
+                submitBtn.style.opacity = '0.7';
+            }
+            if (cancelBtn) {
+                cancelBtn.style.display = 'none';
+            }
+        });
+        window.__adminReviewFormListenerAttached = true;
+    }
+    
     // Set form values
     document.getElementById('reviewAppointmentId').value = appointmentId;
     document.getElementById('reviewAdminAction').value = adminAction;

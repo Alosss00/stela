@@ -932,6 +932,21 @@ function submitVerification(status) {
     statusInput.value = status;
     
     form.appendChild(statusInput);
+    
+    // UI Update for mutually exclusive buttons
+    const btnAccept = document.querySelector('.btn-accept');
+    const btnReject = document.querySelector('.btn-reject');
+    
+    if (status === 'verified' && btnAccept && btnReject) {
+        btnAccept.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
+        btnAccept.disabled = true;
+        btnReject.style.display = 'none';
+    } else if (status === 'rejected' && btnAccept && btnReject) {
+        btnReject.innerHTML = '<i class="fas fa-spinner fa-spin"></i> <span data-lang="processing">Processing...</span>';
+        btnReject.disabled = true;
+        btnAccept.style.display = 'none';
+    }
+    
     form.submit();
 }
 </script>
