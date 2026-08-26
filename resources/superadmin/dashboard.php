@@ -39,15 +39,15 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     .sa-card-header { background: transparent; border-bottom: 1px solid #f0f2f5; padding: 18px 24px; font-weight: 600; color: #2c3e50; display: flex; justify-content: space-between; align-items: center; }
     .sa-card-body { padding: 24px; }
     
-    .stat-box { padding: 20px; border-radius: 12px; color: #fff; display: flex; align-items: center; justify-content: space-between; }
-    .stat-box.blue { background: linear-gradient(135deg, #3a7bd5 0%, #3a6073 100%); }
-    .stat-box.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%); }
-    .stat-box.orange { background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%); }
-    .stat-box.red { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%); }
+    .sa-stat-box { padding: 20px; border-radius: 12px; color: #fff; display: flex; align-items: center; justify-content: space-between; border: none !important; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    .sa-stat-box.blue { background: linear-gradient(135deg, #3a7bd5 0%, #3a6073 100%) !important; }
+    .sa-stat-box.green { background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%) !important; }
+    .sa-stat-box.orange { background: linear-gradient(135deg, #f2994a 0%, #f2c94c 100%) !important; }
+    .sa-stat-box.red { background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%) !important; }
     
-    .stat-info h3 { margin: 0; font-size: 2.2rem; font-weight: 700; }
-    .stat-info p { margin: 0; font-size: 0.95rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; }
-    .stat-icon { font-size: 3rem; opacity: 0.4; }
+    .sa-stat-info h3 { margin: 0; font-size: 2.2rem; font-weight: 700; color: #fff !important; }
+    .sa-stat-info p { margin: 0; font-size: 0.95rem; opacity: 0.9; text-transform: uppercase; letter-spacing: 0.5px; color: #fff !important; }
+    .sa-stat-icon { font-size: 3rem; opacity: 0.4; color: #fff !important; }
 
     .chart-container { position: relative; height: 300px; width: 100%; }
     .small-chart-container { position: relative; height: 220px; width: 100%; }
@@ -100,39 +100,39 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <!-- Summary Statistics -->
     <div class="row mb-4">
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="stat-box blue">
-                <div class="stat-info">
+            <div class="sa-stat-box blue">
+                <div class="sa-stat-info">
                     <h3><?php echo number_format($summaryStats['total_users']); ?></h3>
                     <p>Total Users</p>
                 </div>
-                <i class="fas fa-users stat-icon"></i>
+                <i class="fas fa-users sa-stat-icon"></i>
             </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="stat-box green">
-                <div class="stat-info">
+            <div class="sa-stat-box green">
+                <div class="sa-stat-info">
                     <h3><?php echo number_format($summaryStats['total_employees']); ?></h3>
                     <p>Active Employees</p>
                 </div>
-                <i class="fas fa-id-badge stat-icon"></i>
+                <i class="fas fa-id-badge sa-stat-icon"></i>
             </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="stat-box orange">
-                <div class="stat-info">
+            <div class="sa-stat-box orange">
+                <div class="sa-stat-info">
                     <h3><?php echo number_format($summaryStats['total_appointments']); ?></h3>
                     <p>Appointments</p>
                 </div>
-                <i class="fas fa-file-contract stat-icon"></i>
+                <i class="fas fa-file-contract sa-stat-icon"></i>
             </div>
         </div>
         <div class="col-xl-3 col-lg-6 col-md-6 mb-3">
-            <div class="stat-box red">
-                <div class="stat-info">
+            <div class="sa-stat-box red">
+                <div class="sa-stat-info">
                     <h3><?php echo number_format($summaryStats['expired_certificates']); ?></h3>
                     <p>Expired Certs</p>
                 </div>
-                <i class="fas fa-exclamation-triangle stat-icon"></i>
+                <i class="fas fa-exclamation-triangle sa-stat-icon"></i>
             </div>
         </div>
     </div>
