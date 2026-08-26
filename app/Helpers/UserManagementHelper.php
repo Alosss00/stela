@@ -60,7 +60,7 @@ class UserManagementHelper {
         $stmtCount->close();
 
         // Get data
-        $query = "SELECT id, username, full_name, email, company_name, department, role, is_active, created_at, updated_at 
+        $query = "SELECT id, username, full_name, email, phone, company_name, department, role, is_active, created_at, updated_at 
                   FROM users 
                   WHERE $whereClause 
                   ORDER BY created_at DESC 
@@ -203,7 +203,7 @@ class UserManagementHelper {
     }
 
     public function getUserById($id) {
-        $stmt = $this->db->prepare("SELECT id, username, full_name, email, company_name, department, role, is_active FROM users WHERE id = ? AND deleted_at IS NULL");
+        $stmt = $this->db->prepare("SELECT id, username, full_name, email, phone, company_name, department, role, is_active FROM users WHERE id = ? AND deleted_at IS NULL");
         $stmt->bind_param("i", $id);
         $stmt->execute();
         $result = $stmt->get_result();

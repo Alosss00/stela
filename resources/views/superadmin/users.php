@@ -219,6 +219,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     <thead>
                         <tr>
                             <th>User</th>
+                            <th>Phone</th>
                             <th>Role</th>
                             <th>Scope</th>
                             <th>Status</th>
@@ -227,7 +228,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     </thead>
                     <tbody>
                         <?php if(empty($users)): ?>
-                            <tr><td colspan="5" class="text-center py-4 text-muted">No users found.</td></tr>
+                            <tr><td colspan="6" class="text-center py-4 text-muted">No users found.</td></tr>
                         <?php else: ?>
                             <?php foreach($users as $user): ?>
                                 <tr>
@@ -236,6 +237,9 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                         <div class="small text-muted">
                                             @<?php echo htmlspecialchars($user['username'] ?? ''); ?> &bull; <?php echo htmlspecialchars($user['email'] ?? ''); ?>
                                         </div>
+                                    </td>
+                                    <td>
+                                        <div class="small text-dark"><?php echo htmlspecialchars($user['phone'] ?? '-'); ?></div>
                                     </td>
                                     <td>
                                         <span class="badge-modern badge-role"><?php echo htmlspecialchars(ucfirst($user['role'] ?? '')); ?></span>
