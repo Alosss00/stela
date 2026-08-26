@@ -25,7 +25,7 @@ $monthlyRequests = $helper->getMonthlyRequests();
 
 $recentRequests = $helper->getRecentRequests(7);
 $recentAppointments = $helper->getRecentAppointments(7);
-$certAlerts = $helper->getCertificateExpirationAlerts(10);
+$certAlerts = $helper->getCertificateExpirationAlerts(50);
 $recentActivity = $helper->getRecentActivity(8);
 
 require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
