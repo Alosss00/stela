@@ -75,25 +75,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 // Fetch deleted records
 $deleted_records = [];
 if ($selected_table == 'users') {
-    $deleted_records = $db->query("SELECT id, full_name as title, role as description, deleted_at FROM users WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $deleted_records = $db->query("SELECT u.id, u.full_name as title, u.role as description, u.deleted_at, del.full_name as deleted_by_name FROM users u LEFT JOIN users del ON u.deleted_by = del.id WHERE u.deleted_at IS NOT NULL ORDER BY u.deleted_at DESC");
 } elseif ($selected_table == 'employees') {
-    $deleted_records = $db->query("SELECT id, full_name as title, contractor_company as description, deleted_at FROM employees WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $deleted_records = $db->query("SELECT e.id, e.full_name as title, e.contractor_company as description, e.deleted_at, del.full_name as deleted_by_name FROM employees e LEFT JOIN users del ON e.deleted_by = del.id WHERE e.deleted_at IS NOT NULL ORDER BY e.deleted_at DESC");
 } elseif ($selected_table == 'appointments') {
-    $deleted_records = $db->query("SELECT a.id, CONCAT('Appointment #', a.id, ' - ', e.full_name) as title, a.status as description, a.deleted_at FROM appointments a LEFT JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NOT NULL ORDER BY a.deleted_at DESC");
+    $deleted_records = $db->query("SELECT a.id, CONCAT('Appointment #', a.id, ' - ', e.full_name) as title, a.status as description, a.deleted_at, del.full_name as deleted_by_name FROM appointments a LEFT JOIN employees e ON a.employee_id = e.id LEFT JOIN users del ON a.deleted_by = del.id WHERE a.deleted_at IS NOT NULL ORDER BY a.deleted_at DESC");
 } elseif ($selected_table == 'positions') {
-    $deleted_records = $db->query("SELECT id, position_name as title, position_type as description, deleted_at FROM positions WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $deleted_records = $db->query("SELECT p.id, p.position_name as title, p.position_type as description, p.deleted_at, del.full_name as deleted_by_name FROM positions p LEFT JOIN users del ON p.deleted_by = del.id WHERE p.deleted_at IS NOT NULL ORDER BY p.deleted_at DESC");
 } elseif ($selected_table == 'supervision_areas') {
-    $deleted_records = $db->query("SELECT id, area_name as title, 'Supervision Area' as description, deleted_at FROM supervision_areas WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $deleted_records = $db->query("SELECT s.id, s.area_name as title, 'Supervision Area' as description, s.deleted_at, del.full_name as deleted_by_name FROM supervision_areas s LEFT JOIN users del ON s.deleted_by = del.id WHERE s.deleted_at IS NOT NULL ORDER BY s.deleted_at DESC");
 } elseif ($selected_table == 'competencies') {
-    $deleted_records = $db->query("SELECT id, competency_name as title, position_type as description, deleted_at FROM competencies WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $deleted_records = $db->query("SELECT c.id, c.competency_name as title, c.position_type as description, c.deleted_at, del.full_name as deleted_by_name FROM competencies c LEFT JOIN users del ON c.deleted_by = del.id WHERE c.deleted_at IS NOT NULL ORDER BY c.deleted_at DESC");
 } elseif ($selected_table == 'companies') {
-    $deleted_records = $db->query("SELECT id, name as title, 'Company' as description, deleted_at FROM companies WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $deleted_records = $db->query("SELECT c.id, c.name as title, 'Company' as description, c.deleted_at, del.full_name as deleted_by_name FROM companies c LEFT JOIN users del ON c.deleted_by = del.id WHERE c.deleted_at IS NOT NULL ORDER BY c.deleted_at DESC");
 } elseif ($selected_table == 'departments') {
-    $deleted_records = $db->query("SELECT id, name as title, 'Department' as description, deleted_at FROM departments WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $deleted_records = $db->query("SELECT d.id, d.name as title, 'Department' as description, d.deleted_at, del.full_name as deleted_by_name FROM departments d LEFT JOIN users del ON d.deleted_by = del.id WHERE d.deleted_at IS NOT NULL ORDER BY d.deleted_at DESC");
 } elseif ($selected_table == 'competency_sub_competencies') {
-    $deleted_records = $db->query("SELECT id, sub_competency_name as title, description, deleted_at FROM competency_sub_competencies WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $deleted_records = $db->query("SELECT csc.id, csc.sub_competency_name as title, csc.description, csc.deleted_at, del.full_name as deleted_by_name FROM competency_sub_competencies csc LEFT JOIN users del ON csc.deleted_by = del.id WHERE csc.deleted_at IS NOT NULL ORDER BY csc.deleted_at DESC");
 } elseif ($selected_table == 'certifications') {
-    $deleted_records = $db->query("SELECT id, cert_name as title, description, deleted_at FROM certifications WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+    $deleted_records = $db->query("SELECT c.id, c.cert_name as title, c.description, c.deleted_at, del.full_name as deleted_by_name FROM certifications c LEFT JOIN users del ON c.deleted_by = del.id WHERE c.deleted_at IS NOT NULL ORDER BY c.deleted_at DESC");
 }
 
 require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
@@ -142,7 +142,8 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                             <th class="px-4 py-3">ID</th>
                             <th class="py-3">Record Title</th>
                             <th class="py-3">Description</th>
-                            <th class="py-3">Deleted At</th>
+                            <th class="py-3">Deleted Date/Time</th>
+                            <th class="py-3">Deleted By</th>
                             <th class="px-4 py-3 text-end">Action</th>
                         </tr>
                     </thead>
@@ -158,6 +159,9 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                             <i class="far fa-clock me-1"></i>
                                             <?= date('d M Y H:i', strtotime($row['deleted_at'])) ?>
                                         </span>
+                                    </td>
+                                    <td>
+                                        <span class="text-muted"><i class="fas fa-user-times me-1"></i> <?= htmlspecialchars($row['deleted_by_name'] ?? 'System / Unknown') ?></span>
                                     </td>
                                     <td class="px-4 text-end">
                                         <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to restore this record?');">

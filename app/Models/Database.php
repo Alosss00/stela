@@ -125,7 +125,8 @@ class Database {
 
     public function delete($table, $where, $whereParams = []) {
         if (in_array($table, $this->softDeleteTables)) {
-            $sql = "UPDATE $table SET deleted_at = CURRENT_TIMESTAMP WHERE $where";
+            $deleted_by = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 'NULL';
+            $sql = "UPDATE $table SET deleted_at = CURRENT_TIMESTAMP, deleted_by = $deleted_by WHERE $where";
         } else {
             $sql = "DELETE FROM $table WHERE $where";
         }
