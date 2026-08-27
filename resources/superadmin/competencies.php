@@ -75,7 +75,6 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a href="master_data.php" class="text-decoration-none text-muted mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Back</a>
             <h2 class="mb-0 fw-bold text-dark">Competencies</h2>
         </div>
         <?php if(hasPermission('competency.create')): ?>

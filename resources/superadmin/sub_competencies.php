@@ -138,20 +138,18 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                 <tr>
                     <th>Sub Competency Name</th>
                     <th>Parent Competency</th>
-                    <th>Level</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if(empty($records)): ?>
-                    <tr><td colspan="5" class="text-center text-muted py-4">No sub competencies found.</td></tr>
+                    <tr><td colspan="4" class="text-center text-muted py-4">No sub competencies found.</td></tr>
                 <?php else: ?>
                     <?php foreach($records as $row): ?>
                         <tr>
                             <td class="fw-bold"><?php echo htmlspecialchars($row['sub_competency_name']); ?></td>
                             <td><?php echo htmlspecialchars($row['competency_name'] ?? '-'); ?></td>
-                            <td><?php echo htmlspecialchars($row['sub_competency_level'] ?? '-'); ?></td>
                             <td>
                                 <?php if($row['is_active']): ?>
                                     <span class="badge bg-success bg-opacity-10 text-success px-2 py-1">Active</span>

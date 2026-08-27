@@ -209,11 +209,7 @@ $current_page = get_current_page();
                         <i class="fas fa-certificate"></i> <span>Certifications</span>
                     </a>
                 </li>
-                <li>
-                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/positions.php" class="<?php echo $current_page == 'positions.php' ? 'active' : ''; ?>">
-                        <i class="fas fa-briefcase"></i> <span>Positions</span>
-                    </a>
-                </li>
+
                 <li>
                     <a href="<?php echo BASE_URL; ?>/resources/superadmin/supervision_areas.php" class="<?php echo $current_page == 'supervision_areas.php' ? 'active' : ''; ?>">
                         <i class="fas fa-map-marker-alt"></i> <span>Supervision Areas</span>

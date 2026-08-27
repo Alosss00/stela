@@ -517,7 +517,7 @@ class MonitoringHelper {
      * Get unique departments for filtering
      */
     public function getDepartments() {
-        return $this->db->query("SELECT DISTINCT department FROM employees WHERE department IS NOT NULL AND department != '' ORDER BY department")->fetch_all(MYSQLI_ASSOC);
+        return $this->db->query("SELECT name as department FROM departments ORDER BY name")->fetch_all(MYSQLI_ASSOC);
     }
     
     /**

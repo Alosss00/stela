@@ -10,25 +10,58 @@ $success_msg = '';
 $error_msg = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action'])) {
-    if ($_POST['action'] === 'rename') {
+    if ($_POST['action'] === 'add') {
+        $new_name = trim($_POST['new_name']);
+        if (empty($new_name)) {
+            $error_msg = "Department name cannot be empty.";
+        } else {
+            $stmt = $db->prepare("INSERT INTO departments (name) VALUES (?)");
+            $stmt->bind_param("s", $new_name);
+            if ($stmt->execute()) {
+                $success_msg = "Department '$new_name' added successfully.";
+            } else {
+                $error_msg = "Failed to add department. It may already exist.";
+            }
+        }
+    } else if ($_POST['action'] === 'rename') {
         $old_name = trim($_POST['old_name']);
         $new_name = trim($_POST['new_name']);
         if (empty($new_name)) {
             $error_msg = "New department name cannot be empty.";
         } else {
-            $stmt = $db->prepare("UPDATE users SET department = ? WHERE department = ?");
+            // Update departments table
+            $stmt = $db->prepare("UPDATE departments SET name = ? WHERE name = ?");
             $stmt->bind_param("ss", $new_name, $old_name);
             if ($stmt->execute()) {
+                // Update users
+                $stmt2 = $db->prepare("UPDATE users SET department = ? WHERE department = ?");
+                $stmt2->bind_param("ss", $new_name, $old_name);
+                $stmt2->execute();
+                
+                // Update employees
+                $stmt3 = $db->prepare("UPDATE employees SET department = ? WHERE department = ?");
+                $stmt3->bind_param("ss", $new_name, $old_name);
+                $stmt3->execute();
+                
+                // Update appointments
+                $stmt4 = $db->prepare("UPDATE appointments SET department = ? WHERE department = ?");
+                $stmt4->bind_param("ss", $new_name, $old_name);
+                $stmt4->execute();
+
                 $success_msg = "Department renamed successfully from '$old_name' to '$new_name'.";
             } else {
-                $error_msg = "Failed to rename department.";
+                $error_msg = "Failed to rename department. The new name may already exist.";
             }
         }
     }
 }
 
-// Fetch list of departments from users
-$res = $db->query("SELECT department, COUNT(*) as total_users FROM users WHERE department IS NOT NULL AND department != '' AND deleted_at IS NULL GROUP BY department ORDER BY department ASC");
+// Fetch list of departments from the departments table
+$res = $db->query("SELECT name as department, 
+        (SELECT COUNT(*) FROM users u WHERE u.department = departments.name AND u.deleted_at IS NULL) as total_users,
+        (SELECT COUNT(*) FROM employees e WHERE e.department = departments.name AND e.deleted_at IS NULL) as total_employees
+        FROM departments 
+        ORDER BY name ASC");
 $departments = [];
 if ($res) {
     while ($row = $res->fetch_assoc()) {
@@ -42,7 +75,12 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="row mb-4 align-items-center">
         <div class="col-md-6">
             <h2 class="mb-1 fw-bold" style="color: #1e293b;">Department Management</h2>
-            <p class="text-muted mb-0">Manage and rename department lists across users</p>
+            <p class="text-muted mb-0">Manage and rename department lists across the system</p>
+        </div>
+        <div class="col-md-6 text-end">
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDepartmentModal">
+                <i class="fas fa-plus me-2"></i> Add Department
+            </button>
         </div>
     </div>
 
@@ -67,19 +105,21 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                         <tr>
                             <th class="px-4 py-3 border-0">Department Name</th>
                             <th class="py-3 border-0">Total Users</th>
+                            <th class="py-3 border-0">Total Employees</th>
                             <th class="py-3 border-0 text-end pe-4">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         <?php if(empty($departments)): ?>
                             <tr>
-                                <td colspan="3" class="text-center py-5 text-muted">No departments found in user data.</td>
+                                <td colspan="4" class="text-center py-5 text-muted">No departments found.</td>
                             </tr>
                         <?php else: ?>
                             <?php foreach($departments as $d): ?>
                                 <tr>
                                     <td class="px-4 fw-semibold text-dark"><?php echo htmlspecialchars($d['department']); ?></td>
-                                    <td><span class="badge bg-info rounded-pill text-dark"><?php echo $d['total_users']; ?></span></td>
+                                    <td><span class="badge bg-primary rounded-pill"><?php echo $d['total_users']; ?></span></td>
+                                    <td><span class="badge bg-info rounded-pill"><?php echo $d['total_employees']; ?></span></td>
                                     <td class="text-end pe-4">
                                         <button class="btn btn-sm btn-outline-info" onclick="editDepartment('<?php echo htmlspecialchars($d['department'], ENT_QUOTES); ?>')">
                                             <i class="fas fa-edit"></i> Rename
@@ -91,6 +131,31 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     </tbody>
                 </table>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Department Modal -->
+<div class="modal fade" id="addDepartmentModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form method="POST">
+                <input type="hidden" name="action" value="add">
+                <div class="modal-header">
+                    <h5 class="modal-title fw-bold">Add New Department</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">Department Name *</label>
+                        <input type="text" name="new_name" class="form-control" required placeholder="Enter department name">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Add Department</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>
@@ -107,7 +172,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <p class="text-muted small mb-3">Renaming this department will update the department name for all associated users.</p>
+                    <p class="text-muted small mb-3">Renaming this department will update the department name for all associated users, employees, and appointments.</p>
                     <div class="mb-3">
                         <label class="form-label">New Department Name *</label>
                         <input type="text" name="new_name" id="new_name" class="form-control" required>

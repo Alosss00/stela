@@ -19,9 +19,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if ($action === 'create' && hasPermission('certification.create')) {
             $data = [
                 'cert_name'         => $_POST['cert_name'],
-                'cert_type'         => $_POST['cert_type'],
-                'issuing_authority' => $_POST['issuing_authority'],
-                'validity_period'   => !empty($_POST['validity_period']) ? (int)$_POST['validity_period'] : null,
                 'description'       => $_POST['description'],
                 'is_active'         => (int)($_POST['is_active'] ?? 1)
             ];
@@ -33,9 +30,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = (int)$_POST['id'];
             $data = [
                 'cert_name'         => $_POST['cert_name'],
-                'cert_type'         => $_POST['cert_type'],
-                'issuing_authority' => $_POST['issuing_authority'],
-                'validity_period'   => !empty($_POST['validity_period']) ? (int)$_POST['validity_period'] : null,
                 'description'       => $_POST['description'],
                 'is_active'         => (int)$_POST['is_active']
             ];
@@ -125,23 +119,19 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
             <thead>
                 <tr>
                     <th>Certification Name</th>
-                    <th>Type</th>
-                    <th>Authority</th>
-                    <th>Validity (Months)</th>
+                    <th>Description</th>
                     <th>Status</th>
                     <th class="text-end">Actions</th>
                 </tr>
             </thead>
             <tbody>
                 <?php if(empty($records)): ?>
-                    <tr><td colspan="6" class="text-center text-muted py-4">No certifications found.</td></tr>
+                    <tr><td colspan="4" class="text-center text-muted py-4">No certifications found.</td></tr>
                 <?php else: ?>
                     <?php foreach($records as $row): ?>
                         <tr>
                             <td class="fw-bold"><?php echo htmlspecialchars($row['cert_name']); ?></td>
-                            <td><?php echo htmlspecialchars($row['cert_type'] ?? '-'); ?></td>
-                            <td><?php echo htmlspecialchars($row['issuing_authority'] ?? '-'); ?></td>
-                            <td><?php echo $row['validity_period'] ? $row['validity_period'] . ' Months' : '-'; ?></td>
+                            <td class="text-muted small" style="max-width: 300px; white-space: normal;"><?php echo htmlspecialchars($row['description'] ?? '-'); ?></td>
                             <td>
                                 <?php if($row['is_active']): ?>
                                     <span class="badge bg-success bg-opacity-10 text-success px-2 py-1">Active</span>
@@ -199,18 +189,6 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                         <input type="text" name="cert_name" class="form-control" required>
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">Type</label>
-                        <input type="text" name="cert_type" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Issuing Authority</label>
-                        <input type="text" name="issuing_authority" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Validity Period (Months)</label>
-                        <input type="number" name="validity_period" class="form-control">
-                    </div>
-                    <div class="mb-3">
                         <label class="form-label">Description</label>
                         <textarea name="description" class="form-control" rows="2"></textarea>
                     </div>
@@ -235,18 +213,6 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     <div class="mb-3">
                         <label class="form-label">Certification Name *</label>
                         <input type="text" name="cert_name" id="edit_name" class="form-control" required>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Type</label>
-                        <input type="text" name="cert_type" id="edit_type" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Issuing Authority</label>
-                        <input type="text" name="issuing_authority" id="edit_authority" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Validity Period (Months)</label>
-                        <input type="number" name="validity_period" id="edit_validity" class="form-control">
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Description</label>
@@ -293,9 +259,6 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 function editData(row) {
     document.getElementById('edit_id').value = row.id;
     document.getElementById('edit_name').value = row.cert_name;
-    document.getElementById('edit_type').value = row.cert_type || '';
-    document.getElementById('edit_authority').value = row.issuing_authority || '';
-    document.getElementById('edit_validity').value = row.validity_period || '';
     document.getElementById('edit_description').value = row.description || '';
     document.getElementById('edit_is_active').value = row.is_active;
     new bootstrap.Modal(document.getElementById('editModal')).show();
