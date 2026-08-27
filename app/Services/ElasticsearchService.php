@@ -103,6 +103,26 @@ class ElasticsearchService {
         return $this->client;
     }
 
+    public function ping() {
+        if (!$this->isAvailable()) {
+            return ['status' => 'offline', 'message' => 'Service disabled or unavailable'];
+        }
+        
+        try {
+            $health = $this->client->cluster()->health();
+            return [
+                'status' => 'online',
+                'cluster_name' => $health['cluster_name'] ?? 'unknown',
+                'health' => $health['status'] ?? 'unknown',
+                'number_of_nodes' => $health['number_of_nodes'] ?? 0,
+                'active_primary_shards' => $health['active_primary_shards'] ?? 0,
+                'active_shards' => $health['active_shards'] ?? 0
+            ];
+        } catch (\Throwable $e) {
+            return ['status' => 'offline', 'message' => $e->getMessage()];
+        }
+    }
+
     public function getIndexName($type) {
         return $this->prefix . $type;
     }
