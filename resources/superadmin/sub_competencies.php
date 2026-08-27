@@ -20,8 +20,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = [
                 'competency_id'        => (int)$_POST['competency_id'],
                 'sub_competency_name'  => $_POST['sub_competency_name'],
-                'sub_competency_level' => $_POST['sub_competency_level'],
-                'description'          => $_POST['description'],
                 'is_active'            => (int)($_POST['is_active'] ?? 1)
             ];
             $res = $helper->createRecord('competency_sub_competencies', $data, 'sub_competency_name', $data['sub_competency_name']);
@@ -33,8 +31,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $data = [
                 'competency_id'        => (int)$_POST['competency_id'],
                 'sub_competency_name'  => $_POST['sub_competency_name'],
-                'sub_competency_level' => $_POST['sub_competency_level'],
-                'description'          => $_POST['description'],
                 'is_active'            => (int)$_POST['is_active']
             ];
             $res = $helper->updateRecord('competency_sub_competencies', $id, $data, 'sub_competency_name', $data['sub_competency_name']);
@@ -85,7 +81,6 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a href="master_data.php" class="text-decoration-none text-muted mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Back to Master Data</a>
             <h2 class="mb-0 fw-bold text-dark">Sub Competencies</h2>
         </div>
         <?php if(hasPermission('competency.create')): ?>
@@ -103,32 +98,8 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <?php endif; ?>
 
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-4">
-                    <input type="text" name="search" class="form-control" placeholder="Search..." value="<?php echo htmlspecialchars($search); ?>">
-                </div>
-                <div class="col-md-3">
-                    <select name="competency_id" class="form-select">
-                        <option value="">All Parent Competencies</option>
-                        <?php foreach($competencies as $c): ?>
-                            <option value="<?php echo $c['id']; ?>" <?php echo (isset($_GET['competency_id']) && $_GET['competency_id'] == $c['id']) ? 'selected' : ''; ?>>
-                                <?php echo htmlspecialchars($c['competency_name']); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <select name="is_active" class="form-select">
-                        <option value="">All Status</option>
-                        <option value="1" <?php echo ($_GET['is_active']??'')==='1'?'selected':''; ?>>Active</option>
-                        <option value="0" <?php echo ($_GET['is_active']??'')==='0'?'selected':''; ?>>Inactive</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-secondary w-100">Filter</button>
-                </div>
-            </form>
+        <div class="card-body d-flex align-items-center">
+            <h5 class="mb-0 text-muted fw-bold">Total Sub Competencies: <span class="badge bg-primary ms-2" style="font-size: 1rem;"><?php echo $totalRecords; ?></span></h5>
         </div>
     </div>
 
@@ -215,14 +186,6 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                             <?php endforeach; ?>
                         </select>
                     </div>
-                    <div class="mb-3">
-                        <label class="form-label">Level</label>
-                        <input type="text" name="sub_competency_level" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea name="description" class="form-control" rows="2"></textarea>
-                    </div>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -252,14 +215,6 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                 <option value="<?php echo $c['id']; ?>"><?php echo htmlspecialchars($c['competency_name']); ?></option>
                             <?php endforeach; ?>
                         </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Level</label>
-                        <input type="text" name="sub_competency_level" id="edit_level" class="form-control">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea name="description" id="edit_description" class="form-control" rows="2"></textarea>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Status</label>
@@ -303,8 +258,6 @@ function editData(row) {
     document.getElementById('edit_id').value = row.id;
     document.getElementById('edit_name').value = row.sub_competency_name;
     document.getElementById('edit_competency_id').value = row.competency_id;
-    document.getElementById('edit_level').value = row.sub_competency_level || '';
-    document.getElementById('edit_description').value = row.description || '';
     document.getElementById('edit_is_active').value = row.is_active;
     new bootstrap.Modal(document.getElementById('editModal')).show();
 }

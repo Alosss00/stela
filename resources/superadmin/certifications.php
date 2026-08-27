@@ -61,6 +61,8 @@ $dataRes = $helper->getPaginatedData('certifications', $page, $limit, $search, $
 $records = $dataRes['data'];
 $totalPages = $dataRes['pages'];
 
+$totalRecords = $dataRes['total'] ?? 0;
+
 require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 ?>
 
@@ -77,7 +79,6 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <a href="master_data.php" class="text-decoration-none text-muted mb-2 d-inline-block"><i class="fas fa-arrow-left me-1"></i> Back to Master Data</a>
             <h2 class="mb-0 fw-bold text-dark">Certifications</h2>
         </div>
         <?php if(hasPermission('certification.create')): ?>
@@ -95,22 +96,8 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <?php endif; ?>
 
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-7">
-                    <input type="text" name="search" class="form-control" placeholder="Search certification name or authority..." value="<?php echo htmlspecialchars($search); ?>">
-                </div>
-                <div class="col-md-3">
-                    <select name="is_active" class="form-select">
-                        <option value="">All Status</option>
-                        <option value="1" <?php echo ($_GET['is_active']??'')==='1'?'selected':''; ?>>Active</option>
-                        <option value="0" <?php echo ($_GET['is_active']??'')==='0'?'selected':''; ?>>Inactive</option>
-                    </select>
-                </div>
-                <div class="col-md-2">
-                    <button type="submit" class="btn btn-secondary w-100">Filter</button>
-                </div>
-            </form>
+        <div class="card-body d-flex align-items-center">
+            <h5 class="mb-0 text-muted fw-bold">Total Certifications: <span class="badge bg-primary ms-2" style="font-size: 1rem;"><?php echo $totalRecords; ?></span></h5>
         </div>
     </div>
 

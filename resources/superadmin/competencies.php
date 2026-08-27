@@ -59,6 +59,8 @@ $dataRes = $helper->getPaginatedData('competencies', $page, $limit, $search, $fi
 $records = $dataRes['data'];
 $totalPages = $dataRes['pages'];
 
+$totalRecords = $dataRes['total'] ?? 0;
+
 require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 ?>
 
@@ -92,23 +94,8 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <?php endif; ?>
 
     <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" class="row g-3">
-                <div class="col-md-5">
-                    <input type="text" name="search" class="form-control" placeholder="Search competency name..." value="<?php echo htmlspecialchars($search); ?>">
-                </div>
-                <div class="col-md-4">
-                    <select name="position_type" class="form-select">
-                        <option value="">All Types</option>
-                        <option value="pengawas_operasional" <?php echo ($_GET['position_type']??'')==='pengawas_operasional'?'selected':''; ?>>Pengawas Operasional</option>
-                        <option value="pengawas_teknis" <?php echo ($_GET['position_type']??'')==='pengawas_teknis'?'selected':''; ?>>Pengawas Teknis</option>
-                        <option value="tenaga_teknis" <?php echo ($_GET['position_type']??'')==='tenaga_teknis'?'selected':''; ?>>Tenaga Teknis</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <button type="submit" class="btn btn-secondary w-100">Filter</button>
-                </div>
-            </form>
+        <div class="card-body d-flex align-items-center">
+            <h5 class="mb-0 text-muted fw-bold">Total Competencies: <span class="badge bg-primary ms-2" style="font-size: 1rem;"><?php echo $totalRecords; ?></span></h5>
         </div>
     </div>
 
