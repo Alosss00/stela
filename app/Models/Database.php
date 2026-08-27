@@ -121,7 +121,7 @@ class Database {
         return $this->query($sql, $params);
     }
     
-    protected $softDeleteTables = ['appointments', 'employees', 'users', 'positions', 'supervision_areas', 'competencies'];
+    protected $softDeleteTables = ['appointments', 'employees', 'users', 'positions', 'supervision_areas', 'competencies', 'certifications', 'companies', 'departments', 'competency_sub_competencies'];
 
     public function delete($table, $where, $whereParams = []) {
         if (in_array($table, $this->softDeleteTables)) {
