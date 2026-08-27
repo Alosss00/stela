@@ -278,15 +278,13 @@ $current_page = get_current_page();
                         </a>
                     </li>
                     <?php endif; ?>
-
-                    <?php if (hasPermission('admin.access')): ?>
-                    <li>
-                        <a href="<?php echo BASE_URL; ?>/resources/admin/change_password.php" class="<?php echo $current_page == 'change_password.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-cog"></i> <span data-lang="settings">Settings</span>
-                        </a>
-                    </li>
-                    <?php endif; ?>
                 <?php endif; ?>
+
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/auth/change_password.php" class="<?php echo $current_page == 'change_password.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-cog"></i> <span data-lang="settings">Change Password</span>
+                    </a>
+                </li>
   
                 <li>
                     <a href="<?php echo BASE_URL; ?>/logout.php" class="logout">

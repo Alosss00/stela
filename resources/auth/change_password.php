@@ -4,9 +4,11 @@ $page_title = 'Settings';
 require_once dirname(__DIR__, 2) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 
-// Only users with settings.update permission can access
-requirePermission('admin.access');
-requirePermission('settings.update');
+// Semua role yang sudah login bisa mengakses halaman ini
+if (!isset($_SESSION['user_id'])) {
+    header('Location: ' . BASE_URL . '/resources/auth/login.php');
+    exit;
+}
 
 // Pastikan ini ditaruh di baris paling awal sebelum ada output HTML/spasi
 if (session_status() === PHP_SESSION_NONE) {
@@ -65,7 +67,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
         }
     }
 }
-require_once dirname(__DIR__) . '/layouts/header.php';
+if ($_SESSION['role'] === 'superadmin') {
+    require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
+} else {
+    require_once dirname(__DIR__) . '/layouts/header.php';
+}
 ?>
 
 <div class="change-password-container">
@@ -165,12 +171,16 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <i class="fas fa-save"></i> Change Password
         </button>
         <a href="<?php
-            if (hasPermission('admin.access') || hasPermission('ktt.access')) {
-                echo 'dashboard.php';
+            if ($_SESSION['role'] === 'superadmin') {
+                echo BASE_URL . '/resources/superadmin/dashboard.php';
+            } elseif (hasPermission('admin.access')) {
+                echo BASE_URL . '/resources/admin/dashboard.php';
+            } elseif (hasPermission('ktt.access')) {
+                echo BASE_URL . '/resources/ktt/dashboard.php';
             } elseif (hasPermission('user.access') && !hasDepartment()) {
-                echo '../user/dashboard.php';
+                echo BASE_URL . '/resources/user/dashboard.php';
             } else {
-                echo '../dept/dashboard.php';
+                echo BASE_URL . '/resources/dept/dashboard.php';
             }
         ?>" class="btn btn-secondary">
             <i class="fas fa-arrow-left"></i> Back
@@ -183,4 +193,10 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 
 
 
-<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
+<?php 
+if ($_SESSION['role'] === 'superadmin') {
+    require_once dirname(__DIR__) . '/layouts/superadmin_footer.php';
+} else {
+    require_once dirname(__DIR__) . '/layouts/footer.php';
+}
+?>

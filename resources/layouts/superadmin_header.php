@@ -298,6 +298,11 @@ $current_page = get_current_page();
 
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Account</li>
                 <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/auth/change_password.php" class="<?php echo $current_page == 'change_password.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-cog"></i> <span>Change Password</span>
+                    </a>
+                </li>
+                <li>
                     <a href="<?php echo BASE_URL; ?>/logout.php" class="logout text-danger">
                         <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
                     </a>
