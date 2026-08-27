@@ -3,6 +3,23 @@
  * Application Configuration
  */
 
+// Load .env variables if the file exists
+$envFile = dirname(__DIR__) . '/.env';
+if (file_exists($envFile)) {
+    $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    foreach ($lines as $line) {
+        if (strpos(trim($line), '#') === 0) continue;
+        list($name, $value) = explode('=', $line, 2);
+        $name = trim($name);
+        $value = trim($value);
+        if (!array_key_exists($name, $_SERVER) && !array_key_exists($name, $_ENV)) {
+            putenv(sprintf('%s=%s', $name, $value));
+            $_ENV[$name] = $value;
+            $_SERVER[$name] = $value;
+        }
+    }
+}
+
 // Konfigurasi Database (dipisahkan di config/database.php untuk kemudahan maintenance)
 require_once __DIR__ . '/database.php';
 
@@ -19,7 +36,8 @@ if (!defined('ELASTICSEARCH_HOST')) {
     define('ELASTICSEARCH_HOST', getenv('ELASTICSEARCH_HOST') ?: 'https://df6c4bcf7e:b1bdce1e5fcf15ae0dca@focused-holly-1rb12wdt.ap-southeast-2.bonsaisearch.net:443');
 }
 if (!defined('ELASTICSEARCH_ENABLED')) {
-    define('ELASTICSEARCH_ENABLED', true);
+    $env_es = getenv('ELASTICSEARCH_ENABLED');
+    define('ELASTICSEARCH_ENABLED', $env_es === 'true' || $env_es === '1' || $env_es === true);
 }
 if (!defined('ELASTICSEARCH_INDEX_PREFIX')) {
     define('ELASTICSEARCH_INDEX_PREFIX', getenv('ELASTICSEARCH_INDEX_PREFIX') ?: 'stela_');
