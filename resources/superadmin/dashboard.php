@@ -332,7 +332,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                     <?php foreach($certAlerts as $ca): ?>
                                     <tr>
                                         <td class="fw-bold">
-                                            <?php echo htmlspecialchars($ca['full_name']); ?><br>
+                                            <?php echo htmlspecialchars($ca['full_name']); ?> (<?php echo htmlspecialchars($ca['employee_code'] ?? 'N/A'); ?>)<br>
                                             <small class="text-muted"><?php echo htmlspecialchars($ca['contractor_company']); ?></small>
                                         </td>
                                         <td><?php echo htmlspecialchars($ca['certificate_name'] ?: 'N/A'); ?></td>

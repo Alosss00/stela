@@ -136,7 +136,7 @@ class DashboardHelper {
 
     public function getCertificateExpirationAlerts($limit = 5) {
         $query = "
-            SELECT e.full_name, e.contractor_company, e.department, 
+            SELECT e.full_name, e.employee_code, e.contractor_company, e.department, 
                    c.cert_name AS certificate_name, ec.cert_number AS certificate_number, ec.expiry_date,
                    DATEDIFF(ec.expiry_date, CURDATE()) as remaining_days
             FROM employee_certifications ec
