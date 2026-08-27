@@ -299,9 +299,19 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 
             <!-- Certificate Alerts -->
             <div class="sa-card mb-4">
-                <div class="sa-card-header border-danger">
-                    <span><i class="fas fa-exclamation-circle text-danger me-2"></i> Certificate Expiration Alerts</span>
-                    <a href="../admin/certificate_status.php" class="btn btn-sm btn-outline-danger">Manage</a>
+                <div class="sa-card-header border-danger d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-exclamation-circle text-danger me-2"></i> 
+                        <span>Certificate Expiration Alerts</span>
+                    </div>
+                    <div class="d-flex gap-2">
+                        <select id="certAlertsFilter" class="form-select form-select-sm" style="width: 140px;">
+                            <option value="">All Alerts</option>
+                            <option value="EXPIRED">Expired Only</option>
+                            <option value="EXPIRING">Expiring Only</option>
+                        </select>
+                        <a href="../admin/certificate_status.php" class="btn btn-sm btn-outline-danger">Manage</a>
+                    </div>
                 </div>
                 <div class="sa-card-body p-0">
                     <div class="table-responsive p-3">
@@ -553,12 +563,18 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Initialize DataTable for Certificate Alerts if jQuery is available
     if (typeof jQuery !== 'undefined' && $.fn.DataTable) {
-        $('#certAlertsTable').DataTable({
+        var certTable = $('#certAlertsTable').DataTable({
             pageLength: 10,
             lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
             responsive: true,
             order: [], // Disable initial sorting to keep the query's sort order
             dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'
+        });
+
+        // Add filter functionality
+        $('#certAlertsFilter').on('change', function() {
+            var val = $.fn.dataTable.util.escapeRegex($(this).val());
+            certTable.column(4).search(val ? '^' + val + '$' : '', true, false).draw();
         });
     }
 });
