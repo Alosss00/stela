@@ -171,7 +171,6 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     <thead>
                         <tr>
                             <th>Employee</th>
-                            <th>Identity</th>
                             <th>Company & Dept</th>
                             <th>Position</th>
                             <th>Status</th>
@@ -180,17 +179,13 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     </thead>
                     <tbody>
                         <?php if(empty($employees)): ?>
-                            <tr><td colspan="6" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>No employees found matching the criteria.</td></tr>
+                            <tr><td colspan="5" class="text-center py-5 text-muted"><i class="fas fa-inbox fa-3x mb-3 d-block opacity-25"></i>No employees found matching the criteria.</td></tr>
                         <?php else: ?>
                             <?php foreach($employees as $emp): ?>
                                 <tr>
                                     <td>
                                         <div class="fw-bold text-dark"><?php echo htmlspecialchars($emp['full_name'] ?? ''); ?></div>
                                         <div class="small text-muted">ID: <?php echo htmlspecialchars($emp['employee_code'] ?? '-'); ?></div>
-                                    </td>
-                                    <td>
-                                        <div class="small"><i class="far fa-id-card text-muted me-1"></i> <?php echo htmlspecialchars($emp['nik'] ?? '-'); ?></div>
-                                        <div class="small text-muted"><i class="fas fa-phone text-muted me-1"></i> <?php echo htmlspecialchars($emp['phone_number'] ?? '-'); ?></div>
                                     </td>
                                     <td>
                                         <div class="small fw-bold text-dark"><?php echo htmlspecialchars($emp['contractor_company'] ?? 'Internal'); ?></div>
