@@ -12,8 +12,7 @@ class MasterDataHelper {
      */
     public function getPaginatedData($table, $page = 1, $limit = 10, $search = '', $filters = [], $searchFields = ['name']) {
         $offset = ($page - 1) * $limit;
-        // Exclude soft deleted records if the table supports it
-        $softDeleteTables = ['positions', 'supervision_areas', 'competencies'];
+        $softDeleteTables = ['positions', 'supervision_areas', 'competencies', 'companies', 'departments', 'competency_sub_competencies', 'certifications'];
         $where = in_array($table, $softDeleteTables) ? ["$table.deleted_at IS NULL"] : ["1=1"];
         $params = [];
         $types = "";
@@ -263,7 +262,7 @@ class MasterDataHelper {
      * Get list for dropdowns
      */
     public function getList($table, $orderBy = 'id ASC', $columns = '*') {
-        $softDeleteTables = ['positions', 'supervision_areas', 'competencies'];
+        $softDeleteTables = ['positions', 'supervision_areas', 'competencies', 'companies', 'departments', 'competency_sub_competencies', 'certifications'];
         $where = in_array($table, $softDeleteTables) ? "WHERE deleted_at IS NULL" : "";
         $q = "SELECT $columns FROM $table $where ORDER BY $orderBy";
         $res = $this->db->query($q);

@@ -25,7 +25,11 @@ $valid_tables = [
     'appointments' => 'Appointments',
     'positions' => 'Positions',
     'supervision_areas' => 'Supervision Areas',
-    'competencies' => 'Competencies'
+    'competencies' => 'Competencies',
+    'companies' => 'Companies',
+    'departments' => 'Departments',
+    'competency_sub_competencies' => 'Sub Competencies',
+    'certifications' => 'Certifications'
 ];
 
 $selected_table = isset($_GET['table']) && array_key_exists($_GET['table'], $valid_tables) ? $_GET['table'] : 'employees';
@@ -82,6 +86,14 @@ if ($selected_table == 'users') {
     $deleted_records = $db->query("SELECT id, area_name as title, 'Supervision Area' as description, deleted_at FROM supervision_areas WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
 } elseif ($selected_table == 'competencies') {
     $deleted_records = $db->query("SELECT id, competency_name as title, position_type as description, deleted_at FROM competencies WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+} elseif ($selected_table == 'companies') {
+    $deleted_records = $db->query("SELECT id, name as title, 'Company' as description, deleted_at FROM companies WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+} elseif ($selected_table == 'departments') {
+    $deleted_records = $db->query("SELECT id, name as title, 'Department' as description, deleted_at FROM departments WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+} elseif ($selected_table == 'competency_sub_competencies') {
+    $deleted_records = $db->query("SELECT id, sub_competency_name as title, description, deleted_at FROM competency_sub_competencies WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
+} elseif ($selected_table == 'certifications') {
+    $deleted_records = $db->query("SELECT id, cert_name as title, description, deleted_at FROM certifications WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
 }
 
 require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
