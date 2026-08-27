@@ -13,7 +13,7 @@ if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
 
-requirePermission('admin.access');
+requirePermission('superadmin.access');
 
 $db = new Database();
 $message = '';
@@ -49,6 +49,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     }
 }
 
+// Handle Delete Permanently
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'delete_permanent') {
+    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
+        http_response_code(403);
+        die('CSRF validation failed.');
+    }
+    
+    $id = intval($_POST['id']);
+    $table = $_POST['table'];
+    
+    if (array_key_exists($table, $valid_tables)) {
+        if ($db->query("DELETE FROM $table WHERE id = $id")) {
+            $message = "Record permanently deleted.";
+        } else {
+            $error = "Failed to permanently delete record.";
+        }
+    }
+}
+
 // Fetch deleted records
 $deleted_records = [];
 if ($selected_table == 'users') {
@@ -65,7 +84,7 @@ if ($selected_table == 'users') {
     $deleted_records = $db->query("SELECT id, competency_name as title, position_type as description, deleted_at FROM competencies WHERE deleted_at IS NOT NULL ORDER BY deleted_at DESC");
 }
 
-require_once dirname(__DIR__) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 ?>
 
 <div class="container-fluid py-4">
@@ -134,8 +153,17 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                                             <input type="hidden" name="action" value="restore">
                                             <input type="hidden" name="table" value="<?= htmlspecialchars($selected_table) ?>">
                                             <input type="hidden" name="id" value="<?= $row['id'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm">
+                                            <button type="submit" class="btn btn-sm btn-success rounded-pill px-3 shadow-sm mb-1">
                                                 <i class="fas fa-undo me-1"></i> Restore
+                                            </button>
+                                        </form>
+                                        <form method="POST" class="d-inline" onsubmit="return confirm('WARNING: This will permanently delete this record and it cannot be recovered. Are you sure?');">
+                                            <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
+                                            <input type="hidden" name="action" value="delete_permanent">
+                                            <input type="hidden" name="table" value="<?= htmlspecialchars($selected_table) ?>">
+                                            <input type="hidden" name="id" value="<?= $row['id'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3 shadow-sm mb-1">
+                                                <i class="fas fa-trash-alt me-1"></i> Delete
                                             </button>
                                         </form>
                                     </td>

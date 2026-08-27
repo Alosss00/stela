@@ -229,8 +229,22 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
         </div>
 
         <div class="card-body p-4">
-            <div class="mb-3 text-muted small">
-                Showing <?php echo count($appointments); ?> of <?php echo number_format($totalRecords); ?> appointments
+            <div class="mb-3 text-muted small d-flex justify-content-between align-items-center">
+                <span>Showing <?php echo count($appointments); ?> of <?php echo number_format($totalRecords); ?> appointments</span>
+                
+                <div class="export-actions">
+                    <?php 
+                    $exportQuery = $_GET;
+                    $exportQuery['type'] = 'appointments';
+                    $baseQuery = http_build_query($exportQuery);
+                    ?>
+                    <a href="export_monitoring.php?<?php echo $baseQuery; ?>&format=pdf" target="_blank" class="btn btn-sm btn-outline-danger me-1">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                    <a href="export_monitoring.php?<?php echo $baseQuery; ?>&format=excel" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </a>
+                </div>
             </div>
             
             <div class="table-responsive">

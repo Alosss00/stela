@@ -162,8 +162,22 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
         </div>
 
         <div class="card-body p-4">
-            <div class="mb-3 text-muted small d-flex justify-content-between">
+            <div class="mb-3 text-muted small d-flex justify-content-between align-items-center">
                 <span>Showing <?php echo count($employees); ?> of <?php echo number_format($totalRecords); ?> records <?php echo isset($employeesData['source']) && $employeesData['source'] == 'elasticsearch' ? '<span class="badge bg-info text-dark ms-2"><i class="fas fa-bolt"></i> Fast Search</span>' : ''; ?></span>
+                
+                <div class="export-actions">
+                    <?php 
+                    $exportQuery = $_GET;
+                    $exportQuery['type'] = 'employees';
+                    $baseQuery = http_build_query($exportQuery);
+                    ?>
+                    <a href="export_monitoring.php?<?php echo $baseQuery; ?>&format=pdf" target="_blank" class="btn btn-sm btn-outline-danger me-1">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                    <a href="export_monitoring.php?<?php echo $baseQuery; ?>&format=excel" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </a>
+                </div>
             </div>
             
             <div class="table-responsive">
@@ -173,6 +187,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                             <th>Employee</th>
                             <th>Company & Dept</th>
                             <th>Position</th>
+                            <th>Date Requested</th>
                             <th>Status</th>
                             <th class="text-end">Actions</th>
                         </tr>
@@ -193,6 +208,10 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                     </td>
                                     <td>
                                         <div class="small fw-bold"><?php echo htmlspecialchars($emp['position'] ?? '-'); ?></div>
+                                    </td>
+                                    <td>
+                                        <div class="small fw-bold text-dark"><?php echo isset($emp['created_at']) ? date('d M Y', strtotime($emp['created_at'])) : '-'; ?></div>
+                                        <div class="small text-muted"><?php echo isset($emp['created_at']) ? date('H:i', strtotime($emp['created_at'])) : ''; ?></div>
                                     </td>
                                     <td>
                                         <?php $vStatus = $emp['verification_status'] ?? ($emp['approval_status'] ?? 'pending'); ?>

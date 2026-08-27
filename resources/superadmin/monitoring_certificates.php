@@ -162,8 +162,22 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
         </div>
 
         <div class="card-body p-4">
-            <div class="mb-3 text-muted small">
-                Showing <?php echo count($certificates); ?> of <?php echo number_format($totalRecords); ?> certificates
+            <div class="mb-3 text-muted small d-flex justify-content-between align-items-center">
+                <span>Showing <?php echo count($certificates); ?> of <?php echo number_format($totalRecords); ?> certificates</span>
+                
+                <div class="export-actions">
+                    <?php 
+                    $exportQuery = $_GET;
+                    $exportQuery['type'] = 'certificates';
+                    $baseQuery = http_build_query($exportQuery);
+                    ?>
+                    <a href="export_monitoring.php?<?php echo $baseQuery; ?>&format=pdf" target="_blank" class="btn btn-sm btn-outline-danger me-1">
+                        <i class="fas fa-file-pdf"></i> Export PDF
+                    </a>
+                    <a href="export_monitoring.php?<?php echo $baseQuery; ?>&format=excel" class="btn btn-sm btn-outline-success">
+                        <i class="fas fa-file-excel"></i> Export Excel
+                    </a>
+                </div>
             </div>
             
             <div class="table-responsive">
@@ -227,7 +241,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                     </td>
                                     <td>
                                         <?php if ($cert['monitoring_status'] === 'Expired' || $cert['monitoring_status'] === 'Expiring Soon'): ?>
-                                            <a href="../admin/resubmit_certificate.php?id=<?php echo (int)$cert['id']; ?>" class="action-btn text-decoration-none" title="Resubmit Certificate">
+                                            <a href="resubmit_certificate.php?id=<?php echo (int)$cert['id']; ?>" class="action-btn text-decoration-none" title="Resubmit Certificate">
                                                 <i class="fas fa-upload text-warning"></i> Resubmit
                                             </a>
                                         <?php else: ?>

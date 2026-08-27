@@ -285,11 +285,6 @@ $current_page = get_current_page();
                             <i class="fas fa-cog"></i> <span data-lang="settings">Settings</span>
                         </a>
                     </li>
-                    <li>
-                        <a href="<?php echo BASE_URL; ?>/resources/admin/trash.php" class="<?php echo $current_page == 'trash.php' ? 'active' : ''; ?>">
-                            <i class="fas fa-trash-restore"></i> <span data-lang="trash">Trash</span>
-                        </a>
-                    </li>
                     <?php endif; ?>
                 <?php endif; ?>
   

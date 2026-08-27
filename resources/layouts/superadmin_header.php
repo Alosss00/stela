@@ -290,7 +290,7 @@ $current_page = get_current_page();
                     </a>
                 </li>
                 <li>
-                    <a href="<?php echo BASE_URL; ?>/resources/admin/trash.php" class="<?php echo $current_page == 'trash.php' ? 'active' : ''; ?>">
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/trash.php" class="<?php echo $current_page == 'trash.php' ? 'active' : ''; ?>">
                         <i class="fas fa-trash-restore"></i> <span>Trash & Recovery</span>
                     </a>
                 </li>
