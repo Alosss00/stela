@@ -329,14 +329,7 @@ class MonitoringHelper {
             $row['monitoring_status'] = $this->calculateCertificateStatus($row['expiry_date']);
         }
         
-        // Post-filter if user filtered by our calculated status (valid, expiring, expired)
-        if (!empty($filters['cert_status'])) {
-            $data = array_filter($data, function($item) use ($filters) {
-                return $item['monitoring_status'] === $filters['cert_status'];
-            });
-            // Total will be inaccurate, but okay for this simple implementation
-            $total = count($data);
-        }
+        // SQL filtering handles cert_status now.
         
         return [
             'data' => array_values($data),
@@ -397,6 +390,15 @@ class MonitoringHelper {
             $sql .= " AND e.department = ?";
             $params[] = $filters['department'];
             $types .= "s";
+        }
+        if (!empty($filters['cert_status'])) {
+            if ($filters['cert_status'] === 'Expired') {
+                $sql .= " AND ec.expiry_date IS NOT NULL AND YEAR(ec.expiry_date) > 0 AND ec.expiry_date < CURDATE()";
+            } else if ($filters['cert_status'] === 'Expiring Soon') {
+                $sql .= " AND ec.expiry_date IS NOT NULL AND YEAR(ec.expiry_date) > 0 AND ec.expiry_date >= CURDATE() AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 60 DAY)";
+            } else if ($filters['cert_status'] === 'Valid') {
+                $sql .= " AND (ec.expiry_date IS NULL OR YEAR(ec.expiry_date) = 0 OR ec.expiry_date > DATE_ADD(CURDATE(), INTERVAL 60 DAY))";
+            }
         }
         return [$sql, $params, $types];
     }

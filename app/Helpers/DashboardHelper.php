@@ -136,16 +136,24 @@ class DashboardHelper {
 
     public function getCertificateExpirationAlerts($limit = 5) {
         $query = "
-            SELECT e.full_name, e.employee_code, e.contractor_company, e.department, 
-                   c.cert_name AS certificate_name, ec.cert_number AS certificate_number, ec.expiry_date,
+            SELECT ec.*, 
+                   c.cert_name as certificate_name,
+                   e.full_name, e.employee_code, e.contractor_company, e.department, e.position,
                    DATEDIFF(ec.expiry_date, CURDATE()) as remaining_days
             FROM employee_certifications ec
-            JOIN employees e ON ec.employee_id = e.id
             LEFT JOIN certifications c ON ec.certification_id = c.id
-            WHERE ec.expiry_date IS NOT NULL AND YEAR(ec.expiry_date) > 0 AND e.is_active = 1
-              AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 60 DAY)
-              AND ec.status != 'pending'
-              AND ec.id = (SELECT MAX(ec2.id) FROM employee_certifications ec2 WHERE ec2.employee_id = ec.employee_id AND ec2.certification_id = ec.certification_id)
+            LEFT JOIN employees e ON ec.employee_id = e.id
+            WHERE 1=1
+            AND NOT (ec.expiry_date < CURDATE() AND ec.status = 'active')
+            AND NOT EXISTS (
+                SELECT 1 FROM employee_certifications ec2 
+                WHERE ec2.employee_id = ec.employee_id 
+                AND ec2.certification_id = ec.certification_id 
+                AND ec2.id > ec.id
+            )
+            AND ec.expiry_date IS NOT NULL 
+            AND YEAR(ec.expiry_date) > 0 
+            AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 60 DAY)
             ORDER BY remaining_days ASC
             LIMIT " . (int)$limit;
         return $this->fetchAll($query);

@@ -566,7 +566,6 @@ document.addEventListener('DOMContentLoaded', function() {
         var certTable = $('#certAlertsTable').DataTable({
             pageLength: 10,
             lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "All"]],
-            responsive: true,
             order: [], // Disable initial sorting to keep the query's sort order
             dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'
         });
