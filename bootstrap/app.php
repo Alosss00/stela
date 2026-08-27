@@ -23,6 +23,7 @@ require_once dirname(__DIR__) . '/app/Helpers/url_helper.php';
 require_once dirname(__DIR__) . '/app/Helpers/i18n_helper.php';
 require_once dirname(__DIR__) . '/app/Helpers/upload_helper.php';
 require_once dirname(__DIR__) . '/app/Helpers/SecurityHelper.php';
+require_once dirname(__DIR__) . '/app/Helpers/csrf_helper.php';
 
 // 3. Load Models
 require_once dirname(__DIR__) . '/app/Models/Database.php';

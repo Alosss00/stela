@@ -59,9 +59,17 @@ if (session_status() == PHP_SESSION_NONE) {
     session_start();
 }
 
-// Error reporting
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+// Debug Mode & Error reporting
+$app_debug = getenv('APP_DEBUG');
+$isDebug = ($app_debug === 'true' || $app_debug === '1' || $app_debug === true);
+
+if ($isDebug) {
+    error_reporting(E_ALL);
+    ini_set('display_errors', 1);
+} else {
+    error_reporting(0);
+    ini_set('display_errors', 0);
+}
 
 // Upload settings
 if (!defined('MAX_UPLOAD_SIZE')) {
