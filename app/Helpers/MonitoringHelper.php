@@ -510,7 +510,7 @@ class MonitoringHelper {
      * Get unique companies for filtering
      */
     public function getCompanies() {
-        return $this->db->query("SELECT DISTINCT contractor_company FROM employees WHERE contractor_company IS NOT NULL AND contractor_company != '' ORDER BY contractor_company")->fetch_all(MYSQLI_ASSOC);
+        return $this->db->query("SELECT name as contractor_company FROM companies ORDER BY name")->fetch_all(MYSQLI_ASSOC);
     }
     
     /**

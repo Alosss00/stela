@@ -573,10 +573,11 @@ $companies = $db->query("
             <select id="filterCompany" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:160px;">
                 <option value="">Semua Perusahaan</option>
                 <?php
-                $companiesOpt = $db->query("SELECT DISTINCT contractor_company FROM employees WHERE deleted_at IS NULL AND is_active = 1 ORDER BY contractor_company");
-                if ($companiesOpt) { while ($co = $companiesOpt->fetch_assoc()): ?>
+                $companiesOpt = $db->query("SELECT name as contractor_company FROM companies ORDER BY name ASC");
+                if($companiesOpt && $companiesOpt->num_rows > 0): 
+                    while ($co = $companiesOpt->fetch_assoc()): ?>
                 <option value="<?php echo htmlspecialchars($co['contractor_company']); ?>"><?php echo htmlspecialchars($co['contractor_company']); ?></option>
-                <?php endwhile; } ?>
+                <?php endwhile; endif; ?>
             </select>
             <!-- Competency Type Filter -->
             <select id="filterCompetencyType" style="height:42px; border-radius:8px; border:1px solid #ced4da; padding: 0 10px; font-size:13px; min-width:180px;">
