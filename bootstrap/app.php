@@ -11,7 +11,12 @@ if (basename($_SERVER['PHP_SELF'] ?? '') === 'app.php') {
     die('Direct access not permitted');
 }
 
-// 0. Security Firewall (WAF & Rate Limiter)
+// 0. Security Headers (Anti-Clickjacking, Anti-MIME Sniffing, HSTS)
+header("X-Frame-Options: SAMEORIGIN");
+header("X-Content-Type-Options: nosniff");
+header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
+
+// 0.5 Security Firewall (WAF & Rate Limiter)
 require_once dirname(__DIR__) . '/app/Security/Firewall.php';
 Firewall::run();
 
