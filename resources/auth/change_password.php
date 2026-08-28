@@ -42,8 +42,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
             $error = stela_t('all-fields-required');
         } elseif ($new_password !== $confirm_password) {
             $error = stela_t('password-confirmation-not-match');
-        } elseif (strlen($new_password) < 6) {
-            $error = stela_t('new-password-min-6-chars');
+        } elseif (strlen($new_password) < 8 || !preg_match('/[A-Z]/', $new_password) || !preg_match('/[0-9]/', $new_password)) {
+            $error = function_exists('stela_t') ? stela_t('password-policy-error') : 'Password must be at least 8 characters long and contain at least one uppercase letter and one number.';
         } else {
             // Verify current password
             $user_id = $_SESSION['user_id'];

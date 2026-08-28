@@ -25,9 +25,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     try {
         if ($action === 'create' && hasPermission('user.create')) {
-            $res = $helper->createUser($_POST);
-            if ($res['status'] === 'success') $success_msg = $res['message'];
-            else $error_msg = $res['message'];
+            $password = $_POST['password'] ?? '';
+            if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[0-9]/', $password)) {
+                $error_msg = "Password must be at least 8 characters long and contain at least one uppercase letter and one number.";
+            } else {
+                $res = $helper->createUser($_POST);
+                if ($res['status'] === 'success') $success_msg = $res['message'];
+                else $error_msg = $res['message'];
+            }
         } 
         elseif ($action === 'update' && hasPermission('user.update')) {
             $id = (int)$_POST['user_id'];
@@ -41,6 +46,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $confirm_pass = $_POST['confirm_password'];
             if ($new_pass !== $confirm_pass) {
                 $error_msg = "Passwords do not match.";
+            } elseif (strlen($new_pass) < 8 || !preg_match('/[A-Z]/', $new_pass) || !preg_match('/[0-9]/', $new_pass)) {
+                $error_msg = "Password must be at least 8 characters long and contain at least one uppercase letter and one number.";
             } else {
                 $res = $helper->resetPassword($id, $new_pass, $currentUserId);
                 if ($res['status'] === 'success') $success_msg = $res['message'];
