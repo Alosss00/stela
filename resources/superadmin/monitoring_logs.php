@@ -21,6 +21,21 @@ if ($res) {
             <h2 class="mb-1 fw-bold" style="color: #1e293b;"><i class="fas fa-history text-primary me-2"></i> System Logs</h2>
             <p class="text-muted mb-0">View recent system notifications and audit logs</p>
         </div>
+        <div class="col-md-6 text-end">
+            <div class="export-actions">
+                <?php 
+                $exportQuery = $_GET;
+                $exportQuery['type'] = 'logs';
+                $baseQuery = http_build_query($exportQuery);
+                ?>
+                <a href="export_monitoring.php?<?php echo $baseQuery; ?>&format=pdf" target="_blank" class="btn btn-sm btn-outline-danger me-1">
+                    <i class="fas fa-file-pdf"></i> Export PDF
+                </a>
+                <a href="export_monitoring.php?<?php echo $baseQuery; ?>&format=excel" class="btn btn-sm btn-outline-success">
+                    <i class="fas fa-file-excel"></i> Export Excel
+                </a>
+            </div>
+        </div>
     </div>
 
     <div class="card shadow-sm border-0" style="border-radius: 12px;">

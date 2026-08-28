@@ -47,6 +47,22 @@ switch ($type) {
         $title = "Certificate Monitoring Report";
         break;
         
+    case 'logs':
+        $sql = "SELECT * FROM notification_logs ";
+        if (!empty($search)) {
+            $sql .= " WHERE company_name LIKE '%" . $db->escapeString($search) . "%' OR message LIKE '%" . $db->escapeString($search) . "%' ";
+        }
+        $sql .= " ORDER BY sent_at DESC LIMIT 10000";
+        $res = $db->query($sql);
+        $data = [];
+        if ($res) {
+            while ($row = $res->fetch_assoc()) {
+                $data[] = $row;
+            }
+        }
+        $title = "System Logs Report";
+        break;
+        
     default:
         die("Invalid monitoring type.");
 }
@@ -108,6 +124,17 @@ ob_start();
                     <th>Expiry Date</th>
                     <th>Status</th>
                 </tr>
+            <?php elseif ($type == 'logs'): ?>
+                <tr>
+                    <th>No</th>
+                    <th>Timestamp</th>
+                    <th>Notification Type</th>
+                    <th>Company</th>
+                    <th>Recipient Email</th>
+                    <th>Recipient Name</th>
+                    <th>Status</th>
+                    <th>Error</th>
+                </tr>
             <?php endif; ?>
         </thead>
         <tbody>
@@ -147,6 +174,17 @@ ob_start();
                             <td><?= htmlspecialchars($row['company'] ?? '-') ?></td>
                             <td><?= empty($row['expiry_date']) || $row['expiry_date'] == '0000-00-00' ? 'Lifetime / None' : date('d M Y', strtotime($row['expiry_date'])) ?></td>
                             <td><?= htmlspecialchars($row['monitoring_status'] ?? '-') ?></td>
+                        </tr>
+                    <?php elseif ($type == 'logs'): ?>
+                        <tr>
+                            <td><?= $i++ ?></td>
+                            <td><?= $row['sent_at'] ? date('d M Y H:i:s', strtotime($row['sent_at'])) : '-' ?></td>
+                            <td><?= htmlspecialchars($row['notification_type'] ?? '') ?></td>
+                            <td><?= htmlspecialchars($row['company_name'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($row['recipient_email'] ?? '-') ?></td>
+                            <td><?= htmlspecialchars($row['recipient_name'] ?? '-') ?></td>
+                            <td><?= ($row['is_sent'] ?? 0) == 1 ? 'Sent' : 'Failed' ?></td>
+                            <td><?= htmlspecialchars($row['error_message'] ?? '-') ?></td>
                         </tr>
                     <?php endif; ?>
                 <?php endforeach; ?>
