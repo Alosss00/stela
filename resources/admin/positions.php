@@ -137,7 +137,7 @@ if (isset($_GET['delete'])) {
 
     $positions_unlinked = $db->query("UPDATE positions SET competency_id = NULL WHERE competency_id = $id");
     $sub_competencies_deleted = $db->query("DELETE FROM competency_sub_competencies WHERE competency_id = $id");
-    $competency_deleted = $db->query("DELETE FROM competencies WHERE deleted_at IS NULL AND id = $id");
+    $competency_deleted = $db->query("DELETE FROM competencies WHERE deleted_at IS NULL AND id = ?", [$id]);
 
     if ($positions_unlinked && $sub_competencies_deleted && $competency_deleted) {
         $db->query("COMMIT");

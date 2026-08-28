@@ -48,8 +48,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Get appointment details to determine which KTT rejected
                 $appointment = $db->query("
                     SELECT employee_id, last_rejected_by_ktt, ktt_msm_status, ktt_ttn_status
-                    FROM appointments WHERE deleted_at IS NULL AND id = $id
-                ")->fetch_assoc();
+                    FROM appointments WHERE deleted_at IS NULL AND id = ?
+                ", [$id])->fetch_assoc();
 
                 // Set flags for which KTT needs to review after resubmit
                 $requires_ktt_msm = ($appointment['last_rejected_by_ktt'] == 'msm') ? 1 : 0;
@@ -59,9 +59,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $ktt_rejection = $db->query("
                     SELECT approval_notes
                     FROM ktt_approvals
-                    WHERE appointment_id = $id AND action = 'reject'
+                    WHERE appointment_id = ? AND action = 'reject'
                     ORDER BY approval_date DESC LIMIT 1
-                ")->fetch_assoc();
+                ", [$id])->fetch_assoc();
                 $rejection_notes = isset($ktt_rejection['approval_notes']) ? $ktt_rejection['approval_notes'] : '';
 
                 // Combine rejection notes for user
@@ -109,8 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $appointment = $db->query("
                     SELECT last_rejected_by_ktt, rejected_by_ktt_user_id,
                            ktt_msm_status, ktt_ttn_status
-                    FROM appointments WHERE deleted_at IS NULL AND id = $id
-                ")->fetch_assoc();
+                    FROM appointments WHERE deleted_at IS NULL AND id = ?
+                ", [$id])->fetch_assoc();
 
                 $rejected_ktt = $appointment['last_rejected_by_ktt'];
 
@@ -137,14 +137,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                ktt_msm_status = 'pending',
                                ktt1_approved_by = NULL,
                                ktt1_approved_date = NULL
-                               WHERE id = $id");
+                               WHERE id = ?", [$id]);
                 }
                 if ($requires_ktt_ttn) {
                     $db->query("UPDATE appointments SET
                                ktt_ttn_status = 'pending',
                                ktt2_approved_by = NULL,
                                ktt2_approved_date = NULL
-                               WHERE id = $id");
+                               WHERE id = ?", [$id]);
                 }
 
                 // Send back to KTT for re-review (only rejected KTT(s))
@@ -163,10 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($db->query($update_sql)) {
                     // Delete only the rejected KTT's approval records
                     if ($requires_ktt_msm) {
-                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 7");
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 7", [$id]);
                     }
                     if ($requires_ktt_ttn) {
-                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 8");
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 8", [$id]);
                     }
 
                     // Send email notification to KTT

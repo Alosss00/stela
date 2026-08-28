@@ -70,7 +70,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $competencies_table_exists) {
 // Handle delete
 if (isset($_GET['delete']) && $competencies_table_exists) {
     $id = intval($_GET['delete']);
-    if ($db->query("UPDATE competencies SET is_active = 0 WHERE id = $id")) {
+    if ($db->query("UPDATE competencies SET is_active = 0 WHERE id = ?", [$id])) {
         $message = stela_t('competency-deleted');
     }
 }

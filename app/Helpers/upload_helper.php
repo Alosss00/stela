@@ -1,4 +1,4 @@
-﻿<?php
+<?php
 /**
  * Upload Helper Functions
  *
@@ -98,5 +98,46 @@ if (!function_exists('delete_upload')) {
             return @unlink($path);
         }
         return false;
+    }
+}
+
+/**
+ * Validate MIME type using finfo before moving the uploaded file.
+ * This function mitigates arbitrary file upload vulnerabilities.
+ *
+ * @param string $tmp_name
+ * @param string $destination
+ * @return bool
+ */
+if (!function_exists('safe_move_uploaded_file')) {
+    function safe_move_uploaded_file(string $tmp_name, string $destination): bool {
+        if (!file_exists($tmp_name)) {
+            return false;
+        }
+
+        // Initialize finfo for MIME validation
+        $finfo = finfo_open(FILEINFO_MIME_TYPE);
+        $mime = finfo_file($finfo, $tmp_name);
+        finfo_close($finfo);
+
+        // Define securely allowed MIME types
+        $allowed_mimes = [
+            'application/pdf',
+            'image/jpeg', 
+            'image/jpg', 
+            'image/png',
+            'application/msword', 
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/vnd.ms-excel', 
+            'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+        ];
+
+        if (!in_array($mime, $allowed_mimes)) {
+            // Log security warning if needed, but for now just return false
+            return false;
+        }
+
+        // If MIME type is valid, proceed with the actual move
+        return move_uploaded_file($tmp_name, $destination);
     }
 }

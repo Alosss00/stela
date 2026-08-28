@@ -138,7 +138,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         $upload_path = $upload_dir . $new_filename;
 
     if (
-    move_uploaded_file(
+    safe_move_uploaded_file(
         $_FILES['certificate_file']['tmp_name'],
         $upload_path)) 
     {

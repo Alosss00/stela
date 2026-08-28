@@ -99,7 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
                 $cv_file = 'cv_' . $employee_code . '_' . time() . '.' . $file_ext;
                 
-                if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_dir . $cv_file)) {
+                if (safe_move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_dir . $cv_file)) {
                     $cv_file = 'cv/' . $cv_file;
                 } else {
                     $error = stela_t('failed-upload-cv-file');
@@ -122,7 +122,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $statement_upload_dir = upload_physical_dir('statements');
                     
                     $statement_filename = 'statement_' . $employee_code . '_' . time() . '.' . $statement_ext;
-                    if (!move_uploaded_file($_FILES['statement_file']['tmp_name'], $statement_upload_dir . $statement_filename)) {
+                    if (!safe_move_uploaded_file($_FILES['statement_file']['tmp_name'], $statement_upload_dir . $statement_filename)) {
                         $error = stela_t('failed-upload-statement-file');
                     } else {
                         $statement_file = 'statements/' . $statement_filename;
@@ -215,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $file_ext = pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION);
                             $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                             
-                            if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
+                            if (safe_move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
                                 $cert_path = 'certifications/' . $cert_file;
                                 $cert_id = intval($cert_ids[$key] ?? 0);
                                 $cert_number = $db->escapeString($cert_numbers[$key] ?? '');

@@ -25,7 +25,7 @@ $error = '';
 // Function to generate appointment number based on employee competency type
 function generateAppointmentNumber($db, $employee_id, $appointment_date) {
     // Get employee competency type and ruang_lingkup
-    $emp_result = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = $employee_id");
+    $emp_result = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = ?", [$employee_id]);
     $emp_row = $emp_result->fetch_assoc();
     
     $competency_type = $emp_row['competency_type'];
@@ -84,7 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $admin_notes = $db->escapeString($_POST['admin_notes_value'] ?? 'No notes');
             $current_admin_id = $_SESSION['user_id'];
 
-            $appt_check = $db->query("SELECT status FROM appointments WHERE id = $id")->fetch_assoc();
+            $appt_check = $db->query("SELECT status FROM appointments WHERE id = ?", [$id])->fetch_assoc();
             if ($appt_check['status'] !== 'rejected_by_ktt') {
                 $error = "This appointment has already been reviewed.";
             }
@@ -96,10 +96,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 SELECT ka.approval_notes, u.full_name as rejector_name, ka.approval_date
                 FROM ktt_approvals ka
                 JOIN users u ON ka.ktt_user_id = u.id
-                WHERE ka.appointment_id = $id AND ka.action = 'reject'
+                WHERE ka.appointment_id = ? AND ka.action = 'reject'
                 ORDER BY ka.approval_date DESC
                 LIMIT 1
-            ")->fetch_assoc();
+            ", [$id])->fetch_assoc();
 
             // Store rejection history in appointments table for future reference
             if ($rejection_history) {
@@ -110,7 +110,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                            last_rejection_notes = '$prev_rejection_notes',
                            last_rejection_by_name = '$prev_rejector_name',
                            last_rejection_date = '{$rejection_history['approval_date']}'
-                           WHERE id = $id");
+                           WHERE id = ?", [$id]);
             }
 
             if ($admin_action == 'send_to_user') {
@@ -118,8 +118,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $appointment = $db->query("
                     SELECT last_rejected_by_ktt, rejected_by_ktt_user_id,
                            ktt_msm_status, ktt_ttn_status, employee_id
-                    FROM appointments WHERE deleted_at IS NULL AND id = $id
-                ")->fetch_assoc();
+                    FROM appointments WHERE deleted_at IS NULL AND id = ?
+                ", [$id])->fetch_assoc();
 
                 // Set flags for which KTT needs to review after resubmit
                 // Only the KTT that rejected will review again after resubmit
@@ -143,16 +143,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     try {
                         require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
                         $audit = new AuditService();
-                        $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = $id")->fetch_assoc()['employee_id'] ?? null;
+                        $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = ?", [$id])->fetch_assoc()['employee_id'] ?? null;
                         $audit->log($employee_id, $id, 'Return to User', 'rejected_by_ktt', 'rejected', $admin_notes);
                     } catch (Exception $e) {
                         error_log("Audit error: " . $e->getMessage());
                     }
 
                     // Update employee verification status
-                    $appointment = $db->query("SELECT employee_id FROM appointments WHERE deleted_at IS NULL AND id = $id")->fetch_assoc();
+                    $appointment = $db->query("SELECT employee_id FROM appointments WHERE deleted_at IS NULL AND id = ?", [$id])->fetch_assoc();
                     if ($appointment) {
-                        $ktt_rejection = $db->query("SELECT approval_notes FROM ktt_approvals WHERE appointment_id = $id AND action = 'reject' ORDER BY approval_date DESC LIMIT 1")->fetch_assoc();
+                        $ktt_rejection = $db->query("SELECT approval_notes FROM ktt_approvals WHERE appointment_id = ? AND action = 'reject' ORDER BY approval_date DESC LIMIT 1", [$id])->fetch_assoc();
                         $rejection_notes = isset($ktt_rejection['approval_notes']) ? $ktt_rejection['approval_notes'] : '';
 
                         $db->query("UPDATE employees SET
@@ -164,7 +164,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
 
                     // Delete rejection records from ktt_approvals (rejection history already saved above)
-                    $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND action = 'reject'");
+                    $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND action = 'reject'", [$id]);
 
                     // Notify user/dept about the rejection
                     try {
@@ -184,8 +184,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $appointment = $db->query("
                     SELECT last_rejected_by_ktt, rejected_by_ktt_user_id,
                            ktt_msm_status, ktt_ttn_status, employee_id
-                    FROM appointments WHERE deleted_at IS NULL AND id = $id
-                ")->fetch_assoc();
+                    FROM appointments WHERE deleted_at IS NULL AND id = ?
+                ", [$id])->fetch_assoc();
 
                 // Collect all rejected KTTs (can be one or both)
                 $rejected_ktts = [];
@@ -215,18 +215,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                    ktt_msm_status = 'pending',
                                    ktt1_approved_by = NULL,
                                    ktt1_approved_date = NULL
-                                   WHERE id = $id");
+                                   WHERE id = ?", [$id]);
                         // Delete only MSM KTT's old approval record
-                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = (SELECT id FROM users WHERE role = 'ktt' AND id = 7 LIMIT 1)");
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = (SELECT id FROM users WHERE role = 'ktt' AND id = 7 LIMIT 1)", [$id]);
                     }
                     if (in_array('ttn', $rejected_ktts)) {
                         $db->query("UPDATE appointments SET
                                    ktt_ttn_status = 'pending',
                                    ktt2_approved_by = NULL,
                                    ktt2_approved_date = NULL
-                                   WHERE id = $id");
+                                   WHERE id = ?", [$id]);
                         // Delete only TTN KTT's old approval record
-                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = (SELECT id FROM users WHERE role = 'ktt' AND id = 8 LIMIT 1)");
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = (SELECT id FROM users WHERE role = 'ktt' AND id = 8 LIMIT 1)", [$id]);
                     }
 
                     // Set requires flags only for rejected KTT(s)
@@ -251,7 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         try {
                             require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
                             $audit = new AuditService();
-                            $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = $id")->fetch_assoc()['employee_id'] ?? null;
+                            $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = ?", [$id])->fetch_assoc()['employee_id'] ?? null;
                             $audit->log($employee_id, $id, 'Return to KTT', 'rejected_by_ktt', 'pending', $admin_notes);
                         } catch (Exception $e) {
                             error_log("Audit error: " . $e->getMessage());
@@ -287,7 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $created_by = $_SESSION['user_id'];
             
             // Get employee data
-            $emp_result = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = $employee_id");
+            $emp_result = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = ?", [$employee_id]);
             $emp_row = $emp_result->fetch_assoc();
             
             // Generate appointment number based on employee competency type
@@ -311,8 +311,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 SELECT requires_ktt_msm_review, requires_ktt_ttn_review,
                        ktt_msm_status, ktt_ttn_status, status
                 FROM appointments
-                WHERE id = $id
-            ")->fetch_assoc();
+                WHERE id = ?
+            ", [$id])->fetch_assoc();
 
             if ($appt['status'] !== 'draft' && $appt['status'] !== 'rejected') {
                 $error = "Appointment has already been submitted.";
@@ -363,25 +363,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Delete old KTT approval records only for KTTs that need to re-review
                 if ($is_resubmit) {
                     if ($appt['requires_ktt_msm_review'] == 1) {
-                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 7");
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 7", [$id]);
                     }
                     if ($appt['requires_ktt_ttn_review'] == 1) {
-                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = 8");
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 8", [$id]);
                     }
                 } else {
                     // New appointment - clear all
-                    $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id");
+                    $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ?", [$id]);
                 }
 
                 // Verify the update
-                $verify = $db->query("SELECT status, ktt_msm_status, ktt_ttn_status FROM appointments WHERE deleted_at IS NULL AND id = $id")->fetch_assoc();
+                $verify = $db->query("SELECT status, ktt_msm_status, ktt_ttn_status FROM appointments WHERE deleted_at IS NULL AND id = ?", [$id])->fetch_assoc();
                 error_log("SUBMIT DEBUG - After Update - Status: {$verify['status']}, MSM Status: {$verify['ktt_msm_status']}, TTN Status: {$verify['ktt_ttn_status']}");
 
                 // Log to Workflow History
                 try {
                     require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
                     $audit = new AuditService();
-                    $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = $id")->fetch_assoc()['employee_id'] ?? null;
+                    $employee_id = $db->query("SELECT employee_id FROM appointments WHERE id = ?", [$id])->fetch_assoc()['employee_id'] ?? null;
                     $status_before = $is_resubmit ? 'rejected_by_ktt' : 'draft';
                     $audit->log($employee_id, $id, 'Ajukan ke KTT', $status_before, 'pending', 'Admin submitted appointment to KTT');
                 } catch (Exception $e) {
@@ -397,7 +397,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                      FROM appointments a 
                                                      LEFT JOIN employees e ON a.employee_id = e.id
                                                      LEFT JOIN positions p ON a.position_id = p.id
-                                                     WHERE a.id = $id");
+                                                     WHERE a.id = ?", [$id]);
                             if ($apptQuery && $apptRow = $apptQuery->fetch_assoc()) {
                                 $es->indexAppointment($apptRow);
                             }
@@ -459,7 +459,7 @@ if (isset($_GET['success'])) {
 // Handle delete
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    if ($db->query("DELETE FROM appointments WHERE deleted_at IS NULL AND id = $id AND status = 'draft'")) {
+    if ($db->query("DELETE FROM appointments WHERE deleted_at IS NULL AND id = ? AND status = 'draft'", [$id])) {
         $message = stela_t('appointment-deleted');
     }
 }

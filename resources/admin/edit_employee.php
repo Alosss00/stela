@@ -72,7 +72,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_n
 
 $draft_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($draft_id && $_SERVER['REQUEST_METHOD'] != 'POST') {
-    $draft_data = $db->query("SELECT * FROM employees WHERE deleted_at IS NULL AND id = $draft_id AND verification_status = 'draft'")->fetch_assoc();
+    $draft_data = $db->query("SELECT * FROM employees WHERE deleted_at IS NULL AND id = ? AND verification_status = 'draft'", [$draft_id])->fetch_assoc();
     if ($draft_data) {
         $_POST = $draft_data;
     } else {
@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                     $new_filename = 'cv_' . $employee_code . '_' . time() . '.' . $file_extension;
                     $upload_path = $upload_dir . $new_filename;
                     
-                    if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
+                    if (safe_move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
                         $cv_file = 'cv/' . $new_filename; 
                     } else {
                         $error = 'Failed to upload CV file.';
@@ -180,7 +180,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                     $stmt_new_filename = 'statement_' . $employee_code . '_' . time() . '.pdf';
                     $stmt_upload_path = $stmt_upload_dir . $stmt_new_filename;
                     
-                    if (move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
+                    if (safe_move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
                         $statement_file = 'statements/' . $stmt_new_filename;
                     } else {
                         $error = 'Failed to upload Statement Letter file.';
@@ -260,7 +260,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
 
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                                 
-                                if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
+                                if (safe_move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
                                     $cert_path = 'certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
                                     $cert_number = $db->escapeString($cert_numbers[$key] ?? '');

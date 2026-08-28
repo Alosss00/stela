@@ -27,7 +27,7 @@ if (!$appointment) {
 }
 
 // Get KTT approval details
-$ktt_approvals = $db->query("SELECT ka.*, u.full_name as ktt_name, u.username, u.id as user_id FROM ktt_approvals ka LEFT JOIN users u ON ka.ktt_user_id = u.id WHERE ka.appointment_id = $id ORDER BY ka.approval_date ASC");
+$ktt_approvals = $db->query("SELECT ka.*, u.full_name as ktt_name, u.username, u.id as user_id FROM ktt_approvals ka LEFT JOIN users u ON ka.ktt_user_id = u.id WHERE ka.appointment_id = ? ORDER BY ka.approval_date ASC", [$id]);
 
 // Helper function to get KTT type (MSM or TTN)
 function getKttType($user_id) {

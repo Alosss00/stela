@@ -250,7 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['
 				$new_filename = 'cert_' . $cert_row['employee_code'] . '_' . time() . '.' . $file_extension;
 				$upload_path = $upload_dir . $new_filename;
 
-				if (move_uploaded_file($_FILES['document_file']['tmp_name'], $upload_path)) {
+				if (safe_move_uploaded_file($_FILES['document_file']['tmp_name'], $upload_path)) {
 					if (!empty($cert_row['document_file'])) {
 						delete_upload($cert_row['document_file']);
 					}

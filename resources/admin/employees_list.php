@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $file_ext = pathinfo($_FILES['cv_file']['name'], PATHINFO_EXTENSION);
                 $cv_file = $employee_code . '_cv_' . time() . '.' . $file_ext;
                 
-                if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_dir . $cv_file)) {
+                if (safe_move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_dir . $cv_file)) {
                     $cv_file = 'uploads/cv/' . $cv_file;
                 } else {
                     $cv_file = '';
@@ -85,7 +85,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $file_ext = pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION);
                             $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                             
-                            if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
+                            if (safe_move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
                                 $cert_path = 'uploads/certifications/' . $cert_file;
                                 $cert_id = intval($cert_ids[$key]);
                                 $cert_number = $db->escapeString($cert_numbers[$key]);

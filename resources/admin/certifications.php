@@ -58,7 +58,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 // Handle delete
 if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
-    if ($db->query("UPDATE certifications SET is_active = 0 WHERE id = $id")) {
+    if ($db->query("UPDATE certifications SET is_active = 0 WHERE id = ?", [$id])) {
         $message = 'Certification Deleted';
     }
 }

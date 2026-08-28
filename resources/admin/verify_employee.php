@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $notes = $db->escapeString($_POST['notes']);
         $verified_by = $_SESSION['user_id'];
         
-        $cert_check = $db->query("SELECT verification_status FROM employee_certifications WHERE id = $cert_id")->fetch_assoc();
+        $cert_check = $db->query("SELECT verification_status FROM employee_certifications WHERE id = ?", [$cert_id])->fetch_assoc();
         if ($cert_check['verification_status'] !== 'pending') {
             $error = "Certification verification has already been processed.";
         }
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         $notes = $db->escapeString($_POST['employee_notes']);
         $verified_by = $_SESSION['user_id'];
         
-        $employee_check = $db->query("SELECT verification_status FROM employees WHERE id = $employee_id")->fetch_assoc();
+        $employee_check = $db->query("SELECT verification_status FROM employees WHERE id = ?", [$employee_id])->fetch_assoc();
         if ($employee_check['verification_status'] !== 'pending') {
             $error = "Employee verification has already been processed.";
         }
@@ -71,8 +71,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 verification_status = 'verified',
                 verified_by = $verified_by,
                 verified_date = NOW()
-            WHERE employee_id = $employee_id
-            AND verification_status = 'pending'");
+            WHERE employee_id = ?
+            AND verification_status = 'pending'", [$employee_id]);
         }
         
         if (!$error) {
@@ -104,18 +104,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                requires_ktt_msm_review, requires_ktt_ttn_review,
                                last_rejected_by_ktt, resubmit_count
                         FROM appointments 
-                        WHERE employee_id = $employee_id
+                        WHERE employee_id = ?
                         ORDER BY id DESC 
                         LIMIT 1
-                    ")->fetch_assoc();
+                    ", [$employee_id])->fetch_assoc();
                     
                     $appointment_id = null; // Variable untuk menyimpan ID appointment
 
                     $resubmit_check = $db->query("
                         SELECT resubmit_type
                         FROM employees
-                        WHERE id = $employee_id
-                    ")->fetch_assoc();
+                        WHERE id = ?
+                    ", [$employee_id])->fetch_assoc();
 
                     $is_certificate_resubmit =
                         (($resubmit_check['resubmit_type'] ?? '') === 'certificate');
@@ -123,7 +123,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                     if (!$existing_appointment) {
                         // Create new appointment for first-time verification
                         // Get employee data for appointment number generation
-                        $emp_data = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = $employee_id")->fetch_assoc();
+                        $emp_data = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = ?", [$employee_id])->fetch_assoc();
                         $competency_type = $emp_data['competency_type'];
                         $ruang_lingkup = $emp_data['ruang_lingkup'];
                         
@@ -175,10 +175,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         $cert_expiry = $db->query("
                             SELECT MIN(expiry_date) as earliest_expiry 
                             FROM employee_certifications 
-                            WHERE employee_id = $employee_id 
+                            WHERE employee_id = ? 
                             AND verification_status = 'verified'
                             AND expiry_date IS NOT NULL
-                        ")->fetch_assoc();
+                        ", [$employee_id])->fetch_assoc();
                         
                         $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
                         
@@ -188,9 +188,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                 SET
                                     status='superseded',
                                     updated_at=NOW()
-                                WHERE employee_id=$employee_id
+                                WHERE employee_id=?
                                 AND status IN ('draft','approved')
-                            ");
+                            ", [$employee_id]);
 
                             if ($expiry_date) {
                             $sql_appointment = "INSERT INTO appointments 
@@ -210,7 +210,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                             $appointment_id = $db->lastInsertId();
                             
                             // Update appointment_number in employees table for tracking
-                            $db->query("UPDATE employees SET appointment_number = '$appointment_number' WHERE id = $employee_id");
+                            $db->query("UPDATE employees SET appointment_number = '$appointment_number' WHERE id = ?", [$employee_id]);
                             $_SESSION['success_message'] = stela_t('verified-draft-created', ['appointment_number' => $appointment_number]);
                         } else {
                             $_SESSION['error_message'] = stela_t('verified-create-appointment-failed');
@@ -224,8 +224,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         $emp_data = $db->query("
                             SELECT competency_type, ruang_lingkup
                             FROM employees
-                            WHERE id = $employee_id
-                        ")->fetch_assoc();
+                            WHERE id = ?
+                        ", [$employee_id])->fetch_assoc();
 
                         $competency_type = $emp_data['competency_type'];
                         $ruang_lingkup   = $emp_data['ruang_lingkup'];
@@ -294,19 +294,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         $cert_expiry = $db->query("
                             SELECT MIN(expiry_date) earliest_expiry
                             FROM employee_certifications
-                            WHERE employee_id=$employee_id
+                            WHERE employee_id=?
                             AND verification_status='verified'
-                        ")->fetch_assoc();
+                        ", [$employee_id])->fetch_assoc();
 
                         $expiry_date = $cert_expiry['earliest_expiry'];
                         $new_certificate = $db->query("
                             SELECT id
                             FROM employee_certifications
-                            WHERE employee_id = $employee_id
+                            WHERE employee_id = ?
                             AND verification_status='verified'
                             ORDER BY verified_date DESC, id DESC
                             LIMIT 1
-                        ")->fetch_assoc();
+                        ", [$employee_id])->fetch_assoc();
 
                         $new_certificate_id = (int)$new_certificate['id'];
 
@@ -380,8 +380,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                     appointment_number='$appointment_number',
                                     verification_status='verified',
                                     resubmit_type=NULL
-                                WHERE id=$employee_id
-                            ");
+                                WHERE id=?
+                            ", [$employee_id]);
 
                             $_SESSION['success_message'] =
                                 "Certificate verified successfully. New Appointment Number : "
@@ -406,10 +406,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         $cert_expiry = $db->query("
                             SELECT MIN(expiry_date) as earliest_expiry 
                             FROM employee_certifications 
-                            WHERE employee_id = $employee_id 
+                            WHERE employee_id = ? 
                             AND verification_status = 'verified'
                             AND expiry_date IS NOT NULL
-                        ")->fetch_assoc();
+                        ", [$employee_id])->fetch_assoc();
                         
                         $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
                         
@@ -447,10 +447,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
                             // Delete old KTT approval records only for KTT(s) that need re-review
                             if ($existing_appointment['requires_ktt_msm_review'] == 1) {
-                                $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $appointment_id AND ktt_user_id = 7");
+                                $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 7", [$appointment_id]);
                             }
                             if ($existing_appointment['requires_ktt_ttn_review'] == 1) {
-                                $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $appointment_id AND ktt_user_id = 8");
+                                $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 8", [$appointment_id]);
                             }
 
                             $_SESSION['success_message'] = stela_t('verified-existing-ready-ktt', ['existing_number' => $existing_number]);
@@ -469,7 +469,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                            approved_date = NULL,
                                            approval_notes = NULL,
                                            updated_at = NOW()
-                                           WHERE id = $appointment_id");
+                                           WHERE id = ?", [$appointment_id]);
                             } else {
                                 $db->query("UPDATE appointments SET 
                                            status = 'draft',
@@ -481,17 +481,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                            approved_date = NULL,
                                            approval_notes = NULL,
                                            updated_at = NOW()
-                                           WHERE id = $appointment_id");
+                                           WHERE id = ?", [$appointment_id]);
                             }
                             
                             // Delete old KTT approval records to allow fresh approval
-                            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $appointment_id");
+                            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ?", [$appointment_id]);
                             
                             $_SESSION['success_message'] = stela_t('verified-existing-updated-reset-ktt', ['existing_number' => $existing_number]);
                         }
                         
                         // Update appointment_number in employees table for tracking
-                        $db->query("UPDATE employees SET appointment_number = '$existing_number' WHERE id = $employee_id");
+                        $db->query("UPDATE employees SET appointment_number = '$existing_number' WHERE id = ?", [$employee_id]);
                     }
                     
                     // Sync appointment to Elasticsearch
@@ -504,7 +504,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                                              FROM appointments a 
                                                              LEFT JOIN employees e ON a.employee_id = e.id
                                                              LEFT JOIN positions p ON a.position_id = p.id
-                                                             WHERE a.id = $appointment_id");
+                                                             WHERE a.id = ?", [$appointment_id]);
                                     if ($apptQuery && $apptRow = $apptQuery->fetch_assoc()) {
                                         $es->indexAppointment($apptRow);
                                     }
@@ -567,8 +567,8 @@ $employee = $db->query("
            END as competency_type_display
     FROM employees e
     LEFT JOIN users u ON e.verified_by = u.id
-    WHERE e.id = $employee_id
-")->fetch_assoc();
+    WHERE e.id = ?
+", [$employee_id])->fetch_assoc();
 
 if (!$employee) {
     header('Location: employees.php');
@@ -595,15 +595,15 @@ $certifications = $db->query("
     FROM employee_certifications ec
     JOIN certifications c ON ec.certification_id = c.id
     LEFT JOIN users u ON ec.verified_by = u.id
-    WHERE ec.employee_id = $employee_id
+    WHERE ec.employee_id = ?
     ORDER BY ec.created_at DESC
-");
+", [$employee_id]);
 
 // Get position target
 $position_id = isset($_SESSION['temp_position_' . $employee_id]) ? $_SESSION['temp_position_' . $employee_id] : 0;
 $position = null;
 if ($position_id > 0) {
-    $position = $db->query("SELECT * FROM positions WHERE deleted_at IS NULL AND id = $position_id")->fetch_assoc();
+    $position = $db->query("SELECT * FROM positions WHERE deleted_at IS NULL AND id = ?", [$position_id])->fetch_assoc();
 }
 
 // Get workflow history

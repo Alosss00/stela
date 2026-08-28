@@ -45,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $table = $_POST['table'];
     
     if (array_key_exists($table, $valid_tables)) {
-        if ($db->query("UPDATE $table SET deleted_at = NULL WHERE id = $id")) {
+        if ($db->query("UPDATE $table SET deleted_at = NULL WHERE id = ?", [$id])) {
             $message = "Record successfully restored.";
         } else {
             $error = "Failed to restore record.";
@@ -64,7 +64,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $table = $_POST['table'];
     
     if (array_key_exists($table, $valid_tables)) {
-        if ($db->query("DELETE FROM $table WHERE id = $id")) {
+        if ($db->query("DELETE FROM $table WHERE id = ?", [$id])) {
             $message = "Record permanently deleted.";
         } else {
             $error = "Failed to permanently delete record.";

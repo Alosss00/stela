@@ -137,7 +137,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $new_filename = 'cv_' . $employee_code . '_' . time() . '.' . $file_extension;
                     $upload_path = $upload_dir . $new_filename;
                     
-                    if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
+                    if (safe_move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
                         $cv_file = 'cv/' . $new_filename; 
                     } else {
                         $error = 'Failed to upload CV file.';
@@ -162,7 +162,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmt_new_filename = 'statement_' . $employee_code . '_' . time() . '.pdf';
                     $stmt_upload_path = $stmt_upload_dir . $stmt_new_filename;
                     
-                    if (move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
+                    if (safe_move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
                         $statement_file = 'statements/' . $stmt_new_filename;
                     } else {
                         $error = 'Failed to upload Statement Letter file.';
@@ -236,7 +236,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 $file_ext = pathinfo($_FILES['certifications']['name'][$key], PATHINFO_EXTENSION);
                                 $cert_file = $employee_code . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                                 
-                                if (move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
+                                if (safe_move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
                                     $cert_path = 'certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
                                     $cert_number = $db->escapeString($cert_numbers[$key] ?? '');

@@ -59,7 +59,7 @@ if (!$employee) {
 $ktt_approvals = null;
 if ($employee['appointment_id']) {
     $appointment_id = $employee['appointment_id'];
-    $ktt_approvals = $db->query("SELECT ka.*, u.full_name as ktt_name, u.username, u.id as user_id FROM ktt_approvals ka LEFT JOIN users u ON ka.ktt_user_id = u.id WHERE ka.appointment_id = $appointment_id ORDER BY ka.approval_date ASC");
+    $ktt_approvals = $db->query("SELECT ka.*, u.full_name as ktt_name, u.username, u.id as user_id FROM ktt_approvals ka LEFT JOIN users u ON ka.ktt_user_id = u.id WHERE ka.appointment_id = ? ORDER BY ka.approval_date ASC", [$appointment_id]);
 }
 
 if (!function_exists('getKttType')) {

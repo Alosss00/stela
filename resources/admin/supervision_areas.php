@@ -113,9 +113,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 SELECT COUNT(*) as count 
                 FROM employees 
                 WHERE supervision_area IN (
-                    SELECT area_name FROM supervision_areas WHERE deleted_at IS NULL AND id = $id
+                    SELECT area_name FROM supervision_areas WHERE deleted_at IS NULL AND id = ?
                 ) AND is_active = 1
-            ");
+            ", [$id]);
             
             if ($check_usage) {
                 $usage = $check_usage->fetch_assoc();

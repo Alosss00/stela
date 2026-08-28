@@ -34,14 +34,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Use the appointment's KTT status field directly (more reliable than ktt_approvals table)
         $my_status_field = ($ktt_type == 'msm') ? 'ktt_msm_status' : 'ktt_ttn_status';
         $appt_check = $db->query("
-            SELECT $my_status_field as my_ktt_status FROM appointments WHERE deleted_at IS NULL AND id = $id
-        ")->fetch_assoc();
+            SELECT $my_status_field as my_ktt_status FROM appointments WHERE deleted_at IS NULL AND id = ?
+        ", [$id])->fetch_assoc();
 
         if (!$appt_check || $appt_check['my_ktt_status'] != 'pending') {
             $error = 'You have already made a decision for this assign letter!';
         } else {
             // Delete any stale ktt_approvals from previous rounds for this KTT
-            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $id AND ktt_user_id = $current_user_id");
+            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = $current_user_id", [$id]);
 
             if ($_POST['action'] == 'approve') {
                 // Insert approval record
@@ -51,8 +51,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($db->query($sql)) {
                     // Get current appointment status
                     $appointment = $db->query("
-                        SELECT ktt_msm_status, ktt_ttn_status FROM appointments WHERE deleted_at IS NULL AND id = $id
-                    ")->fetch_assoc();
+                        SELECT ktt_msm_status, ktt_ttn_status FROM appointments WHERE deleted_at IS NULL AND id = ?
+                    ", [$id])->fetch_assoc();
 
                     // Update KTT status based on which KTT is approving
                     if ($ktt_type == 'msm') {
@@ -83,8 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $employee = $db->query("
                             SELECT employee_id
                             FROM appointments
-                            WHERE id=$id
-                            ")->fetch_assoc();
+                            WHERE id=?
+                            ", [$id])->fetch_assoc();
 
                             $employee_id = (int)$employee['employee_id'];
 
@@ -100,10 +100,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 (
                                     SELECT MAX(id) latest_id
                                     FROM employee_certifications
-                                    WHERE employee_id=$employee_id
+                                    WHERE employee_id=?
                                 ) x
                             )
-                            ");
+                            ", [$employee_id]);
                         
                             $message = 'Assign letter successfully approved!';
                             // Notify admin and user/dept that both KTTs approved
@@ -146,8 +146,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 $employee = $db->query("
                                 SELECT employee_id
                                 FROM appointments
-                                WHERE id=$id
-                                ")->fetch_assoc();
+                                WHERE id=?
+                                ", [$id])->fetch_assoc();
 
                                 $employee_id = (int)$employee['employee_id'];
 
@@ -163,10 +163,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     (
                                         SELECT MAX(id) latest_id
                                         FROM employee_certifications
-                                        WHERE employee_id=$employee_id
+                                        WHERE employee_id=?
                                     ) x
                                 )
-                                ");
+                                ", [$employee_id]);
                                 
                             $message = 'Assign letter successfully approved!';
                             // Notify admin and user/dept that both KTTs approved
@@ -217,8 +217,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         SELECT ktt_msm_status, ktt_ttn_status,
                                requires_ktt_msm_review, requires_ktt_ttn_review
                         FROM appointments
-                        WHERE id = $id
-                    ")->fetch_assoc();
+                        WHERE id = ?
+                    ", [$id])->fetch_assoc();
 
                     $msm_done = ($appointment_check['requires_ktt_msm_review'] == 0 ||
                                  $appointment_check['ktt_msm_status'] != 'pending');
@@ -281,7 +281,7 @@ $pending = $db->query("
            (SELECT COUNT(*) FROM employee_certifications WHERE employee_id = e.id AND verification_status = 'verified') as verified_certs,
            (SELECT COUNT(*) FROM employee_certifications WHERE employee_id = e.id) as total_certs,
            (SELECT COUNT(*) FROM ktt_approvals ka WHERE ka.appointment_id = a.id AND ka.action = 'approve') as approval_count,
-           (SELECT COUNT(*) FROM ktt_approvals ka WHERE ka.appointment_id = a.id AND ka.ktt_user_id = $current_user_id) as my_decision,
+           (SELECT COUNT(*) FROM ktt_approvals ka WHERE ka.appointment_id = a.id AND ka.ktt_user_id = ?) as my_decision,
            (SELECT COUNT(*) FROM ktt_approvals ka WHERE ka.appointment_id = a.id AND ka.action = 'reject') as rejection_count,
            (SELECT COUNT(*) FROM ktt_approvals ka WHERE ka.appointment_id = a.id AND ka.ktt_user_id = $current_user_id AND ka.action = 'reject') as my_previous_rejection,
            ktt1.full_name as ktt1_name, ktt2.full_name as ktt2_name,
@@ -310,7 +310,7 @@ $pending = $db->query("
         ('$ktt_type' = 'ttn' AND a.requires_ktt_ttn_review = 1 AND a.ktt_ttn_status = 'pending')
     )
     ORDER BY a.created_at ASC
-");
+", [$current_user_id]);
 
 // Get completed decisions by current KTT user (untuk ditampilkan di section terpisah)
 $completed_decisions = $db->query("
@@ -325,10 +325,10 @@ $completed_decisions = $db->query("
     JOIN employees e ON a.employee_id = e.id
     JOIN positions p ON a.position_id = p.id
     JOIN ktt_approvals ka ON a.id = ka.appointment_id
-    WHERE ka.ktt_user_id = $current_user_id
+    WHERE ka.ktt_user_id = ?
     ORDER BY ka.approval_date DESC
     LIMIT 20
-");
+", [$current_user_id]);
 
 // Get approved/rejected appointments (history)
 $processed = $db->query("
@@ -361,9 +361,9 @@ $companies_decisions = $db->query("
     FROM appointments a
     JOIN employees e ON a.employee_id = e.id
     JOIN ktt_approvals ka ON a.id = ka.appointment_id
-    WHERE ka.ktt_user_id = $current_user_id
+    WHERE ka.ktt_user_id = ?
     ORDER BY e.contractor_company
-");
+", [$current_user_id]);
 
 // Get unique companies for filter - Riwayat Keseluruhan
 $companies_history = $db->query("

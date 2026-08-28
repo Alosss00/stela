@@ -69,7 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         $file_name = 'cert_' . $employee_id . '_' . time() . '.' . $file_ext;
                         $file_path = $upload_dir . $file_name;
                         
-                        if (move_uploaded_file($_FILES['document_file']['tmp_name'], $file_path)) {
+                        if (safe_move_uploaded_file($_FILES['document_file']['tmp_name'], $file_path)) {
                             $document_file = $file_name;
                         } else {
                             $error = 'Failed to upload certificate file.';
@@ -157,9 +157,9 @@ $certifications_result = $db->query("
     SELECT ec.*, c.cert_name, c.cert_type, c.issuing_authority
     FROM employee_certifications ec
     JOIN certifications c ON ec.certification_id = c.id
-    WHERE ec.employee_id = $id
+    WHERE ec.employee_id = ?
     ORDER BY ec.created_at DESC
-");
+", [$id]);
 
 $certifications = $certifications_result;
 

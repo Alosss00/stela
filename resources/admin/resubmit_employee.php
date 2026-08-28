@@ -56,9 +56,9 @@ $employee = $db->query("
     LEFT JOIN users ktt1 ON a.ktt1_approved_by = ktt1.id
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
     LEFT JOIN users admin_user ON a.admin_approved_by = admin_user.id
-    WHERE e.id = $employee_id 
+    WHERE e.id = ? 
     GROUP BY e.id
-")->fetch_assoc();
+", [$employee_id])->fetch_assoc();
 
 // Get KTT rejection details if appointment exists and has KTT rejection
 $ktt_rejectors = [];
@@ -69,7 +69,7 @@ if ($employee && $employee['appointment_id'] && $employee['has_ktt_rejection']) 
     $ktt_approvals = $db->query("
         SELECT ka.action, ka.approval_notes, ka.approval_date, u.full_name, u.role,
                CASE 
-                   WHEN ka.ktt_user_id = $ktt1_id THEN 'KTT MSM'
+                   WHEN ka.ktt_user_id = ? THEN 'KTT MSM'
                    WHEN ka.ktt_user_id = $ktt2_id THEN 'KTT TTN'
                    ELSE 'KTT'
                END as ktt_position
@@ -78,7 +78,7 @@ if ($employee && $employee['appointment_id'] && $employee['has_ktt_rejection']) 
         WHERE ka.appointment_id = {$employee['appointment_id']}
         AND ka.action = 'reject'
         ORDER BY ka.approval_date ASC
-    ");
+    ", [$ktt1_id]);
     
     if ($ktt_approvals && $ktt_approvals->num_rows > 0) {
         while ($ktt_reject = $ktt_approvals->fetch_assoc()) {
@@ -142,9 +142,9 @@ $existing_certifications = $db->query("
     SELECT ec.*, c.cert_name
     FROM employee_certifications ec
     LEFT JOIN certifications c ON ec.certification_id = c.id
-    WHERE ec.employee_id = $employee_id
+    WHERE ec.employee_id = ?
     ORDER BY ec.id
-");
+", [$employee_id]);
 
 // Handle form submission for re-submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -196,7 +196,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $new_filename = 'cv_' . $employee['employee_code'] . '_' . time() . '.' . $file_extension;
                     $upload_path = $upload_dir . $new_filename;
                     
-                    if (move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
+                    if (safe_move_uploaded_file($_FILES['cv_file']['tmp_name'], $upload_path)) {
                         // Delete old CV file if it exists
                         if ($cv_file) {
                             delete_upload($cv_file);
@@ -225,7 +225,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmt_new_filename = 'statement_' . $employee['employee_code'] . '_' . time() . '.pdf';
                     $stmt_upload_path = $stmt_upload_dir . $stmt_new_filename;
                     
-                    if (move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
+                    if (safe_move_uploaded_file($_FILES['statement_file']['tmp_name'], $stmt_upload_path)) {
                         // Delete old statement file if it exists
                         if ($statement_file) {
                             delete_upload($statement_file);
@@ -353,7 +353,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             $cert_file = $employee['employee_code'] . '_cert_' . $key . '_' . time() . '.' . $file_ext;
                             
-                            if (move_uploaded_file($_FILES['certifications']['tmp_name'][$key], $upload_dir . $cert_file)) {
+                            if (safe_move_uploaded_file($_FILES['certifications']['tmp_name'][$key], $upload_dir . $cert_file)) {
                                 $cert_path = 'certifications/' . $cert_file;
                             }
                         }
@@ -398,10 +398,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $existing_appointment = $db->query("
                         SELECT id, appointment_number, requires_ktt_msm_review, requires_ktt_ttn_review
                         FROM appointments
-                        WHERE employee_id = $employee_id
+                        WHERE employee_id = ?
                         ORDER BY id DESC
                         LIMIT 1
-                    ")->fetch_assoc();
+                    ", [$employee_id])->fetch_assoc();
 
                     if ($existing_appointment) {
                         $appointment_id = $existing_appointment['id'];
@@ -410,9 +410,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $cert_expiry = $db->query("
                             SELECT MIN(expiry_date) as earliest_expiry
                             FROM employee_certifications
-                            WHERE employee_id = $employee_id
+                            WHERE employee_id = ?
                             AND expiry_date IS NOT NULL
-                        ")->fetch_assoc();
+                        ", [$employee_id])->fetch_assoc();
 
                         $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
 
@@ -438,7 +438,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $update_sql = "UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $appointment_id";
 
                         if ($db->query($update_sql)) {
-                            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = $appointment_id");
+                            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ?", [$appointment_id]);
                         }
                         $message = 'Data correction successfully uploaded!';
                     } else {

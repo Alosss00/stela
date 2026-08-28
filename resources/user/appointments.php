@@ -58,8 +58,8 @@ if (isset($_GET['action']) && $_GET['action'] == 'resubmit_to_ktt' && isset($_GE
             $appt_details = $db->query("
                 SELECT requires_ktt_msm_review, requires_ktt_ttn_review
                 FROM appointments
-                WHERE id = $appointment_id
-            ")->fetch_assoc();
+                WHERE id = ?
+            ", [$appointment_id])->fetch_assoc();
 
             // Prepare KTT status reset based on which KTT needs to review
             $ktt_status_reset = "";

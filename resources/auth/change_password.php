@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
         } else {
             // Verify current password
             $user_id = $_SESSION['user_id'];
-            $user = $db->query("SELECT password FROM users WHERE id = $user_id")->fetch_assoc();
+            $user = $db->query("SELECT password FROM users WHERE id = ?", [$user_id])->fetch_assoc();
             
             if (!$user || !password_verify($current_password, $user['password'])) {
                 $error = stela_t('current-password-incorrect');
