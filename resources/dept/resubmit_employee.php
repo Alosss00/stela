@@ -57,7 +57,7 @@ $employee = $db->query("
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
     LEFT JOIN users admin_user ON a.admin_approved_by = admin_user.id
     WHERE e.id = $employee_id 
-    AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    AND e.department = '" . $db->escapeString($current_department) . "'
     GROUP BY e.id
 ")->fetch_assoc();
 

@@ -48,7 +48,7 @@ INNER JOIN employees e
 ON e.id = ec.employee_id
 LEFT JOIN certifications c
 ON c.id = ec.certification_id
-WHERE ec.id = ?
+WHERE ec.id = ? AND e.department = ?
 LIMIT 1
 ";
  
@@ -65,7 +65,7 @@ if ($stmt === false) {
     );
 }
 
-$stmt->bind_param("i", $employee_certification_id);
+$stmt->bind_param("is", $employee_certification_id, $_SESSION['department']);
 $stmt->execute();
 
 $result = $stmt->get_result();

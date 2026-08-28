@@ -76,7 +76,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_n
 
 $draft_id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 if ($draft_id && $_SERVER['REQUEST_METHOD'] != 'POST') {
-    $draft_data = $db->query("SELECT * FROM employees WHERE deleted_at IS NULL AND id = ? AND verification_status = 'draft'", [$draft_id])->fetch_assoc();
+    $draft_data = $db->query("SELECT * FROM employees WHERE deleted_at IS NULL AND id = ? AND verification_status = 'draft' AND department = ?", [$draft_id, $current_department])->fetch_assoc();
     if ($draft_data) {
         $_POST = $draft_data;
     } else {
@@ -232,7 +232,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && $draft_id) {
                     $update_data['statement_file'] = $statement_file;
                 }
                 
-                if ($db->update('employees', $update_data, "id = ?", [$draft_id])) {
+                if ($db->update('employees', $update_data, "id = ? AND department = ?", [$draft_id, $current_department])) {
                     $employee_id = $draft_id;
                     
                     // Handle multiple certification uploads
