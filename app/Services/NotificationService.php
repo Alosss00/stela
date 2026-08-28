@@ -46,14 +46,14 @@ class NotificationService {
             }
         }
         
-        $this->smtp_host = $settings['smtp_host'] ?? 'smtp.hostinger.com';
-        $this->smtp_port = $settings['smtp_port'] ?? 465;
-        $this->smtp_username = $settings['smtp_user'] ?? 'sentry@tokaguard.com';
-        $this->smtp_password = $settings['smtp_pass'] ?? 'Tosar123@';
+        $this->smtp_host = $settings['smtp_host'] ?? getenv('SMTP_HOST') ?: '';
+        $this->smtp_port = $settings['smtp_port'] ?? getenv('SMTP_PORT') ?: 465;
+        $this->smtp_username = $settings['smtp_user'] ?? getenv('SMTP_USER') ?: '';
+        $this->smtp_password = $settings['smtp_pass'] ?? getenv('SMTP_PASS') ?: '';
         $this->email_from = $this->smtp_username;
         $this->email_from_name = $settings['app_name'] ?? 'Mining Appointment System';
         
-        $this->fonnte_token = $settings['fonnte_token'] ?? 'BVru1eLXHL2it4WozxLH';
+        $this->fonnte_token = $settings['fonnte_token'] ?? getenv('FONNTE_TOKEN') ?: '';
     }
     
     /**
@@ -452,9 +452,9 @@ class NotificationService {
             $mail->Timeout    = 5; // Connection timeout (seconds)
             $mail->SMTPOptions = array(
                 'ssl' => array(
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true
+                    'verify_peer' => true,
+                    'verify_peer_name' => true,
+                    'allow_self_signed' => false
                 )
             );
             
@@ -471,6 +471,7 @@ class NotificationService {
             // Replace *text* with <strong>text</strong> properly
             $html_message = preg_replace('/\*([^*]+)\*/U', '<strong>$1</strong>', $html_message);
             
+            $safe_to_name = htmlspecialchars($to_name);
             $html_body = "
             <!DOCTYPE html>
             <html>
@@ -491,7 +492,7 @@ class NotificationService {
                         <h2 style='margin: 0;'>Mining Appointment System</h2>
                     </div>
                     <div class='content'>
-                        <p>Hello <strong>{$to_name}</strong>,</p>
+                        <p>Hello <strong>{$safe_to_name}</strong>,</p>
                         <p>{$html_message}</p>
                     </div>
                     <div class='footer'>
@@ -1089,7 +1090,7 @@ class NotificationService {
             ],
             CURLOPT_HTTPHEADER     => ['Authorization: ' . $this->fonnte_token],
             CURLOPT_TIMEOUT        => 30,
-            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYPEER => true,
         ]);
 
         $response  = curl_exec($ch);
