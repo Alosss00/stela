@@ -429,6 +429,7 @@ $competency_type_labels = [
             <span class="close" onclick="closeModal('addCertModal')">&times;</span>
         </div>
     <form method="POST" action="" enctype="multipart/form-data">
+    <?= csrf_field() ?>
     <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
     
     <input type="hidden" name="action" value="add_certificate">

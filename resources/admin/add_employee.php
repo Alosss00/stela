@@ -76,6 +76,10 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     // ==========================================
     // IMPLEMENTASI VALIDASI ANTI-CSRF
     // ==========================================
@@ -419,7 +423,8 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     </div>
     <?php endif; ?>
     
-<form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate> 
+<form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate>
+    <?= csrf_field() ?> 
         <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
         <input type="hidden" name="is_draft" id="is_draft" value="0">
 

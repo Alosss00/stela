@@ -296,6 +296,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                     <td class="text-end">
                                         <?php if ($s === 'draft'): ?>
                                         <form method="POST" style="display:inline;">
+    <?= csrf_field() ?>
                                             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
                                             <input type="hidden" name="action" value="submit">
                                             <input type="hidden" name="id" value="<?php echo $appt['id']; ?>">

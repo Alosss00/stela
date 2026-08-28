@@ -63,6 +63,10 @@ $error = '';
 
 // Login request handling
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     $csrf_token = $_POST['csrf_token'] ?? '';
     if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
         $error = 'Validasi keamanan (CSRF) gagal. Permintaan ditolak.';
@@ -566,6 +570,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endif; ?>
                 
                 <form method="POST" action="">
+    <?= csrf_field() ?>
                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                     <div class="form-group">

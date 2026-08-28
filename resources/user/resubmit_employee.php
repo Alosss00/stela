@@ -147,6 +147,10 @@ $existing_certifications = $db->query("
 
 // Handle form submission for re-submit
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     
     // 2. VALIDASI CSRF TOKEN
     if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
@@ -544,6 +548,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     <?php endif; ?>
     
     <form method="POST" action="" enctype="multipart/form-data" class="form-container">
+    <?= csrf_field() ?>
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
         <!-- Section 1: Identity & Competency Data -->
         <div class="form-section">

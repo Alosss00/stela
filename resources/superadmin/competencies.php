@@ -15,6 +15,10 @@ $error_msg = '';
 
 // Handle POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     $action = $_POST['action'] ?? '';
     try {
         if ($action === 'create' && hasPermission('competency.create')) {
@@ -159,6 +163,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="create">
                 <div class="modal-header"><h5 class="modal-title">Add Competency</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body">
@@ -188,6 +193,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="id" id="edit_id">
                 <div class="modal-header"><h5 class="modal-title">Edit Competency</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
@@ -218,6 +224,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="id" id="del_id">
                 <div class="modal-header"><h5 class="modal-title text-danger">Confirm Delete</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>

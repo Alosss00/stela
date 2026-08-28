@@ -29,6 +29,10 @@ if ($check_sub_table && $check_sub_table->num_rows > 0) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     // CSRF token validation
     if (!isset($_POST['csrf_token']) || $_POST['csrf_token'] !== $_SESSION['csrf_token']) {
         die('CSRF token mismatch');
@@ -310,6 +314,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
             <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
             
             <input type="hidden" name="action" value="add">
@@ -389,6 +394,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
             <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
             
             <input type="hidden" name="action" value="edit">

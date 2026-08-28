@@ -29,6 +29,10 @@ if ($competencies_table_exists) {
 
 // Handle form submission to add data
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     if (isset($_POST['action']) && $_POST['action'] == 'add') {
         $employee_code = $db->escapeString($_POST['employee_code']);
         $full_name = $db->escapeString($_POST['full_name']);
@@ -374,6 +378,7 @@ $rejected_resubmit_count = $db->query("
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
         <form method="POST" action="" enctype="multipart/form-data">
+    <?= csrf_field() ?>
             <input type="hidden" name="action" value="add">
             <div class="modal-body">
                 <h4 class="section-title-modal" data-lang="identity-data">Identity Data</h4>

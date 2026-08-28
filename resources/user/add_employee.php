@@ -70,6 +70,10 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas ORDER BY area_n
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     // PERBAIKAN KEAMANAN: Validasi Token CSRF
     // ==========================================
     if (
@@ -413,6 +417,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     <?php endif; ?>
     
     <form method="POST" action="" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate>
+    <?= csrf_field() ?>
         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">
         <input type="hidden" name="is_draft" id="is_draft" value="0">
         <!-- Section 1: Identity & Competency Data -->

@@ -428,7 +428,8 @@ require_once dirname(__DIR__) . '/layouts/header.php';
     </div>
     <?php endif; ?>
     
-<form method="POST" action="?id=<?php echo $draft_id; ?>" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate> 
+<form method="POST" action="?id=<?php echo $draft_id; ?>
+    <?= csrf_field() ?>" enctype="multipart/form-data" class="form-container" id="addEmployeeForm" novalidate> 
         <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
         <input type="hidden" name="is_draft" id="is_draft" value="0">
 

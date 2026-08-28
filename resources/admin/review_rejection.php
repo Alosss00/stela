@@ -24,6 +24,10 @@ $error = '';
 
 // Handle admin decision
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     // 1. Ambil token dari POST dan jalankan validasi CSRF
     $csrf_token = $_POST['csrf_token'] ?? '';
     if (empty($csrf_token) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $csrf_token)) {
@@ -362,6 +366,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 
                         <div class="action-buttons">
                     <form method="POST" class="inline-form" onsubmit="return confirmAccept(this);">
+    <?= csrf_field() ?>
                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                         <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
@@ -373,6 +378,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     </form>
 
                     <form method="POST" class="inline-form" onsubmit="return confirmReject(this);">
+    <?= csrf_field() ?>
                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                         <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
@@ -557,6 +563,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 
                         <div class="action-buttons">
                     <form method="POST" class="inline-form" onsubmit="return confirmAccept(this);">
+    <?= csrf_field() ?>
                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                         <input type="hidden" name="id" value="<?php echo $row['id']; ?>">
@@ -568,6 +575,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     </form>
 
                     <form method="POST" class="inline-form" onsubmit="return confirmReject(this);">
+    <?= csrf_field() ?>
                         <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                         <input type="hidden" name="id" value="<?php echo $row['id']; ?>">

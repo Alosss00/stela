@@ -165,6 +165,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                     </td>
                                     <td class="px-4 text-end">
                                         <form method="POST" class="d-inline" onsubmit="return confirm('Are you sure you want to restore this record?');">
+    <?= csrf_field() ?>
                                             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                                             <input type="hidden" name="action" value="restore">
                                             <input type="hidden" name="table" value="<?= htmlspecialchars($selected_table) ?>">
@@ -174,6 +175,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                             </button>
                                         </form>
                                         <form method="POST" class="d-inline" onsubmit="return confirm('WARNING: This will permanently delete this record and it cannot be recovered. Are you sure?');">
+    <?= csrf_field() ?>
                                             <input type="hidden" name="csrf_token" value="<?= $_SESSION['csrf_token'] ?>">
                                             <input type="hidden" name="action" value="delete_permanent">
                                             <input type="hidden" name="table" value="<?= htmlspecialchars($selected_table) ?>">

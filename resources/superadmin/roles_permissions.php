@@ -188,6 +188,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST" id="addRoleForm">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="create_role">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Create New Role</h5>

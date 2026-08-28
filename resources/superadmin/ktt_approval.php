@@ -23,6 +23,10 @@ $current_user_id = $_SESSION['user_id'];
 $ktt_type = ($current_user_id == 7) ? 'msm' : 'ttn';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     if (isset($_POST['action'])) {
         // Minimal safe handler to avoid parse errors and preserve page load.
         // Detailed processing should be implemented in the API or elsewhere.
@@ -616,6 +620,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
             <span class="close-modal" onclick="closeModal('approvalModal')">&times;</span>
         </div>
         <form method="POST" action="" id="approvalForm">
+    <?= csrf_field() ?>
             <input type="hidden" name="action" id="approval_action">
             <input type="hidden" name="id" id="approval_id">
             <div class="modal-body-approval">

@@ -305,7 +305,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['submit_resubmit'])) {
         </a>
     </div>
 
-<form method="POST" enctype="multipart/form-data" class="form-container">     
+<form method="POST" enctype="multipart/form-data" class="form-container">
+    <?= csrf_field() ?>     
 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token']; ?>">    
     <div class="form-section">
             <div class="section-header">

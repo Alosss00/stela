@@ -71,6 +71,10 @@ function generateAppointmentNumber($db, $employee_id, $appointment_date) {
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     // --- IMPLEMENTASI ANTI-CSRF ---
     // Validasi apakah token CSRF ada dan cocok dengan token di session
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
@@ -813,6 +817,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                     if (status === 'draft') {
                         btns += `<a href="../../exports/print_appointment.php?id=${id}" target="_blank" class="btn-action-appt edit-btn" title="Modify Letter"><i class="fas fa-edit"></i></a>`;
                         btns += `<form method="POST" style="display:inline;">
+    <?= csrf_field() ?>
                             <input type="hidden" name="csrf_token" value="${csrfToken}">
                             <input type="hidden" name="action" value="submit">
                             <input type="hidden" name="id" value="${id}">
@@ -883,6 +888,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                 <span class="close" onclick="closeModal('editModal')">&times;</span>
             </div>
             <form method="POST" action="">
+    <?= csrf_field() ?>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <input type="hidden" name="action" value="update_content">
                 <input type="hidden" name="id" id="editAppointmentId">
@@ -938,6 +944,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                 <span class="close" onclick="closeModal('addModal')">&times;</span>
             </div>
             <form method="POST" action="">
+    <?= csrf_field() ?>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <input type="hidden" name="action" value="add">
                 <div class="modal-body-appt">
@@ -1265,6 +1272,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
 
                 <!-- Admin Action Form -->
                 <form method="POST" action="" id="reviewActionForm">
+    <?= csrf_field() ?>
                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                     <input type="hidden" name="action" value="admin_review">
                     <input type="hidden" name="id" id="reviewActionAppointmentId">
@@ -1298,6 +1306,7 @@ $rejected_by_ktt_count = $rejected_by_ktt->num_rows;
                 <span class="close" onclick="closeModal('adminReviewModal')">&times;</span>
             </div>
             <form method="POST" action="" id="adminReviewForm">
+    <?= csrf_field() ?>
                 <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                 <input type="hidden" name="action" value="admin_review">
                 <input type="hidden" name="id" id="reviewAppointmentId">

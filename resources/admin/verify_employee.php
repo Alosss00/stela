@@ -834,6 +834,7 @@ if (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') {
             <div class="section verification-section">
                 <h4 data-lang="final-data-verification">Final Data Verification</h4>
                 <form method="POST" id="verificationForm">
+    <?= csrf_field() ?>
                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
                     <input type="hidden" name="action" value="verify_employee">
                     

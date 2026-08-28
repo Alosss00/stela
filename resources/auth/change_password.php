@@ -106,6 +106,7 @@ if ($_SESSION['role'] === 'superadmin') {
         </div>
         <div class="card-body">
             <form method="POST" action="" class="password-form">
+    <?= csrf_field() ?>
     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
     <input type="hidden" name="change_password" value="1">

@@ -17,6 +17,10 @@ $error_msg = '';
 
 // Handle POST Actions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     $action = $_POST['action'] ?? '';
     
     try {
@@ -321,6 +325,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="create">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Add New User</h5>
@@ -397,6 +402,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <form method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="update">
                 <input type="hidden" name="user_id" id="edit_user_id">
                 <div class="modal-header">
@@ -465,6 +471,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="reset_password">
                 <input type="hidden" name="user_id" id="reset_user_id">
                 <div class="modal-header">
@@ -496,6 +503,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="delete">
                 <input type="hidden" name="user_id" id="delete_user_id">
                 <div class="modal-header">

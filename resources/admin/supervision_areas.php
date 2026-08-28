@@ -25,6 +25,10 @@ $error = '';
 
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     // 1. Validasi Anti-CSRF
     // Pastikan session sudah dimulai (session_start() di awal file)
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
@@ -254,6 +258,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                                         </button>
                                         
                                         <form method="POST" style="display:inline;" onsubmit="return confirm(window.getLanguageText('confirm-change-status'));">
+    <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="toggle_status">
                                             <input type="hidden" name="id" value="<?php echo $area['id']; ?>">
                                             <input type="hidden" name="current_status" value="<?php echo $area['is_active']; ?>">
@@ -264,6 +269,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                                         </form>
                                         
                                         <form method="POST" style="display:inline;" onsubmit="return confirm(window.getLanguageText('confirm-delete-area-cannot-undo'));">
+    <?= csrf_field() ?>
                                             <input type="hidden" name="action" value="delete">
                                             <input type="hidden" name="id" value="<?php echo $area['id']; ?>">
                                             <button type="submit" class="btn-action-sa btn-delete" title="Delete" data-lang-title="delete">
@@ -295,6 +301,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
             <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
             
             <input type="hidden" name="action" value="add">
@@ -332,6 +339,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
             <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
             
             <input type="hidden" name="action" value="edit">

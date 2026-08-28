@@ -37,6 +37,10 @@ if ($competencies_table_exists) {
 
 // Handle form submission to add data
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     // --- IMPLEMENTASI ANTI-CSRF ---
     if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         http_response_code(403);
@@ -747,6 +751,7 @@ $companies = $db->query("
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
             <form method="POST" action="" enctype="multipart/form-data">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
             <input type="hidden" name="action" value="add">
             <div class="modal-body">

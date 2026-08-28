@@ -140,6 +140,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="add">
                 <div class="modal-header">
                     <h5 class="modal-title fw-bold">Add New Company</h5>
@@ -165,6 +166,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
     <div class="modal-dialog">
         <div class="modal-content">
             <form method="POST">
+    <?= csrf_field() ?>
                 <input type="hidden" name="action" value="rename">
                 <input type="hidden" name="old_name" id="old_name">
                 <div class="modal-header">

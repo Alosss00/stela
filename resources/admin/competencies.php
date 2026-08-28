@@ -222,6 +222,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
         <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
             <input type="hidden" name="action" value="add">
             <div class="modal-body">
@@ -259,6 +260,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
         <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id" id="edit_id">

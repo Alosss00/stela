@@ -12,6 +12,10 @@ $message = '';
 $error = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     if (isset($_POST['action'])) {
         if ($_POST['action'] === 'setup_indices') {
             $res = $es->setupIndices();
@@ -132,6 +136,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     
                     <div class="d-grid gap-3">
                         <form method="POST" onsubmit="return confirm('Setup and update index mappings? This is safe to run anytime.');">
+    <?= csrf_field() ?>
                             <input type="hidden" name="action" value="setup_indices">
                             <button type="submit" class="btn btn-outline-primary w-100 text-start d-flex align-items-center justify-content-between p-3" <?= !$isEnabled ? 'disabled' : '' ?>>
                                 <div>
@@ -143,6 +148,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                         </form>
 
                         <form method="POST" onsubmit="return confirm('This will bulk index ALL employee records to Elasticsearch. Proceed?');">
+    <?= csrf_field() ?>
                             <input type="hidden" name="action" value="sync_employees">
                             <button type="submit" class="btn btn-outline-success w-100 text-start d-flex align-items-center justify-content-between p-3" <?= !$isEnabled ? 'disabled' : '' ?>>
                                 <div>
@@ -154,6 +160,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                         </form>
 
                         <form method="POST" onsubmit="return confirm('This will bulk index ALL appointment records to Elasticsearch. Proceed?');">
+    <?= csrf_field() ?>
                             <input type="hidden" name="action" value="sync_appointments">
                             <button type="submit" class="btn btn-outline-info w-100 text-start d-flex align-items-center justify-content-between p-3" <?= !$isEnabled ? 'disabled' : '' ?>>
                                 <div>

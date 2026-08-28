@@ -20,6 +20,10 @@ $error = '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     // Validasi token Anti-CSRF secara global untuk setiap request POST
     if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
         http_response_code(403); // Set status HTTP ke 403 Forbidden
@@ -177,6 +181,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
             <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
             <input type="hidden" name="action" value="add">
             <div class="modal-body">
@@ -205,6 +210,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
             <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? htmlspecialchars($_SESSION['csrf_token']) : ''; ?>">
             <input type="hidden" name="action" value="edit">
             <input type="hidden" name="id" id="edit_id">

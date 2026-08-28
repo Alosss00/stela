@@ -19,6 +19,10 @@ $company_name = $_SESSION['company_name'] ?? '';
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!verify_csrf_token()) {
+        die("CSRF Token Invalid. Silakan muat ulang halaman.");
+    }
+
     
     // --- 1. VALIDASI TOKEN ANTI-CSRF GLOBAL UNTUK SEMUA AKSI POST ---
     if (!isset($_POST['csrf_token']) || !isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
@@ -209,6 +213,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('addModal')">&times;</span>
         </div>
         <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
             
             <input type="hidden" name="action" value="add_certification">
@@ -250,6 +255,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('editModal')">&times;</span>
         </div>
         <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
             
             <input type="hidden" name="action" value="edit_certification">
@@ -292,6 +298,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             <span class="close" onclick="closeModal('deleteModal')">&times;</span>
         </div>
         <form method="POST" action="">
+    <?= csrf_field() ?>
             <input type="hidden" name="csrf_token" value="<?php echo isset($_SESSION['csrf_token']) ? $_SESSION['csrf_token'] : ''; ?>">
             
             <input type="hidden" name="action" value="delete_certification">
