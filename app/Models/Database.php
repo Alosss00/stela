@@ -133,6 +133,18 @@ class Database {
         return $this->query($sql, $whereParams);
     }
     
+    public function beginTransaction() {
+        return $this->conn->begin_transaction();
+    }
+    
+    public function commit() {
+        return $this->conn->commit();
+    }
+    
+    public function rollback() {
+        return $this->conn->rollback();
+    }
+    
     public function __destruct() {
         if ($this->conn) {
             $this->conn->close();

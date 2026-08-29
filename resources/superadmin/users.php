@@ -367,11 +367,11 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Password *</label>
-                            <input type="password" name="password" class="form-control" required>
+                            <input type="password" name="password" class="form-control" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number." required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Confirm Password *</label>
-                            <input type="password" name="confirm_password" class="form-control" required>
+                            <input type="password" name="confirm_password" class="form-control" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number." required>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Company Name</label>
@@ -489,11 +489,11 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                     <p>Reset password for user: <strong id="reset_username"></strong></p>
                     <div class="mb-3">
                         <label class="form-label">New Password</label>
-                        <input type="password" name="new_password" class="form-control" required>
+                        <input type="password" name="new_password" class="form-control" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number." required>
                     </div>
                     <div class="mb-3">
                         <label class="form-label">Confirm New Password</label>
-                        <input type="password" name="confirm_password" class="form-control" required>
+                        <input type="password" name="confirm_password" class="form-control" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}" title="Password must be at least 8 characters long and contain at least one uppercase letter, one lowercase letter, and one number." required>
                     </div>
                 </div>
                 <div class="modal-footer">

@@ -2,6 +2,13 @@
 require_once dirname(__DIR__) . '/bootstrap/app.php';
 // Included via bootstrap/app.php
 
+if (session_status() == PHP_SESSION_NONE) { session_start(); }
+if (!isset($_SESSION['user_id'])) {
+    http_response_code(401);
+    echo json_encode(['error' => 'Unauthorized']);
+    exit;
+}
+
 header('Content-Type: application/json');
 
 // Check if employee_id is provided

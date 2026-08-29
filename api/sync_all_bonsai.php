@@ -10,8 +10,19 @@ header('Content-Type: application/json; charset=utf-8');
 
 try {
     require_once dirname(__DIR__) . '/config/app.php';
+    require_once dirname(__DIR__) . '/app/Helpers/auth_helper.php';
     require_once dirname(__DIR__) . '/app/Models/Database.php';
     require_once dirname(__DIR__) . '/app/Services/ElasticsearchService.php';
+
+    // Only allow superadmin to trigger full sync
+    if (!isset($_SESSION['role']) || $_SESSION['role'] !== 'superadmin') {
+        http_response_code(403);
+        echo json_encode([
+            'status' => 'error',
+            'message' => 'Unauthorized access'
+        ]);
+        exit();
+    }
 
     $db = new Database();
     $es = ElasticsearchService::getInstance();

@@ -32,524 +32,535 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         http_response_code(403);
         die('Keamanan: Token CSRF tidak valid atau tidak ditemukan.');
     }
-    if ($_POST['action'] == 'verify_cert') {
-        $cert_id = intval($_POST['cert_id']);
-        $status = $_POST['status']; // verified or rejected
-        $notes = $db->escapeString($_POST['notes']);
-        $verified_by = $_SESSION['user_id'];
-        
-        $cert_check = $db->query("SELECT verification_status FROM employee_certifications WHERE id = ?", [$cert_id])->fetch_assoc();
-        if ($cert_check['verification_status'] !== 'pending') {
-            $error = "Certification verification has already been processed.";
-        }
-        
-        if (!$error) {
-            $sql = "UPDATE employee_certifications SET 
-                    verification_status = '$status',
+    
+    $db->beginTransaction();
+    try {
+        if ($_POST['action'] == 'verify_cert') {
+            $cert_id = intval($_POST['cert_id']);
+            $status = $_POST['status']; // verified or rejected
+            $notes = $db->escapeString($_POST['notes']);
+            $verified_by = $_SESSION['user_id'];
+            
+            $cert_check = $db->query("SELECT verification_status FROM employee_certifications WHERE id = ?", [$cert_id])->fetch_assoc();
+            if ($cert_check['verification_status'] !== 'pending') {
+                $error = "Certification verification has already been processed.";
+            }
+            
+            if (!$error) {
+                $sql = "UPDATE employee_certifications SET 
+                        verification_status = '$status',
+                        verified_by = $verified_by,
+                        verified_date = NOW()
+                        WHERE id = $cert_id";
+                
+                if ($db->query($sql)) {
+                    $message = stela_t('certification-verified');
+                }
+            }
+        } elseif ($_POST['action'] == 'verify_employee') {
+            $status = $_POST['employee_status']; // verified or rejected
+            $notes = $db->escapeString($_POST['employee_notes']);
+            $verified_by = $_SESSION['user_id'];
+            
+            $employee_check = $db->query("SELECT verification_status FROM employees WHERE id = ?", [$employee_id])->fetch_assoc();
+            if ($employee_check['verification_status'] !== 'pending') {
+                $error = "Employee verification has already been processed.";
+            }
+            
+            // Auto-verify all pending certifications when employee is verified
+            if (!$error && $status == 'verified') {
+                // Verify all pending certifications automatically
+                $db->query("UPDATE employee_certifications SET
+                    verification_status = 'verified',
                     verified_by = $verified_by,
                     verified_date = NOW()
-                    WHERE id = $cert_id";
-            
-            if ($db->query($sql)) {
-                $message = stela_t('certification-verified');
+                WHERE employee_id = ?
+                AND verification_status = 'pending'", [$employee_id]);
             }
-        }
-    } elseif ($_POST['action'] == 'verify_employee') {
-        $status = $_POST['employee_status']; // verified or rejected
-        $notes = $db->escapeString($_POST['employee_notes']);
-        $verified_by = $_SESSION['user_id'];
-        
-        $employee_check = $db->query("SELECT verification_status FROM employees WHERE id = ?", [$employee_id])->fetch_assoc();
-        if ($employee_check['verification_status'] !== 'pending') {
-            $error = "Employee verification has already been processed.";
-        }
-        
-        // Auto-verify all pending certifications when employee is verified
-        if (!$error && $status == 'verified') {
-            // Verify all pending certifications automatically
-            $db->query("UPDATE employee_certifications SET
-                verification_status = 'verified',
-                verified_by = $verified_by,
-                verified_date = NOW()
-            WHERE employee_id = ?
-            AND verification_status = 'pending'", [$employee_id]);
-        }
-        
-        if (!$error) {
-            $sql = "UPDATE employees SET 
-                    verification_status = '$status',
-                    verified_by = $verified_by,
-                    verified_date = NOW(),
-                    verification_notes = '$notes'
-                    WHERE id = $employee_id";
             
-            if ($db->query($sql)) {
-                // Log to Workflow History
-                try {
-                    require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
-                    $audit = new AuditService();
-                    $action_name = ($status == 'verified') ? 'Verified' : 'Rejected by Admin';
-                    $audit->log($employee_id, null, $action_name, 'pending', $status, $notes);
-                } catch (Exception $e) {
-                    error_log("Audit error: " . $e->getMessage());
-                }
+            if (!$error) {
+                $sql = "UPDATE employees SET 
+                        verification_status = '$status',
+                        verified_by = $verified_by,
+                        verified_date = NOW(),
+                        verification_notes = '$notes'
+                        WHERE id = $employee_id";
+                
+                if ($db->query($sql)) {
+                    // Log to Workflow History
+                    try {
+                        require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
+                        $audit = new AuditService();
+                        $action_name = ($status == 'verified') ? 'Verified' : 'Rejected by Admin';
+                        $audit->log($employee_id, null, $action_name, 'pending', $status, $notes);
+                    } catch (Exception $e) {
+                        error_log("Audit error: " . $e->getMessage());
+                    }
 
-                if ($status == 'verified') {
-                    // Auto-generate surat penunjukan
-                    $position_id = isset($_SESSION['temp_position_' . $employee_id]) ? $_SESSION['temp_position_' . $employee_id] : 0;
-                    
-                    // Cek apakah sudah ada appointment untuk employee ini
-                    $existing_appointment = $db->query("
-                        SELECT id, appointment_number, status, 
-                               requires_ktt_msm_review, requires_ktt_ttn_review,
-                               last_rejected_by_ktt, resubmit_count
-                        FROM appointments 
-                        WHERE employee_id = ?
-                        ORDER BY id DESC 
-                        LIMIT 1
-                    ", [$employee_id])->fetch_assoc();
-                    
-                    $appointment_id = null; // Variable untuk menyimpan ID appointment
-
-                    $resubmit_check = $db->query("
-                        SELECT resubmit_type
-                        FROM employees
-                        WHERE id = ?
-                    ", [$employee_id])->fetch_assoc();
-
-                    $is_certificate_resubmit =
-                        (($resubmit_check['resubmit_type'] ?? '') === 'certificate');
-
-                    if (!$existing_appointment) {
-                        // Create new appointment for first-time verification
-                        // Get employee data for appointment number generation
-                        $emp_data = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = ?", [$employee_id])->fetch_assoc();
-                        $competency_type = $emp_data['competency_type'];
-                        $ruang_lingkup = $emp_data['ruang_lingkup'];
+                    if ($status == 'verified') {
+                        // Auto-generate surat penunjukan
+                        $position_id = isset($_SESSION['temp_position_' . $employee_id]) ? $_SESSION['temp_position_' . $employee_id] : 0;
                         
-                        // Map competency type to code
-                        $type_codes = [
-                            'pengawas_operasional' => 'PO',
-                            'pengawas_teknis' => 'PT',
-                            'tenaga_teknis' => 'TT'
-                        ];
-                        
-                        // Map ruang_lingkup to code
-                        $scope_code = 'TEST';
-                        $is_msm = (stripos($ruang_lingkup, 'MSM') !== false || stripos($ruang_lingkup, 'Meares Soputan Mining') !== false);
-                        $is_ttn = (stripos($ruang_lingkup, 'TTN') !== false || stripos($ruang_lingkup, 'Tambang Tondano Nusajaya') !== false);
-                        
-                        if ($is_msm && $is_ttn) {
-                            $scope_code = 'MSM/TTN';
-                        } elseif ($is_msm) {
-                            $scope_code = 'MSM';
-                        } elseif ($is_ttn) {
-                            $scope_code = 'TTN';
-                        }
-                        
-                        $comp_normalized = strtolower(str_replace(' ', '_', trim($competency_type)));
-                        $type_code = $type_codes[$comp_normalized] ?? 'TEST';
-                        
-                        // Get month and year - WITH LEADING ZERO
-                        $month = date('m'); // 01-12 with leading zero
-                        $year = date('Y');
-                        $today = date('Y-m-d');
-                        
-                        // Get last number for this combination
-                        $last_appointment = $db->query("
-                            SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(appointment_number, '/', 1) AS UNSIGNED)), 0) as last_num
+                        // Cek apakah sudah ada appointment untuk employee ini
+                        $existing_appointment = $db->query("
+                            SELECT id, appointment_number, status, 
+                                   requires_ktt_msm_review, requires_ktt_ttn_review,
+                                   last_rejected_by_ktt, resubmit_count
                             FROM appointments 
-                            WHERE appointment_number LIKE '%/$type_code/$scope_code/$month/$year'
-                        ")->fetch_assoc();
-                        
-                        $next_num = ($last_appointment['last_num'] ?? 0) + 1;
-                        $appointment_number = sprintf('%02d/%s/%s/%s/%s', $next_num, $type_code, $scope_code, $month, $year);
-                        
-                        // Jika tidak ada position_id, gunakan position pertama yang tersedia
-                        if ($position_id <= 0) {
-                            $default_position = $db->query("SELECT id FROM positions WHERE deleted_at IS NULL AND is_active = 1 LIMIT 1")->fetch_assoc();
-                            $position_id = $default_position['id'] ?? 1;
-                        }
-                        
-                        // Ambil tanggal kadaluarsa dari sertifikat karyawan (yang paling pendek/terdekat)
-                        $cert_expiry = $db->query("
-                            SELECT MIN(expiry_date) as earliest_expiry 
-                            FROM employee_certifications 
-                            WHERE employee_id = ? 
-                            AND verification_status = 'verified'
-                            AND expiry_date IS NOT NULL
+                            WHERE employee_id = ?
+                            ORDER BY id DESC 
+                            LIMIT 1
                         ", [$employee_id])->fetch_assoc();
                         
-                        $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
-                        
-                        // Nonaktifkan appointment lama
-                            $db->query("
-                                UPDATE appointments
-                                SET
-                                    status='superseded',
-                                    updated_at=NOW()
-                                WHERE employee_id=?
-                                AND status IN ('draft','approved')
-                            ", [$employee_id]);
+                        $appointment_id = null; // Variable untuk menyimpan ID appointment
 
-                            if ($expiry_date) {
-                            $sql_appointment = "INSERT INTO appointments 
-                                              (appointment_number, employee_id, position_id, appointment_date, 
-                                               effective_date, expiry_date, status, auto_generated, created_by, notes) 
-                                              VALUES ('$appointment_number', $employee_id, $position_id, '$today', 
-                                                      '$today', '$expiry_date', 'draft', 1, $verified_by, 'Auto-generated setelah verifikasi data tenaga kerja')";
-                        } else {
-                            $sql_appointment = "INSERT INTO appointments 
-                                              (appointment_number, employee_id, position_id, appointment_date, 
-                                               effective_date, status, auto_generated, created_by, notes) 
-                                              VALUES ('$appointment_number', $employee_id, $position_id, '$today', 
-                                                      '$today', 'draft', 1, $verified_by, 'Auto-generated setelah verifikasi data tenaga kerja')";
-                        }
-                        
-                        if ($db->query($sql_appointment)) {
-                            $appointment_id = $db->lastInsertId();
-                            
-                            // Update appointment_number in employees table for tracking
-                            $db->query("UPDATE employees SET appointment_number = '$appointment_number' WHERE id = ?", [$employee_id]);
-                            $_SESSION['success_message'] = stela_t('verified-draft-created', ['appointment_number' => $appointment_number]);
-                        } else {
-                            $_SESSION['error_message'] = stela_t('verified-create-appointment-failed');
-                        }
-                    } elseif ($is_certificate_resubmit) {
-
-                        // ================================
-                        // CREATE NEW APPOINTMENT
-                        // ================================
-
-                        $emp_data = $db->query("
-                            SELECT competency_type, ruang_lingkup
+                        $resubmit_check = $db->query("
+                            SELECT resubmit_type
                             FROM employees
                             WHERE id = ?
                         ", [$employee_id])->fetch_assoc();
 
-                        $competency_type = $emp_data['competency_type'];
-                        $ruang_lingkup   = $emp_data['ruang_lingkup'];
+                        $is_certificate_resubmit =
+                            (($resubmit_check['resubmit_type'] ?? '') === 'certificate');
 
-                        $type_codes = [
-                            'pengawas_operasional' => 'PO',
-                            'pengawas_teknis'      => 'PT',
-                            'tenaga_teknis'        => 'TT'
-                        ];
+                        if (!$existing_appointment) {
+                            // Create new appointment for first-time verification
+                            // Get employee data for appointment number generation
+                            $emp_data = $db->query("SELECT competency_type, ruang_lingkup FROM employees WHERE deleted_at IS NULL AND id = ?", [$employee_id])->fetch_assoc();
+                            $competency_type = $emp_data['competency_type'];
+                            $ruang_lingkup = $emp_data['ruang_lingkup'];
+                            
+                            // Map competency type to code
+                            $type_codes = [
+                                'pengawas_operasional' => 'PO',
+                                'pengawas_teknis' => 'PT',
+                                'tenaga_teknis' => 'TT'
+                            ];
+                            
+                            // Map ruang_lingkup to code
+                            $scope_code = 'TEST';
+                            $is_msm = (stripos($ruang_lingkup, 'MSM') !== false || stripos($ruang_lingkup, 'Meares Soputan Mining') !== false);
+                            $is_ttn = (stripos($ruang_lingkup, 'TTN') !== false || stripos($ruang_lingkup, 'Tambang Tondano Nusajaya') !== false);
+                            
+                            if ($is_msm && $is_ttn) {
+                                $scope_code = 'MSM/TTN';
+                            } elseif ($is_msm) {
+                                $scope_code = 'MSM';
+                            } elseif ($is_ttn) {
+                                $scope_code = 'TTN';
+                            }
+                            
+                            $comp_normalized = strtolower(str_replace(' ', '_', trim($competency_type)));
+                            $type_code = $type_codes[$comp_normalized] ?? 'TEST';
+                            
+                            // Get month and year - WITH LEADING ZERO
+                            $month = date('m'); // 01-12 with leading zero
+                            $year = date('Y');
+                            $today = date('Y-m-d');
+                            
+                            // Get last number for this combination
+                            $last_appointment = $db->query("
+                                SELECT COALESCE(MAX(CAST(SUBSTRING_INDEX(appointment_number, '/', 1) AS UNSIGNED)), 0) as last_num
+                                FROM appointments 
+                                WHERE appointment_number LIKE '%/$type_code/$scope_code/$month/$year'
+                            ")->fetch_assoc();
+                            
+                            $next_num = ($last_appointment['last_num'] ?? 0) + 1;
+                            $appointment_number = sprintf('%02d/%s/%s/%s/%s', $next_num, $type_code, $scope_code, $month, $year);
+                            
+                            // Jika tidak ada position_id, gunakan position pertama yang tersedia
+                            if ($position_id <= 0) {
+                                $default_position = $db->query("SELECT id FROM positions WHERE deleted_at IS NULL AND is_active = 1 LIMIT 1")->fetch_assoc();
+                                $position_id = $default_position['id'] ?? 1;
+                            }
+                            
+                            // Ambil tanggal kadaluarsa dari sertifikat karyawan (yang paling pendek/terdekat)
+                            $cert_expiry = $db->query("
+                                SELECT MIN(expiry_date) as earliest_expiry 
+                                FROM employee_certifications 
+                                WHERE employee_id = ? 
+                                AND verification_status = 'verified'
+                                AND expiry_date IS NOT NULL
+                            ", [$employee_id])->fetch_assoc();
+                            
+                            $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
+                            
+                            // Nonaktifkan appointment lama
+                                $db->query("
+                                    UPDATE appointments
+                                    SET
+                                        status='superseded',
+                                        updated_at=NOW()
+                                    WHERE employee_id=?
+                                    AND status IN ('draft','approved')
+                                ", [$employee_id]);
 
-                        $scope_code = 'UNK';
+                                if ($expiry_date) {
+                                $sql_appointment = "INSERT INTO appointments 
+                                                  (appointment_number, employee_id, position_id, appointment_date, 
+                                                   effective_date, expiry_date, status, auto_generated, created_by, notes) 
+                                                  VALUES ('$appointment_number', $employee_id, $position_id, '$today', 
+                                                          '$today', '$expiry_date', 'draft', 1, $verified_by, 'Auto-generated setelah verifikasi data tenaga kerja')";
+                            } else {
+                                $sql_appointment = "INSERT INTO appointments 
+                                                  (appointment_number, employee_id, position_id, appointment_date, 
+                                                   effective_date, status, auto_generated, created_by, notes) 
+                                                  VALUES ('$appointment_number', $employee_id, $position_id, '$today', 
+                                                          '$today', 'draft', 1, $verified_by, 'Auto-generated setelah verifikasi data tenaga kerja')";
+                            }
+                            
+                            if ($db->query($sql_appointment)) {
+                                $appointment_id = $db->lastInsertId();
+                                
+                                // Update appointment_number in employees table for tracking
+                                $db->query("UPDATE employees SET appointment_number = '$appointment_number' WHERE id = ?", [$employee_id]);
+                                $_SESSION['success_message'] = stela_t('verified-draft-created', ['appointment_number' => $appointment_number]);
+                            } else {
+                                $_SESSION['error_message'] = stela_t('verified-create-appointment-failed');
+                            }
+                        } elseif ($is_certificate_resubmit) {
 
-                        if (
-                            stripos($ruang_lingkup, 'MSM') !== false &&
-                            stripos($ruang_lingkup, 'TTN') !== false
-                        ) {
-                            $scope_code = 'MSM/TTN';
-                        } elseif (stripos($ruang_lingkup, 'MSM') !== false) {
-                            $scope_code = 'MSM';
-                        } elseif (stripos($ruang_lingkup, 'TTN') !== false) {
-                            $scope_code = 'TTN';
-                        }
+                            // ================================
+                            // CREATE NEW APPOINTMENT
+                            // ================================
 
-                        $type_code = $type_codes[$competency_type] ?? 'UNK';
+                            $emp_data = $db->query("
+                                SELECT competency_type, ruang_lingkup
+                                FROM employees
+                                WHERE id = ?
+                            ", [$employee_id])->fetch_assoc();
 
-                        $month = date('m');
-                        $year  = date('Y');
-                        $today = date('Y-m-d');
+                            $competency_type = $emp_data['competency_type'];
+                            $ruang_lingkup   = $emp_data['ruang_lingkup'];
 
-                        $last_appointment = $db->query("
-                            SELECT
-                                COALESCE(
-                                    MAX(
-                                        CAST(
-                                            SUBSTRING_INDEX(appointment_number,'/',1)
-                                        AS UNSIGNED)
-                                    ),
-                                    0
-                                ) AS last_num
-                            FROM appointments
-                            WHERE appointment_number LIKE '%/$type_code/$scope_code/$month/$year'
-                        ")->fetch_assoc();
+                            $type_codes = [
+                                'pengawas_operasional' => 'PO',
+                                'pengawas_teknis'      => 'PT',
+                                'tenaga_teknis'        => 'TT'
+                            ];
 
-                        $next_num = ($last_appointment['last_num'] ?? 0) + 1;
+                            $scope_code = 'UNK';
 
-                        $appointment_number = sprintf(
-                            '%02d/%s/%s/%s/%s',
-                            $next_num,
-                            $type_code,
-                            $scope_code,
-                            $month,
-                            $year
-                        );
+                            if (
+                                stripos($ruang_lingkup, 'MSM') !== false &&
+                                stripos($ruang_lingkup, 'TTN') !== false
+                            ) {
+                                $scope_code = 'MSM/TTN';
+                            } elseif (stripos($ruang_lingkup, 'MSM') !== false) {
+                                $scope_code = 'MSM';
+                            } elseif (stripos($ruang_lingkup, 'TTN') !== false) {
+                                $scope_code = 'TTN';
+                            }
 
-                        if ($position_id <= 0) {
-                            $default_position = $db->query("
-                                SELECT id
-                                FROM positions
-                                WHERE is_active=1
-                                LIMIT 1
+                            $type_code = $type_codes[$competency_type] ?? 'UNK';
+
+                            $month = date('m');
+                            $year  = date('Y');
+                            $today = date('Y-m-d');
+
+                            $last_appointment = $db->query("
+                                SELECT
+                                    COALESCE(
+                                        MAX(
+                                            CAST(
+                                                SUBSTRING_INDEX(appointment_number,'/',1)
+                                            AS UNSIGNED)
+                                        ),
+                                        0
+                                    ) AS last_num
+                                FROM appointments
+                                WHERE appointment_number LIKE '%/$type_code/$scope_code/$month/$year'
                             ")->fetch_assoc();
 
-                            $position_id = $default_position['id'] ?? 1;
-                        }
+                            $next_num = ($last_appointment['last_num'] ?? 0) + 1;
 
-                        $cert_expiry = $db->query("
-                            SELECT MIN(expiry_date) earliest_expiry
-                            FROM employee_certifications
-                            WHERE employee_id=?
-                            AND verification_status='verified'
-                        ", [$employee_id])->fetch_assoc();
+                            $appointment_number = sprintf(
+                                '%02d/%s/%s/%s/%s',
+                                $next_num,
+                                $type_code,
+                                $scope_code,
+                                $month,
+                                $year
+                            );
 
-                        $expiry_date = $cert_expiry['earliest_expiry'];
-                        $new_certificate = $db->query("
-                            SELECT id
-                            FROM employee_certifications
-                            WHERE employee_id = ?
-                            AND verification_status='verified'
-                            ORDER BY verified_date DESC, id DESC
-                            LIMIT 1
-                        ", [$employee_id])->fetch_assoc();
+                            if ($position_id <= 0) {
+                                $default_position = $db->query("
+                                    SELECT id
+                                    FROM positions
+                                    WHERE is_active=1
+                                    LIMIT 1
+                                ").fetch_assoc();
 
-                        $new_certificate_id = (int)$new_certificate['id'];
+                                $position_id = $default_position['id'] ?? 1;
+                            }
 
-                        if ($expiry_date) {
+                            $cert_expiry = $db->query("
+                                SELECT MIN(expiry_date) earliest_expiry
+                                FROM employee_certifications
+                                WHERE employee_id=?
+                                AND verification_status='verified'
+                            ", [$employee_id])->fetch_assoc();
 
-                            $sql = "
-                            INSERT INTO appointments
-                            (
-                                appointment_number,
-                                employee_id,
-                                position_id,
-                                appointment_date,
-                                effective_date,
-                                expiry_date,
-                                status,
-                                auto_generated,
-                                created_by,
-                                notes
-                            )
-                            VALUES
-                            (
-                                '$appointment_number',
-                                $employee_id,
-                                $position_id,
-                                '$today',
-                                '$today',
-                                '$expiry_date',
-                                'draft',
-                                1,
-                                $verified_by,
-                                'Certificate Resubmission'
-                            )";
+                            $expiry_date = $cert_expiry['earliest_expiry'];
+                            $new_certificate = $db->query("
+                                SELECT id
+                                FROM employee_certifications
+                                WHERE employee_id = ?
+                                AND verification_status='verified'
+                                ORDER BY verified_date DESC, id DESC
+                                LIMIT 1
+                            ", [$employee_id])->fetch_assoc();
 
-                        } else {
+                            $new_certificate_id = (int)$new_certificate['id'];
 
-                            $sql = "
-                            INSERT INTO appointments
-                            (
-                                appointment_number,
-                                employee_id,
-                                position_id,
-                                appointment_date,
-                                effective_date,
-                                status,
-                                auto_generated,
-                                created_by,
-                                notes
-                            )
-                            VALUES
-                            (
-                                '$appointment_number',
-                                $employee_id,
-                                $position_id,
-                                '$today',
-                                '$today',
-                                'draft',
-                                1,
-                                $verified_by,
-                                'Certificate Resubmission'
-                            )";
-
-                        }
-
-                        if ($db->query($sql)) {
-
-                            $appointment_id = $db->lastInsertId();
-
-                            $db->query("
-                                UPDATE employees
-                                SET
-                                    appointment_number='$appointment_number',
-                                    verification_status='verified',
-                                    resubmit_type=NULL
-                                WHERE id=?
-                            ", [$employee_id]);
-
-                            $_SESSION['success_message'] =
-                                "Certificate verified successfully. New Appointment Number : "
-                                . $appointment_number;
-
-                        } else {
-
-                            $_SESSION['error_message'] =
-                                "Failed to create new appointment.";
-
-                        }
-
-                    }
-                                                            
-                    else {
-                        // For existing appointment (re-submit case), update the existing appointment
-                        $existing_number = $existing_appointment['appointment_number'];
-                        $appointment_id = $existing_appointment['id'];
-                        $is_ktt_resubmit = ($existing_appointment['requires_ktt_msm_review'] == 1 || $existing_appointment['requires_ktt_ttn_review'] == 1);
-                        
-                        // Update expiry date from certifications
-                        $cert_expiry = $db->query("
-                            SELECT MIN(expiry_date) as earliest_expiry 
-                            FROM employee_certifications 
-                            WHERE employee_id = ? 
-                            AND verification_status = 'verified'
-                            AND expiry_date IS NOT NULL
-                        ", [$employee_id])->fetch_assoc();
-                        
-                        $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
-                        
-                        if ($is_ktt_resubmit) {
-                            // Ini resubmit dari KTT rejection
-                            // Only reset the KTT(s) who rejected, keep approved KTT intact
-                            $update_parts = [];
                             if ($expiry_date) {
-                                $update_parts[] = "expiry_date = '$expiry_date'";
+
+                                $sql = "
+                                INSERT INTO appointments
+                                (
+                                    appointment_number,
+                                    employee_id,
+                                    position_id,
+                                    appointment_date,
+                                    effective_date,
+                                    expiry_date,
+                                    status,
+                                    auto_generated,
+                                    created_by,
+                                    notes
+                                )
+                                VALUES
+                                (
+                                    '$appointment_number',
+                                    $employee_id,
+                                    $position_id,
+                                    '$today',
+                                    '$today',
+                                    '$expiry_date',
+                                    'draft',
+                                    1,
+                                    $verified_by,
+                                    'Certificate Resubmission'
+                                )";
+
                             } else {
-                                $update_parts[] = "expiry_date = NULL";
-                            }
-                            // Set status to 'draft' so it appears in appointments.php for admin
-                            $update_parts[] = "status = 'draft'";
-                            $update_parts[] = "approved_by = NULL";
-                            $update_parts[] = "approved_date = NULL";
-                            $update_parts[] = "approval_notes = NULL";
-                            $update_parts[] = "last_rejected_by_ktt = NULL";
-                            $update_parts[] = "rejected_by_ktt_user_id = NULL";
-                            $update_parts[] = "updated_at = NOW()";
 
-                            // Only reset KTT statuses for the KTT(s) that need re-review
-                            if ($existing_appointment['requires_ktt_msm_review'] == 1) {
-                                $update_parts[] = "ktt_msm_status = 'pending'";
-                                $update_parts[] = "ktt1_approved_by = NULL";
-                                $update_parts[] = "ktt1_approved_date = NULL";
-                            }
-                            if ($existing_appointment['requires_ktt_ttn_review'] == 1) {
-                                $update_parts[] = "ktt_ttn_status = 'pending'";
-                                $update_parts[] = "ktt2_approved_by = NULL";
-                                $update_parts[] = "ktt2_approved_date = NULL";
-                            }
+                                $sql = "
+                                INSERT INTO appointments
+                                (
+                                    appointment_number,
+                                    employee_id,
+                                    position_id,
+                                    appointment_date,
+                                    effective_date,
+                                    status,
+                                    auto_generated,
+                                    created_by,
+                                    notes
+                                )
+                                VALUES
+                                (
+                                    '$appointment_number',
+                                    $employee_id,
+                                    $position_id,
+                                    '$today',
+                                    '$today',
+                                    'draft',
+                                    1,
+                                    $verified_by,
+                                    'Certificate Resubmission'
+                                )";
 
-                            $db->query("UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $appointment_id");
-
-                            // Delete old KTT approval records only for KTT(s) that need re-review
-                            if ($existing_appointment['requires_ktt_msm_review'] == 1) {
-                                $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 7", [$appointment_id]);
-                            }
-                            if ($existing_appointment['requires_ktt_ttn_review'] == 1) {
-                                $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 8", [$appointment_id]);
                             }
 
-                            $_SESSION['success_message'] = stela_t('verified-existing-ready-ktt', ['existing_number' => $existing_number]);
-                            
-                        } else {
-                            // Ini new appointment atau resubmit biasa (bukan dari KTT rejection)
-                            if ($expiry_date) {
-                                $db->query("UPDATE appointments SET 
-                                           expiry_date = '$expiry_date',
-                                           status = 'draft',
-                                           ktt1_approved_by = NULL,
-                                           ktt1_approved_date = NULL,
-                                           ktt2_approved_by = NULL,
-                                           ktt2_approved_date = NULL,
-                                           approved_by = NULL,
-                                           approved_date = NULL,
-                                           approval_notes = NULL,
-                                           updated_at = NOW()
-                                           WHERE id = ?", [$appointment_id]);
+                            if ($db->query($sql)) {
+
+                                $appointment_id = $db->lastInsertId();
+
+                                $db->query("
+                                    UPDATE employees
+                                    SET
+                                        appointment_number='$appointment_number',
+                                        verification_status='verified',
+                                        resubmit_type=NULL
+                                    WHERE id=?
+                                ", [$employee_id]);
+
+                                $_SESSION['success_message'] =
+                                    "Certificate verified successfully. New Appointment Number : "
+                                    . $appointment_number;
+
                             } else {
-                                $db->query("UPDATE appointments SET 
-                                           status = 'draft',
-                                           ktt1_approved_by = NULL,
-                                           ktt1_approved_date = NULL,
-                                           ktt2_approved_by = NULL,
-                                           ktt2_approved_date = NULL,
-                                           approved_by = NULL,
-                                           approved_date = NULL,
-                                           approval_notes = NULL,
-                                           updated_at = NOW()
-                                           WHERE id = ?", [$appointment_id]);
+
+                                $_SESSION['error_message'] =
+                                    "Failed to create new appointment.";
+
+                            }
+
+                        }
+                                                                
+                        else {
+                            // For existing appointment (re-submit case), update the existing appointment
+                            $existing_number = $existing_appointment['appointment_number'];
+                            $appointment_id = $existing_appointment['id'];
+                            $is_ktt_resubmit = ($existing_appointment['requires_ktt_msm_review'] == 1 || $existing_appointment['requires_ktt_ttn_review'] == 1);
+                            
+                            // Update expiry date from certifications
+                            $cert_expiry = $db->query("
+                                SELECT MIN(expiry_date) as earliest_expiry 
+                                FROM employee_certifications 
+                                WHERE employee_id = ? 
+                                AND verification_status = 'verified'
+                                AND expiry_date IS NOT NULL
+                            ", [$employee_id])->fetch_assoc();
+                            
+                            $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
+                            
+                            if ($is_ktt_resubmit) {
+                                // Ini resubmit dari KTT rejection
+                                // Only reset the KTT(s) who rejected, keep approved KTT intact
+                                $update_parts = [];
+                                if ($expiry_date) {
+                                    $update_parts[] = "expiry_date = '$expiry_date'";
+                                } else {
+                                    $update_parts[] = "expiry_date = NULL";
+                                }
+                                // Set status to 'draft' so it appears in appointments.php for admin
+                                $update_parts[] = "status = 'draft'";
+                                $update_parts[] = "approved_by = NULL";
+                                $update_parts[] = "approved_date = NULL";
+                                $update_parts[] = "approval_notes = NULL";
+                                $update_parts[] = "last_rejected_by_ktt = NULL";
+                                $update_parts[] = "rejected_by_ktt_user_id = NULL";
+                                $update_parts[] = "updated_at = NOW()";
+
+                                // Only reset KTT statuses for the KTT(s) that need re-review
+                                if ($existing_appointment['requires_ktt_msm_review'] == 1) {
+                                    $update_parts[] = "ktt_msm_status = 'pending'";
+                                    $update_parts[] = "ktt1_approved_by = NULL";
+                                    $update_parts[] = "ktt1_approved_date = NULL";
+                                }
+                                if ($existing_appointment['requires_ktt_ttn_review'] == 1) {
+                                    $update_parts[] = "ktt_ttn_status = 'pending'";
+                                    $update_parts[] = "ktt2_approved_by = NULL";
+                                    $update_parts[] = "ktt2_approved_date = NULL";
+                                }
+
+                                $db->query("UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $appointment_id");
+
+                                // Delete old KTT approval records only for KTT(s) that need re-review
+                                if ($existing_appointment['requires_ktt_msm_review'] == 1) {
+                                    $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 7", [$appointment_id]);
+                                }
+                                if ($existing_appointment['requires_ktt_ttn_review'] == 1) {
+                                    $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 8", [$appointment_id]);
+                                }
+
+                                $_SESSION['success_message'] = stela_t('verified-existing-ready-ktt', ['existing_number' => $existing_number]);
+                                
+                            } else {
+                                // Ini new appointment atau resubmit biasa (bukan dari KTT rejection)
+                                if ($expiry_date) {
+                                    $db->query("UPDATE appointments SET 
+                                               expiry_date = '$expiry_date',
+                                               status = 'draft',
+                                               ktt1_approved_by = NULL,
+                                               ktt1_approved_date = NULL,
+                                               ktt2_approved_by = NULL,
+                                               ktt2_approved_date = NULL,
+                                               approved_by = NULL,
+                                               approved_date = NULL,
+                                               approval_notes = NULL,
+                                               updated_at = NOW()
+                                               WHERE id = ?", [$appointment_id]);
+                                } else {
+                                    $db->query("UPDATE appointments SET 
+                                               status = 'draft',
+                                               ktt1_approved_by = NULL,
+                                               ktt1_approved_date = NULL,
+                                               ktt2_approved_by = NULL,
+                                               ktt2_approved_date = NULL,
+                                               approved_by = NULL,
+                                               approved_date = NULL,
+                                               approval_notes = NULL,
+                                               updated_at = NOW()
+                                               WHERE id = ?", [$appointment_id]);
+                                }
+                                
+                                // Delete old KTT approval records to allow fresh approval
+                                $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ?", [$appointment_id]);
+                                
+                                $_SESSION['success_message'] = stela_t('verified-existing-updated-reset-ktt', ['existing_number' => $existing_number]);
                             }
                             
-                            // Delete old KTT approval records to allow fresh approval
-                            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ?", [$appointment_id]);
-                            
-                            $_SESSION['success_message'] = stela_t('verified-existing-updated-reset-ktt', ['existing_number' => $existing_number]);
+                            // Update appointment_number in employees table for tracking
+                            $db->query("UPDATE employees SET appointment_number = '$existing_number' WHERE id = ?", [$employee_id]);
                         }
                         
-                        // Update appointment_number in employees table for tracking
-                        $db->query("UPDATE employees SET appointment_number = '$existing_number' WHERE id = ?", [$employee_id]);
-                    }
-                    
-                    // Sync appointment to Elasticsearch
-                    if (isset($appointment_id) && $appointment_id) {
-                        try {
-                            if (class_exists('ElasticsearchService')) {
-                                $es = ElasticsearchService::getInstance();
-                                if ($es->isAvailable()) {
-                                    $apptQuery = $db->query("SELECT a.*, e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
-                                                             FROM appointments a 
-                                                             LEFT JOIN employees e ON a.employee_id = e.id
-                                                             LEFT JOIN positions p ON a.position_id = p.id
-                                                             WHERE a.id = ?", [$appointment_id]);
-                                    if ($apptQuery && $apptRow = $apptQuery->fetch_assoc()) {
-                                        $es->indexAppointment($apptRow);
+                        // Sync appointment to Elasticsearch
+                        if (isset($appointment_id) && $appointment_id) {
+                            try {
+                                if (class_exists('ElasticsearchService')) {
+                                    $es = ElasticsearchService::getInstance();
+                                    if ($es->isAvailable()) {
+                                        $apptQuery = $db->query("SELECT a.*, e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
+                                                                 FROM appointments a 
+                                                                 LEFT JOIN employees e ON a.employee_id = e.id
+                                                                 LEFT JOIN positions p ON a.position_id = p.id
+                                                                 WHERE a.id = ?", [$appointment_id]);
+                                        if ($apptQuery && $apptRow = $apptQuery->fetch_assoc()) {
+                                            $es->indexAppointment($apptRow);
+                                        }
                                     }
                                 }
+                            } catch (Exception $e) {
+                                error_log("Elasticsearch appointment sync error: " . $e->getMessage());
                             }
-                        } catch (Exception $e) {
-                            error_log("Elasticsearch appointment sync error: " . $e->getMessage());
                         }
-                    }
-                    
-                    // Redirect langsung ke halaman appointments dengan ID appointment
-                    // Notify user/dept that admin accepted the employee
-                    try {
-                        // Included via bootstrap/app.php
-                        set_time_limit(60);
-                        $notifService = new NotificationService();
-                        $notifService->notifyAdminAcceptedEmployee($employee_id);
-                    } catch (Exception $e) {
-                        error_log("Notification error (admin accepted): " . $e->getMessage());
-                    }
-                    $appt_redirect = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/resources/superadmin/monitoring_appointments.php' : 'appointments.php';
-                    if ($appointment_id) {
-                        header("Location: " . $appt_redirect . "?highlight=" . $appointment_id);
-                        exit();
+                        
+                        // Redirect langsung ke halaman appointments dengan ID appointment
+                        // Notify user/dept that admin accepted the employee
+                        try {
+                            // Included via bootstrap/app.php
+                            set_time_limit(60);
+                            $notifService = new NotificationService();
+                            $notifService->notifyAdminAcceptedEmployee($employee_id);
+                        } catch (Exception $e) {
+                            error_log("Notification error (admin accepted): " . $e->getMessage());
+                        }
+                        $appt_redirect = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/resources/superadmin/monitoring_appointments.php' : 'appointments.php';
+                        if ($appointment_id) {
+                            header("Location: " . $appt_redirect . "?highlight=" . $appointment_id);
+                            exit();
+                        } else {
+                            // Fallback jika appointment_id tidak ada
+                            header("Location: " . $appt_redirect);
+                            exit();
+                        }
                     } else {
-                        // Fallback jika appointment_id tidak ada
-                        header("Location: " . $appt_redirect);
-                        exit();
+                        $_SESSION['success_message'] = stela_t('rejected-data');
+                        // Notify user/dept that admin rejected the employee
+                        try {
+                            // Included via bootstrap/app.php
+                            set_time_limit(60);
+                            $notifService = new NotificationService();
+                            $notifService->notifyAdminRejectedEmployee($employee_id, $notes);
+                        } catch (Exception $e) {
+                            error_log("Notification error (admin rejected): " . $e->getMessage());
+                        }
+                        // Redirect ke employees setelah 2 seconds
+                        $redirectUrl = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/resources/superadmin/monitoring_employees.php' : 'employees.php';
+                        header("refresh:2;url=" . $redirectUrl);
                     }
-                } else {
-                    $_SESSION['success_message'] = stela_t('rejected-data');
-                    // Notify user/dept that admin rejected the employee
-                    try {
-                        // Included via bootstrap/app.php
-                        set_time_limit(60);
-                        $notifService = new NotificationService();
-                        $notifService->notifyAdminRejectedEmployee($employee_id, $notes);
-                    } catch (Exception $e) {
-                        error_log("Notification error (admin rejected): " . $e->getMessage());
-                    }
-                    // Redirect ke employees setelah 2 seconds
-                    $redirectUrl = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/resources/superadmin/monitoring_employees.php' : 'employees.php';
-                    header("refresh:2;url=" . $redirectUrl);
                 }
             }
+        }
+        $db->commit();
+    } catch (Exception $e) {
+        $db->rollback();
+        $error = "System Error (Transaction Rolled Back): " . $e->getMessage();
+        if (isset($_SESSION['error_message'])) {
+            $_SESSION['error_message'] = $error;
         }
     }
 }
