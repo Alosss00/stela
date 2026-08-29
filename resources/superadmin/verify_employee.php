@@ -163,7 +163,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         ")->fetch_assoc();
                         
                         $next_num = ($last_appointment['last_num'] ?? 0) + 1;
-                        $appointment_number = sprintf('%03d/%s/%s/%s/%s', $next_num, $type_code, $scope_code, $month, $year);
+                        $appointment_number = sprintf('%02d/%s/%s/%s/%s', $next_num, $type_code, $scope_code, $month, $year);
                         
                         // Jika tidak ada position_id, gunakan position pertama yang tersedia
                         if ($position_id <= 0) {
@@ -272,7 +272,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         $next_num = ($last_appointment['last_num'] ?? 0) + 1;
 
                         $appointment_number = sprintf(
-                            '%03d/%s/%s/%s/%s',
+                            '%02d/%s/%s/%s/%s',
                             $next_num,
                             $type_code,
                             $scope_code,
