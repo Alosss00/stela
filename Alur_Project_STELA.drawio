@@ -1,0 +1,210 @@
+<mxfile host="Electron" agent="Mozilla/5.0" version="21.6.8" type="device">
+  <diagram id="stela-vertical-system" name="Alur Sistem STELA (Dengan Lane Sistem)">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" background="#ffffff" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        
+        <!-- Wadah Utama (Pool) -->
+        <mxCell id="pool" value="Alur Persetujuan Surat Penunjukan (STELA)" style="swimlane;childLayout=stackLayout;horizontal=1;horizontalStack=1;resizeParent=1;resizeParentMax=0;resizeLast=0;collapsible=1;marginBottom=0;html=1;fillColor=#2C3E50;fontColor=#ffffff;strokeColor=#1A252F;fontStyle=1;fontSize=18;shadow=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="40" width="1100" height="1100" as="geometry" />
+        </mxCell>
+
+        <!-- Jalur 1: Kontraktor / Pemohon -->
+        <mxCell id="lane_user" value="1. Pemohon (Kontraktor)" style="swimlane;horizontal=1;startSize=40;html=1;fillColor=#1ABC9C;fontColor=#ffffff;strokeColor=#16A085;fontStyle=1;fontSize=15;" vertex="1" parent="pool">
+          <mxGeometry x="0" y="40" width="220" height="1060" as="geometry" />
+        </mxCell>
+
+        <!-- Jalur 2: Sistem (Otomatis) -->
+        <mxCell id="lane_sys" value="2. Sistem (Aplikasi STELA)" style="swimlane;horizontal=1;startSize=40;html=1;fillColor=#34495E;fontColor=#ffffff;strokeColor=#2C3E50;fontStyle=1;fontSize=15;" vertex="1" parent="pool">
+          <mxGeometry x="220" y="40" width="220" height="1060" as="geometry" />
+        </mxCell>
+
+        <!-- Jalur 3: Admin / HSE -->
+        <mxCell id="lane_admin" value="3. Admin Pemeriksa (HSE)" style="swimlane;horizontal=1;startSize=40;html=1;fillColor=#F1C40F;fontColor=#ffffff;strokeColor=#D4AC0D;fontStyle=1;fontSize=15;" vertex="1" parent="pool">
+          <mxGeometry x="440" y="40" width="220" height="1060" as="geometry" />
+        </mxCell>
+
+        <!-- Jalur 4: KTT -->
+        <mxCell id="lane_ktt" value="4. Pemberi Izin (KTT)" style="swimlane;horizontal=1;startSize=40;html=1;fillColor=#3498DB;fontColor=#ffffff;strokeColor=#2874A6;fontStyle=1;fontSize=15;" vertex="1" parent="pool">
+          <mxGeometry x="660" y="40" width="240" height="1060" as="geometry" />
+        </mxCell>
+
+        <!-- Jalur 5: Superadmin -->
+        <mxCell id="lane_superadmin" value="5. Superadmin" style="swimlane;horizontal=1;startSize=40;html=1;fillColor=#9B59B6;fontColor=#ffffff;strokeColor=#76448A;fontStyle=1;fontSize=15;" vertex="1" parent="pool">
+          <mxGeometry x="900" y="40" width="200" height="1060" as="geometry" />
+        </mxCell>
+
+        <!-- =======================
+             KOTAK-KOTAK (NODES)
+             ======================= -->
+        
+        <!-- Pemohon -->
+        <mxCell id="n_start" value="Mulai / Login" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#D1F2EB;strokeColor=#1ABC9C;fontColor=#0E6655;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_user">
+          <mxGeometry x="50" y="50" width="120" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n1_input" value="Input Data Pekerja &amp;&#10;Upload Dokumen (Draft)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1F2EB;strokeColor=#1ABC9C;fontColor=#0E6655;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_user">
+          <mxGeometry x="30" y="130" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n1_submit" value="Submit Permohonan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1F2EB;strokeColor=#1ABC9C;fontColor=#0E6655;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_user">
+          <mxGeometry x="30" y="220" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n_resubmit" value="Perbaiki Data / Resubmit" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D1F2EB;strokeColor=#1ABC9C;fontColor=#0E6655;fontStyle=1;shadow=1;glass=1;strokeWidth=2;" vertex="1" parent="lane_user">
+          <mxGeometry x="30" y="730" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_done" value="Menerima Surat (PDF)" style="rounded=1;whiteSpace=wrap;html=1;arcSize=50;fillColor=#D5F5E3;strokeColor=#2ECC71;fontColor=#186A3B;fontStyle=1;shadow=1;glass=1;strokeWidth=2;" vertex="1" parent="lane_user">
+          <mxGeometry x="30" y="930" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Sistem -->
+        <mxCell id="n_sys_route_admin" value="Set Status 'Pending' &amp;&#10;Notifikasi Admin" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5DBDB;strokeColor=#5D6D7E;fontColor=#2C3E50;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="30" y="220" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n_sys_gen_number" value="Auto-Generate&#10;Nomor Appointment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5DBDB;strokeColor=#5D6D7E;fontColor=#2C3E50;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="30" y="550" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_sys_notif_revisi" value="Auto Kirim WA:&#10;Permintaan Revisi" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#D5DBDB;strokeColor=#5D6D7E;fontColor=#2C3E50;fontStyle=1;shadow=1;size=15;" vertex="1" parent="lane_sys">
+          <mxGeometry x="30" y="640" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_sys_notif_tolak" value="Auto Kirim WA:&#10;Surat Ditolak" style="shape=note;whiteSpace=wrap;html=1;backgroundOutline=1;darkOpacity=0.05;fillColor=#D5DBDB;strokeColor=#5D6D7E;fontColor=#2C3E50;fontStyle=1;shadow=1;size=15;" vertex="1" parent="lane_sys">
+          <mxGeometry x="30" y="840" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_sys_generate" value="Generate PDF Surat &amp;&#10;Kirim WA (Selesai)" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#D5DBDB;strokeColor=#5D6D7E;fontColor=#2C3E50;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_sys">
+          <mxGeometry x="30" y="930" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Admin -->
+        <mxCell id="n_admin_dash" value="Dashboard Antrean" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCF3CF;strokeColor=#F1C40F;fontColor=#7D6608;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_admin">
+          <mxGeometry x="30" y="300" width="160" height="50" as="geometry" />
+        </mxCell>
+        <mxCell id="n_admin_check" value="Verifikasi &amp;&#10;Periksa Dokumen" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCF3CF;strokeColor=#F1C40F;fontColor=#7D6608;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_admin">
+          <mxGeometry x="30" y="380" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_admin_decision" value="Data&#10;Valid?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#FAD7A1;strokeColor=#F39C12;fontColor=#A04000;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_admin">
+          <mxGeometry x="70" y="465" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n_admin_reject" value="Tandai Tidak Valid /&#10;Butuh Revisi" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FADBD8;strokeColor=#E74C3C;fontColor=#78281F;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_admin">
+          <mxGeometry x="30" y="550" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_admin_forward" value="Ajukan Evaluasi&#10;ke KTT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FCF3CF;strokeColor=#F1C40F;fontColor=#7D6608;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_admin">
+          <mxGeometry x="30" y="640" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- KTT -->
+        <mxCell id="n_ktt_eval" value="Evaluasi&#10;Kelayakan Pekerja" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D6EAF8;strokeColor=#3498DB;fontColor=#1B4F72;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_ktt">
+          <mxGeometry x="40" y="640" width="160" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_ktt_decision" value="Layak?" style="rhombus;whiteSpace=wrap;html=1;fillColor=#AED6F1;strokeColor=#2E86C1;fontColor=#154360;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_ktt">
+          <mxGeometry x="80" y="730" width="80" height="80" as="geometry" />
+        </mxCell>
+        <mxCell id="n_ktt_approve" value="Setujui (Approve)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#D5F5E3;strokeColor=#2ECC71;fontColor=#186A3B;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_ktt">
+          <mxGeometry x="10" y="840" width="100" height="60" as="geometry" />
+        </mxCell>
+        <mxCell id="n_ktt_reject" value="Tolak (Reject)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#FADBD8;strokeColor=#E74C3C;fontColor=#78281F;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_ktt">
+          <mxGeometry x="130" y="840" width="100" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- Superadmin -->
+        <mxCell id="n_sa_1" value="Manajemen User &amp;&#10;Master Data" style="shape=document;whiteSpace=wrap;html=1;boundedLbl=1;fillColor=#E8DAEF;strokeColor=#9B59B6;fontColor=#512E5F;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_superadmin">
+          <mxGeometry x="20" y="300" width="160" height="70" as="geometry" />
+        </mxCell>
+        <mxCell id="n_sa_2" value="Pantau Seluruh&#10;Aktivitas &amp; Laporan" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#E8DAEF;strokeColor=#9B59B6;fontColor=#512E5F;fontStyle=1;shadow=1;glass=1;" vertex="1" parent="lane_superadmin">
+          <mxGeometry x="20" y="400" width="160" height="60" as="geometry" />
+        </mxCell>
+
+        <!-- =======================
+             GARIS PANAH (EDGES)
+             ======================= -->
+             
+        <mxCell id="e_start" edge="1" parent="lane_user" source="n_start" target="n1_input" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        <mxCell id="e_input_submit" edge="1" parent="lane_user" source="n1_input" target="n1_submit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_submit_sys" edge="1" parent="1" source="n1_submit" target="n_sys_route_admin" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;exitX=1;exitY=0.5;entryX=0;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_sys_admin_dash" edge="1" parent="1" source="n_sys_route_admin" target="n_admin_dash" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_admin_dash_check" edge="1" parent="lane_admin" source="n_admin_dash" target="n_admin_check" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_admin_check_dec" edge="1" parent="lane_admin" source="n_admin_check" target="n_admin_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_admin_dec_yes" value="Ya" edge="1" parent="1" source="n_admin_decision" target="n_sys_gen_number" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#2ECC71;fontColor=#2ECC71;fontStyle=1;exitX=0;exitY=0.5;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_sys_admin_fwd" edge="1" parent="1" source="n_sys_gen_number" target="n_admin_forward" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;exitX=1;exitY=0.5;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_admin_fwd_ktt" edge="1" parent="1" source="n_admin_forward" target="n_ktt_eval" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;exitX=1;exitY=0.5;entryX=0;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_admin_dec_no" value="Tidak" edge="1" parent="lane_admin" source="n_admin_decision" target="n_admin_reject" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#E74C3C;fontColor=#E74C3C;fontStyle=1;exitX=0.5;exitY=1;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_admin_rej_sys" edge="1" parent="1" source="n_admin_reject" target="n_sys_notif_revisi" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#E74C3C;dashed=1;exitX=0;exitY=0.5;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_sys_rej_resubmit" edge="1" parent="1" source="n_sys_notif_revisi" target="n_resubmit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#E74C3C;dashed=1;exitX=0;exitY=0.5;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_resubmit_dash" edge="1" parent="1" source="n_resubmit" target="n_admin_dash" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;exitX=1;exitY=0.5;entryX=0;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_ktt_eval_dec" edge="1" parent="lane_ktt" source="n_ktt_eval" target="n_ktt_decision" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#7F8C8D;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_ktt_dec_no" value="Tidak" edge="1" parent="lane_ktt" source="n_ktt_decision" target="n_ktt_reject" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#E74C3C;fontColor=#E74C3C;fontStyle=1;exitX=1;exitY=0.5;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_ktt_rej_sys" edge="1" parent="1" source="n_ktt_reject" target="n_sys_notif_tolak" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#E74C3C;dashed=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_sys_tolak_resubmit" edge="1" parent="1" source="n_sys_notif_tolak" target="n_resubmit" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#E74C3C;dashed=1;exitX=0;exitY=0.5;entryX=0.5;entryY=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_ktt_dec_yes" value="Ya" edge="1" parent="lane_ktt" source="n_ktt_decision" target="n_ktt_approve" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#2ECC71;fontColor=#2ECC71;fontStyle=1;exitX=0;exitY=0.5;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_ktt_app_sys" edge="1" parent="1" source="n_ktt_approve" target="n_sys_generate" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#2ECC71;exitX=0;exitY=0.5;entryX=0.5;entryY=0;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <mxCell id="e_sys_gen_done" edge="1" parent="1" source="n_sys_generate" target="n_done" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=2;strokeColor=#2ECC71;exitX=0;exitY=0.5;entryX=1;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+        <!-- Superadmin links -->
+        <mxCell id="e_sa_link1" edge="1" parent="1" source="n_sa_1" target="n_admin_dash" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1;strokeColor=#9B59B6;dashed=1;exitX=0;exitY=0.5;entryX=1;entryY=0.5;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+        
+        <mxCell id="e_sa_link2" edge="1" parent="lane_superadmin" source="n_sa_1" target="n_sa_2" style="edgeStyle=orthogonalEdgeStyle;rounded=1;strokeWidth=1;strokeColor=#9B59B6;dashed=1;">
+          <mxGeometry relative="1" as="geometry" />
+        </mxCell>
+
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
