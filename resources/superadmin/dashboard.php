@@ -166,7 +166,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 
                         <?php if(hasPermission('employee.view')): ?>
                         <div class="col-md-2 col-sm-4 col-6">
-                            <a href="../admin/employees.php" class="qa-btn">
+                            <a href="../superadmin/employees.php" class="qa-btn">
                                 <i class="fas fa-id-card"></i>
                                 Employees
                             </a>
@@ -175,7 +175,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 
                         <?php if(hasPermission('appointment.view')): ?>
                         <div class="col-md-2 col-sm-4 col-6">
-                            <a href="../admin/appointments.php" class="qa-btn">
+                            <a href="../superadmin/appointments.php" class="qa-btn">
                                 <i class="fas fa-file-signature"></i>
                                 Appointments
                             </a>
@@ -184,7 +184,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 
                         <?php if(hasPermission('certificate.view')): ?>
                         <div class="col-md-2 col-sm-4 col-6">
-                            <a href="../admin/certificate_status.php" class="qa-btn">
+                            <a href="../superadmin/certificate_status.php" class="qa-btn">
                                 <i class="fas fa-certificate"></i>
                                 Certificates
                             </a>
@@ -310,7 +310,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                             <option value="EXPIRED">Expired Only</option>
                             <option value="EXPIRING">Expiring Only</option>
                         </select>
-                        <a href="../admin/certificate_status.php" class="btn btn-sm btn-outline-danger">Manage</a>
+                        <a href="../superadmin/certificate_status.php" class="btn btn-sm btn-outline-danger">Manage</a>
                     </div>
                 </div>
                 <div class="sa-card-body p-0">

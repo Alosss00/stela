@@ -8,6 +8,11 @@ require_once dirname(__DIR__, 2) . '/app/Helpers/auth_helper.php';
 requirePermission('admin.access');
 requirePermission('reports.view');
 
+if (!isSuperadmin()) {
+    header('Location: ../admin/dashboard.php');
+    exit();
+}
+
 $db = new Database();
 
 function normalizeCompetencyTypeLabel($appointmentNumber = '', $positionType = '', $positionName = '') {
@@ -85,8 +90,11 @@ $approved_appointments = $db->query("
     LEFT JOIN users au ON a.approved_by = au.id
     LEFT JOIN users ktt1 ON a.ktt1_approved_by = ktt1.id
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
-    WHERE a.status = 'approved'
-    ORDER BY e.contractor_company, a.approved_date DESC
+    WHERE a.status = 'approved' AND a.deleted_at IS NULL AND e.deleted_at IS NULL
+    ORDER BY 
+        CAST(SUBSTRING_INDEX(a.appointment_number, '/', -1) AS UNSIGNED) ASC,
+        CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(a.appointment_number, '/', -2), '/', 1) AS UNSIGNED) ASC,
+        CAST(SUBSTRING_INDEX(a.appointment_number, '/', 1) AS UNSIGNED) ASC
 ");
 
 // Build approved competency options from actual approved data using register code rules.
@@ -125,9 +133,12 @@ $rejected_appointments = $db->query("
     LEFT JOIN users au ON a.approved_by = au.id
     LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
     LEFT JOIN users ktt_u ON ka.ktt_user_id = ktt_u.id
-    WHERE a.status = 'rejected'
+    WHERE a.status = 'rejected' AND a.deleted_at IS NULL AND e.deleted_at IS NULL
     GROUP BY a.id
-    ORDER BY e.contractor_company, a.approved_date DESC
+    ORDER BY 
+        CAST(SUBSTRING_INDEX(a.appointment_number, '/', -1) AS UNSIGNED) ASC,
+        CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(a.appointment_number, '/', -2), '/', 1) AS UNSIGNED) ASC,
+        CAST(SUBSTRING_INDEX(a.appointment_number, '/', 1) AS UNSIGNED) ASC
 ");
 
 // Get statistics
@@ -145,7 +156,7 @@ $accepted_requests = $db->query("
            (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
     FROM employees e
     LEFT JOIN users u ON e.verified_by = u.id
-    WHERE e.verification_status = 'verified'
+    WHERE e.verification_status = 'verified' AND e.deleted_at IS NULL
     ORDER BY e.contractor_company, e.updated_at DESC
 ");
 
@@ -159,7 +170,7 @@ $rejected_requests = $db->query("
            (SELECT a2.appointment_number FROM appointments a2 WHERE a2.employee_id = e.id ORDER BY a2.created_at DESC LIMIT 1) as appointment_number
     FROM employees e
     LEFT JOIN users u ON e.verified_by = u.id
-    WHERE e.verification_status = 'rejected'
+    WHERE e.verification_status = 'rejected' AND e.deleted_at IS NULL
     ORDER BY e.contractor_company, e.updated_at DESC
 ");
 
@@ -298,7 +309,7 @@ $resigned_employees = $db->query("
     ORDER BY e.resign_date DESC, e.full_name ASC
 ");
 
-require_once dirname(__DIR__) . '/layouts/header.php';
+require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 
 // Get unique companies for filter
 $companies = $db->query("
@@ -427,58 +438,6 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
                 <i class="fas fa-file-excel text-success"></i> <span data-lang="competency-details">Laporan Detail Kompetensi (Excel)</span>
             </a>
             
-        </div>
-    </div>
-
-    <!-- Summary by Company -->
-    <div class="card-report" id="section-summary">
-        <div class="card-header-report">
-            <h3><i class="fas fa-building"></i> <span data-lang="company-summary">Ringkasan per Perusahaan</span></h3>
-        </div>
-        <div class="card-body-report">
-            <?php if ($report_data && $report_data->num_rows > 0): ?>
-                <div class="table-responsive">
-                    <table class="table-report datatable" style="width: 100%;">
-                        <thead>
-                            <tr>
-                                <th class="col-num">No</th>
-                                <th class="col-company">Company</th>
-                                <th class="col-approved">Approved</th>
-                                <th class="col-rejected">Rejected</th>
-                                <th class="col-total">Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php
-                            $report_data->data_seek(0);
-                            $row_num = 1;
-                            while ($row = $report_data->fetch_assoc()):
-                            ?>
-                            <tr>
-                                <td class="col-num"><?php echo $row_num++; ?></td>
-                                <td class="col-company">
-                                    <strong><?php echo htmlspecialchars($row['contractor_company'] ?: 'Unknown'); ?></strong>
-                                </td>
-                                <td class="col-approved">
-                                    <span class="badge-count approved-badge"><?php echo $row['approved_count']; ?></span>
-                                </td>
-                                <td class="col-rejected">
-                                    <span class="badge-count rejected-badge"><?php echo $row['rejected_count']; ?></span>
-                                </td>
-                                <td class="col-total">
-                                    <strong><?php echo $row['total_count']; ?></strong>
-                                </td>
-                            </tr>
-                            <?php endwhile; ?>
-                        </tbody>
-                    </table>
-                </div>
-            <?php else: ?>
-                <div class="empty-state-report">
-                    <i class="fas fa-inbox"></i>
-                    <p>Belum ada data surat penunjukan yang diproses</p>
-                </div>
-            <?php endif; ?>
         </div>
     </div>
 
@@ -906,7 +865,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
     <div class="card-report" id="section-accepted-assign">
         <div class="card-header-report">
             <div class="card-hd-left">
-                <h3>Detail Surat Penunjukan Disetujui</h3>
+                <h3>Detail Appointment Approved</h3>
                 <span class="badge-header"><?php echo $approved_appointments->num_rows; ?></span>
             </div>
             <button onclick="toggleSection('approvedAppointmentSection')" class="btn-toggle-section" id="btnApprovedAppt">
@@ -915,8 +874,27 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
         </div>
 
         <div id="approvedAppointmentSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
-        <!-- Export buttons -->
+        <!-- Export buttons & Filters -->
         <div class="filter-section-report">
+            <div class="filter-group-report">
+                <label><i class="fas fa-map-marker-alt"></i> Scope of Work:</label>
+                <select id="scopeFilterApproved" class="filter-select-report" onchange="filterTableByFilters('approvedTable')">
+                    <option value="">-- All Scope of Work --</option>
+                    <option value="MSM">MSM</option>
+                    <option value="TTN">TTN</option>
+                </select>
+            </div>
+            <div class="filter-group-report">
+                <label><i class="fas fa-award"></i> Competency Type:</label>
+                <select id="competencyFilterApproved" class="filter-select-report" onchange="filterTableByFilters('approvedTable')">
+                    <option value="">-- Semua Jenis --</option>
+                    <?php foreach ($approved_competency_type_options as $competencyType): ?>
+                    <option value="<?php echo htmlspecialchars($competencyType); ?>">
+                        <?php echo htmlspecialchars($competencyType); ?>
+                    </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
             <div class="filter-action-group" style="margin-left: auto;">
                 <button class="btn btn-export-small" onclick="exportToExcel('approvedTable', 'Accepted_Assign_Letters_Report')">
                     <i class="fas fa-file-excel"></i> Export to Excel
@@ -941,61 +919,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
                             <th class="col-company-detail">Company</th>
                             <th class="col-date">Expiry Date</th>
                         </tr>
-                        <tr>
-                            <th class="col-num"></th>
-                            <th class="col-number">
-                                <div class="filter-with-sort">
-                                    <select class="column-filter" data-column="1" data-filter-type="contains" onchange="filterApprovedTable()">
-                                        <option value="">Semua</option>
-                                        <option value="MSM">MSM</option>
-                                        <option value="TTN">TTN</option>
-                                    </select>
-                                    <button type="button" class="sort-btn" data-column="1" onclick="sortApprovedTableByColumn(1)">
-                                        <i class="fas fa-sort"></i>
-                                    </button>
-                                </div>
-                            </th>
-                            <th class="col-publisher">
-                                <select class="column-filter" data-column="2" onchange="filterApprovedTable()">
-                                    <option value="">Semua</option>
-                                </select>
-                            </th>
-                            <th class="col-badge">
-                                <input type="text" class="column-filter" data-column="3" placeholder="Filter..." data-lang-placeholder="filter-placeholder" onkeyup="filterApprovedTable()">
-                            </th>
-                            <th class="col-employee">
-                                <div class="filter-with-sort">
-                                    <input type="text" class="column-filter" data-column="4" placeholder="Filter..." data-lang-placeholder="filter-placeholder" onkeyup="filterApprovedTable()">
-                                    <button type="button" class="sort-btn" data-column="4" onclick="sortApprovedTableByColumn(4)">
-                                        <i class="fas fa-sort"></i>
-                                    </button>
-                                </div>
-                            </th>
-                            <th class="col-position">
-                                <select class="column-filter" data-column="5" onchange="filterApprovedTable()">
-                                        <option value="">Semua</option>
-                                </select>
-                            </th>
-                            <th class="col-company-detail">
-                                <select class="column-filter" data-column="6" onchange="filterApprovedTable()">
-                                    <option value="">Semua</option>
-                                    <?php
-                                    $companies->data_seek(0);
-                                    while ($comp = $companies->fetch_assoc()):
-                                        $compName = $comp['contractor_company'] ?: 'Unknown';
-                                    ?>
-                                    <option value="<?php echo strtolower(htmlspecialchars($compName)); ?>">
-                                        <?php echo htmlspecialchars($compName); ?>
-                                    </option>
-                                    <?php endwhile; ?>
-                                </select>
-                            </th>
-                            <th class="col-date">
-                                <button type="button" class="sort-btn sort-btn-full" data-column="7" onclick="sortApprovedTableByDate(7)">
-                                    <i class="fas fa-sort"></i> Sort
-                                </button>
-                            </th>
-                        </tr>
+
                     </thead>
                     <tbody>
                         <?php
@@ -1082,7 +1006,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
     <div class="card-report" id="section-rejected-assign">
         <div class="card-header-report">
             <div class="card-hd-left">
-                <h3> Detail Surat Penunjukan Tidak Disetujui</h3>
+                <h3> Detail Appointment Rejected</h3>
                 <span class="badge-header rejected"><?php echo $rejected_appointments->num_rows; ?></span>
             </div>
             <button onclick="toggleSection('rejectedAppointmentSection')" class="btn-toggle-section" id="btnRejectedAppt">
@@ -1237,8 +1161,12 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
                 <h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Expired Certificates</span></h3>
                 <span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span>
             </div>
+            <button onclick="toggleSection('expiringCertsSection')" class="btn-toggle-section" id="btnExpiringCerts">
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+            </button>
         </div>
 
+        <div id="expiringCertsSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         <div class="alert-warning-report">
             <i class="fas fa-info-circle"></i>
             <span data-lang="expired-certs-renew-immediately">The following is a list of employees with expired certificates. Please renew certificates immediately.</span>
@@ -1367,9 +1295,128 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
                 Showing all data
             </div>
         </div>
+        </div>
+    </div>
+    <?php endif; ?>
+    <!-- Resigned Employees Report -->
+    <?php if ($resigned_employees && $resigned_employees->num_rows > 0): ?>
+    <div class="card-report" id="section-resigned">
+        <div class="card-header-report">
+            <div class="card-hd-left">
+                <h3><i class="fas fa-user-times"></i> Detail Karyawan Resign</h3>
+                <span class="badge-header warning"><?php echo $resigned_employees->num_rows; ?></span>
+            </div>
+            <button onclick="toggleSection('resignedSection')" class="btn-toggle-section" id="btnResigned">
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+
+        <div id="resignedSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
+            <!-- Filter by Company and Scope of Work -->
+            <div class="filter-section-report">
+                <div class="filter-group-report">
+                    <label><i class="fas fa-building"></i> Filter Perusahaan:</label>
+                    <select id="companyFilterResigned" class="filter-select-report" onchange="filterResignedTable()">
+                        <option value="">-- All Companies --</option>
+                        <?php
+                        $resigned_employees->data_seek(0);
+                        $resigned_companies = [];
+                        while ($row = $resigned_employees->fetch_assoc()) {
+                            $company = $row['contractor_company'] ?: 'Unknown';
+                            if (!in_array($company, $resigned_companies)) {
+                                $resigned_companies[] = $company;
+                            }
+                        }
+                        sort($resigned_companies);
+                        foreach ($resigned_companies as $comp):
+                        ?>
+                        <option value="<?php echo htmlspecialchars($comp); ?>">
+                            <?php echo htmlspecialchars($comp); ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="filter-group-report">
+                    <label><i class="fas fa-map-marker-alt"></i> Scope of Work:</label>
+                    <select id="scopeFilterResigned" class="filter-select-report" onchange="filterResignedTable()">
+                        <option value="">-- All Scope of Work --</option>
+                        <option value="MSM">MSM</option>
+                        <option value="TTN">TTN</option>
+                    </select>
+                </div>
+                <div class="filter-action-group" style="margin-left: auto;">
+                    <button class="btn btn-export-small" onclick="exportToExcel('resignedTable', 'Resigned_Employees_Report')">
+                        <i class="fas fa-file-excel"></i> Export to Excel
+                    </button>
+                </div>
+            </div>
+            <div class="card-body-report">
+                <div class="table-responsive">
+                    <table class="table-report datatable" style="width: 100%;" id="resignedTable">
+                        <thead>
+                            <tr>
+                                <th class="col-num">No</th>
+                                <th>Nama</th>
+                                <th>ID Badge</th>
+                                <th>Posisi</th>
+                                <th>Perusahaan</th>
+                                <th>Tanggal Resign</th>
+                                <th>Alasan Resign</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $resigned_employees->data_seek(0);
+                            $row_num = 1;
+                            while ($row = $resigned_employees->fetch_assoc()):
+                                $scope_raw = $row['ruang_lingkup'] ?: '';
+                                $scope_normalized = '';
+                                if (stripos($scope_raw, 'MSM') !== false || stripos($scope_raw, 'Meares Soputan') !== false) {
+                                    $scope_normalized = 'MSM';
+                                } elseif (stripos($scope_raw, 'TTN') !== false || stripos($scope_raw, 'Tondano Nusajaya') !== false) {
+                                    $scope_normalized = 'TTN';
+                                }
+                            ?>
+                            <tr data-company="<?php echo htmlspecialchars($row['contractor_company'] ?: 'Unknown'); ?>" data-scope="<?php echo $scope_normalized; ?>">
+                                <td class="col-num"><?php echo $row_num++; ?></td>
+                                <td><strong><?php echo htmlspecialchars($row['full_name']); ?></strong></td>
+                                <td><?php echo htmlspecialchars($row['employee_code']); ?></td>
+                                <td><?php echo htmlspecialchars($row['position']); ?></td>
+                                <td><span class="company-tag"><?php echo htmlspecialchars($row['contractor_company'] ?: 'Unknown'); ?></span></td>
+                                <td><?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?></td>
+                                <td><?php echo htmlspecialchars($row['resign_reason'] ?? '-'); ?></td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     <?php endif; ?>
 </div>
+
+<script>
+function filterResignedTable() {
+    const table = document.getElementById('resignedTable');
+    if (!table) return;
+    
+    const companyFilter = document.getElementById('companyFilterResigned').value.toLowerCase().trim();
+    const scopeFilter = document.getElementById('scopeFilterResigned').value.toLowerCase().trim();
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let row of rows) {
+        const rowCompany = (row.getAttribute('data-company') || '').toLowerCase().trim();
+        const rowScope = (row.getAttribute('data-scope') || '').toLowerCase().trim();
+        
+        let showRow = true;
+        if (companyFilter && rowCompany !== companyFilter) showRow = false;
+        if (scopeFilter && rowScope !== scopeFilter) showRow = false;
+        
+        row.style.display = showRow ? '' : 'none';
+    }
+}
+</script>
 
 <!-- Back to Top Button -->
 <button class="back-to-top" id="backToTopBtn" onclick="scrollToTop()" title="Back to Top" data-lang-title="back-to-top">
@@ -2329,7 +2376,7 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
-<?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
+<?php require_once dirname(__DIR__) . '/layouts/superadmin_footer.php'; ?>
 
 
 

@@ -160,6 +160,18 @@ $current_page = get_current_page();
             background: rgba(255, 255, 255, 0.2);
         }
     </style>
+    <script>
+        // Global HTML escaping function for XSS prevention in JS rendering
+        function escapeHtml(unsafe) {
+            if (unsafe == null) return '';
+            return String(unsafe)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;")
+                .replace(/'/g, "&#039;");
+        }
+    </script>
 </head>
 <body>
     <div class="wrapper">
@@ -267,6 +279,13 @@ $current_page = get_current_page();
                 </li>
                 <?php endif; ?>
                 <?php endif; ?>
+
+                <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">Reports & Analytics</li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/reports.php" class="<?php echo $current_page == 'reports.php' || $current_page == 'reports_competency.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-chart-bar"></i> <span>All Reports</span>
+                    </a>
+                </li>
 
                 <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">KTT Operations</li>
                 <li>
