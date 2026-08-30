@@ -16,12 +16,12 @@ header("X-Frame-Options: SAMEORIGIN");
 header("X-Content-Type-Options: nosniff");
 header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
 
-// 0.5 Security Firewall (WAF & Rate Limiter)
-require_once dirname(__DIR__) . '/app/Security/Firewall.php';
-Firewall::run();
-
 // 1. Load Configurations
 require_once dirname(__DIR__) . '/config/app.php';
+
+// 1.5 Security Firewall (WAF & Rate Limiter)
+require_once dirname(__DIR__) . '/app/Security/Firewall.php';
+Firewall::run();
 
 // 2. Load Helpers
 require_once dirname(__DIR__) . '/app/Helpers/url_helper.php';
