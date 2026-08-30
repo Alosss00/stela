@@ -5,7 +5,7 @@
  */
 
 if (!defined('ELASTICSEARCH_HOST')) {
-    define('ELASTICSEARCH_HOST', 'https://df6c4bcf7e:b1bdce1e5fcf15ae0dca@focused-holly-1rb12wdt.ap-southeast-2.bonsaisearch.net:443');
+    define('ELASTICSEARCH_HOST', 'http://localhost:9200');
 }
 if (!defined('ELASTICSEARCH_ENABLED')) {
     define('ELASTICSEARCH_ENABLED', true);

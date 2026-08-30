@@ -26,15 +26,15 @@ require_once __DIR__ . '/database.php';
 
 // Konfigurasi Aplikasi
 if (!defined('SITE_NAME')) {
-    define('SITE_NAME', 'Expertise Appointment Letter System');
+    define('SITE_NAME', getenv('SITE_NAME') ?: 'Expertise Appointment Letter System');
 }
 if (!defined('APP_VERSION')) {
-    define('APP_VERSION', '2.0.0');
+    define('APP_VERSION', getenv('APP_VERSION') ?: '2.0.0');
 }
 
 // Konfigurasi Elasticsearch
 if (!defined('ELASTICSEARCH_HOST')) {
-    define('ELASTICSEARCH_HOST', getenv('ELASTICSEARCH_HOST') ?: 'https://df6c4bcf7e:b1bdce1e5fcf15ae0dca@focused-holly-1rb12wdt.ap-southeast-2.bonsaisearch.net:443');
+    define('ELASTICSEARCH_HOST', getenv('ELASTICSEARCH_HOST') ?: 'http://localhost:9200');
 }
 if (!defined('ELASTICSEARCH_ENABLED')) {
     $env_es = getenv('ELASTICSEARCH_ENABLED');
@@ -74,7 +74,7 @@ if ($isDebug) {
 
 // Upload settings
 if (!defined('MAX_UPLOAD_SIZE')) {
-    define('MAX_UPLOAD_SIZE', 10 * 1024 * 1024); // 10MB
+    define('MAX_UPLOAD_SIZE', getenv('MAX_UPLOAD_SIZE') ? (int)getenv('MAX_UPLOAD_SIZE') : 10 * 1024 * 1024); // 10MB
 }
 if (!defined('ALLOWED_IMAGE_TYPES')) {
     define('ALLOWED_IMAGE_TYPES', ['jpg', 'jpeg', 'png', 'gif']);
