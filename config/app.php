@@ -67,9 +67,16 @@ $isDebug = ($app_debug === 'true' || $app_debug === '1' || $app_debug === true);
 if ($isDebug) {
     error_reporting(E_ALL);
     ini_set('display_errors', 1);
+    ini_set('log_errors', 1);
+    ini_set('error_log', dirname(__DIR__) . '/storage/logs/error.log');
 } else {
-    error_reporting(0);
+    // Matikan tampilan error di layar pengunjung
     ini_set('display_errors', 0);
+    
+    // Tapi rekam semua error ke dalam file log untuk developer
+    error_reporting(E_ALL);
+    ini_set('log_errors', 1);
+    ini_set('error_log', dirname(__DIR__) . '/storage/logs/error.log');
 }
 
 // Upload settings
