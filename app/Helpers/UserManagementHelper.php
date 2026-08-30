@@ -163,6 +163,7 @@ class UserManagementHelper {
     }
 
     public function safeDeleteUser($id, $currentUserId) {
+        $id = (int)$id;
         if ($id == $currentUserId) {
             return ['status' => 'error', 'message' => 'You cannot delete your own account.'];
         }

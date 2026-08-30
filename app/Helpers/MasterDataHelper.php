@@ -161,6 +161,7 @@ class MasterDataHelper {
      * Smart Delete / Safe Deactivate
      */
     public function deleteOrDeactivateRecord($table, $id) {
+        $id = (int)$id;
         $hasDependency = false;
         
         // 1. Dependency checks based on table

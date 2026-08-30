@@ -161,13 +161,13 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 
     <?php if($success_msg): ?>
         <div class="alert alert-success alert-dismissible fade show" role="alert">
-            <i class="fas fa-check-circle me-2"></i> <?php echo htmlspecialchars($success_msg); ?>
+            <i class="fas fa-check-circle me-2"></i> <?= e($success_msg) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>
     <?php if($error_msg): ?>
         <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <i class="fas fa-exclamation-circle me-2"></i> <?php echo htmlspecialchars($error_msg); ?>
+            <i class="fas fa-exclamation-circle me-2"></i> <?= e($error_msg) ?>
             <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
     <?php endif; ?>

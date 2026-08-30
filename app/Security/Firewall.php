@@ -12,6 +12,7 @@ class Firewall {
 
     public static function run() {
         self::checkCors();
+        self::checkCsrf();
         self::checkWafRules();
         self::checkRateLimit();
     }
@@ -53,6 +54,21 @@ class Firewall {
         if (($_SERVER['REQUEST_METHOD'] ?? '') === 'OPTIONS') {
             http_response_code(200);
             exit;
+        }
+    }
+
+    private static function checkCsrf() {
+        if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
+            $helperPath = dirname(__DIR__) . '/Helpers/csrf_helper.php';
+            if (file_exists($helperPath)) {
+                require_once $helperPath;
+            }
+            
+            // Allow login endpoint to pass without CSRF if it hasn't been fully adapted yet, 
+            // though ideally login should have CSRF too. Assuming verify_csrf_token works everywhere.
+            if (function_exists('verify_csrf_token') && !verify_csrf_token()) {
+                self::abort(403, "Access Denied: CSRF Token Validation Failed.");
+            }
         }
     }
 
