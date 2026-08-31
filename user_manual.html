@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>User Manual - STELA</title>
+<style>
+    @page {
+        size: A4;
+        margin: 3.8cm 2.35cm; /* Golden ratio relation to A4 width/height */
+    }
+    body {
+        font-family: 'Segoe UI', Arial, sans-serif;
+        font-size: 10pt;
+        line-height: 1.618;
+        color: #222;
+    }
+    h1 {
+        font-size: 26pt;
+        color: #1a252f;
+        margin-top: 1.618em;
+        margin-bottom: 0.618em;
+        border-bottom: 1.5px solid #2980b9;
+        padding-bottom: 0.382em;
+        page-break-after: avoid;
+    }
+    h2 {
+        font-size: 16pt;
+        color: #2980b9;
+        margin-top: 1.618em;
+        margin-bottom: 0.618em;
+        page-break-after: avoid;
+    }
+    p, ul, ol, table {
+        font-size: 10pt;
+        margin-bottom: 1em;
+        text-align: justify;
+    }
+    ul, ol {
+        padding-left: 1.618em;
+    }
+    li {
+        margin-bottom: 0.382em;
+    }
+    .cover {
+        text-align: center;
+        padding-top: 25vh;
+        page-break-after: always;
+    }
+    .cover h1 {
+        font-size: 42pt;
+        border: none;
+        margin-bottom: 0.2em;
+        color: #2c3e50;
+    }
+    .cover h2 {
+        font-size: 26pt;
+        color: #7f8c8d;
+        margin-top: 0;
+    }
+    .cover p {
+        font-size: 16pt;
+        margin-top: 3em;
+        color: #34495e;
+    }
+    .page-break {
+        page-break-before: always;
+    }
+    .toc {
+        page-break-after: always;
+    }
+    .toc ul {
+        list-style-type: none;
+        padding-left: 0;
+    }
+    .toc li {
+        margin-bottom: 0.618em;
+    }
+    .placeholder {
+        background-color: #ecf0f1;
+        border: 2px dashed #bdc3c7;
+        padding: 2em;
+        text-align: center;
+        color: #7f8c8d;
+        margin: 1.618em 0;
+        font-style: italic;
+        border-radius: 5px;
+    }
+    .note {
+        background-color: #e8f4f8;
+        border-left: 4px solid #3498db;
+        padding: 1em;
+        margin: 1em 0;
+    }
+</style>
+</head>
+<body>
+
+    <!-- COVER -->
+    <div class="cover">
+        <h1>STELA</h1>
+        <h2>Smart Toka Electronic Letter Assign</h2>
+        <p><strong>User Manual &amp; Panduan Penggunaan</strong></p>
+        <p style="font-size: 10pt; margin-top: 5em;">Dokumen ini disusun untuk memberikan panduan komprehensif<br>mengenai penggunaan sistem STELA untuk seluruh hak akses pengguna.</p>
+    </div>
+
+    <!-- DAFTAR ISI -->
+    <div class="toc">
+        <h1>Daftar Isi</h1>
+        <ul>
+            <li><strong>Bab 1. Pendahuluan</strong></li>
+            <li><strong>Bab 2. Memulai Aplikasi</strong></li>
+            <li><strong>Bab 3. Panduan Role: User (Pegawai)</strong></li>
+            <li><strong>Bab 4. Panduan Role: Dept (Atasan Langsung)</strong></li>
+            <li><strong>Bab 5. Panduan Role: Admin (HR)</strong></li>
+            <li><strong>Bab 6. Panduan Role: KTT (Kepala Teknik Tambang)</strong></li>
+            <li><strong>Bab 7. Panduan Role: Superadmin (Administrator)</strong></li>
+            <li><strong>Bab 8. FAQ & Troubleshooting Umum</strong></li>
+        </ul>
+    </div>
+
+    <!-- BAB 1 -->
+    <div class="page-break">
+        <h1>Bab 1. Pendahuluan</h1>
+        <h2>1.1 Tujuan Dokumen</h2>
+        <p>Dokumen User Manual ini bertujuan untuk memandu pengguna dalam menggunakan aplikasi STELA (Smart Toka Electronic Letter Assign). Panduan ini merinci setiap langkah operasional sesuai dengan masing-masing peran (role) sehingga pengguna dapat berinteraksi dengan sistem secara optimal.</p>
+
+        <h2>1.2 Pengenalan Aplikasi STELA</h2>
+        <p>STELA adalah aplikasi berbasis web yang memfasilitasi penugasan elektronik (Electronic Letter Assign), manajemen data pegawai, pemantauan sertifikasi, serta alur persetujuan (approval) berjenjang hingga ke tingkat Kepala Teknik Tambang (KTT).</p>
+
+        <h2>1.3 Target Pengguna & Hak Akses</h2>
+        <p>Aplikasi ini memiliki 5 hak akses utama:</p>
+        <ul>
+            <li><strong>User (Pegawai):</strong> Karyawan yang mengajukan data diri dan memantau status penunjukan.</li>
+            <li><strong>Dept (Atasan Langsung):</strong> Kepala Departemen yang memantau staf dan proses resign.</li>
+            <li><strong>Admin (HR):</strong> Personalia yang memverifikasi data karyawan dan mencetak laporan operasional.</li>
+            <li><strong>KTT (Kepala Teknik Tambang):</strong> Otoritas tertinggi yang memberikan persetujuan akhir pada surat penunjukan.</li>
+            <li><strong>Superadmin (Administrator):</strong> Tim IT yang mengelola seluruh konfigurasi, hak akses, dan master data.</li>
+        </ul>
+
+        <h2>1.4 Persyaratan Sistem</h2>
+        <p>Aplikasi ini dapat diakses menggunakan peramban web modern seperti Google Chrome, Mozilla Firefox, atau Microsoft Edge versi terbaru yang terhubung ke jaringan intranet/internet organisasi.</p>
+    </div>
+
+    <!-- BAB 2 -->
+    <div class="page-break">
+        <h1>Bab 2. Memulai Aplikasi</h1>
+        <h2>2.1 Cara Mengakses dan Login</h2>
+        <p>Untuk masuk ke dalam aplikasi STELA, ikuti langkah berikut:</p>
+        <ol>
+            <li>Buka browser dan akses URL sistem STELA.</li>
+            <li>Pada halaman login, masukkan <strong>Username/Email</strong> dan <strong>Password</strong> Anda.</li>
+            <li>Klik tombol <strong>Masuk / Login</strong>. Sistem akan mendeteksi role Anda secara otomatis dan mengarahkan ke Dashboard yang sesuai.</li>
+        </ol>
+        <div class="placeholder">[SCREENSHOT] Halaman Login</div>
+
+        <h2>2.2 Ganti Password (Change Password)</h2>
+        <p>Demi keamanan, sangat disarankan untuk mengubah kata sandi Anda secara berkala.</p>
+        <ol>
+            <li>Akses menu profil/pengaturan di pojok atas layar.</li>
+            <li>Pilih <strong>Ubah Kata Sandi (Change Password)</strong>.</li>
+            <li>Masukkan kata sandi lama, lalu ketikkan kata sandi baru.</li>
+            <li>Klik tombol Simpan untuk menerapkan perubahan.</li>
+        </ol>
+
+        <h2>2.3 Cara Logout</h2>
+        <p>Pastikan Anda selalu keluar dari aplikasi jika menggunakan komputer publik. Klik menu Profil di pojok atas, lalu pilih <strong>Logout / Keluar</strong> untuk mengakhiri sesi Anda dengan aman.</p>
+    </div>
+
+    <!-- BAB 3 -->
+    <div class="page-break">
+        <h1>Bab 3. Panduan Role: User (Pegawai)</h1>
+        <h2>3.1 Dashboard Pegawai</h2>
+        <p>Saat Anda berhasil login, halaman pertama adalah Dashboard. Di sini Anda dapat melihat ringkasan status profil Anda, jumlah sertifikat yang Anda miliki, dan notifikasi terkait penunjukan.</p>
+        <div class="placeholder">[SCREENSHOT] Dashboard User</div>
+
+        <h2>3.2 Manajemen Data Pribadi (Tambah, Ubah, & Resubmit)</h2>
+        <p>Setiap pegawai wajib melengkapi data profil mereka agar dapat diproses untuk Surat Penunjukan.</p>
+        <ul>
+            <li><strong>Input Data:</strong> Klik tombol Tambah Data dan isi formulir yang tersedia.</li>
+            <li><strong>Ubah Data:</strong> Selama data belum dikunci/disetujui, Anda dapat memperbarui informasi dengan memilih Edit.</li>
+            <li><strong>Resubmit (Pengajuan Ulang):</strong> Jika data Anda ditolak oleh Admin, sistem akan menampilkan alasan penolakan. Anda dapat memperbaiki data dan menekan tombol Resubmit.</li>
+        </ul>
+
+        <h2>3.3 Status Karyawan & Detail</h2>
+        <p>Melalui menu <strong>Status Karyawan</strong>, Anda dapat melihat apakah dokumen Anda masih dalam tahap <em>Review</em>, sudah di-<em>Verifikasi</em>, atau <em>Ditolak</em>. Informasi detail juga disajikan pada halaman <strong>Detail Pegawai</strong>.</p>
+
+        <h2>3.4 Manajemen Sertifikat</h2>
+        <p>Menu <strong>Sertifikat</strong> menampilkan seluruh sertifikasi yang Anda miliki beserta status keabsahannya. Jika sertifikat ditolak atau kedaluwarsa, Anda dapat melakukan pengajuan ulang melalui menu <em>Resubmit Certificate</em>.</p>
+
+        <h2>3.5 Surat Penunjukan (Appointments)</h2>
+        <p>Jika Anda telah ditugaskan, Surat Penunjukan elektronik akan muncul di menu <strong>Appointments</strong>. Anda dapat melihat detail tugas dan mengunduh surat tersebut apabila sudah disetujui secara final.</p>
+    </div>
+
+    <!-- BAB 4 -->
+    <div class="page-break">
+        <h1>Bab 4. Panduan Role: Dept (Atasan Langsung)</h1>
+        <h2>4.1 Dashboard Departemen</h2>
+        <p>Berbeda dengan User biasa, Dashboard Kepala Departemen akan menampilkan agregasi statistik jumlah pegawai di bawah departemennya, status persetujuan, dan rangkuman data operasional.</p>
+
+        <h2>4.2 Memantau Daftar Pegawai Bawahan</h2>
+        <p>Melalui menu <strong>Employees</strong>, Anda dapat melihat seluruh karyawan di departemen Anda. Anda dapat membuka detail setiap pegawai untuk memantau kelengkapan profil dan sertifikat mereka.</p>
+        <div class="placeholder">[SCREENSHOT] Daftar Karyawan Departemen</div>
+
+        <h2>4.3 Menangani Proses Pegawai Resign</h2>
+        <p>Jika ada anggota tim yang mengundurkan diri, Dept Head dapat memproses dan menandai status pengunduran diri pegawai tersebut melalui menu spesifik <strong>Employees Resign</strong>.</p>
+
+        <h2>4.4 Pemantauan Sertifikat & Penunjukan</h2>
+        <p>Departemen dapat memastikan bahwa bawahan mereka memiliki sertifikat yang masih berlaku dan memantau draf Surat Penunjukan (Appointments) yang melibatkan staf mereka sebelum disahkan.</p>
+    </div>
+
+    <!-- BAB 5 -->
+    <div class="page-break">
+        <h1>Bab 5. Panduan Role: Admin (HR)</h1>
+        <h2>5.1 Memverifikasi Data Karyawan</h2>
+        <p>Tugas utama Admin adalah menjaga keabsahan data. Melalui menu <strong>Verifikasi Pegawai</strong>, Admin mengecek kelengkapan dan validitas dokumen yang diajukan oleh <em>User</em>.</p>
+        <div class="note">Catatan: Jika dokumen tidak sah, Admin berhak menekan tombol <strong>Tolak (Reject)</strong> dan wajib menyertakan catatan penolakan agar pegawai bisa melakukan <em>Resubmit</em>.</div>
+        
+        <h2>5.2 Manajemen Master Data Dasar</h2>
+        <p>Admin memiliki akses ke tabel master operasional, yaitu:</p>
+        <ul>
+            <li><strong>Sertifikasi:</strong> Mengelola jenis-jenis sertifikat yang diakui.</li>
+            <li><strong>Kompetensi:</strong> Menentukan kompetensi dan sub-kompetensi wajib.</li>
+            <li><strong>Posisi:</strong> Daftar jabatan yang ada di perusahaan.</li>
+            <li><strong>Area Pengawasan:</strong> Titik-titik operasional yang menjadi tanggung jawab pegawai.</li>
+        </ul>
+
+        <h2>5.3 Mengelola Surat Penunjukan (Appointments)</h2>
+        <p>Admin merancang, menerbitkan, dan mengawasi Surat Penunjukan untuk pegawai tertentu berdasarkan kompetensi yang telah divalidasi. Proses ini diatur pada modul <strong>Appointments</strong>.</p>
+
+        <h2>5.4 Laporan & Ekspor Data</h2>
+        <p>Admin dapat mengunduh laporan keahlian (Kompetensi) dalam format yang bisa dicetak/diexcel melalui fitur <strong>Laporan & Export</strong>.</p>
+    </div>
+
+    <!-- BAB 6 -->
+    <div class="page-break">
+        <h1>Bab 6. Panduan Role: KTT (Kepala Teknik Tambang)</h1>
+        <h2>6.1 Persetujuan (Approval) Surat Penunjukan</h2>
+        <p>Modul utama KTT adalah halaman <strong>Approval</strong>. Setelah Admin memproses Surat Penunjukan elektronik, surat tersebut akan masuk ke kotak masuk KTT.</p>
+        <p>Langkah persetujuan:</p>
+        <ol>
+            <li>Buka halaman <strong>Approval</strong>.</li>
+            <li>Tinjau detail pegawai, kompetensi, dan area pengawasan.</li>
+            <li>Jika setuju, klik tombol <strong>Approve</strong>. Dokumen secara sistem akan sah dan terdistribusi ke Admin serta Pegawai terkait.</li>
+        </ol>
+        <div class="placeholder">[SCREENSHOT] Halaman Approval KTT</div>
+    </div>
+
+    <!-- BAB 7 -->
+    <div class="page-break">
+        <h1>Bab 7. Panduan Role: Superadmin (Administrator)</h1>
+        <h2>7.1 Pengelolaan Pengguna (Users, Roles, & Permissions)</h2>
+        <p>Superadmin berwenang menambah akun pengguna secara manual, mengubah kata sandi mereka, serta mengatur peran (Role) dan hak akses (Permissions) untuk setiap akun melalui menu <strong>Users</strong>.</p>
+
+        <h2>7.2 Manajemen Master Data Keseluruhan</h2>
+        <p>Selain master data yang dipegang Admin, Superadmin juga mengatur data root perusahaan seperti entitas <strong>Perusahaan (Companies)</strong> dan daftar <strong>Departemen (Departments)</strong>.</p>
+
+        <h2>7.3 Pemantauan & Bypass Sistem</h2>
+        <p>Superadmin dapat memantau status persetujuan secara global (termasuk status Approval KTT) serta memiliki hak istimewa untuk mengedit data pegawai meskipun sedang dalam proses (Bypass/Supervision).</p>
+        <div class="placeholder">[SCREENSHOT] Monitoring Logs & Dashboard Superadmin</div>
+
+        <h2>7.4 Pengaturan Sistem Lanjut (Settings)</h2>
+        <p>Terdapat fitur kritikal bagi tim IT:</p>
+        <ul>
+            <li><strong>Backup & Restore:</strong> Mencadangkan data sistem atau memulihkan dari cadangan sebelumnya.</li>
+            <li><strong>Monitoring Logs:</strong> Memantau jejak rekam segala perubahan di dalam sistem (Audit Trail).</li>
+            <li><strong>Elasticsearch:</strong> Manajemen mesin pencari untuk memastikan pencarian data tetap cepat.</li>
+            <li><strong>Trash (Recycle Bin):</strong> Mengembalikan data penting yang tidak sengaja terhapus.</li>
+        </ul>
+    </div>
+
+    <!-- BAB 8 -->
+    <div class="page-break">
+        <h1>Bab 8. FAQ & Troubleshooting Umum</h1>
+        
+        <h2>8.1 Lupa Kata Sandi (Password)</h2>
+        <p><strong>Tanya:</strong> Bagaimana jika saya tidak bisa masuk karena lupa password?</p>
+        <p><strong>Jawab:</strong> Segera hubungi Superadmin (Tim IT/Support). Saat ini sistem pengembalian kata sandi dikendalikan penuh oleh Superadmin melalui menu <em>Users Management</em> untuk menjaga keamanan tinggi.</p>
+
+        <h2>8.2 Data Pengajuan Ditolak</h2>
+        <p><strong>Tanya:</strong> Kenapa status profil atau sertifikat saya "Rejected"?</p>
+        <p><strong>Jawab:</strong> Hal ini berarti Admin menemukan ketidaksesuaian (misal foto buram, kedaluwarsa). Silakan cek catatan penolakan pada halaman detail, lalu gunakan tombol <strong>Resubmit</strong> untuk mengunggah ulang dokumen yang benar.</p>
+
+        <h2>8.3 Akses Ditolak (Access Denied)</h2>
+        <p><strong>Tanya:</strong> Saat membuka tautan tertentu, saya dialihkan kembali ke Dashboard dengan pesan error.</p>
+        <p><strong>Jawab:</strong> Anda mencoba mengakses halaman yang tidak diperuntukkan bagi Hak Akses (Role) Anda. Misalnya, User Pegawai tidak dapat mengakses halaman pengaturan Superadmin. Pastikan Anda hanya menggunakan menu yang ada di <em>sidebar</em> kiri navigasi Anda.</p>
+    </div>
+
+    <!-- PENUTUP -->
+    <div class="page-break" style="text-align: center; padding-top: 20vh;">
+        <h1 style="border: none;">Penutup</h1>
+        <p style="font-size: 16pt;">Demikian panduan penggunaan sistem STELA.<br>Jika Anda memiliki kendala teknis lebih lanjut, silakan hubungi tim Administrator IT Anda.</p>
+    </div>
+
+</body>
+</html>
