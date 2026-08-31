@@ -1,0 +1,62 @@
+# Laporan Implementasi Keamanan Aplikasi STELA
+*Berdasarkan Checklist Keamanan PHP Native*
+
+Secara keseluruhan, proyek aplikasi STELA ini **telah mengimplementasikan seluruh standar keamanan (Best Practices)** yang disebutkan di dalam *checklist* yang Anda berikan. Meskipun aplikasi ini tidak menggunakan *framework* dan dibangun menggunakan PHP Native, tingkat keamanannya sudah sangat baik karena dibuat secara modular dan meniru standar *framework* modern.
+
+Berikut adalah rincian penjelasan (dalam bahasa sederhana) mengenai di mana saja dan bagaimana implementasi keamanan tersebut dilakukan:
+
+---
+
+### 1. Keamanan Autentikasi & Kata Sandi (Password Security)
+✅ **Status: Sudah Diimplementasikan**
+- **Di mana:** File `resources/auth/change_password.php` dan `resources/auth/login.php`
+- **Bagaimana cara kerjanya:** 
+  Aplikasi tidak lagi menyimpan kata sandi (password) asli apa adanya di database. Saat pengguna membuat kata sandi, aplikasi akan "mengacaknya" menggunakan algoritma enkripsi satu arah yang sangat kuat melalui fungsi bawaan PHP `password_hash()`. Saat pengguna mencoba login, aplikasi akan mencocokkan ketikan mereka dengan hasil acakan tersebut menggunakan fungsi `password_verify()`. Jika database bocor, peretas tetap tidak akan tahu apa password asli penggunanya.
+
+### 2. Proteksi CSRF (Cross-Site Request Forgery)
+✅ **Status: Sudah Diimplementasikan**
+- **Di mana:** File `app/Helpers/csrf_helper.php` dan `app/Security/Firewall.php`
+- **Bagaimana cara kerjanya:**
+  Aplikasi ini melindungi pengguna dari serangan "Formulir Palsu/Jebakan". Setiap kali pengguna membuka halaman form, aplikasi membuat kode unik (token) menggunakan `bin2hex(random_bytes(32))` dan menyimpannya di memori server dan juga menyisipkannya tersembunyi di dalam form. Ketika form dikirim, Firewall akan memeriksa apakah token yang dikirim dari form cocok dengan yang ada di server. Jika tidak, proses langsung diblokir.
+
+### 3. Proteksi SQL Injection (Pembajakan Database)
+✅ **Status: Sudah Diimplementasikan**
+- **Di mana:** Hampir di seluruh file yang melakukan proses simpan/ambil data, salah satunya di file `resources/auth/login.php`
+- **Bagaimana cara kerjanya:**
+  Aplikasi ini **tidak** menyambungkan input ketikan pengguna langsung ke dalam perintah SQL secara mentah. Sebaliknya, aplikasi menggunakan sistem **Prepared Statement** (menggunakan fungsi `$db->prepare()` dan `bind_param()`). Dengan cara ini, apapun teks aneh (seperti tanda kutip atau kode SQL peretas) yang diketikkan pengguna akan dianggap sebagai teks biasa dan tidak bisa membajak sistem database.
+
+### 4. Proteksi XSS (Cross-Site Scripting) & Escape Output
+✅ **Status: Sudah Diimplementasikan**
+- **Di mana:** File `app/Helpers/SecurityHelper.php` dan `app/Security/Firewall.php`
+- **Bagaimana cara kerjanya:**
+  Untuk mencegah peretas memasukkan kode JavaScript jahat (yang bisa mencuri data pengguna), aplikasi memiliki dua lapis pertahanan:
+  1. **Firewall WAF:** Secara otomatis memindai seluruh input (pencarian, form) dari pola-pola kode jahat seperti `<script>`.
+  2. **Fungsi Escape `e()`:** Sebelum menampilkan teks apapun dari database ke layar, aplikasi menggunakan fungsi `htmlspecialchars()` (dibungkus dalam nama pendek `e()`) yang akan mengubah kode HTML berbahaya menjadi teks biasa yang aman untuk ditampilkan.
+
+### 5. Keamanan Sesi (Secure Session Cookie)
+✅ **Status: Sudah Diimplementasikan**
+- **Di mana:** File `config/app.php`
+- **Bagaimana cara kerjanya:**
+  Sistem "Karcis Masuk" (Session/Cookie) diatur sedemikian rupa agar aman dari pencurian. Melalui `session_set_cookie_params()`, aplikasi memastikan bahwa karcis ini hanya boleh dikirim lewat jalur aman (HTTPS/Secure), tidak bisa dibaca oleh JavaScript (HttpOnly) agar bebas dari maling XSS, dan memiliki batas kadaluarsa.
+
+### 6. Validasi Upload File Aman
+✅ **Status: Sudah Diimplementasikan**
+- **Di mana:** File `app/Helpers/upload_helper.php`
+- **Bagaimana cara kerjanya:**
+  Aplikasi tidak mudah dikelabui jika ada peretas yang mengunggah file virus yang diubah namanya menjadi `.jpg` atau `.pdf`. Sistem menggunakan `finfo_file()` untuk memeriksa "DNA" asli dari file (MIME Type) dan memastikannya benar-benar dokumen aman sebelum menyimpannya ke server. File juga disimpan di luar jangkauan langsung peretas.
+
+### 7. Security Middleware (Pelindung Header Web)
+✅ **Status: Sudah Diimplementasikan**
+- **Di mana:** File `bootstrap/app.php`
+- **Bagaimana cara kerjanya:**
+  Aplikasi ini mengirim instruksi khusus ke browser pengunjung berupa *Header Security*:
+  - `X-Frame-Options`: Mencegah situs web ini ditempel/dibajak ke dalam web lain (Anti-Clickjacking).
+  - `X-Content-Type-Options`: Mencegah browser sok tahu mengubah jenis file yang bisa berujung fatal.
+  - `Strict-Transport-Security`: Memaksa semua sambungan ke aplikasi ini wajib memakai HTTPS yang terenkripsi.
+
+---
+
+**Kesimpulan:** 
+Berdasarkan panduan best practice keamanan PHP, aplikasi STELA sudah sangat matang mengadopsi lapisan demi lapisan (layer) pelindungan secara mandiri (native modular) dari hulu (input user) hingga ke hilir (tampilan output).
+
+*(Catatan: Anda dapat mencetak atau mengekspor tampilan laporan ini ke PDF menggunakan fitur "Print to PDF" pada web browser/editor Markdown Anda)*
