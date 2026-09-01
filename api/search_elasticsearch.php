@@ -174,7 +174,7 @@ try {
                             $ids = array_filter(array_map(function($i) { return (int)($i['id'] ?? 0); }, $items));
                             if (!empty($ids)) {
                                 $idsStr = implode(',', $ids);
-                                $dbRes = $dbHydrate->query("SELECT a.id, a.appointment_number, a.effective_date, a.expiry_date, 
+                                $dbRes = $dbHydrate->query("SELECT a.id, a.appointment_number, a.status, a.effective_date, a.expiry_date, 
                                                             e.employee_code, e.full_name as employee_name, e.position, e.department, e.contractor_company, p.position_name as competency_name 
                                                      FROM appointments a 
                                                      LEFT JOIN employees e ON a.employee_id = e.id 
@@ -189,6 +189,8 @@ try {
                                 foreach ($items as &$item) {
                                     $id = (int)($item['id'] ?? 0);
                                     if (isset($metaMap[$id])) {
+                                        // Always override status from MySQL (ES may be stale)
+                                        $item['status'] = $metaMap[$id]['status'] ?? $item['status'];
                                         if (empty($item['appointment_number'])) $item['appointment_number'] = $metaMap[$id]['appointment_number'] ?? '';
                                         if (empty($item['employee_code'])) $item['employee_code'] = $metaMap[$id]['employee_code'] ?? '';
                                         if (empty($item['employee_name'])) $item['employee_name'] = $metaMap[$id]['employee_name'] ?? '';
@@ -201,6 +203,14 @@ try {
                                     }
                                 }
                                 unset($item);
+
+                                // Filter out stale items that no longer match the requested status filter
+                                if (!empty($status)) {
+                                    $items = array_values(array_filter($items, function($item) use ($status) {
+                                        return ($item['status'] ?? '') === $status;
+                                    }));
+                                    $totalHits = count($items);
+                                }
                             }
                         } catch (\Throwable $t) {}
                     }

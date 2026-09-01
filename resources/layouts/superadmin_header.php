@@ -287,12 +287,7 @@ $current_page = get_current_page();
                     </a>
                 </li>
 
-                <li class="menu-header" style="color:#6c757d; font-size:12px; padding: 10px 20px; text-transform:uppercase;">KTT Operations</li>
-                <li>
-                    <a href="<?php echo BASE_URL; ?>/resources/superadmin/ktt_approval.php" class="<?php echo $current_page == 'ktt_approval.php' ? 'active' : ''; ?>">
-                        <i class="fas fa-check-circle"></i> <span>Approval KTT</span>
-                    </a>
-                </li>
+
 
                 <?php if(hasPermission('manage_elasticsearch')): ?>
                 <li>

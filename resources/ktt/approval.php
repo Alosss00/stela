@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     // Get current appointment status
                     $appointment = $db->query("
-                        SELECT ktt_msm_status, ktt_ttn_status FROM appointments WHERE deleted_at IS NULL AND id = ?
+                        SELECT ktt_msm_status, ktt_ttn_status, requires_ktt_msm_review, requires_ktt_ttn_review FROM appointments WHERE deleted_at IS NULL AND id = ?
                     ", [$id])->fetch_assoc();
 
                     // Update KTT status based on which KTT is approving
@@ -83,7 +83,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         if ($appointment['ktt_ttn_status'] == 'rejected') {
                             // TTN already rejected - don't change status, it's already 'rejected_by_ktt'
                             $message = 'You have approved this assign letter. However, KTT TTN has already rejected it, so it has been sent to Admin for review.';
-                        } elseif ($appointment['ktt_ttn_status'] == 'approved') {
+                        } elseif ($appointment['ktt_ttn_status'] == 'approved' || $appointment['requires_ktt_ttn_review'] == 0) {
                             // Both KTT approved - set final approval
                             $final_sql = "UPDATE appointments SET
                                          status = 'approved',
@@ -146,7 +146,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         if ($appointment['ktt_msm_status'] == 'rejected') {
                             // MSM already rejected - don't change status, it's already 'rejected_by_ktt'
                             $message = 'You have approved this assign letter. However, KTT MSM has already rejected it, so it has been sent to Admin for review.';
-                        } elseif ($appointment['ktt_msm_status'] == 'approved') {
+                        } elseif ($appointment['ktt_msm_status'] == 'approved' || $appointment['requires_ktt_msm_review'] == 0) {
                             // Both KTT approved - set final approval
                             $final_sql = "UPDATE appointments SET
                                          status = 'approved',

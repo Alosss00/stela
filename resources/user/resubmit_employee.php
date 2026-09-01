@@ -439,6 +439,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $message = 'Data correction successfully uploaded!';
                     }
 
+                    // Log to Workflow History
+                    try {
+                        require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
+                        $audit = new AuditService();
+                        $appt_id_log = isset($appointment_id) ? $appointment_id : null;
+                        $audit->log($employee_id, $appt_id_log, 'Resubmit Request', 'rejected', 'pending', 'Data corrected and resubmitted by User');
+                    } catch (Exception $e) {
+                        error_log("Audit error: " . $e->getMessage());
+                    }
+
                     // Included via bootstrap/app.php
                     try {
                         set_time_limit(60);

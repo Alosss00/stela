@@ -318,6 +318,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         }
                     }
                     
+                    // Log to Workflow History
+                    try {
+                        require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
+                        $audit = new AuditService();
+                        $audit->log($employee_id, null, 'Submit Request', null, 'pending', 'New employee registration');
+                    } catch (Exception $e) {
+                        error_log("Audit error: " . $e->getMessage());
+                    }
+
                     // Send notification to admin - with better error handling and timeout protection
                     try {
                         if (class_exists('NotificationService')) {

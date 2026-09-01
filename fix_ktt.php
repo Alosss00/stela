@@ -1,0 +1,1 @@
+<?php require 'bootstrap/app.php'; (new Database())->query("UPDATE appointments SET status = 'pending', approved_by = NULL, approved_date = NULL, final_approval_date = NULL WHERE id IN (136,138,139,140,141,142,143,144,145,146,147,148,154,155,156)"); echo 'Done'; ?>

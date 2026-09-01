@@ -562,9 +562,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
     } catch (Exception $e) {
         $db->rollback();
         $error = "System Error (Transaction Rolled Back): " . $e->getMessage();
-        if (isset($_SESSION['error_message'])) {
-            $_SESSION['error_message'] = $error;
-        }
+        error_log($error); // Explicitly log this to backend
+        $_SESSION['error_message'] = $error;
     }
 }
 
