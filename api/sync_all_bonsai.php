@@ -42,7 +42,7 @@ try {
     $empRes = $db->query("SELECT e.*, u.full_name as verified_by_name 
                           FROM employees e 
                           LEFT JOIN users u ON e.verified_by = u.id 
-                          WHERE e.is_active = 1");
+                          WHERE e.is_active = 1 AND e.deleted_at IS NULL");
 
     $empSynced = 0;
     if ($empRes) {

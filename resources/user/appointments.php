@@ -21,7 +21,7 @@ if (session_status() === PHP_SESSION_NONE) {
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
 // Build query with filter
-$where_clause = "e.contractor_company = '" . $db->escapeString($company_name) . "'";
+$where_clause = "a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = '" . $db->escapeString($company_name) . "'";
 if ($status_filter != 'all') {
     $where_clause .= " AND a.status = '" . $db->escapeString($status_filter) . "'";
 }

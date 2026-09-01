@@ -74,12 +74,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!verify_csrf_token()) {
         die("CSRF Token Invalid. Silakan muat ulang halaman.");
     }
-
-    // --- IMPLEMENTASI ANTI-CSRF ---
-    // Validasi apakah token CSRF ada dan cocok dengan token di session
-    if (!isset($_POST['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $_POST['csrf_token'])) {
-        header($_SERVER['SERVER_PROTOCOL'] . ' 400 Bad Request');
-    }
     if (isset($_POST['action'])) {
         // Handle admin review of KTT rejections
         if ($_POST['action'] == 'admin_review') {
@@ -221,7 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                    ktt1_approved_date = NULL
                                    WHERE id = ?", [$id]);
                         // Delete only MSM KTT's old approval record
-                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = (SELECT id FROM users WHERE role = 'ktt' AND id = 7 LIMIT 1)", [$id]);
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = (SELECT id FROM users WHERE role = 'ktt' AND ktt_type = 'msm' LIMIT 1)", [$id]);
                     }
                     if (in_array('ttn', $rejected_ktts)) {
                         $db->query("UPDATE appointments SET
@@ -230,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                    ktt2_approved_date = NULL
                                    WHERE id = ?", [$id]);
                         // Delete only TTN KTT's old approval record
-                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = (SELECT id FROM users WHERE role = 'ktt' AND id = 8 LIMIT 1)", [$id]);
+                        $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = (SELECT id FROM users WHERE role = 'ktt' AND ktt_type = 'ttn' LIMIT 1)", [$id]);
                     }
 
                     // Set requires flags only for rejected KTT(s)
@@ -517,18 +511,6 @@ $employees = $db->query("
 
 // Get positions for form
 $positions = $db->query("SELECT id, position_name, position_type FROM positions WHERE deleted_at IS NULL AND is_active = 1 ORDER BY position_type, position_name");
-
-// AUTO-FIX: Fix appointments status that should be rejected_by_ktt but still pending
-$auto_fix_query = "
-    UPDATE appointments a
-    SET 
-        status = 'rejected_by_ktt',
-        rejected_by_ktt_user_id = (SELECT ktt_user_id FROM ktt_approvals WHERE appointment_id = a.id AND action = 'reject' LIMIT 1)
-    WHERE a.status = 'pending'
-    AND (SELECT COUNT(*) FROM ktt_approvals WHERE appointment_id = a.id) >= 2
-    AND (SELECT COUNT(*) FROM ktt_approvals WHERE appointment_id = a.id AND action = 'reject') > 0
-";
-$db->query($auto_fix_query);
 
 // Get appointments rejected by KTT waiting for admin review
 $rejected_by_ktt_query = "
