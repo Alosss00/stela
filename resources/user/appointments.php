@@ -44,12 +44,12 @@ if (isset($_GET['action']) && $_GET['action'] == 'resubmit_to_ktt' && isset($_GE
 
         // Verify this appointment belongs to user's company and is resubmittable
         $verify_result = $db->query("
-            SELECT a.id, e.verification_status, e.resubmit_count
+            SELECT a.id, e.verification_status, a.resubmit_count
             FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.id = $appointment_id
-            AND a.status = 'pending'
-            AND a.admin_approval_action = 'send_to_user'
+            AND a.status = 'rejected'
+            AND a.requires_ktt_msm_review + a.requires_ktt_ttn_review > 0
             AND e.verification_status = 'verified'
-            AND e.resubmit_count > 0
+            AND a.resubmit_count > 0
             AND e.contractor_company = '" . $db->escapeString($company_name) . "'
         ");
 

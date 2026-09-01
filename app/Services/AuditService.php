@@ -33,9 +33,28 @@ class AuditService {
         elseif ($actor_role == 'admin') $actor_role = 'Admin';
         elseif ($actor_role == 'department_user' || $actor_role == 'user') $actor_role = 'User/Dept';
         elseif ($actor_role == 'ktt') {
-            if ($actor_id == 7) $actor_role = 'KTT MSM';
-            elseif ($actor_id == 8) $actor_role = 'KTT TTN';
-            else $actor_role = 'KTT';
+            // Dynamic KTT type lookup — no hardcoded user IDs
+            $ktt_row = $this->db->query(
+                "SELECT ktt_type FROM users WHERE id = ? AND ktt_type IS NOT NULL",
+                [$actor_id]
+            );
+            if ($ktt_row && $kr = $ktt_row->fetch_assoc()) {
+                $actor_role = ($kr['ktt_type'] === 'msm') ? 'KTT MSM' : 'KTT TTN';
+            } else {
+                // Might be a delegatee acting as KTT — check ktt_delegations
+                $del_row = $this->db->query(
+                    "SELECT ktt_type FROM ktt_delegations
+                     WHERE delegate_user_id = ? AND status = 'active'
+                     AND start_date <= CURDATE() AND end_date >= CURDATE()
+                     LIMIT 1",
+                    [$actor_id]
+                );
+                if ($del_row && $dr = $del_row->fetch_assoc()) {
+                    $actor_role = ($dr['ktt_type'] === 'msm') ? 'KTT MSM (Delegated)' : 'KTT TTN (Delegated)';
+                } else {
+                    $actor_role = 'KTT';
+                }
+            }
         }
 
         $emp_val = $employee_id ? intval($employee_id) : 'NULL';

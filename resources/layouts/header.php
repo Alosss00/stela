@@ -35,6 +35,14 @@ if (!function_exists('get_current_page')) {
     }
 }
 $current_page = get_current_page();
+
+// Required for checking delegation status
+require_once dirname(__DIR__, 2) . '/app/Helpers/ktt_helper.php';
+$ktt_info = [];
+if (isset($_SESSION['user_id'])) {
+    $temp_db = new Database();
+    $ktt_info = getKttInfo($_SESSION['user_id'], $temp_db);
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -263,10 +271,18 @@ $current_page = get_current_page();
                     </li>
                     <?php endif; ?>
 
-                    <?php if (hasPermission('ktt.access')): ?>
+                    <?php if (hasPermission('ktt.access') || (!empty($ktt_info) && $ktt_info['is_delegated'])): ?>
                     <li>
                         <a href="<?php echo BASE_URL; ?>/resources/ktt/approval.php" class="<?php echo $current_page == 'approval.php' ? 'active' : ''; ?>">
                             <i class="fas fa-check-circle"></i> <span data-lang="approval-ktt">Approval KTT</span>
+                        </a>
+                    </li>
+                    <?php endif; ?>
+
+                    <?php if (hasPermission('ktt.access') && empty($ktt_info['is_delegated'])): ?>
+                    <li>
+                        <a href="<?php echo BASE_URL; ?>/resources/ktt/delegation.php" class="<?php echo $current_page == 'delegation.php' ? 'active' : ''; ?>">
+                            <i class="fas fa-users-cog"></i> <span>KTT Delegation</span>
                         </a>
                     </li>
                     <?php endif; ?>

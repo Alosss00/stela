@@ -240,13 +240,31 @@ class NotificationService {
      * @param string|null $ktt_type - 'msm', 'ttn', or null for all KTTs
      */
     private function getKttContacts($ktt_type = null) {
-        $where_clause = "role = 'ktt' AND is_active = 1";
+        require_once dirname(__DIR__) . '/Helpers/ktt_helper.php';
 
-        // Filter by KTT type if specified (user ID 7 = MSM, user ID 8 = TTN based on existing code)
-        if ($ktt_type === 'msm') {
-            $where_clause .= " AND id = 7";
-        } elseif ($ktt_type === 'ttn') {
-            $where_clause .= " AND id = 8";
+        $where_clause = "is_active = 1";
+        $ktts = [];
+
+        if ($ktt_type === 'msm' || $ktt_type === 'ttn') {
+            // First check if there is an active delegatee for this KTT type
+            $delegation = getActiveKttDelegation($ktt_type, $this->db);
+            if ($delegation) {
+                // Return delegatee contact info
+                $ktts[] = [
+                    'id' => $delegation['delegate_user_id'],
+                    'username' => 'Delegated User',
+                    'full_name' => $delegation['delegate_user_name'] . ' (Mewakili KTT)',
+                    'email' => $this->db->query("SELECT email FROM users WHERE id = {$delegation['delegate_user_id']}")->fetch_assoc()['email'] ?? null,
+                    'phone' => $this->db->query("SELECT phone FROM users WHERE id = {$delegation['delegate_user_id']}")->fetch_assoc()['phone'] ?? null
+                ];
+                return $ktts;
+            }
+
+            // Otherwise, get the native KTT for this type
+            $where_clause .= " AND ktt_type = '" . $this->db->escapeString($ktt_type) . "' AND role = 'ktt'";
+        } else {
+            // If no type specified, get all native KTTs
+            $where_clause .= " AND ktt_type IS NOT NULL AND role = 'ktt'";
         }
 
         $result = $this->db->query("

@@ -238,6 +238,11 @@ $current_page = get_current_page();
                         <i class="fas fa-users-cog"></i> <span>User Management</span>
                     </a>
                 </li>
+                <li>
+                    <a href="<?php echo BASE_URL; ?>/resources/ktt/delegation.php" class="<?php echo $current_page == 'delegation.php' ? 'active' : ''; ?>">
+                        <i class="fas fa-user-clock"></i> <span>KTT Delegation</span>
+                    </a>
+                </li>
                 <?php endif; ?>
                 <?php if(hasPermission('role.view')): ?>
                 <li>

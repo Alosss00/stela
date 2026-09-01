@@ -46,20 +46,8 @@ $appointments = $db->query("
     ORDER BY a.created_at DESC, a.id DESC
 ");
 
-// Perbaiki status certification jika sudah di-approve admin
-if ($appointments && $appointments->num_rows > 0) {
-    while ($apt = $appointments->fetch_assoc()) {
-        $employee_id = $apt['employee_id'];
-        $status = $apt['status'];
-        if ($status == 'approved') {
-            $db->query("UPDATE employee_certifications SET verification_status = 'verified' WHERE employee_id = " . intval($employee_id) . " AND verification_status = 'pending'");
-        }
-    }
-    // Refresh appointments
-    $appointments = $db->query("SELECT a.*, e.employee_code, e.full_name, e.position, e.department, e.contractor_company, e.competency_type, e.competency_name, p.position_name, CASE WHEN a.status = 'approved' THEN 'success' WHEN a.status = 'pending' THEN 'warning' WHEN a.status = 'rejected' THEN 'danger' WHEN a.status = 'draft' THEN 'secondary' ELSE 'secondary' END as status_class FROM appointments a JOIN employees e ON a.employee_id = e.id LEFT JOIN positions p ON a.position_id = p.id WHERE $where_clause ORDER BY a.created_at DESC, a.id DESC");
-}
-
 // Get statistics
+
 $all_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = '" . $db->escapeString($department) . "'")->fetch_assoc()['count'];
 $pending_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = '" . $db->escapeString($department) . "' AND a.status = 'pending'")->fetch_assoc()['count'];
 $approved_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = '" . $db->escapeString($department) . "' AND a.status = 'approved'")->fetch_assoc()['count'];

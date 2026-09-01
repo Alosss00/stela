@@ -5,22 +5,39 @@ require_once dirname(__DIR__, 2) . '/app/Helpers/auth_helper.php';
 // Included via bootstrap/app.php
 // Included via bootstrap/app.php
 
+require_once dirname(__DIR__, 2) . '/app/Helpers/ktt_helper.php';
+
 // Check if user has KTT access or is superadmin
 requirePermission('appointment.view');
-if (!hasPermission('ktt.access') && !isSuperadmin()) {
+
+$db = new Database();
+$current_user_id = $_SESSION['user_id'];
+$is_superadmin = isSuperadmin();
+
+// Determine KTT type dynamically
+$ktt_info = getKttInfo($current_user_id, $db);
+$ktt_type = $ktt_info['ktt_type'];
+
+if (!hasPermission('ktt.access') && !$is_superadmin && !$ktt_info['is_delegated']) {
     header('Location: ../admin/dashboard.php');
     exit();
 }
 
-$is_superadmin = isSuperadmin();
-
-$db = new Database();
 $message = '';
 $error = '';
-$current_user_id = $_SESSION['user_id'];
 
-// Determine KTT type: user_id 7 = KTT MSM, user_id 8 = KTT TTN
-$ktt_type = ($current_user_id == 7) ? 'msm' : 'ttn';
+// Helper for updating certificate status
+function updateCertificateStatusForEmployee($db, $employee_id) {
+    $db->query("
+        UPDATE employee_certifications
+        SET status='active', verification_status='verified'
+        WHERE id= (
+            SELECT latest_id FROM (
+                SELECT MAX(id) latest_id FROM employee_certifications WHERE employee_id=?
+            ) x
+        )
+    ", [(int)$employee_id]);
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!verify_csrf_token()) {
@@ -87,7 +104,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             // Both KTT approved - set final approval
                             $final_sql = "UPDATE appointments SET
                                          status = 'approved',
-                                         approved_by = $current_user_id,
                                          approved_date = NOW(),
                                          final_approval_date = NOW(),
                                          approval_notes = '$approval_notes'
@@ -95,30 +111,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $db->query($final_sql);
                             
                             /* UPDATE CERTIFICATE STATUS */
-                            $employee = $db->query("
-                            SELECT employee_id
-                            FROM appointments
-                            WHERE id=?
-                            ", [$id])->fetch_assoc();
-
-                            $employee_id = (int)$employee['employee_id'];
-
-                            $db->query("
-                            UPDATE employee_certifications
-                            SET
-                                status='active',
-                                verification_status='verified'
-                            WHERE id=
-                            (
-                                SELECT latest_id
-                                FROM
-                                (
-                                    SELECT MAX(id) latest_id
-                                    FROM employee_certifications
-                                    WHERE employee_id=?
-                                ) x
-                            )
-                            ", [$employee_id]);
+                            $employee = $db->query("SELECT employee_id FROM appointments WHERE id=?", [$id])->fetch_assoc();
+                            updateCertificateStatusForEmployee($db, $employee['employee_id']);
                         
                             $message = 'Assign letter successfully approved!';
                             // Notify admin and user/dept that both KTTs approved
@@ -150,7 +144,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             // Both KTT approved - set final approval
                             $final_sql = "UPDATE appointments SET
                                          status = 'approved',
-                                         approved_by = $current_user_id,
                                          approved_date = NOW(),
                                          final_approval_date = NOW(),
                                          approval_notes = '$approval_notes'
@@ -158,30 +151,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $db->query($final_sql);
 
                             /* UPDATE CERTIFICATE STATUS */
-                                $employee = $db->query("
-                                SELECT employee_id
-                                FROM appointments
-                                WHERE id=?
-                                ", [$id])->fetch_assoc();
-
-                                $employee_id = (int)$employee['employee_id'];
-
-                                $db->query("
-                                UPDATE employee_certifications
-                                SET
-                                    status='active',
-                                    verification_status='verified'
-                                WHERE id=
-                                (
-                                    SELECT latest_id
-                                    FROM
-                                    (
-                                        SELECT MAX(id) latest_id
-                                        FROM employee_certifications
-                                        WHERE employee_id=?
-                                    ) x
-                                )
-                                ", [$employee_id]);
+                            $employee = $db->query("SELECT employee_id FROM appointments WHERE id=?", [$id])->fetch_assoc();
+                            updateCertificateStatusForEmployee($db, $employee['employee_id']);
                                 
                             $message = 'Assign letter successfully approved!';
                             // Notify admin and user/dept that both KTTs approved
