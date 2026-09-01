@@ -111,7 +111,11 @@ if (!function_exists('delete_upload')) {
  */
 if (!function_exists('safe_move_uploaded_file')) {
     function safe_move_uploaded_file(string $tmp_name, string $destination): bool {
-        if (!file_exists($tmp_name)) {
+        $log_file = dirname(__DIR__, 2) . '/upload_debug.log';
+        file_put_contents($log_file, date('Y-m-d H:i:s') . " - Upload attempt: tmp=$tmp_name, dest=$destination\n", FILE_APPEND);
+
+        if (!is_uploaded_file($tmp_name)) {
+            file_put_contents($log_file, date('Y-m-d H:i:s') . " - Error: tmp file is not an uploaded file\n", FILE_APPEND);
             return false;
         }
 
@@ -120,9 +124,17 @@ if (!function_exists('safe_move_uploaded_file')) {
         $mime = finfo_file($finfo, $tmp_name);
         finfo_close($finfo);
 
+        file_put_contents($log_file, date('Y-m-d H:i:s') . " - MIME detected: $mime\n", FILE_APPEND);
+
         // Define securely allowed MIME types
         $allowed_mimes = [
             'application/pdf',
+            'application/x-pdf',
+            'application/acrobat',
+            'application/vnd.pdf',
+            'text/pdf',
+            'text/x-pdf',
+            'application/octet-stream', // Fallback for weirdly formatted PDFs on Windows
             'image/jpeg', 
             'image/jpg', 
             'image/png',
@@ -133,11 +145,19 @@ if (!function_exists('safe_move_uploaded_file')) {
         ];
 
         if (!in_array($mime, $allowed_mimes)) {
-            // Log security warning if needed, but for now just return false
+            file_put_contents($log_file, date('Y-m-d H:i:s') . " - Error: MIME not in allowed list\n", FILE_APPEND);
+            error_log("Upload failed: MIME type '$mime' not allowed. File: $tmp_name");
             return false;
         }
 
         // If MIME type is valid, proceed with the actual move
-        return move_uploaded_file($tmp_name, $destination);
+        if (move_uploaded_file($tmp_name, $destination)) {
+            file_put_contents($log_file, date('Y-m-d H:i:s') . " - Success: file moved\n", FILE_APPEND);
+            return true;
+        } else {
+            file_put_contents($log_file, date('Y-m-d H:i:s') . " - Error: move_uploaded_file returned false\n", FILE_APPEND);
+            error_log("Upload failed: move_uploaded_file returned false for $tmp_name -> $destination");
+            return false;
+        }
     }
 }

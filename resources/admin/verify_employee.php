@@ -528,6 +528,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                         } catch (Exception $e) {
                             error_log("Notification error (admin accepted): " . $e->getMessage());
                         }
+                        // COMMIT TRANSACTIONS BEFORE EXITING
+                        $db->commit();
+                        
                         $appt_redirect = (isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? BASE_URL . '/resources/superadmin/monitoring_appointments.php' : 'appointments.php';
                         if ($appointment_id) {
                             header("Location: " . $appt_redirect . "?highlight=" . $appointment_id);

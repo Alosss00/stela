@@ -109,9 +109,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } elseif (in_array($competency_type, ['pengawas_teknis', 'tenaga_teknis']) && empty($competency_name)) {
             $error = 'Competency is required for Technical Supervisor and Technical Personnel types!';
         } elseif (!isset($_FILES['cv_file']) || $_FILES['cv_file']['error'] != 0) {
-            $error = 'CV upload is required!';
+            if (isset($_FILES['cv_file']) && $_FILES['cv_file']['error'] == UPLOAD_ERR_INI_SIZE) {
+                $error = 'CV file size exceeds the server limit (' . ini_get('upload_max_filesize') . ').';
+            } else {
+                $error = 'CV upload is required!';
+            }
         } elseif (!isset($_FILES['statement_file']) || $_FILES['statement_file']['error'] != 0) {
-            $error = 'Statement Letter upload is required!';
+            if (isset($_FILES['statement_file']) && $_FILES['statement_file']['error'] == UPLOAD_ERR_INI_SIZE) {
+                $error = 'Statement Letter file size exceeds the server limit (' . ini_get('upload_max_filesize') . ').';
+            } else {
+                $error = 'Statement Letter upload is required!';
+            }
         }
     } else {
         // Validation for draft is very relaxed, just ensure employee_code exists if at all possible, though not strictly required
@@ -602,11 +610,28 @@ require_once dirname(__DIR__) . '/layouts/header.php';
             </div>
             
             <div id="certificationContainer" class="certifications-list">
+                <?php
+                $posted_certs = isset($_POST['certification_ids']) ? $_POST['certification_ids'] : [''];
+                foreach ($posted_certs as $index => $cert_id):
+                    $cert_type = isset($_POST['cert_types'][$index]) ? $_POST['cert_types'][$index] : '';
+                    $cert_type_other = isset($_POST['cert_types_other'][$index]) ? htmlspecialchars($_POST['cert_types_other'][$index]) : '';
+                    $cert_number = isset($_POST['cert_numbers'][$index]) ? htmlspecialchars($_POST['cert_numbers'][$index]) : '';
+                    $cert_issuer = isset($_POST['cert_issuers'][$index]) ? htmlspecialchars($_POST['cert_issuers'][$index]) : '';
+                    $issue_date = isset($_POST['issue_dates'][$index]) ? htmlspecialchars($_POST['issue_dates'][$index]) : '';
+                    $validity_year = isset($_POST['validity_years'][$index]) ? htmlspecialchars($_POST['validity_years'][$index]) : '';
+                    $no_expiry = isset($_POST['no_expiry'][$index]) ? true : false;
+                    $expiry_date = isset($_POST['expiry_dates'][$index]) ? htmlspecialchars($_POST['expiry_dates'][$index]) : '';
+                    $expiry_reason = isset($_POST['expiry_reasons'][$index]) ? htmlspecialchars($_POST['expiry_reasons'][$index]) : '';
+                ?>
                 <div class="certification-item">
                     <div class="cert-item-header">
-                        <h5><i class="fas fa-file-certificate"></i> <span data-lang="certification-number-1">Certification #1</span></h5>
+                        <h5><i class="fas fa-file-certificate"></i> <span data-lang="certification-number-<?php echo $index + 1; ?>">Certification #<?php echo $index + 1; ?></span></h5>
                         <div class="cert-header-actions">
-                            <!-- Remove button will appear for additional certifications -->
+                            <?php if ($index > 0): ?>
+                            <button type="button" class="btn-remove-cert" onclick="removeCertification(this)" title="Remove this certification" data-lang-title="remove-this-certification">
+                                <i class="fas fa-times"></i>
+                            </button>
+                            <?php endif; ?>
                         </div>
                     </div>
                     
@@ -635,39 +660,40 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                             <label data-lang="certificate-type">Certificate Type <span class="text-danger">*</span></label>
                             <select name="cert_types[]" class="form-control cert-type-select" required onchange="toggleOtherType(this)">
                                 <option value="" data-lang="select-type">-- Select Type --</option>
-                                <option value="Attendance/Participant" data-lang="attendance-participant">Attendance/Participant</option>
-                                <option value="Competent" data-lang="competent">Competent</option>
-                                <option value="Training" data-lang="training">Training</option>
+                                <option value="Attendance/Participant" data-lang="attendance-participant" <?php echo ($cert_type == 'Attendance/Participant') ? 'selected' : ''; ?>>Attendance/Participant</option>
+                                <option value="Competent" data-lang="competent" <?php echo ($cert_type == 'Competent') ? 'selected' : ''; ?>>Competent</option>
+                                <option value="Training" data-lang="training" <?php echo ($cert_type == 'Training') ? 'selected' : ''; ?>>Training</option>
+                                <option value="Lainnya" data-lang="other" <?php echo ($cert_type == 'Lainnya') ? 'selected' : ''; ?>>Lainnya</option>
                             </select>
                         </div>
-                        <div class="form-group col-lg-4 other-type-input" style="display: none;">
+                        <div class="form-group col-lg-4 other-type-input" style="<?php echo ($cert_type == 'Lainnya') ? 'display: block;' : 'display: none;'; ?>">
                             <label data-lang="other-type">Other Type <span class="text-danger">*</span></label>
-                            <input type="text" name="cert_types_other[]" class="form-control" placeholder="Enter certificate type" data-lang-placeholder="enter-certificate-type">
+                            <input type="text" name="cert_types_other[]" class="form-control" value="<?php echo $cert_type_other; ?>" placeholder="Enter certificate type" data-lang-placeholder="enter-certificate-type">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group col-lg-6">
                             <label data-lang="certificate-number">Certificate Number <span class="text-danger">*</span></label>
-                            <input type="text" name="cert_numbers[]" class="form-control" required placeholder="Certificate number" data-lang-placeholder="certificate-number-placeholder">
+                            <input type="text" name="cert_numbers[]" class="form-control" value="<?php echo $cert_number; ?>" required placeholder="Certificate number" data-lang-placeholder="certificate-number-placeholder">
                         </div>
                         <div class="form-group col-lg-6">
                             <label data-lang="issuer">Issuer <span class="text-danger">*</span></label>
-                            <input type="text" name="cert_issuers[]" class="form-control" required placeholder="Name of issuer/certification body" data-lang-placeholder="issuer-certification-body-name">
+                            <input type="text" name="cert_issuers[]" class="form-control" value="<?php echo $cert_issuer; ?>" required placeholder="Name of issuer/certification body" data-lang-placeholder="issuer-certification-body-name">
                         </div>
                     </div>
                     
                     <div class="form-row">
                         <div class="form-group col-lg-6">
                             <label data-lang="issue-date">Issue Date <span class="text-danger">*</span></label>
-                            <input type="date" name="issue_dates[]" class="form-control issue-date" required onchange="calculateExpiryDate(this)">
+                            <input type="date" name="issue_dates[]" class="form-control issue-date" value="<?php echo $issue_date; ?>" required onchange="calculateExpiryDate(this)">
                         </div>
                         <div class="form-group col-lg-6">
                             <label data-lang="validity-period">Validity Period <span class="text-danger">*</span></label>
                             <div class="validity-input-group">
-                                <input type="number" name="validity_years[]" class="form-control validity-years" min="0" step="0.5" placeholder="Years" data-lang-placeholder="years" onchange="calculateExpiryDate(this)">
+                                <input type="number" name="validity_years[]" class="form-control validity-years" value="<?php echo $validity_year; ?>" min="0" step="0.5" placeholder="Years" data-lang-placeholder="years" onchange="calculateExpiryDate(this)">
                                 <label class="checkbox-label">
-                                    <input type="checkbox" name="no_expiry[]" class="no-expiry-check" onchange="toggleExpiryField(this)">
+                                    <input type="checkbox" name="no_expiry[]" class="no-expiry-check" <?php echo $no_expiry ? 'checked' : ''; ?> onchange="toggleExpiryField(this)">
                                     <span data-lang="no-expiry">No Expiry</span>
                                 </label>
                             </div>
@@ -677,15 +703,15 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                     <div class="form-row">
                         <div class="form-group col-lg-6">
                             <label data-lang="expiry-date">Expiry Date <span class="text-danger">*</span></label>
-                            <input type="date" name="expiry_dates[]" class="form-control expiry-date" readonly>
+                            <input type="date" name="expiry_dates[]" class="form-control expiry-date" value="<?php echo $expiry_date; ?>" <?php echo $no_expiry ? 'readonly' : ''; ?>>
                         </div>
                         <div class="form-group col-lg-6">
                         </div>
                     </div>
                     
-                    <div class="form-group other-expiry-reason" style="display: none;">
+                    <div class="form-group other-expiry-reason" style="<?php echo $no_expiry ? 'display: block;' : 'display: none;'; ?>">
                         <label data-lang="notes">Notes <span class="text-danger">*</span></label>
-                        <textarea name="expiry_reasons[]" class="form-control" placeholder="Explain the reason..." data-lang-placeholder="explain-the-reason" rows="2"></textarea>
+                        <textarea name="expiry_reasons[]" class="form-control" placeholder="Explain the reason..." data-lang-placeholder="explain-the-reason" rows="2"><?php echo $expiry_reason; ?></textarea>
                     </div>
                     
                     <div class="form-group">
@@ -698,6 +724,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
                         </div>
                     </div>
                 </div>
+                <?php endforeach; ?>
             </div>
 
             <button type="button" class="btn btn-outline-primary" onclick="addCertification()">
@@ -1168,6 +1195,7 @@ function addCertification() {
                     <option value="Attendance/Participant" data-lang="attendance-participant">Attendance/Participant</option>
                     <option value="Competent" data-lang="competent">Competent</option>
                     <option value="Training" data-lang="training">Training</option>
+                    <option value="Lainnya" data-lang="other">Lainnya</option>
                 </select>
             </div>
             <div class="form-group col-lg-4 other-type-input" style="display: none;">
