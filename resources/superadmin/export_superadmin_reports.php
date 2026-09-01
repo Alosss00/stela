@@ -35,7 +35,7 @@ ob_start();
 <html>
 <head>
     <meta charset="utf-8">
-    <title><?= $title ?></title>
+    <title><?= htmlspecialchars($title ?? "", ENT_QUOTES, "UTF-8") ?></title>
     <style>
         body { font-family: sans-serif; font-size: 10pt; }
         h2 { text-align: center; margin-bottom: 5px; }
@@ -47,7 +47,7 @@ ob_start();
     </style>
 </head>
 <body>
-    <h2><?= $title ?></h2>
+    <h2><?= htmlspecialchars($title ?? "", ENT_QUOTES, "UTF-8") ?></h2>
     <div class="filter-info">
         Waktu Ekspor: <?= date('d M Y H:i:s') ?><br>
         Filter: Scope (<?= $filters['scope'] ?: 'Semua' ?>) | Tipe (<?= $filters['competency_type'] ?: 'Semua' ?>) | Dept (<?= $filters['department'] ?: 'Semua' ?>) | Status (<?= $filters['status'] ?: 'Semua' ?>)

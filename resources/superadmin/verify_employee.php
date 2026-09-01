@@ -213,7 +213,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                 $appointment_id = $db->lastInsertId();
                                 
                                 // Update appointment_number in employees table for tracking
-                                $db->query("UPDATE employees SET appointment_number = '$appointment_number' WHERE id = ?", [$employee_id]);
+                                $db->query("UPDATE employees SET appointment_number = ? WHERE id = ?", [$appointment_number, $employee_id]);
                                 $_SESSION['success_message'] = stela_t('verified-draft-created', ['appointment_number' => $appointment_number]);
                             } else {
                                 $_SESSION['error_message'] = stela_t('verified-create-appointment-failed');
@@ -446,7 +446,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                     $update_parts[] = "ktt2_approved_date = NULL";
                                 }
 
-                                $db->query("UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $appointment_id");
+                                $db->query("UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = ?", [$appointment_id]);
 
                                 // Delete old KTT approval records only for KTT(s) that need re-review
                                 if ($existing_appointment['requires_ktt_msm_review'] == 1) {
@@ -494,7 +494,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                             }
                             
                             // Update appointment_number in employees table for tracking
-                            $db->query("UPDATE employees SET appointment_number = '$existing_number' WHERE id = ?", [$employee_id]);
+                            $db->query("UPDATE employees SET appointment_number = ? WHERE id = ?", [$existing_number, $employee_id]);
                         }
                         
                         // Sync appointment to Elasticsearch

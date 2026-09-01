@@ -336,7 +336,7 @@ AND a.status='approved'
                             while ($row = $employees->fetch_assoc()): 
                                $employee_company = htmlspecialchars($row['contractor_company']);
                             ?>
-                            <tr class="emp-row" data-company="<?= $employee_company ?>" data-status="<?= htmlspecialchars($row['employee_status']) ?>">
+                            <tr class="emp-row" data-company="<?= htmlspecialchars($employee_company ?? "", ENT_QUOTES, "UTF-8") ?>" data-status="<?= htmlspecialchars($row['employee_status']) ?>">
                                 <td class="col-code">
                                     <span class="code-badge"><?php echo htmlspecialchars($row['employee_code']); ?></span>
                                 </td>
@@ -347,11 +347,11 @@ AND a.status='approved'
                                     <span class="position-tag-emp"><?php echo htmlspecialchars($row['position']); ?></span>
                                 </td>
                                 <td class="col-company">
-                                    <span class="company-tag-emp"><?= $employee_company ?></span>
+                                    <span class="company-tag-emp"><?= htmlspecialchars($employee_company ?? "", ENT_QUOTES, "UTF-8") ?></span>
                                 </td>
                                 <td class="col-competency-type">
                                     <?php $type = strtolower(str_replace(' ', '_', trim($row['competency_type'])));?>
-                                    <span class="competency-type-badge competency-<?= $type ?>"><?= htmlspecialchars($row['competency_type']) ?></span>
+                                    <span class="competency-type-badge competency-<?= htmlspecialchars($type ?? "", ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($row['competency_type']) ?></span>
                                     </td>      
                                 <td class="col-competency">
                                     <?php if (!empty($row['competency_name'])): ?>

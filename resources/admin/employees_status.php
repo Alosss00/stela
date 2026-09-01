@@ -289,7 +289,7 @@ WHERE e.is_active=0 AND a.status='approved'
                                 </td>
                                 <td class="col-competency-type">
                                     <?php $type = strtolower(str_replace(' ', '_', trim($row['competency_type'])));?>
-                                    <span class="competency-type-badge competency-<?= $type ?>"><?= htmlspecialchars($row['competency_type']) ?></span>
+                                    <span class="competency-type-badge competency-<?= htmlspecialchars($type ?? "", ENT_QUOTES, "UTF-8") ?>"><?= htmlspecialchars($row['competency_type']) ?></span>
                                     </td>      
                                 <td class="col-competency">
                                     <?php if (!empty($row['competency_name'])): ?>

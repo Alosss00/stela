@@ -75,7 +75,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = stela_t('all-required-fields-must-be-filled');
         }
         // Cek duplikat employee_code
-        elseif ($db->query("SELECT employee_code FROM employees WHERE deleted_at IS NULL AND employee_code = '$employee_code' AND is_active = 1")->num_rows > 0) {
+        elseif ($db->query("SELECT employee_code FROM employees WHERE deleted_at IS NULL AND employee_code = ? AND is_active = 1", [$employee_code])->num_rows > 0) {
             $error = stela_t('employee-code-already-registered');
         } elseif (in_array($competency_type, ['pengawas_teknis', 'pengawas_operasional']) && empty($ruang_lingkup)) {
             $error = stela_t('scope-required-tech-and-ops-supervisor');
@@ -390,8 +390,8 @@ $total_employees = $employees->num_rows;
 $pending_verification = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
 // Count only verified/rejected by current logged-in admin
 $current_user_id = $_SESSION['user_id'];
-$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'verified' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
-$rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'rejected' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
+$verified_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'verified' AND is_active = 1 AND verified_by = ?", [(int)$current_user_id])->fetch_assoc()['count'];
+$rejected_count = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'rejected' AND is_active = 1 AND verified_by = ?", [(int)$current_user_id])->fetch_assoc()['count'];
 
 // Get statistics per company
 $companies_stats = [];

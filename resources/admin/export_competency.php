@@ -85,7 +85,7 @@ ob_start();
 <html>
 <head>
     <meta charset="utf-8">
-    <title><?= $title ?></title>
+    <title><?= htmlspecialchars($title ?? "", ENT_QUOTES, "UTF-8") ?></title>
     <style>
         body { font-family: sans-serif; font-size: 10pt; }
         h2 { text-align: center; }
@@ -95,7 +95,7 @@ ob_start();
     </style>
 </head>
 <body>
-    <h2><?= $title ?></h2>
+    <h2><?= htmlspecialchars($title ?? "", ENT_QUOTES, "UTF-8") ?></h2>
     <table>
         <thead>
             <tr>

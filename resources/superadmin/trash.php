@@ -3,12 +3,10 @@ require_once dirname(__DIR__, 2) . '/bootstrap/app.php';
 $page_title = 'Trash & Recovery';
 require_once dirname(__DIR__, 2) . '/app/Helpers/auth_helper.php';
 
-// Pastikan ini ditaruh di baris paling awal
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// Generate token CSRF
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
 }
@@ -40,10 +38,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         http_response_code(403);
         die('CSRF validation failed.');
     }
-    
     $id = intval($_POST['id']);
     $table = $_POST['table'];
-    
     if (array_key_exists($table, $valid_tables)) {
         if ($db->query("UPDATE $table SET deleted_at = NULL WHERE id = ?", [$id])) {
             $message = "Record successfully restored.";
@@ -59,11 +55,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
         http_response_code(403);
         die('CSRF validation failed.');
     }
-    
     $id = intval($_POST['id']);
     $table = $_POST['table'];
-    
     if (array_key_exists($table, $valid_tables)) {
+        // --- Storage Cleanup: delete physical files before removing DB record ---
+        if ($table === 'employees') {
+            $emp_files = $db->query("SELECT cv_file, statement_file FROM employees WHERE id = ?", [$id]);
+            if ($emp_files && ($emp_row = $emp_files->fetch_assoc())) {
+                if (!empty($emp_row['cv_file']))        { delete_upload($emp_row['cv_file']); }
+                if (!empty($emp_row['statement_file'])) { delete_upload($emp_row['statement_file']); }
+            }
+            $cert_files = $db->query("SELECT document_file FROM employee_certifications WHERE employee_id = ?", [$id]);
+            if ($cert_files) {
+                while ($cert_row = $cert_files->fetch_assoc()) {
+                    if (!empty($cert_row['document_file'])) {
+                        delete_upload($cert_row['document_file']);
+                    }
+                }
+            }
+        }
+        // -----------------------------------------------------------------------
         if ($db->query("DELETE FROM $table WHERE id = ?", [$id])) {
             $message = "Record permanently deleted.";
         } else {
@@ -102,7 +113,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
 <div class="container-fluid py-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
-            <h2 class="mb-1"><i class="fas fa-trash-restore text-warning"></i> Trash & Recovery</h2>
+            <h2 class="mb-1"><i class="fas fa-trash-restore text-warning"></i> Trash &amp; Recovery</h2>
             <p class="text-muted">Restore deleted data from the system.</p>
         </div>
     </div>
@@ -125,7 +136,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
             <ul class="nav nav-tabs card-header-tabs" role="tablist">
                 <?php foreach ($valid_tables as $table_key => $table_label): ?>
                     <li class="nav-item">
-                        <a class="nav-link <?= $selected_table === $table_key ? 'active fw-bold' : 'text-muted' ?>" 
+                        <a class="nav-link <?= $selected_table === $table_key ? 'active fw-bold' : 'text-muted' ?>"
                            href="?table=<?= $table_key ?>">
                             <?= $table_label ?>
                         </a>
@@ -133,7 +144,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                 <?php endforeach; ?>
             </ul>
         </div>
-        
+
         <div class="card-body p-0">
             <div class="table-responsive">
                 <table class="table table-hover align-middle mb-0">

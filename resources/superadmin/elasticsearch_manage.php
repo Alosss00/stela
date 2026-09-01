@@ -101,7 +101,7 @@ require_once dirname(__DIR__) . '/layouts/superadmin_header.php';
                                         if ($hStatus === 'yellow') $badgeColor = 'warning';
                                         if ($hStatus === 'red') $badgeColor = 'danger';
                                     ?>
-                                    <span class="badge bg-<?= $badgeColor ?> text-uppercase"><?= htmlspecialchars($hStatus) ?></span>
+                                    <span class="badge bg-<?= htmlspecialchars($badgeColor ?? "", ENT_QUOTES, "UTF-8") ?> text-uppercase"><?= htmlspecialchars($hStatus) ?></span>
                                 </span>
                             </li>
                             <li class="list-group-item px-0 d-flex justify-content-between align-items-center">

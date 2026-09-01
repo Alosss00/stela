@@ -20,10 +20,10 @@ $report_data = $db->query("
         SUM(CASE WHEN a.status = 'approved' THEN 1 ELSE 0 END) as approved_count,
         SUM(CASE WHEN a.status = 'rejected' THEN 1 ELSE 0 END) as rejected_count,
         COUNT(*) as total_count
-    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected') AND e.department = '" . $db->escapeString($department) . "'
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected') AND e.department = ?
     GROUP BY e.department
     ORDER BY e.department
-");
+", [$department]);
 
 // Get detailed approved appointments for user's department (include KTT approvals)
 $approved_appointments = $db->query("
@@ -43,9 +43,9 @@ $approved_appointments = $db->query("
     LEFT JOIN users au ON a.approved_by = au.id
     LEFT JOIN users ktt1 ON a.ktt1_approved_by = ktt1.id
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
-    WHERE a.status = 'approved' AND e.department = '" . $db->escapeString($department) . "'
+    WHERE a.status = 'approved' AND e.department = ?
     ORDER BY a.approved_date DESC
-");
+", [$department]);
 
 // Get detailed rejected appointments for user's department
 $rejected_appointments = $db->query("
@@ -65,18 +65,18 @@ $rejected_appointments = $db->query("
     LEFT JOIN users au ON a.approved_by = au.id
     LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
     LEFT JOIN users ktt_u ON ka.ktt_user_id = ktt_u.id
-    WHERE a.status = 'rejected' AND e.department = '" . $db->escapeString($department) . "'
+    WHERE a.status = 'rejected' AND e.department = ?
     GROUP BY a.id
     ORDER BY a.approved_date DESC
-");
+", [$department]);
 
 // Get statistics for user's department
-$approved_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'approved' AND e.department = '" . $db->escapeString($department) . "'")->fetch_assoc()['count'];
-$rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'rejected' AND e.department = '" . $db->escapeString($department) . "'")->fetch_assoc()['count'];
+$approved_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'approved' AND e.department = ?")->fetch_assoc()['count'];
+$rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'rejected' AND e.department = ?")->fetch_assoc()['count'];
 $total_processed = $approved_total + $rejected_total;
 
 // Get request data for user's department
-$dept_filter = "e.department = '" . $db->escapeString($department) . "'";
+$dept_filter = "e.department = ?";
 $accepted_requests = $db->query("
     SELECT ec.*, e.full_name, e.employee_code, e.employee_status, e.resign_date, cert.cert_name, DATEDIFF(CURDATE(), ec.expiry_date) as days_expired
     FROM employee_certifications ec
@@ -94,9 +94,9 @@ $accepted_requests = $db->query("
     )
     ORDER BY ec.expiry_date ASC, e.full_name");
 
-$rejected_requests = $db->query("\n    SELECT e.*, e.created_at as request_date, e.updated_at as verification_date, u.full_name as verified_by_name\n    FROM employees e\n    LEFT JOIN users u ON e.verified_by = u.id\n    WHERE e.verification_status = 'rejected' AND e.department = '" . $db->escapeString($department) . "'\n    ORDER BY e.updated_at DESC\n");
+$rejected_requests = $db->query("\n    SELECT e.*, e.created_at as request_date, e.updated_at as verification_date, u.full_name as verified_by_name\n    FROM employees e\n    LEFT JOIN users u ON e.verified_by = u.id\n    WHERE e.verification_status = 'rejected' AND e.department = ?\n    ORDER BY e.updated_at DESC\n", [$department]);
 
-$pending_requests = $db->query("\n    SELECT e.*, e.created_at as request_date\n    FROM employees e\n    WHERE e.verification_status = 'pending' AND e.department = '" . $db->escapeString($department) . "'\n    ORDER BY e.created_at DESC\n");
+$pending_requests = $db->query("\n    SELECT e.*, e.created_at as request_date\n    FROM employees e\n    WHERE e.verification_status = 'pending' AND e.department = ?\n    ORDER BY e.created_at DESC\n", [$department]);
 
 $accepted_requests_count = $accepted_requests ? $accepted_requests->num_rows : 0;
 $rejected_requests_count = $rejected_requests ? $rejected_requests->num_rows : 0;
@@ -113,9 +113,9 @@ $expiring_certs = $db->query("
     WHERE ec.expiry_date < CURDATE() 
     AND ec.status != 'active'
     AND e.is_active = 1
-    AND e.department = '" . $db->escapeString($department) . "'
+    AND e.department = ?
     ORDER BY ec.expiry_date ASC
-");
+", [$department]);
 
 $expiring_certs_count = $expiring_certs ? $expiring_certs->num_rows : 0;
 
@@ -123,9 +123,9 @@ $expiring_certs_count = $expiring_certs ? $expiring_certs->num_rows : 0;
 // Get resigned employees
 $resigned_employees = $db->query("
     SELECT e.*
-    FROM employees e WHERE e.deleted_at IS NULL AND e.employee_status = 'resigned' AND e.department = '" . $db->escapeString($department) . "'
+    FROM employees e WHERE e.deleted_at IS NULL AND e.employee_status = 'resigned' AND e.department = ?
     ORDER BY e.resign_date DESC, e.full_name ASC
-");
+", [$department]);
 
 require_once dirname(__DIR__) . '/layouts/header.php';
 
@@ -133,7 +133,7 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_at IS NULL AND is_active = 1 ORDER BY area_name");
 
 // Get unique work scopes for filter (from user's department data)
-$work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appointments a\n    JOIN employees e ON a.employee_id = e.id\n    WHERE a.status IN ('approved', 'rejected') \n    AND e.department = '" . $db->escapeString($department) . "'\n    AND e.ruang_lingkup IS NOT NULL AND e.ruang_lingkup != ''\n    ORDER BY e.ruang_lingkup\n");
+$work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appointments a\n    JOIN employees e ON a.employee_id = e.id\n    WHERE a.status IN ('approved', 'rejected') \n    AND e.department = ?\n    AND e.ruang_lingkup IS NOT NULL AND e.ruang_lingkup != ''\n    ORDER BY e.ruang_lingkup\n", [$department]);
 ?>
 
 

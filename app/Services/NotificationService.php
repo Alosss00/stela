@@ -164,8 +164,8 @@ class NotificationService {
             FROM appointments a
             JOIN employees e ON a.employee_id = e.id
             LEFT JOIN positions p ON a.position_id = p.id
-            WHERE a.id = $appointment_id
-        ");
+            WHERE a.id = ?
+        ", [$appointment_id]);
 
         if (!$res) {
             error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");
@@ -301,8 +301,8 @@ class NotificationService {
             FROM appointments a
             JOIN employees e ON a.employee_id = e.id
             LEFT JOIN positions p ON a.position_id = p.id
-            WHERE a.id = $appointment_id
-        ");
+            WHERE a.id = ?
+        ", [$appointment_id]);
 
         if (!$res) {
             error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");
@@ -601,8 +601,8 @@ class NotificationService {
             LEFT JOIN positions p ON a.position_id = p.id
             LEFT JOIN users u1 ON a.ktt1_approved_by = u1.id
             LEFT JOIN users u2 ON a.ktt2_approved_by = u2.id
-            WHERE a.id = $appointment_id
-        ");
+            WHERE a.id = ?
+        ", [$appointment_id]);
 
         if (!$res) {
             error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");
@@ -806,8 +806,8 @@ class NotificationService {
             FROM appointments a
             JOIN employees e ON a.employee_id = e.id
             LEFT JOIN positions p ON a.position_id = p.id
-            WHERE a.id = $appointment_id
-        ");
+            WHERE a.id = ?
+        ", [$appointment_id]);
 
         if (!$res) {
             error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");
@@ -884,8 +884,8 @@ class NotificationService {
             FROM appointments a
             JOIN employees e ON a.employee_id = e.id
             LEFT JOIN positions p ON a.position_id = p.id
-            WHERE a.id = $appointment_id
-        ");
+            WHERE a.id = ?
+        ", [$appointment_id]);
 
         if (!$res) {
             error_log("[NOTIFICATION ERROR] Query failed for appointment_id: $appointment_id");

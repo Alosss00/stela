@@ -62,7 +62,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $error = 'You have already made a decision for this assign letter!';
         } else {
             // Delete any stale ktt_approvals from previous rounds for this KTT
-            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = $current_user_id", [$id]);
+            $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = ?", [$id]);
 
             if ($_POST['action'] == 'approve') {
                 // Insert approval record
