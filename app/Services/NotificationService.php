@@ -331,15 +331,15 @@ class NotificationService {
         }
 
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message  = "📋 *NEW APPOINTMENT FOR APPROVAL*\n\n";
+        $message  = "ðŸ“‹ *NEW APPOINTMENT FOR APPROVAL*\n\n";
         $message .= "Admin has submitted an appointment letter that requires your approval:\n\n";
-        $message .= "📋 *Letter Details:*\n";
-        $message .= "• Letter No.: {$appointment['appointment_number']}\n";
-        $message .= "• Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
-        $message .= "• Position: {$appointment['position_name']}\n";
-        $message .= "• Company: {$appointment['contractor_company']}\n\n";
-        $message .= "⚠️ Please login to review and approve/reject this appointment.\n";
-        $message .= "📍 {$base_url}/approval.php";
+        $message .= "ðŸ“‹ *Letter Details:*\n";
+        $message .= "â€¢ Letter No.: {$appointment['appointment_number']}\n";
+        $message .= "â€¢ Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
+        $message .= "â€¢ Position: {$appointment['position_name']}\n";
+        $message .= "â€¢ Company: {$appointment['contractor_company']}\n\n";
+        $message .= "âš ï¸ Please login to review and approve/reject this appointment.\n";
+        $message .= "ðŸ“ {$base_url}/approval.php";
 
         $subject = "New Appointment Letter Requires Approval - {$appointment['appointment_number']}";
         $sent = 0;
@@ -370,18 +370,18 @@ class NotificationService {
      * Build message for new employee notification
      */
     private function buildNewEmployeeMessage($employee, $company_name) {
-        $message = "🔔 *NEW EMPLOYEE NOTIFICATION*\n\n";
+        $message = "ðŸ”” *NEW EMPLOYEE NOTIFICATION*\n\n";
         $message .= "Company *{$company_name}* has added a new employee that requires verification:\n\n";
-        $message .= "📋 *Employee Details:*\n";
-        $message .= "• ID BADGE: {$employee['employee_code']}\n";
-        $message .= "• Name: {$employee['full_name']}\n";
-        $message .= "• Position: {$employee['position']}\n";
-        $message .= "• Company: {$employee['contractor_company']}\n\n";
-        $message .= "⚠️ Please login to the system to perform verification.\n";
+        $message .= "ðŸ“‹ *Employee Details:*\n";
+        $message .= "â€¢ ID BADGE: {$employee['employee_code']}\n";
+        $message .= "â€¢ Name: {$employee['full_name']}\n";
+        $message .= "â€¢ Position: {$employee['position']}\n";
+        $message .= "â€¢ Company: {$employee['contractor_company']}\n\n";
+        $message .= "âš ï¸ Please login to the system to perform verification.\n";
         
         // Add system URL
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message .= "📍 {$base_url}/employees.php";
+        $message .= "ðŸ“ {$base_url}/employees.php";
         
         return $message;
     }
@@ -390,21 +390,21 @@ class NotificationService {
      * Build message for appointment rejection review
      */
     private function buildRejectionReviewMessage($appointment) {
-        $message = "❌ *ASSIGN LETTER REJECTED - DATA CORRECTION REQUIRED*\n\n";
+        $message = "âŒ *ASSIGN LETTER REJECTED - DATA CORRECTION REQUIRED*\n\n";
         $message .= "An appointment letter has been rejected by KTT and has been done admin review:\n\n";
-        $message .= "📋 *Letter Details:*\n";
-        $message .= "• Letter No.: {$appointment['appointment_number']}\n";
-        $message .= "• Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
-        $message .= "• Position: {$appointment['position_name']}\n";
-        $message .= "• Company: {$appointment['contractor_company']}\n";
-        $message .= "• Rejected by: {$appointment['rejected_by_name']}\n\n";
-        $message .= "💬 *Rejection Reason:*\n";
+        $message .= "ðŸ“‹ *Letter Details:*\n";
+        $message .= "â€¢ Letter No.: {$appointment['appointment_number']}\n";
+        $message .= "â€¢ Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
+        $message .= "â€¢ Position: {$appointment['position_name']}\n";
+        $message .= "â€¢ Company: {$appointment['contractor_company']}\n";
+        $message .= "â€¢ Rejected by: {$appointment['rejected_by_name']}\n\n";
+        $message .= "ðŸ’¬ *Rejection Reason:*\n";
         $message .= (!empty($appointment['rejection_reason']) ? $appointment['rejection_reason'] : 'No rejection reason provided') . "\n\n";
-        $message .= "⚠️ Please login to review this rejection.\n";
+        $message .= "âš ï¸ Please login to review this rejection.\n";
         
         // Add system URL
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message .= "📍 {$base_url}/review_rejection.php";
+        $message .= "ðŸ“ {$base_url}/review_rejection.php";
         
         return $message;
     }
@@ -617,17 +617,17 @@ class NotificationService {
         }
 
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message  = "✅ *KTT FINAL APPROVAL NOTIFICATION*\n\n";
+        $message  = "âœ… *KTT FINAL APPROVAL NOTIFICATION*\n\n";
         $message .= "Both KTTs have approved the following assign letter:\n\n";
-        $message .= "📋 *Letter Details:*\n";
-        $message .= "• Letter No.: {$appointment['appointment_number']}\n";
-        $message .= "• Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
-        $message .= "• Position: {$appointment['position_name']}\n";
-        $message .= "• Company: {$appointment['contractor_company']}\n";
-        $message .= "• KTT MSM: {$appointment['ktt1_name']}\n";
-        $message .= "• KTT TTN: {$appointment['ktt2_name']}\n\n";
-        $message .= "ℹ️ The assign letter is now fully approved by both KTTs.\n";
-        $message .= "📍 {$base_url}/appointments.php";
+        $message .= "ðŸ“‹ *Letter Details:*\n";
+        $message .= "â€¢ Letter No.: {$appointment['appointment_number']}\n";
+        $message .= "â€¢ Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
+        $message .= "â€¢ Position: {$appointment['position_name']}\n";
+        $message .= "â€¢ Company: {$appointment['contractor_company']}\n";
+        $message .= "â€¢ KTT MSM: {$appointment['ktt1_name']}\n";
+        $message .= "â€¢ KTT TTN: {$appointment['ktt2_name']}\n\n";
+        $message .= "â„¹ï¸ The assign letter is now fully approved by both KTTs.\n";
+        $message .= "ðŸ“ {$base_url}/appointments.php";
 
         $subject = "Both KTTs Approved - {$appointment['appointment_number']}";
         $sent = 0;
@@ -692,14 +692,14 @@ class NotificationService {
         }
 
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message  = "✅ *EMPLOYEE VERIFICATION SUCCESSFUL*\n\n";
+        $message  = "âœ… *EMPLOYEE VERIFICATION SUCCESSFUL*\n\n";
         $message .= "The following employee data has been *successfully verified by Admin - {$reviewer_name}* and is now awaiting KTT approval:\n\n";
-        $message .= "📋 *Employee Details:*\n";
-        $message .= "• ID BADGE: {$employee['employee_code']}\n";
-        $message .= "• Name: {$employee['full_name']}\n";
-        $message .= "• Company: {$employee['contractor_company']}\n\n";
+        $message .= "ðŸ“‹ *Employee Details:*\n";
+        $message .= "â€¢ ID BADGE: {$employee['employee_code']}\n";
+        $message .= "â€¢ Name: {$employee['full_name']}\n";
+        $message .= "â€¢ Company: {$employee['contractor_company']}\n\n";
         $message .= "The assign letter has been created and is currently pending KTT approval.\n";
-        $message .= "📍 {$base_url}/employees.php";
+        $message .= "ðŸ“ {$base_url}/employees.php";
 
         $subject = "Employee Verification Successful - {$employee['full_name']}";
         $sent = 0;
@@ -756,17 +756,17 @@ class NotificationService {
         }
 
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message  = "❌ *EMPLOYEE DATA REJECTED*\n\n";
+        $message  = "âŒ *EMPLOYEE DATA REJECTED*\n\n";
         $message .= "The following employee data has been *rejected* by Admin:\n\n";
-        $message .= "📋 *Employee Details:*\n";
-        $message .= "• ID BADGE: {$employee['employee_code']}\n";
-        $message .= "• Name: {$employee['full_name']}\n";
-        $message .= "• Company: {$employee['contractor_company']}\n\n";
+        $message .= "ðŸ“‹ *Employee Details:*\n";
+        $message .= "â€¢ ID BADGE: {$employee['employee_code']}\n";
+        $message .= "â€¢ Name: {$employee['full_name']}\n";
+        $message .= "â€¢ Company: {$employee['contractor_company']}\n\n";
         if (!empty($rejection_notes)) {
-            $message .= "💬 *Rejection Reason:*\n{$rejection_notes}\n\n";
+            $message .= "ðŸ’¬ *Rejection Reason:*\n{$rejection_notes}\n\n";
         }
-        $message .= "⚠️ Please login to correct and resubmit the employee data.\n";
-        $message .= "📍 {$base_url}/employees.php";
+        $message .= "âš ï¸ Please login to correct and resubmit the employee data.\n";
+        $message .= "ðŸ“ {$base_url}/employees.php";
 
         $subject = "Employee Data Rejected - {$employee['full_name']}";
         $sent = 0;
@@ -828,15 +828,15 @@ class NotificationService {
         }
 
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message  = "🎉 *ASSIGN LETTER SUCCESSFULLY APPROVED*\n\n";
+        $message  = "ðŸŽ‰ *ASSIGN LETTER SUCCESSFULLY APPROVED*\n\n";
         $message .= "The assign letter for the following employee has been *successfully approved* by KTT:\n\n";
-        $message .= "📋 *Letter Details:*\n";
-        $message .= "• Letter No.: {$appointment['appointment_number']}\n";
-        $message .= "• Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
-        $message .= "• Position: {$appointment['position_name']}\n";
-        $message .= "• Company: {$appointment['contractor_company']}\n\n";
-        $message .= "✅ The assign letter is now active and fully approved.\n";
-        $message .= "📍 {$base_url}/appointments.php";
+        $message .= "ðŸ“‹ *Letter Details:*\n";
+        $message .= "â€¢ Letter No.: {$appointment['appointment_number']}\n";
+        $message .= "â€¢ Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
+        $message .= "â€¢ Position: {$appointment['position_name']}\n";
+        $message .= "â€¢ Company: {$appointment['contractor_company']}\n\n";
+        $message .= "âœ… The assign letter is now active and fully approved.\n";
+        $message .= "ðŸ“ {$base_url}/appointments.php";
 
         $subject = "Assign Letter Successfully Approved - {$appointment['full_name']}";
         $sent = 0;
@@ -906,24 +906,24 @@ class NotificationService {
         }
 
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message  = "❌ *ASSIGN LETTER REJECTED - DATA CORRECTION REQUIRED*\n\n";
+        $message  = "âŒ *ASSIGN LETTER REJECTED - DATA CORRECTION REQUIRED*\n\n";
         $message .= "An appointment letter has been rejected by KTT and has been done admin review:\n\n";
-        $message .= "📋 *Letter Details:*\n";
-        $message .= "• Letter No.: {$appointment['appointment_number']}\n";
-        $message .= "• Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
-        $message .= "• Position: {$appointment['position_name']}\n";
-        $message .= "• Company: {$appointment['contractor_company']}\n";
+        $message .= "ðŸ“‹ *Letter Details:*\n";
+        $message .= "â€¢ Letter No.: {$appointment['appointment_number']}\n";
+        $message .= "â€¢ Employee: {$appointment['full_name']} ({$appointment['employee_code']})\n";
+        $message .= "â€¢ Position: {$appointment['position_name']}\n";
+        $message .= "â€¢ Company: {$appointment['contractor_company']}\n";
         
         $rejector = !empty($appointment['ktt_rejector_name']) ? $appointment['ktt_rejector_name'] : 'Unknown';
-        $message .= "• Rejected by: {$rejector}\n\n";
+        $message .= "â€¢ Rejected by: {$rejector}\n\n";
         
-        $message .= "💬 *Rejection Reason:*\n";
+        $message .= "ðŸ’¬ *Rejection Reason:*\n";
         $reason = !empty($appointment['ktt_rejection_notes']) ? $appointment['ktt_rejection_notes'] : 'No rejection reason provided';
         $message .= $reason . "\n\n";
 
 
-        $message .= "⚠️ Please login to update the employee data and resubmit.\n";
-        $message .= "📍 {$base_url}/employees.php";
+        $message .= "âš ï¸ Please login to update the employee data and resubmit.\n";
+        $message .= "ðŸ“ {$base_url}/employees.php";
 
         $subject = "Assign Letter Rejected - Please Correct Data for {$appointment['full_name']}";
         $sent = 0;
@@ -1064,12 +1064,12 @@ class NotificationService {
     }
 
     // =========================================================
-    // WhatsApp (Fonnte) – Direct Send Methods
+    // WhatsApp (Fonnte) â€“ Direct Send Methods
     // =========================================================
 
     /**
      * Send a WhatsApp message directly via Fonnte API.
-     * Delay (30–60 seconds) and typing simulation are handled by Fonnte.
+     * Delay (30â€“60 seconds) and typing simulation are handled by Fonnte.
      *
      * @param string $phone             Recipient number (any format, normalized to 628xxx)
      * @param string $recipient_name    Recipient name (for logging)
@@ -1102,13 +1102,14 @@ class NotificationService {
             CURLOPT_POSTFIELDS     => [
                 'target'      => $phone,
                 'message'     => $message,
-                'delay'       => '30-60',  // Fonnte random delay 30–60 seconds between messages
+                'delay'       => '30-60',  // Fonnte random delay 30â€“60 seconds between messages
                 'typing'      => true,     // Simulate typing indicator
                 'countryCode' => '62',
             ],
             CURLOPT_HTTPHEADER     => ['Authorization: ' . $this->fonnte_token],
             CURLOPT_TIMEOUT        => 30,
-            CURLOPT_SSL_VERIFYPEER => true,
+            CURLOPT_SSL_VERIFYPEER => false,
+            CURLOPT_SSL_VERIFYHOST => 0,
         ]);
 
         $response  = curl_exec($ch);
@@ -1129,4 +1130,5 @@ class NotificationService {
     }
 }
 ?>
+
 
