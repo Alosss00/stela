@@ -1683,10 +1683,15 @@ function applyTranslations(rootElement) {
             return;
         }
 
-        if (tag === 'LABEL' && (requiredLabelKeys.has(key) || el.hasAttribute('data-lang-required'))) {
-            const labelText = String(translated).replace(/\s*\*\s*$/, '').trim();
-            el.innerHTML = `${escapeHtml(labelText)} <span class="text-danger">*</span>`;
-            return;
+        if (tag === 'LABEL') {
+            const hasAsterisk = el.querySelector('.text-danger') !== null || /\*\s*$/.test((el.textContent || '').trim());
+            const isReq = requiredLabelKeys.has(key) || el.hasAttribute('data-lang-required') || hasAsterisk;
+
+            if (isReq) {
+                const labelText = String(translated).replace(/\s*\*\s*$/, '').trim();
+                el.innerHTML = `${escapeHtml(labelText)} <span class="text-danger">*</span>`;
+                return;
+            }
         }
 
         el.textContent = translated;

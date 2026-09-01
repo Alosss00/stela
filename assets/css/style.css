@@ -27496,3 +27496,20 @@ th.col-action, td.col-action { width: 12% !important; text-align: center !import
   color: #0f172a !important;
   text-align: right !important;
 }
+
+/* Global fix for required fields asterisks */
+label:has(+ input[required])::after,
+label:has(+ select[required])::after,
+label:has(+ textarea[required])::after,
+.form-group:has(input[required]) > label:first-of-type::after,
+.form-group:has(select[required]) > label:first-of-type::after,
+.form-group:has(textarea[required]) > label:first-of-type::after {
+    content: " *" !important;
+    color: #ef4444 !important;
+    font-weight: 700 !important;
+}
+
+/* Hide any hardcoded asterisk span inside label to prevent double asterisks */
+label > span.text-danger:last-child {
+    display: none !important;
+}
