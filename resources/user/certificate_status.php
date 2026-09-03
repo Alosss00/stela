@@ -314,7 +314,7 @@ SELECT
     a.appointment_number,
     a.status AS appointment_status,
 
-    DATEDIFF(ec.expiry_date,CURDATE()) AS days_left,
+    DATEDIFF(ec.expiry_date, CURDATE()) AS days_left,
 
     (
         SELECT COUNT(*)
@@ -341,27 +341,38 @@ ON a.id =
 
 WHERE
 
+-- Ambil record terbaru per karyawan per sertifikasi
+-- Prioritaskan: pending > verified > active > expired
 ec.id =
 (
     SELECT ec2.id
     FROM employee_certifications ec2
-
     WHERE ec2.employee_id = ec.employee_id
-
+    AND ec2.certification_id = ec.certification_id
     ORDER BY
-
-    FIELD
-    (
-        ec2.status,
-        'pending',
-        'verified',
-        'active',
-        'expired'
-    ),
-
+    FIELD(ec2.status, 'pending', 'verified', 'active', 'expired'),
     ec2.id DESC
-
     LIMIT 1
+)
+
+-- Tampilkan hanya jika ada riwayat sertifikat yang sudah EXPIRED
+AND EXISTS (
+    SELECT 1
+    FROM employee_certifications ec_hist
+    WHERE ec_hist.employee_id = ec.employee_id
+    AND ec_hist.certification_id = ec.certification_id
+    AND ec_hist.status = 'expired'
+)
+
+-- JANGAN tampilkan jika sudah berhasil diperbaharui
+-- (ada record active dengan expiry_date di masa depan)
+AND NOT EXISTS (
+    SELECT 1
+    FROM employee_certifications ec_active
+    WHERE ec_active.employee_id = ec.employee_id
+    AND ec_active.certification_id = ec.certification_id
+    AND ec_active.status = 'active'
+    AND ec_active.expiry_date > CURDATE()
 )
 
 AND e.is_active = 1
@@ -371,13 +382,11 @@ AND e.is_active = 1
 ORDER BY
 
 CASE ec.status
-
 WHEN 'expired' THEN 1
 WHEN 'pending' THEN 2
 WHEN 'verified' THEN 3
 WHEN 'active' THEN 4
-
-END,
+END ASC,
 
 ec.expiry_date ASC
 
@@ -457,14 +466,26 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 		</div>
 	</div>
 
+	<!-- Status Filter Pills -->
+	<div class="cert-status-filter" style="margin-bottom: 16px; display: flex; flex-wrap: wrap; gap: 8px; align-items: center;">
+		<span style="font-size: 13px; font-weight: 600; color: #475569; margin-right: 4px;"><i class="fas fa-filter"></i> Filter Status:</span>
+		<button class="cert-filter-pill active" data-filter="" onclick="filterCertStatus(this, '')" style="padding: 5px 14px; border-radius: 20px; border: 1.5px solid #cbd5e1; background: #1e40af; color: #fff; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s;">All</button>
+		<button class="cert-filter-pill" data-filter="EXPIRED" onclick="filterCertStatus(this, 'EXPIRED')" style="padding: 5px 14px; border-radius: 20px; border: 1.5px solid #fca5a5; background: #fff; color: #dc2626; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s;"><i class="fas fa-times-circle"></i> Expired</button>
+		<button class="cert-filter-pill" data-filter="WAITING REVIEWER" onclick="filterCertStatus(this, 'WAITING REVIEWER')" style="padding: 5px 14px; border-radius: 20px; border: 1.5px solid #fde68a; background: #fff; color: #d97706; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s;"><i class="fas fa-clock"></i> Waiting Reviewer</button>
+		<button class="cert-filter-pill" data-filter="REJECT" onclick="filterCertStatus(this, 'REJECT')" style="padding: 5px 14px; border-radius: 20px; border: 1.5px solid #fca5a5; background: #fff; color: #b91c1c; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s;"><i class="fas fa-ban"></i> Reject</button>
+		<button class="cert-filter-pill" data-filter="WAITING KTT" onclick="filterCertStatus(this, 'WAITING KTT')" style="padding: 5px 14px; border-radius: 20px; border: 1.5px solid #93c5fd; background: #fff; color: #1d4ed8; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s;"><i class="fas fa-hourglass-half"></i> Waiting KTT</button>
+		<button class="cert-filter-pill" data-filter="ACTIVE" onclick="filterCertStatus(this, 'ACTIVE')" style="padding: 5px 14px; border-radius: 20px; border: 1.5px solid #6ee7b7; background: #fff; color: #059669; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s;"><i class="fas fa-check-circle"></i> Active</button>
+		<button class="cert-filter-pill" data-filter="COMPLETED" onclick="filterCertStatus(this, 'COMPLETED')" style="padding: 5px 14px; border-radius: 20px; border: 1.5px solid #6ee7b7; background: #fff; color: #065f46; font-size: 12.5px; font-weight: 600; cursor: pointer; transition: all .2s;"><i class="fas fa-check-double"></i> Completed</button>
+	</div>
+
 	<div class="card cert-card">
 		<div class="card-header cert-card-header">
-			<h3><i class="fas fa-list"></i> <span data-lang="certificate-list">Daftar Sertifikat</span></h3> <span>status</span>
+			<h3><i class="fas fa-list"></i> <span data-lang="certificate-list">Daftar Sertifikat</span></h3> <span id="cert-filter-label" style="font-size: 12px; color: #64748b;">All Status</span>
 		</div>
 		<div class="card-body cert-card-body">
 			<?php if (!empty($certificates)): ?>
 				<div class="table-responsive">
-					<table class="table cert-table datatable">
+					<table class="table cert-table datatable" id="certStatusTable">
 						<thead>
 							<tr>
 								<th data-lang="employee">Employee</th>
@@ -474,10 +495,18 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 								<th data-lang="monitoring">Monitoring</th>
 								<th data-lang="document">Document</th>
 								<th data-lang="action">Action</th>
+								<th style="display:none;">status_filter</th>
 							</tr>
 						</thead>
 						<tbody>
-							<?php foreach ($certificates as $cert): ?>
+							<?php foreach ($certificates as $cert):
+								// Determine status_filter value for hidden column
+								$status_filter_val = strtoupper($cert['monitoring_badge']['label']);
+								// Map ACTIVE (appointment approved) to COMPLETED to match action label
+								if ($cert['status'] === 'active' && ($cert['appointment_status'] ?? '') === 'approved') {
+									$status_filter_val = 'COMPLETED';
+								}
+							?>
 								<tr>
 									<td>	
 										<strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><br>
@@ -515,55 +544,40 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 											-
 										<?php endif; ?>
 									</td>
-										<td>
-											<?php if ($cert['status'] == 'expired') : ?>
-											<a href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>"
-											class="btn btn-warning btn-sm">
-												<i class="fas fa-upload"></i>
-												Resubmit
-											</a>
-											<?php elseif (
+									<td>
+										<?php if ($cert['status'] == 'expired') : ?>
+										<a href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>"
+										class="btn btn-warning btn-sm">
+											<i class="fas fa-upload"></i>
+											Resubmit
+										</a>
+										<?php elseif (
 											$cert['status'] == 'pending' &&
 											$cert['verification_status'] == 'rejected'
 										) : ?>
-
 											<a href="resubmit_certificate.php?id=<?php echo (int)$cert['employee_certification_id']; ?>"
 											class="btn btn-warning btn-sm">
 												<i class="fas fa-upload"></i>
 												Resubmit
 											</a>
-
 										<?php elseif (
 											$cert['status'] == 'pending' &&
 											$cert['verification_status'] == 'pending'
 										) : ?>
-
-											<span class="badge badge-warning">
-												Waiting Reviewer
-											</span>
-
-
-
+											<span class="badge badge-warning">Waiting Reviewer</span>
 										<?php elseif (
 											$cert['status'] == 'pending' &&
 											$cert['verification_status'] == 'verified'
 										) : ?>
-
-											<span class="badge badge-info">
-												Waiting KTT
-											</span>
-
+											<span class="badge badge-info">Waiting KTT</span>
 										<?php elseif (
 											$cert['status'] == 'active' &&
 											$cert['appointment_status'] == 'approved'
 										) : ?>
-
-											<span class="badge badge-success">
-												Completed
-											</span>
-
+											<span class="badge badge-success">Completed</span>
 										<?php endif; ?>
-											</td>
+									</td>
+									<td style="display:none;"><?php echo htmlspecialchars($status_filter_val); ?></td>
 								</tr>
 							<?php endforeach; ?>
 						</tbody>
@@ -578,5 +592,33 @@ require_once dirname(__DIR__) . '/layouts/header.php';
 		</div>
 	</div>
 </div>
+
+<script>
+function filterCertStatus(btn, statusVal) {
+    // Update active pill
+    document.querySelectorAll('.cert-filter-pill').forEach(function(p) {
+        p.style.background = '#fff';
+        p.style.color = p.dataset.color || p.style.color;
+        p.classList.remove('active');
+    });
+    btn.style.background = '#1e40af';
+    btn.style.color = '#fff';
+    btn.classList.add('active');
+
+    // Update label
+    var label = document.getElementById('cert-filter-label');
+    if (label) label.textContent = statusVal ? statusVal : 'All Status';
+
+    // Filter DataTable using hidden column (last column index = 7)
+    if (typeof $ !== 'undefined' && $.fn.DataTable) {
+        var table = $('#certStatusTable').DataTable();
+        if (statusVal === '') {
+            table.column(7).search('').draw();
+        } else {
+            table.column(7).search('^' + statusVal + '$', true, false).draw();
+        }
+    }
+}
+</script>
 
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>

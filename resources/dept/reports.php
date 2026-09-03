@@ -71,8 +71,8 @@ $rejected_appointments = $db->query("
 ", [$department]);
 
 // Get statistics for user's department
-$approved_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'approved' AND e.department = ?")->fetch_assoc()['count'];
-$rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'rejected' AND e.department = ?")->fetch_assoc()['count'];
+$approved_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'approved' AND e.department = ?", [$department])->fetch_assoc()['count'];
+$rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'rejected' AND e.department = ?", [$department])->fetch_assoc()['count'];
 $total_processed = $approved_total + $rejected_total;
 
 // Get request data for user's department
@@ -92,7 +92,7 @@ $accepted_requests = $db->query("
         AND ec2.certification_id = ec.certification_id 
         AND ec2.id > ec.id
     )
-    ORDER BY ec.expiry_date ASC, e.full_name");
+    ORDER BY ec.expiry_date ASC, e.full_name", [$department]);
 
 $rejected_requests = $db->query("\n    SELECT e.*, e.created_at as request_date, e.updated_at as verification_date, u.full_name as verified_by_name\n    FROM employees e\n    LEFT JOIN users u ON e.verified_by = u.id\n    WHERE e.verification_status = 'rejected' AND e.department = ?\n    ORDER BY e.updated_at DESC\n", [$department]);
 

@@ -46,11 +46,12 @@ class NotificationService {
             }
         }
         
-        $this->smtp_host = $settings['smtp_host'] ?? getenv('SMTP_HOST') ?: '';
-        $this->smtp_port = $settings['smtp_port'] ?? getenv('SMTP_PORT') ?: 465;
-        $this->smtp_username = $settings['smtp_user'] ?? getenv('SMTP_USER') ?: '';
-        $this->smtp_password = $settings['smtp_pass'] ?? getenv('SMTP_PASS') ?: '';
-        $this->email_from = $this->smtp_username;
+        $this->smtp_host = getenv('MAIL_HOST') ?: (getenv('SMTP_HOST') ?: (!empty($settings['smtp_host']) ? $settings['smtp_host'] : ''));
+        $this->smtp_port = getenv('MAIL_PORT') ?: (getenv('SMTP_PORT') ?: (!empty($settings['smtp_port']) ? $settings['smtp_port'] : 465));
+        $this->smtp_username = getenv('MAIL_USERNAME') ?: (getenv('SMTP_USER') ?: (!empty($settings['smtp_user']) ? $settings['smtp_user'] : ''));
+        $this->smtp_password = getenv('MAIL_PASSWORD') ?: (getenv('SMTP_PASS') ?: (!empty($settings['smtp_pass']) ? $settings['smtp_pass'] : ''));
+        $env_from = getenv('MAIL_FROM_ADDRESS');
+        $this->email_from = !empty($env_from) ? $env_from : $this->smtp_username;
         $this->email_from_name = $settings['app_name'] ?? 'Mining Appointment System';
         
         $this->fonnte_token = $settings['fonnte_token'] ?? getenv('FONNTE_TOKEN') ?: '';
@@ -331,7 +332,7 @@ class NotificationService {
         }
 
         $base_url = defined('SITE_URL') ? SITE_URL : 'http://localhost/windy';
-        $message  = "ðŸ“‹ *NEW APPOINTMENT FOR APPROVAL*\n\n";
+        $message  = "🔔*NEW APPOINTMENT FOR APPROVAL*\n\n";
         $message .= "Admin has submitted an appointment letter that requires your approval:\n\n";
         $message .= "📋 *Letter Details:*\n";
         $message .= "• Letter No.: {$appointment['appointment_number']}\n";
@@ -1021,8 +1022,12 @@ class NotificationService {
         $recipient_email_escaped = $this->db->escapeString((string) $recipient_email);
         $recipient_name_escaped = $this->db->escapeString((string) $recipient_name);
         $subject_escaped = $this->db->escapeString((string) $subject);
-        $error_escaped = $error_message !== null ? $this->db->escapeString((string) $error_message) : '';
-        $error_sql = $error_message !== null && $error_message !== '' ? "'$error_escaped'" : 'NULL';
+        $error_clean = '';
+        if ($error_message !== null) {
+            $error_clean = preg_replace('/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F-\xFF]/', '', (string)$error_message);
+        }
+        $error_escaped = $error_clean !== '' ? $this->db->escapeString($error_clean) : '';
+        $error_sql = $error_clean !== '' ? "'$error_escaped'" : 'NULL';
 
         $this->db->query("
             INSERT INTO notification_email_logs (

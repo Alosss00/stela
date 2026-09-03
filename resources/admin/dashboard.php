@@ -25,18 +25,34 @@ $current_user_id = $_SESSION['user_id'];
 $verified_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'verified' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
 $rejected_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'rejected' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
 
-// Get certificate expiration statistics (certificates expiring in 2 months or less)
+// Get certificate expiration statistics (certificates expiring within <= 2 months OR already expired)
+// Uses latest record per certification per employee to avoid double-counting
 $expiring_certs_count = $db->query("
-    SELECT COUNT(DISTINCT e.id) as count
+    SELECT COUNT(ec.id) as count
     FROM employee_certifications ec
     JOIN employees e ON ec.employee_id = e.id
-    WHERE ec.expiry_date IS NOT NULL
-    AND ec.verification_status = 'verified'
-    AND ec.status != 'expired'
-    AND e.verification_status != 'pending'
-    AND ec.expiry_date <= DATE_ADD(CURDATE(), INTERVAL 2 MONTH)
-    AND ec.expiry_date >= CURDATE()
-    AND e.is_active = 1
+    WHERE e.is_active = 1
+    AND ec.id = (
+        SELECT ec2.id
+        FROM employee_certifications ec2
+        WHERE ec2.employee_id = ec.employee_id
+        AND ec2.certification_id = ec.certification_id
+        ORDER BY FIELD(ec2.status, 'pending', 'verified', 'active', 'expired'), ec2.id DESC
+        LIMIT 1
+    )
+    AND EXISTS (
+        SELECT 1 FROM employee_certifications ec_hist
+        WHERE ec_hist.employee_id = ec.employee_id
+        AND ec_hist.certification_id = ec.certification_id
+        AND ec_hist.status = 'expired'
+    )
+    AND NOT EXISTS (
+        SELECT 1 FROM employee_certifications ec_active
+        WHERE ec_active.employee_id = ec.employee_id
+        AND ec_active.certification_id = ec.certification_id
+        AND ec_active.status = 'active'
+        AND ec_active.expiry_date > CURDATE()
+    )
 ")->fetch_assoc()['count'];
 
 // Get appointments rejected by KTT that need admin review
