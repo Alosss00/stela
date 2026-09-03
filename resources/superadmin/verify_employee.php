@@ -524,7 +524,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                             // Included via bootstrap/app.php
                             set_time_limit(60);
                             $notifService = new NotificationService();
-                            $notifService->notifyAdminAcceptedEmployee($employee_id);
+                            $reviewerName = $_SESSION['full_name'] ?? '';
+                            $notifService->notifyAdminAcceptedEmployee($employee_id, $reviewerName);
                         } catch (Exception $e) {
                             error_log("Notification error (admin accepted): " . $e->getMessage());
                         }
