@@ -27513,3 +27513,8 @@ label:has(+ textarea[required])::after,
 label > span.text-danger:last-child {
     display: none !important;
 }
+
+/* Fix flatpickr calendar z-index inside modals */
+.flatpickr-calendar {
+    z-index: 10000000 !important;
+}
