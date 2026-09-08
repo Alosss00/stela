@@ -247,13 +247,17 @@ $work_scopes = $db->query("
 
     <!-- All Requests - Consolidated Table -->
     <?php if ($all_requests && $all_requests->num_rows > 0): ?>
-    <div class="card-report">
+    <div class="card-report" id="section-all-requests">
         <div class="card-header-report">
             <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
                 <h3 style="margin: 0;"><i class="fas fa-list"></i> <span data-lang="all-requests-section">All Request</span></h3>
                 <span class="badge-header"><?php echo $all_requests->num_rows; ?></span>
             </div>
+            <button onclick="toggleSection('allRequestsSection')" class="btn-toggle-section" id="btnAllRequests">
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+            </button>
         </div>
+        <div id="allRequestsSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
 
         <!-- Filter by Status -->
         <div class="filter-section-report">
@@ -333,21 +337,28 @@ $work_scopes = $db->query("
             </div>
             <?php endif; ?>
         </div>
+        </div>
     </div>
     <?php endif; ?>
 
     <!-- Approved Appointments -->
     <?php if ($approved_appointments && $approved_appointments->num_rows > 0): ?>
-    <div class="card-report">
+    <div class="card-report" id="section-approved">
         <div class="card-header-report">
             <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
                 <h3 style="margin: 0;"><i class="fas fa-check-circle"></i> <span data-lang="detail-assign-letter-accepted">Detail Assign Letter Accepted</span></h3>
                 <span class="badge-header"><?php echo $approved_appointments->num_rows; ?></span>
             </div>
-            <button class="btn btn-export-pdf" onclick="exportApprovedByCompany()">
-                <i class="fas fa-file-pdf"></i> <span data-lang="export-pdf-report">Export PDF Report</span>
-            </button>
+            <div>
+                <button class="btn btn-export-pdf" onclick="exportApprovedByCompany()">
+                    <i class="fas fa-file-pdf"></i> <span data-lang="export-pdf-report">Export PDF Report</span>
+                </button>
+                <button onclick="toggleSection('approvedSection')" class="btn-toggle-section" id="btnApproved">
+                    <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
         </div>
+        <div id="approvedSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         
         <!-- Filter by Ruang Lingkup -->
         <div class="filter-section-report">
@@ -479,16 +490,28 @@ $work_scopes = $db->query("
                 <span data-lang="showing-all-data">Showing all data</span>
             </div>
         </div>
+        </div>
     </div>
     <?php endif; ?>
     
     <!-- Rejected Appointments -->
     <?php if ($rejected_appointments && $rejected_appointments->num_rows > 0): ?>
-    <div class="card-report">
+    <div class="card-report" id="section-rejected">
         <div class="card-header-report">
-            <h3><i class="fas fa-times-circle"></i> <span data-lang="detail-assign-letter-rejected">Detail Assign Letter Rejected</span></h3>
-            <span class="badge-header rejected"><?php echo $rejected_appointments->num_rows; ?></span>
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
+                <h3 style="margin: 0;"><i class="fas fa-times-circle"></i> <span data-lang="detail-assign-letter-rejected">Detail Assign Letter Rejected</span></h3>
+                <span class="badge-header danger"><?php echo $rejected_appointments->num_rows; ?></span>
+            </div>
+            <div>
+                <button class="btn btn-export-pdf" onclick="exportRejectedByCompany()">
+                    <i class="fas fa-file-pdf"></i> <span data-lang="export-pdf-report">Export PDF Report</span>
+                </button>
+                <button onclick="toggleSection('rejectedSection')" class="btn-toggle-section" id="btnRejected">
+                    <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
         </div>
+        <div id="rejectedSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         
         <!-- Filter by Scope -->
         <div class="filter-section-report">
@@ -599,6 +622,7 @@ $work_scopes = $db->query("
                 <span data-lang="showing-all-data">Showing all data</span>
             </div>
         </div>
+        </div>
     </div>
     <?php endif; ?>
     
@@ -610,10 +634,16 @@ $work_scopes = $db->query("
                 <h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Expired Certificates</span></h3>
                 <span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span>
             </div>
-            <button class="btn btn-export-small" onclick="exportExpiringCertsToExcel()">
-                <i class="fas fa-file-excel"></i> <span data-lang="export-to-excel">Export to Excel</span>
-            </button>
+            <div>
+                <button class="btn btn-export-small" onclick="exportExpiringCertsToExcel()">
+                    <i class="fas fa-file-excel"></i> <span data-lang="export-to-excel">Export to Excel</span>
+                </button>
+                <button onclick="toggleSection('certExpirationSection')" class="btn-toggle-section" id="btnCertExpiration">
+                    <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
         </div>
+        <div id="certExpirationSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         
         <div class="alert-warning-report">
             <i class="fas fa-info-circle"></i>
@@ -692,6 +722,7 @@ $work_scopes = $db->query("
                 </table>
             </div>
         </div>
+        </div>
     </div>
     <?php endif; ?>
 
@@ -702,7 +733,11 @@ $work_scopes = $db->query("
                 <h3 style="margin: 0;"><i class="fas fa-user-times"></i> <span data-lang="resigned-employees">Resigned Employees</span></h3>
                 <span class="badge-header danger"><?php echo $resigned_employees->num_rows; ?></span>
             </div>
+            <button onclick="toggleSection('resignedSection')" class="btn-toggle-section" id="btnResigned">
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+            </button>
         </div>
+        <div id="resignedSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         
         <div class="card-body-report">
             <div class="table-responsive">
@@ -748,6 +783,7 @@ $work_scopes = $db->query("
                     </tbody>
                 </table>
             </div>
+        </div>
         </div>
     </div>
     
@@ -1561,6 +1597,52 @@ function exportExpiringCertsToExcel() {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+}
+
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const button = event.currentTarget;
+    const icon = button.querySelector('i');
+    const text = button.querySelector('.btn-toggle-text');
+
+    if (section.style.display === 'none' || section.style.display === '') {
+        // Show section
+        section.style.display = 'block';
+        // Trigger reflow
+        section.offsetHeight;
+        section.style.opacity = '1';
+        section.style.maxHeight = '10000px';
+
+        // Update button
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+        text.setAttribute('data-lang', 'hide');
+        if (window.changeLanguage && window.getCurrentLanguage) {
+            window.changeLanguage(window.getCurrentLanguage());
+        }
+        setTimeout(function() {
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.dataTable) {
+                window.jQuery.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        }, 150);
+    } else {
+        // Hide section
+        section.style.opacity = '0';
+        section.style.maxHeight = '0';
+
+        // Update button
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+        text.setAttribute('data-lang', 'view-all');
+        if (window.changeLanguage && window.getCurrentLanguage) {
+            window.changeLanguage(window.getCurrentLanguage());
+        }
+
+        // Wait for transition before hiding
+        setTimeout(() => {
+            section.style.display = 'none';
+        }, 400);
+    }
 }
 </script>
 

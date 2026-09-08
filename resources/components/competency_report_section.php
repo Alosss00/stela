@@ -3,6 +3,16 @@ if (!isset($db)) {
     $db = new Database();
 }
 
+$where_clause = "WHERE (a.status = 'approved' OR a.status = 'verified')";
+
+if (isset($_SESSION['role'])) {
+    if ($_SESSION['role'] === 'user' && !empty($_SESSION['company_name'])) {
+        $where_clause .= " AND e.contractor_company = '" . $db->escapeString($_SESSION['company_name']) . "'";
+    } elseif (($_SESSION['role'] === 'department_user' || $_SESSION['role'] === 'dept') && !empty($_SESSION['department'])) {
+        $where_clause .= " AND e.department = '" . $db->escapeString($_SESSION['department']) . "'";
+    }
+}
+
 $sql_comp = "
     SELECT 
         a.appointment_number as register_internal,
@@ -23,7 +33,7 @@ $sql_comp = "
     JOIN employees e ON a.employee_id = e.id
     LEFT JOIN employee_certifications ec ON a.employee_certification_id = ec.id
     LEFT JOIN certifications c ON ec.certification_id = c.id
-    WHERE a.status = 'approved' OR a.status = 'verified'
+    $where_clause
     ORDER BY 
         CAST(SUBSTRING_INDEX(a.appointment_number, '/', -1) AS UNSIGNED) ASC, 
         CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(a.appointment_number, '/', -2), '/', 1) AS UNSIGNED) ASC, 

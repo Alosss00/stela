@@ -209,13 +209,17 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
     </div>
 
     <?php if (($accepted_requests_count + $rejected_requests_count + $pending_requests_count) > 0): ?>
-    <div class="card-report">
+    <div class="card-report" id="section-all-requests">
         <div class="card-header-report">
             <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
                 <h3 style="margin: 0;"><i class="fas fa-list"></i> <span data-lang="all-requests-section">All Requests</span></h3>
                 <span class="badge-header"><?php echo $accepted_requests_count + $rejected_requests_count + $pending_requests_count; ?></span>
             </div>
+            <button onclick="toggleSection('allRequestsSection')" class="btn-toggle-section" id="btnAllRequests">
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+            </button>
         </div>
+        <div id="allRequestsSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
 
         <div class="filter-section-report">
             <div class="filter-group-report">
@@ -291,41 +295,66 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
             </div>
             <div class="table-info-report" id="requestsTableInfo"><span data-lang="showing-all-data">Showing all data</span></div>
         </div>
+        </div>
     </div>
     <?php endif; ?>
 
     <?php if ($approved_appointments && $approved_appointments->num_rows > 0): ?>
-    <div class="card-report">
+    <div class="card-report" id="section-approved">
         <div class="card-header-report">
             <div style="display: flex; align-items: center; gap: 10px; flex: 1;"><h3 style="margin: 0;"><i class="fas fa-check-circle"></i> <span data-lang="detail-assign-letter-accepted">Detail Assign Letter Accepted</span></h3><span class="badge-header"><?php echo $approved_appointments->num_rows; ?></span></div>
-            <button class="btn btn-export-pdf" onclick="exportApprovedByDepartment()"><i class="fas fa-file-pdf"></i> <span data-lang="export-pdf-report">Export PDF Report</span></button>
+            <div>
+                <button class="btn btn-export-pdf" onclick="exportApprovedByDepartment()"><i class="fas fa-file-pdf"></i> <span data-lang="export-pdf-report">Export PDF Report</span></button>
+                <button onclick="toggleSection('approvedSection')" class="btn-toggle-section" id="btnApproved">
+                    <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
         </div>
+        <div id="approvedSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         <div class="filter-section-report">
             <div class="filter-group-report"><label><i class="fas fa-map-marker-alt"></i> <span data-lang="work-scope-label">Scope:</span></label><select id="scopeFilterApproved" class="filter-select-report" onchange="filterTableByFilters('approvedTable')"><option value="" data-lang="all-scopes">-- All Scopes --</option><option value="MSM">PT MSM</option><option value="TTN">PT TTN</option></select></div>
             <div class="filter-group-report"><label><i class="fas fa-eye"></i> <span data-lang="supervision-area-label">Supervision Area:</span></label><select id="supervisionFilterApproved" class="filter-select-report" onchange="filterTableByFilters('approvedTable')"><option value="" data-lang="all-areas">-- All Areas --</option><?php if ($supervision_areas && $supervision_areas->num_rows > 0) { $supervision_areas->data_seek(0); while ($area = $supervision_areas->fetch_assoc()): ?><option value="<?php echo htmlspecialchars($area['area_name']); ?>"><?php echo htmlspecialchars($area['area_name']); ?></option><?php endwhile; } ?></select></div>
             <div class="filter-action-group"><button class="btn btn-export-small" onclick="exportToExcel('approvedTable', 'Report_Approved_Letters')"><i class="fas fa-file-excel"></i> <span data-lang="export-to-excel">Export to Excel</span></button></div>
         </div>
     <div class="card-body-report"><div class="table-responsive"><table class="table-report table-approved" style="width: 100%; min-width: 950px;" id="approvedTable"><thead><tr><th class="col-number" data-lang="assign-letter-no">Assign Letter No.</th><th class="col-employee" data-lang="employee">Employee</th><th class="col-position" data-lang="position">Position</th><th class="col-date" data-lang="effective-date">Effective Date</th><th class="col-approved-date" data-lang="approved">Approved</th><th class="col-approved-by" data-lang="approved-by">Approved By</th></tr></thead><tbody><?php $approved_appointments->data_seek(0); while ($row = $approved_appointments->fetch_assoc()): $scope_raw = $row['ruang_lingkup'] ?: ''; $scope_normalized = ''; if (stripos($scope_raw, 'MSM') !== false || stripos($scope_raw, 'Meares Soputan') !== false) { $scope_normalized = 'MSM'; } elseif (stripos($scope_raw, 'TTN') !== false || stripos($scope_raw, 'Tondano Nusajaya') !== false) { $scope_normalized = 'TTN'; } $supervision_area = htmlspecialchars($row['supervision_area'] ?: ''); ?><tr data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>"><td class="col-number"><strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong></td><td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($row['employee_name']); ?></strong><?php if (isset($row['employee_status']) && $row['employee_status'] === 'resigned'): ?> <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span> <?php endif; ?><span class="emp-code-detail"><?php echo htmlspecialchars($row['employee_code']); ?></span></div></td><td class="col-position"><span class="position-badge-report"><?php echo htmlspecialchars($row['position_name']); ?></span></td><td class="col-date"><i class="fas fa-calendar"></i> <?php echo date('d/m/Y', strtotime($row['effective_date'])); ?></td><td class="col-approved-date"><i class="fas fa-check"></i> <?php echo date('d/m/Y H:i', strtotime($row['approved_date'])); ?></td><td class="col-approved-by">                                    <div class="approval-info-container">                                        <?php if (!empty($row['ktt1_name']) || !empty($row['ktt2_name'])): ?>                                            <?php if (!empty($row['ktt1_name'])): ?>                                                <div class="approval-item">                                                    <span class="approver-name"><strong>KTT MSM:</strong> <?php echo htmlspecialchars($row['ktt1_name']); ?></span>                                                    <?php if (!empty($row['ktt1_approved_date'])): ?>                                                        <span class="approval-datetime"><?php echo date('d/m/Y', strtotime($row['ktt1_approved_date'])); ?> - <?php echo date('H:i', strtotime($row['ktt1_approved_date'])); ?></span>                                                    <?php endif; ?>                                                </div>                                            <?php endif; ?>                                            <?php if (!empty($row['ktt2_name'])): ?>                                                <div class="approval-item">                                                    <span class="approver-name"><strong>KTT TTN:</strong> <?php echo htmlspecialchars($row['ktt2_name']); ?></span>                                                    <?php if (!empty($row['ktt2_approved_date'])): ?>                                                        <span class="approval-datetime"><?php echo date('d/m/Y', strtotime($row['ktt2_approved_date'])); ?> - <?php echo date('H:i', strtotime($row['ktt2_approved_date'])); ?></span>                                                    <?php endif; ?>                                                </div>                                            <?php endif; ?>                                        <?php elseif (!empty($row['approved_by_name']) && !empty($row['approved_date'])): ?>                                            <div class="approval-item">                                                <span class="approver-name"><?php echo htmlspecialchars($row['approved_by_name']); ?></span>                                                <span class="approval-datetime"><?php echo date('d/m/Y', strtotime($row['approved_date'])); ?> - <?php echo date('H:i', strtotime($row['approved_date'])); ?></span>                                            </div>                                        <?php else: ?>                                            <span class="text-muted">N/A</span>                                        <?php endif; ?>                                    </div>                                </td></tr><?php endwhile; ?></tbody></table></div><div class="table-info-report" id="approvedTableInfo"><span data-lang="showing-all-data">Showing all data</span></div></div>
+        </div>
     </div>
     <?php endif; ?>
 
     <?php if ($rejected_appointments && $rejected_appointments->num_rows > 0): ?>
-    <div class="card-report">
-        <div class="card-header-report"><h3><i class="fas fa-times-circle"></i> <span data-lang="detail-assign-letter-rejected">Detail Assign Letter Rejected</span></h3><span class="badge-header rejected"><?php echo $rejected_appointments->num_rows; ?></span></div>
+    <div class="card-report" id="section-rejected">
+        <div class="card-header-report">
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1;"><h3 style="margin: 0;"><i class="fas fa-times-circle"></i> <span data-lang="detail-assign-letter-rejected">Detail Assign Letter Rejected</span></h3><span class="badge-header danger"><?php echo $rejected_appointments->num_rows; ?></span></div>
+            <button onclick="toggleSection('rejectedSection')" class="btn-toggle-section" id="btnRejected">
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+        <div id="rejectedSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         <div class="filter-section-report">
             <div class="filter-group-report"><label><i class="fas fa-map-marker-alt"></i> <span data-lang="work-scope-label">Scope:</span></label><select id="scopeFilterRejected" class="filter-select-report" onchange="filterTableByFilters('rejectedTable')"><option value="" data-lang="all-scopes">-- All Scopes --</option><option value="MSM">PT MSM</option><option value="TTN">PT TTN</option></select></div>
             <div class="filter-group-report"><label><i class="fas fa-eye"></i> <span data-lang="supervision-area-label">Supervision Area:</span></label><select id="supervisionFilterRejected" class="filter-select-report" onchange="filterTableByFilters('rejectedTable')"><option value="" data-lang="all-areas">-- All Areas --</option><?php if ($supervision_areas && $supervision_areas->num_rows > 0) { $supervision_areas->data_seek(0); while ($area = $supervision_areas->fetch_assoc()): ?><option value="<?php echo htmlspecialchars($area['area_name']); ?>"><?php echo htmlspecialchars($area['area_name']); ?></option><?php endwhile; } ?></select></div>
             <div class="filter-action-group"><button class="btn btn-export-small" onclick="exportToExcel('rejectedTable', 'Report_Rejected_Letters')"><i class="fas fa-file-excel"></i> <span data-lang="export-to-excel">Export to Excel</span></button></div>
         </div>
         <div class="card-body-report"><div class="table-responsive"><table class="table-report table-rejected" style="width: 100%; min-width: 950px;" id="rejectedTable"><thead><tr><th class="col-number" data-lang="assign-letter-no">Assign Letter No.</th><th class="col-employee" data-lang="employee">Employee</th><th class="col-position" data-lang="position">Position</th><th class="col-date" data-lang="effective-date">Effective Date</th><th class="col-rejected-date" data-lang="rejected-date">Rejected Date</th><th class="col-rejected-by" data-lang="rejected-by">Rejected By</th><th class="col-notes" data-lang="rejection-notes">Rejection Notes</th><th class="col-action" data-lang="action">Action</th></tr></thead><tbody><?php $rejected_appointments->data_seek(0); while ($row = $rejected_appointments->fetch_assoc()): $scope_raw = $row['ruang_lingkup'] ?: ''; $scope_normalized = ''; if (stripos($scope_raw, 'MSM') !== false || stripos($scope_raw, 'Meares Soputan') !== false) { $scope_normalized = 'MSM'; } elseif (stripos($scope_raw, 'TTN') !== false || stripos($scope_raw, 'Tondano Nusajaya') !== false) { $scope_normalized = 'TTN'; } $supervision_area = htmlspecialchars($row['supervision_area'] ?: ''); ?><tr class="rejected-row" data-scope="<?php echo $scope_normalized; ?>" data-supervision="<?php echo $supervision_area; ?>"><td class="col-number"><strong><?php echo htmlspecialchars($row['appointment_number']); ?></strong></td><td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($row['employee_name']); ?></strong><?php if (isset($row['employee_status']) && $row['employee_status'] === 'resigned'): ?> <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span> <?php endif; ?><span class="emp-code-detail"><?php echo htmlspecialchars($row['employee_code']); ?></span></div></td><td class="col-position"><span class="position-badge-report"><?php echo htmlspecialchars($row['position_name']); ?></span></td><td class="col-date"><i class="fas fa-calendar"></i> <?php echo date('d/m/Y', strtotime($row['effective_date'])); ?></td><td class="col-rejected-date"><i class="fas fa-times"></i> <?php echo date('d/m/Y H:i', strtotime($row['approved_date'])); ?></td><td class="col-rejected-by"><span class="rejector-badge"><?php echo htmlspecialchars($row['approved_by_name'] ?: 'N/A'); ?></span></td><td class="col-notes"><span class="notes-badge" onclick="showRejectionModal(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['appointment_number']); ?>', '<?php echo htmlspecialchars($row['employee_name']); ?>', '<?php echo htmlspecialchars($row['ktt_notes'] ?? ''); ?>')"><i class="fas fa-eye"></i> View Notes</span></td><td class="col-action"><button class="btn-detail-small" onclick="showRejectionModal(<?php echo $row['id']; ?>, '<?php echo htmlspecialchars($row['appointment_number']); ?>', '<?php echo htmlspecialchars($row['employee_name']); ?>', '<?php echo htmlspecialchars($row['ktt_notes'] ?? ''); ?>')"><i class="fas fa-info-circle"></i> Details</button></td></tr><?php endwhile; ?></tbody></table></div><div class="table-info-report" id="rejectedTableInfo"><span data-lang="showing-all-data">Showing all data</span></div></div>
+        </div>
     </div>
     <?php endif; ?>
 
     <?php if ($expiring_certs && $expiring_certs->num_rows > 0): ?>
     <div class="card-report" id="certificate-expiration">
-        <div class="card-header-report"><div style="display: flex; align-items: center; gap: 10px; flex: 1;"><h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Expired Certificates</span></h3><span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span></div><button class="btn btn-export-small" onclick="exportExpiringCertsToExcel()"><i class="fas fa-file-excel"></i> <span data-lang="export-to-excel">Export to Excel</span></button></div>
+        <div class="card-header-report">
+            <div style="display: flex; align-items: center; gap: 10px; flex: 1;"><h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Expired Certificates</span></h3><span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span></div>
+            <div>
+                <button class="btn btn-export-small" onclick="exportExpiringCertsToExcel()"><i class="fas fa-file-excel"></i> <span data-lang="export-to-excel">Export to Excel</span></button>
+                <button onclick="toggleSection('certExpirationSection')" class="btn-toggle-section" id="btnCertExpiration">
+                    <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+                </button>
+            </div>
+        </div>
+        <div id="certExpirationSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         <div class="alert-warning-report"><i class="fas fa-info-circle"></i><span data-lang="expired-certs-renew-immediately">The following is a list of employees with expired certificates. Please renew certificates immediately.</span></div>
         <div class="card-body-report"><div class="table-responsive"><table class="table-report table-expiring" style="width: 100%; min-width: 950px;" id="expiringCertsTable"><thead><tr><th class="col-employee" data-lang="employee">Employee</th><th class="col-cert-name" data-lang="certificate-name">Certificate Name</th><th class="col-cert-number" data-lang="certificate-number">Certificate Number</th><th class="col-expiry-date" data-lang="expiry-date">Expiry Date</th><th class="col-days-left" data-lang="days-left">Days Left</th><th class="col-status-expiry" data-lang="status">Status</th></tr></thead><tbody><?php $expiring_certs->data_seek(0); while ($cert = $expiring_certs->fetch_assoc()): ?><tr class="expiring-row"><td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($cert['full_name']); ?></strong><?php if (isset($cert['employee_status']) && $cert['employee_status'] === 'resigned'): ?> <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($cert['resign_date']) ? date('d/m/Y', strtotime($cert['resign_date'])) : '-'; ?>)</span> <?php endif; ?><span class="emp-code-detail"><?php echo htmlspecialchars($cert['employee_code']); ?></span></div></td><td class="col-cert-name"><span class="cert-name-badge"><?php echo htmlspecialchars($cert['cert_name'] ?: 'N/A'); ?></span></td><td class="col-cert-number"><?php echo htmlspecialchars($cert['cert_number'] ?: 'N/A'); ?></td><td class="col-expiry-date"><?php echo !empty($cert['expiry_date']) ? date('d/m/Y', strtotime($cert['expiry_date'])) : 'N/A'; ?></td><td class="col-days-left"><span class="days-badge <?php echo ($cert['days_until_expiry'] <= 30) ? 'days-critical' : (($cert['days_until_expiry'] <= 60) ? 'days-urgent' : 'days-warning'); ?>"><?php echo (int)$cert['days_until_expiry']; ?> days</span></td><td class="col-status-expiry"><span class="status-badge <?php echo ($cert['days_until_expiry'] <= 30) ? 'status-critical' : (($cert['days_until_expiry'] <= 60) ? 'status-urgent' : 'status-warning'); ?>"><?php echo ($cert['days_until_expiry'] <= 30) ? 'Critical' : (($cert['days_until_expiry'] <= 60) ? 'Urgent' : 'Warning'); ?></span></td></tr><?php endwhile; ?></tbody></table></div></div>
+        </div>
     </div>
     <?php endif; ?>
 
@@ -336,7 +365,11 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
                 <h3 style="margin: 0;"><i class="fas fa-user-times"></i> <span data-lang="resigned-employees">Resigned Employees</span></h3>
                 <span class="badge-header danger"><?php echo $resigned_employees->num_rows; ?></span>
             </div>
+            <button onclick="toggleSection('resignedSection')" class="btn-toggle-section" id="btnResigned">
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+            </button>
         </div>
+        <div id="resignedSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         
         <div class="card-body-report">
             <div class="table-responsive">
@@ -382,6 +415,7 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
                     </tbody>
                 </table>
             </div>
+        </div>
         </div>
     </div>
     
@@ -704,6 +738,52 @@ function exportToExcel(tableId, filename) {
     a.click();
     document.body.removeChild(a);
     window.URL.revokeObjectURL(url);
+}
+
+function toggleSection(sectionId) {
+    const section = document.getElementById(sectionId);
+    const button = event.currentTarget;
+    const icon = button.querySelector('i');
+    const text = button.querySelector('.btn-toggle-text');
+
+    if (section.style.display === 'none' || section.style.display === '') {
+        // Show section
+        section.style.display = 'block';
+        // Trigger reflow
+        section.offsetHeight;
+        section.style.opacity = '1';
+        section.style.maxHeight = '10000px';
+
+        // Update button
+        icon.classList.remove('fa-chevron-down');
+        icon.classList.add('fa-chevron-up');
+        text.setAttribute('data-lang', 'hide');
+        if (window.changeLanguage && window.getCurrentLanguage) {
+            window.changeLanguage(window.getCurrentLanguage());
+        }
+        setTimeout(function() {
+            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.dataTable) {
+                window.jQuery.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
+            }
+        }, 150);
+    } else {
+        // Hide section
+        section.style.opacity = '0';
+        section.style.maxHeight = '0';
+
+        // Update button
+        icon.classList.remove('fa-chevron-up');
+        icon.classList.add('fa-chevron-down');
+        text.setAttribute('data-lang', 'view-all');
+        if (window.changeLanguage && window.getCurrentLanguage) {
+            window.changeLanguage(window.getCurrentLanguage());
+        }
+
+        // Wait for transition before hiding
+        setTimeout(() => {
+            section.style.display = 'none';
+        }, 400);
+    }
 }
 </script>
 
