@@ -906,7 +906,7 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
     <div class="card-report" id="section-accepted-assign">
         <div class="card-header-report">
             <div class="card-hd-left">
-                <h3>Detail Surat Penunjukan Disetujui</h3>
+                <h3>Detail Appointment Letter Approved</h3>
                 <span class="badge-header"><?php echo $approved_appointments->num_rows; ?></span>
             </div>
             <button onclick="toggleSection('approvedAppointmentSection')" class="btn-toggle-section" id="btnApprovedAppt">
@@ -1082,11 +1082,11 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
     <div class="card-report" id="section-rejected-assign">
         <div class="card-header-report">
             <div class="card-hd-left">
-                <h3> Detail Surat Penunjukan Tidak Disetujui</h3>
+                <h3> Detail Appointment Letter Rejected</h3>
                 <span class="badge-header rejected"><?php echo $rejected_appointments->num_rows; ?></span>
             </div>
             <button onclick="toggleSection('rejectedAppointmentSection')" class="btn-toggle-section" id="btnRejectedAppt">
-                <span class="btn-toggle-text">Lihat Semua</span> <i class="fas fa-chevron-down"></i>
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
             </button>
         </div>
 
