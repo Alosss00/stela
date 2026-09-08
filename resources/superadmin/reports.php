@@ -1150,8 +1150,12 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
             </div>
         </div>
         </div>
+        </div>
     </div>
     <?php endif; ?>
+    
+    <!-- Detail Kompetensi -->
+    <?php require_once dirname(__DIR__) . '/components/competency_report_section.php'; ?>
     
     <!-- Certificate Expiration Report -->
     <?php if ($expiring_certs && $expiring_certs->num_rows > 0): ?>
@@ -2376,8 +2380,4 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
-<?php require_once dirname(__DIR__) . '/components/competency_report_section.php'; ?>
 <?php require_once dirname(__DIR__) . '/layouts/superadmin_footer.php'; ?>
-
-
-

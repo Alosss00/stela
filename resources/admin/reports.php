@@ -1226,8 +1226,12 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
             </div>
         </div>
         </div>
+        </div>
     </div>
     <?php endif; ?>
+    
+    <!-- Detail Kompetensi -->
+    <?php require_once dirname(__DIR__) . '/components/competency_report_section.php'; ?>
     
     <!-- Certificate Expiration Report -->
     <?php if ($expiring_certs && $expiring_certs->num_rows > 0): ?>
@@ -1237,8 +1241,12 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
                 <h3 style="margin: 0;"><i class="fas fa-exclamation-triangle"></i> <span data-lang="expired-certificates">Expired Certificates</span></h3>
                 <span class="badge-header warning"><?php echo $expiring_certs->num_rows; ?></span>
             </div>
+            <button onclick="toggleSection('expiringCertsSection')" class="btn-toggle-section" id="btnExpiringCerts">
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+            </button>
         </div>
 
+        <div id="expiringCertsSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
         <div class="alert-warning-report">
             <i class="fas fa-info-circle"></i>
             <span data-lang="expired-certs-renew-immediately">The following is a list of employees with expired certificates. Please renew certificates immediately.</span>
@@ -1367,6 +1375,104 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
                 Showing all data
             </div>
         </div>
+        </div>
+    </div>
+    <?php endif; ?>
+
+    <!-- Resigned Employees Report -->
+    <?php if ($resigned_employees && $resigned_employees->num_rows > 0): ?>
+    <div class="card-report" id="section-resigned">
+        <div class="card-header-report">
+            <div class="card-hd-left">
+                <h3><i class="fas fa-user-times"></i> Detail Karyawan Resign</h3>
+                <span class="badge-header warning"><?php echo $resigned_employees->num_rows; ?></span>
+            </div>
+            <button onclick="toggleSection('resignedSection')" class="btn-toggle-section" id="btnResigned">
+                <span class="btn-toggle-text">View All</span> <i class="fas fa-chevron-down"></i>
+            </button>
+        </div>
+
+        <div id="resignedSection" class="section-content" style="display: none; opacity: 0; max-height: 0;">
+            <!-- Filter by Company and Scope of Work -->
+            <div class="filter-section-report">
+                <div class="filter-group-report">
+                    <label><i class="fas fa-building"></i> Filter Perusahaan:</label>
+                    <select id="companyFilterResigned" class="filter-select-report" onchange="filterResignedTable()">
+                        <option value="">-- All Companies --</option>
+                        <?php
+                        $resigned_employees->data_seek(0);
+                        $resigned_companies = [];
+                        while ($row = $resigned_employees->fetch_assoc()) {
+                            $company = $row['contractor_company'] ?: 'Unknown';
+                            if (!in_array($company, $resigned_companies)) {
+                                $resigned_companies[] = $company;
+                            }
+                        }
+                        sort($resigned_companies);
+                        foreach ($resigned_companies as $comp):
+                        ?>
+                        <option value="<?php echo htmlspecialchars($comp); ?>">
+                            <?php echo htmlspecialchars($comp); ?>
+                        </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="filter-group-report">
+                    <label><i class="fas fa-map-marker-alt"></i> Scope of Work:</label>
+                    <select id="scopeFilterResigned" class="filter-select-report" onchange="filterResignedTable()">
+                        <option value="">-- All Scope of Work --</option>
+                        <option value="MSM">MSM</option>
+                        <option value="TTN">TTN</option>
+                    </select>
+                </div>
+                <div class="filter-action-group" style="margin-left: auto;">
+                    <button class="btn btn-export-small" onclick="exportToExcel('resignedTable', 'Resigned_Employees_Report')">
+                        <i class="fas fa-file-excel"></i> Export to Excel
+                    </button>
+                </div>
+            </div>
+            <div class="card-body-report">
+                <div class="table-responsive">
+                    <table class="table-report datatable" style="width: 100%;" id="resignedTable">
+                        <thead>
+                            <tr>
+                                <th class="col-num">No</th>
+                                <th>Nama</th>
+                                <th>ID Badge</th>
+                                <th>Posisi</th>
+                                <th>Perusahaan</th>
+                                <th>Tanggal Resign</th>
+                                <th>Alasan Resign</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php
+                            $resigned_employees->data_seek(0);
+                            $row_num = 1;
+                            while ($row = $resigned_employees->fetch_assoc()):
+                                $scope_raw = $row['ruang_lingkup'] ?: '';
+                                $scope_normalized = '';
+                                if (stripos($scope_raw, 'MSM') !== false || stripos($scope_raw, 'Meares Soputan') !== false) {
+                                    $scope_normalized = 'MSM';
+                                } elseif (stripos($scope_raw, 'TTN') !== false || stripos($scope_raw, 'Tondano Nusajaya') !== false) {
+                                    $scope_normalized = 'TTN';
+                                }
+                            ?>
+                            <tr data-company="<?php echo htmlspecialchars($row['contractor_company'] ?: 'Unknown'); ?>" data-scope="<?php echo $scope_normalized; ?>">
+                                <td class="col-num"><?php echo $row_num++; ?></td>
+                                <td><strong><?php echo htmlspecialchars($row['full_name']); ?></strong></td>
+                                <td><?php echo htmlspecialchars($row['employee_code']); ?></td>
+                                <td><?php echo htmlspecialchars($row['position']); ?></td>
+                                <td><span class="company-tag"><?php echo htmlspecialchars($row['contractor_company'] ?: 'Unknown'); ?></span></td>
+                                <td><?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?></td>
+                                <td><?php echo htmlspecialchars($row['resign_reason'] ?? '-'); ?></td>
+                            </tr>
+                            <?php endwhile; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
     <?php endif; ?>
 </div>
@@ -1439,6 +1545,25 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
 </div>
 
 <script>
+function filterResignedTable() {
+    const table = document.getElementById('resignedTable');
+    if (!table) return;
+    
+    const companyFilter = document.getElementById('companyFilterResigned').value.toLowerCase().trim();
+    const scopeFilter = document.getElementById('scopeFilterResigned').value.toLowerCase().trim();
+    const rows = table.getElementsByTagName('tbody')[0].getElementsByTagName('tr');
+    
+    for (let row of rows) {
+        const rowCompany = (row.getAttribute('data-company') || '').toLowerCase().trim();
+        const rowScope = (row.getAttribute('data-scope') || '').toLowerCase().trim();
+        
+        let showRow = true;
+        if (companyFilter && rowCompany !== companyFilter) showRow = false;
+        if (scopeFilter && rowScope !== scopeFilter) showRow = false;
+        
+        row.style.display = showRow ? '' : 'none';
+    }
+}
 function normalizeFilterValue(value) {
     return (value || '').toString().toLowerCase().replace(/\s+/g, ' ').trim();
 }
@@ -2329,7 +2454,6 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
-<?php require_once dirname(__DIR__) . '/components/competency_report_section.php'; ?>
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
 
 

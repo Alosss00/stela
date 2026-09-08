@@ -88,7 +88,7 @@ foreach ($allCompData as $row_c) {
 sort($req_companies);
 ?>
 
-<div class="card-report" id="section-competency-details" style="margin-top: 30px;">
+<div class="card-report" id="section-competency-details">
     <div class="card-header-report">
         <div class="card-hd-left">
             <h3><i class="fas fa-list-alt"></i> Detail Kompetensi</h3>
