@@ -434,8 +434,8 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
                 <span class="nav-badge"><?php echo $expiring_certs_count; ?></span>
             </a>
             <?php endif; ?>
-            <a href="reports_competency.php" class="quick-nav-btn nav-accepted" style="background-color: #f8f9fa; border: 1px solid #ddd; color: #333;">
-                <i class="fas fa-file-excel text-success"></i> <span data-lang="competency-details">Laporan Detail Kompetensi (Excel)</span>
+            <a href="#section-competency-details" class="quick-nav-btn nav-accepted" style="background-color: #f8f9fa; border: 1px solid #ddd; color: #333;" onclick="return jumpToReportSection('competencyDetailsSection', '', 'btnCompetencyDetails', event)">
+                <i class="fas fa-list-alt text-success"></i> <span data-lang="competency-details">Laporan Detail Kompetensi</span>
             </a>
             
         </div>
@@ -2376,6 +2376,7 @@ document.addEventListener('DOMContentLoaded', function(){
 });
 </script>
 
+<?php require_once dirname(__DIR__) . '/components/competency_report_section.php'; ?>
 <?php require_once dirname(__DIR__) . '/layouts/superadmin_footer.php'; ?>
 
 

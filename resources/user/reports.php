@@ -1566,4 +1566,5 @@ function exportExpiringCertsToExcel() {
 
 
 
+<?php require_once dirname(__DIR__) . '/components/competency_report_section.php'; ?>
 <?php require_once dirname(__DIR__) . '/layouts/footer.php'; ?>
