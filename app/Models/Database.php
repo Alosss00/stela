@@ -37,7 +37,7 @@ class Database {
                     return;
                 }
             } catch (\Throwable $ex) {}
-            die("Error: " . $e->getMessage());
+            throw new Exception("Database Connection Error: " . $e->getMessage());
         }
     }
     

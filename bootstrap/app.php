@@ -16,6 +16,24 @@ header("X-Frame-Options: SAMEORIGIN");
 header("X-Content-Type-Options: nosniff");
 header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
 
+// 0.5 Global Exception Handler
+set_exception_handler(function($e) {
+    error_log("[" . date('Y-m-d H:i:s') . "] Uncaught Exception: " . $e->getMessage() . " in " . $e->getFile() . " on line " . $e->getLine() . "\n", 3, dirname(__DIR__) . '/storage/logs/error.log');
+    
+    // Check if it's an AJAX request
+    if (!empty($_SERVER['HTTP_X_REQUESTED_WITH']) && strtolower($_SERVER['HTTP_X_REQUESTED_WITH']) == 'xmlhttprequest') {
+        header('Content-Type: application/json');
+        http_response_code(500);
+        echo json_encode(['error' => 'An internal server error occurred. Please try again later.']);
+        exit;
+    }
+    
+    // Show a user-friendly error page
+    http_response_code(500);
+    echo '<!DOCTYPE html><html><head><title>System Error</title><style>body{font-family:Arial,sans-serif;background-color:#f8f9fa;color:#721c24;padding:4rem;text-align:center;line-height:1.6;}h1{margin-bottom:0.5rem;font-size:2rem;}p{font-size:1.1rem;color:#495057;max-width:600px;margin:0 auto;}</style></head><body><h1>Mohon Maaf Terjadi Gangguan</h1><p>Sistem sedang mengalami gangguan teknis atau koneksi database gagal. Tim kami telah mencatat masalah ini.</p><a href="javascript:history.back()" style="display:inline-block;margin-top:2rem;padding:0.75rem 1.5rem;background-color:#0d6efd;color:#fff;text-decoration:none;border-radius:4px;">Kembali Sebelumnya</a></body></html>';
+    exit;
+});
+
 // 1. Load Configurations
 require_once dirname(__DIR__) . '/config/app.php';
 

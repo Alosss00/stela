@@ -74,7 +74,10 @@ function generateAppointmentNumber($db, $employee_id, $appointment_date) {
     $next_number = str_pad($next_number, 3, '0', STR_PAD_LEFT); // 001, 002, etc
     
     // Format: 001/PO/MSM/03/2026
-    return "$next_number/$type_code/$scope_code/$month/$year";
+    return [
+        'appointment_number' => "$next_number/$type_code/$scope_code/$month/$year",
+        'company_scope' => $scope_code
+    ];
 }
 
 // Handle form submission
@@ -303,11 +306,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $emp_row = $emp_result->fetch_assoc();
             
             // Generate appointment number based on employee competency type
-            $appointment_number = generateAppointmentNumber($db, $employee_id, $appointment_date);
+            $appointment_data = generateAppointmentNumber($db, $employee_id, $appointment_date);
+            $appointment_number = $appointment_data['appointment_number'];
+            $company_scope = $appointment_data['company_scope'];
             
-            $sql = "INSERT INTO appointments (appointment_number, employee_id, appointment_date, 
+            $sql = "INSERT INTO appointments (appointment_number, company_scope, employee_id, appointment_date, 
                     effective_date, expiry_date, notes, created_by, status) 
-                    VALUES ('$appointment_number', $employee_id, '$appointment_date', 
+                    VALUES ('$appointment_number', '$company_scope', $employee_id, '$appointment_date', 
                     '$effective_date', '$expiry_date', '$notes', $created_by, 'draft')";
             
             if ($db->query($sql)) {

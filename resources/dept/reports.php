@@ -437,6 +437,7 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
     </div>
 </div>
 
+<script src="../../assets/js/report-toggles.js"></script>
 <script>
 function exportRequestsToExcel(tableId, filename) {
     const table = document.getElementById(tableId);
@@ -740,51 +741,7 @@ function exportToExcel(tableId, filename) {
     window.URL.revokeObjectURL(url);
 }
 
-function toggleSection(sectionId) {
-    const section = document.getElementById(sectionId);
-    const button = event.currentTarget;
-    const icon = button.querySelector('i');
-    const text = button.querySelector('.btn-toggle-text');
 
-    if (section.style.display === 'none' || section.style.display === '') {
-        // Show section
-        section.style.display = 'block';
-        // Trigger reflow
-        section.offsetHeight;
-        section.style.opacity = '1';
-        section.style.maxHeight = '10000px';
-
-        // Update button
-        icon.classList.remove('fa-chevron-down');
-        icon.classList.add('fa-chevron-up');
-        text.setAttribute('data-lang', 'hide');
-        if (window.changeLanguage && window.getCurrentLanguage) {
-            window.changeLanguage(window.getCurrentLanguage());
-        }
-        setTimeout(function() {
-            if (window.jQuery && window.jQuery.fn && window.jQuery.fn.dataTable) {
-                window.jQuery.fn.dataTable.tables({ visible: true, api: true }).columns.adjust();
-            }
-        }, 150);
-    } else {
-        // Hide section
-        section.style.opacity = '0';
-        section.style.maxHeight = '0';
-
-        // Update button
-        icon.classList.remove('fa-chevron-up');
-        icon.classList.add('fa-chevron-down');
-        text.setAttribute('data-lang', 'view-all');
-        if (window.changeLanguage && window.getCurrentLanguage) {
-            window.changeLanguage(window.getCurrentLanguage());
-        }
-
-        // Wait for transition before hiding
-        setTimeout(() => {
-            section.style.display = 'none';
-        }, 400);
-    }
-}
 </script>
 
 <?php require_once dirname(__DIR__) . '/components/competency_report_section.php'; ?>

@@ -197,15 +197,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
 
                                 if ($expiry_date) {
                                 $sql_appointment = "INSERT INTO appointments 
-                                                  (appointment_number, employee_id, position_id, appointment_date, 
+                                                  (appointment_number, company_scope, employee_id, position_id, appointment_date, 
                                                    effective_date, expiry_date, status, auto_generated, created_by, notes) 
-                                                  VALUES ('$appointment_number', $employee_id, $position_id, '$today', 
+                                                  VALUES ('$appointment_number', '$scope_code', $employee_id, $position_id, '$today', 
                                                           '$today', '$expiry_date', 'draft', 1, $verified_by, 'Auto-generated setelah verifikasi data tenaga kerja')";
                             } else {
                                 $sql_appointment = "INSERT INTO appointments 
-                                                  (appointment_number, employee_id, position_id, appointment_date, 
+                                                  (appointment_number, company_scope, employee_id, position_id, appointment_date, 
                                                    effective_date, status, auto_generated, created_by, notes) 
-                                                  VALUES ('$appointment_number', $employee_id, $position_id, '$today', 
+                                                  VALUES ('$appointment_number', '$scope_code', $employee_id, $position_id, '$today', 
                                                           '$today', 'draft', 1, $verified_by, 'Auto-generated setelah verifikasi data tenaga kerja')";
                             }
                             

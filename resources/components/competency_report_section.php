@@ -4,18 +4,22 @@ if (!isset($db)) {
 }
 
 $where_clause = "WHERE (a.status = 'approved' OR a.status = 'verified')";
+$params = [];
 
 if (isset($_SESSION['role'])) {
     if ($_SESSION['role'] === 'user' && !empty($_SESSION['company_name'])) {
-        $where_clause .= " AND e.contractor_company = '" . $db->escapeString($_SESSION['company_name']) . "'";
+        $where_clause .= " AND e.contractor_company = ?";
+        $params[] = $_SESSION['company_name'];
     } elseif (($_SESSION['role'] === 'department_user' || $_SESSION['role'] === 'dept') && !empty($_SESSION['department'])) {
-        $where_clause .= " AND e.department = '" . $db->escapeString($_SESSION['department']) . "'";
+        $where_clause .= " AND e.department = ?";
+        $params[] = $_SESSION['department'];
     }
 }
 
 $sql_comp = "
     SELECT 
         a.appointment_number as register_internal,
+        a.company_scope as area_code_db,
         e.competency_name as kompetensi,
         c.cert_name as jenis_sertifikat,
         c.issuing_authority as issuer,
@@ -41,16 +45,22 @@ $sql_comp = "
         a.created_at DESC
 ";
 
-$res_comp = $db->query($sql_comp);
+$res_comp = $db->query($sql_comp, $params);
 
 $allCompData = [];
 if ($res_comp) {
     while ($row = $res_comp->fetch_assoc()) {
         $appNum = strtoupper($row['register_internal']);
         
-        // 1. Tentukan Scope of Work (MSM / TTN) berdasarkan nomor registrasi (appointment_number)
+        // 1. Tentukan Scope of Work (MSM / TTN) berdasarkan database atau nomor registrasi
         $area_code = 'MSM';
-        if (strpos($appNum, '/TTN/') !== false) {
+        if (!empty($row['area_code_db'])) {
+            $area_code = strtoupper($row['area_code_db']);
+            // If the scope is MSM/TTN, map it to TTN to match historical report categorization
+            if ($area_code === 'MSM/TTN') {
+                $area_code = 'TTN';
+            }
+        } elseif (strpos($appNum, '/TTN/') !== false) {
             $area_code = 'TTN';
         } elseif (strpos($appNum, '/MSM/') !== false) {
             $area_code = 'MSM';
