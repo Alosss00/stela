@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
         if ($_POST['action'] == 'verify_cert') {
             $cert_id = intval($_POST['cert_id']);
             $status = $_POST['status']; // verified or rejected
-            $notes = $db->escapeString($_POST['notes']);
+            $notes = trim($_POST['notes'] ?? '');
             $verified_by = $_SESSION['user_id'];
             
             $cert_check = $db->query("SELECT verification_status FROM employee_certifications WHERE id = ?", [$cert_id])->fetch_assoc();
@@ -59,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             }
         } elseif ($_POST['action'] == 'verify_employee') {
             $status = $_POST['employee_status']; // verified or rejected
-            $notes = $db->escapeString($_POST['employee_notes']);
+            $notes = trim($_POST['employee_notes'] ?? '');
             $verified_by = $_SESSION['user_id'];
             
             $employee_check = $db->query("SELECT verification_status FROM employees WHERE id = ?", [$employee_id])->fetch_assoc();

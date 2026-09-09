@@ -17,10 +17,10 @@ $report_data = $db->query("
         SUM(CASE WHEN a.status = 'approved' THEN 1 ELSE 0 END) as approved_count,
         SUM(CASE WHEN a.status = 'rejected' THEN 1 ELSE 0 END) as rejected_count,
         COUNT(*) as total_count
-    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected') AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected') AND e.contractor_company = ?
     GROUP BY e.contractor_company
     ORDER BY e.contractor_company
-");
+", [$company_name]);
 
 // Get detailed approved appointments for user's company
 $approved_appointments = $db->query("
@@ -40,9 +40,9 @@ $approved_appointments = $db->query("
     LEFT JOIN users au ON a.approved_by = au.id
     LEFT JOIN users ktt1 ON a.ktt1_approved_by = ktt1.id
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
-    WHERE a.status = 'approved' AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    WHERE a.status = 'approved' AND e.contractor_company = ?
     ORDER BY a.approved_date DESC
-");
+", [$company_name]);
 
 // Get detailed rejected appointments for user's company
 $rejected_appointments = $db->query("
@@ -62,14 +62,14 @@ $rejected_appointments = $db->query("
     LEFT JOIN users au ON a.approved_by = au.id
     LEFT JOIN ktt_approvals ka ON a.id = ka.appointment_id
     LEFT JOIN users ktt_u ON ka.ktt_user_id = ktt_u.id
-    WHERE a.status = 'rejected' AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    WHERE a.status = 'rejected' AND e.contractor_company = ?
     GROUP BY a.id
     ORDER BY a.approved_date DESC
-");
+", [$company_name]);
 
 // Get statistics for user's company
-$approved_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'approved' AND e.contractor_company = '" . $db->escapeString($company_name) . "'")->fetch_assoc()['count'];
-$rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'rejected' AND e.contractor_company = '" . $db->escapeString($company_name) . "'")->fetch_assoc()['count'];
+$approved_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'approved' AND e.contractor_company = ?", [$company_name])->fetch_assoc()['count'];
+$rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'rejected' AND e.contractor_company = ?", [$company_name])->fetch_assoc()['count'];
 $total_processed = $approved_total + $rejected_total;
 
 // Get request data for user's company - Combined query
@@ -83,7 +83,7 @@ $all_requests = $db->query("
         e.verification_notes
     FROM employees e
     LEFT JOIN users u ON e.verified_by = u.id
-    WHERE e.contractor_company = '" . $db->escapeString($company_name) . "'
+    WHERE e.contractor_company = ?
     AND e.verification_status IN ('verified', 'rejected', 'pending')
     ORDER BY 
         CASE WHEN e.verification_status = 'verified' THEN 0
@@ -91,7 +91,7 @@ $all_requests = $db->query("
              WHEN e.verification_status = 'pending' THEN 2
         END,
         e.updated_at DESC, e.created_at DESC
-");
+", [$company_name]);
 
 $accepted_requests_count = 0;
 $rejected_requests_count = 0;
@@ -136,7 +136,7 @@ $expiring_certs = $db->query("
     AND ec.expiry_date < CURDATE()
     AND ec.status != 'active'
     AND e.is_active = 1
-    AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    AND e.contractor_company = ?
     AND NOT EXISTS (
         SELECT 1 FROM employee_certifications ec2 
         WHERE ec2.employee_id = ec.employee_id 
@@ -144,7 +144,7 @@ $expiring_certs = $db->query("
         AND ec2.id > ec.id
     )
     ORDER BY ec.expiry_date ASC, e.full_name
-");
+", [$company_name]);
 
 $expiring_certs_count = $expiring_certs ? $expiring_certs->num_rows : 0;
 
@@ -152,9 +152,9 @@ $expiring_certs_count = $expiring_certs ? $expiring_certs->num_rows : 0;
 // Get resigned employees
 $resigned_employees = $db->query("
     SELECT e.*
-    FROM employees e WHERE e.deleted_at IS NULL AND e.employee_status = 'resigned' AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    FROM employees e WHERE e.deleted_at IS NULL AND e.employee_status = 'resigned' AND e.contractor_company = ?
     ORDER BY e.resign_date DESC, e.full_name ASC
-");
+", [$company_name]);
 
 require_once dirname(__DIR__) . '/layouts/header.php';
 
@@ -165,10 +165,10 @@ $supervision_areas = $db->query("SELECT * FROM supervision_areas WHERE deleted_a
 $work_scopes = $db->query("
     SELECT DISTINCT e.ruang_lingkup
     FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected') 
-    AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    AND e.contractor_company = ?
     AND e.ruang_lingkup IS NOT NULL AND e.ruang_lingkup != ''
     ORDER BY e.ruang_lingkup
-");
+", [$company_name]);
 ?>
 
 <div class="reports-container">

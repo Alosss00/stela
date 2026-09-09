@@ -86,16 +86,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (!$error) {
-        $employee_code = $db->escapeString(trim($_POST['employee_code']));
-    $full_name = $db->escapeString(trim($_POST['full_name']));
-    $position = $db->escapeString(trim($_POST['position']));
-    $department = $db->escapeString(trim($_POST['department']));
-    $competency_type = $db->escapeString(trim($_POST['competency_type']));
-    $competency_name = !empty($_POST['competency_name']) ? $db->escapeString(trim($_POST['competency_name'])) : '';
-    $supervision_area = !empty($_POST['supervision_area']) ? $db->escapeString(trim($_POST['supervision_area'])) : '';
-    $ruang_lingkup = !empty($_POST['ruang_lingkup']) ? $db->escapeString(trim($_POST['ruang_lingkup'])) : '';
-    $sub_competency = !empty($_POST['sub_competency']) ? $db->escapeString(trim($_POST['sub_competency'])) : '';
-    $contractor_company = $db->escapeString(trim($_POST['contractor_company']));
+        $employee_code = trim($_POST['employee_code'] ?? '');
+        $full_name = trim($_POST['full_name'] ?? '');
+        $position = trim($_POST['position'] ?? '');
+        $department = trim($_POST['department'] ?? '');
+        $competency_type = trim($_POST['competency_type'] ?? '');
+        $competency_name = !empty($_POST['competency_name']) ? trim($_POST['competency_name']) : '';
+        $supervision_area = !empty($_POST['supervision_area']) ? trim($_POST['supervision_area']) : '';
+        $ruang_lingkup = !empty($_POST['ruang_lingkup']) ? trim($_POST['ruang_lingkup']) : '';
+        $sub_competency = !empty($_POST['sub_competency']) ? trim($_POST['sub_competency']) : '';
+        $contractor_company = trim($_POST['contractor_company'] ?? '');
     $is_draft = isset($_POST['is_draft']) ? (int)$_POST['is_draft'] : 0;
     
     // Validate required fields
@@ -264,22 +264,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 if (safe_move_uploaded_file($tmp_name, $upload_dir . $cert_file)) {
                                     $cert_path = 'certifications/' . $cert_file;
                                     $cert_id = intval($cert_ids[$key] ?? 0);
-                                    $cert_number = $db->escapeString($cert_numbers[$key] ?? '');
+                                    $cert_number = trim($cert_numbers[$key] ?? '');
                                     
                                     // Get cert_type: if "Lainnya", use manual input, otherwise use dropdown value
                                     $cert_type = '';
                                     if (isset($cert_types[$key]) && !empty($cert_types[$key])) {
                                         if ($cert_types[$key] === 'Lainnya') {
-                                            $cert_type = $db->escapeString($cert_types_other[$key] ?? '');
+                                            $cert_type = trim($cert_types_other[$key] ?? '');
                                         } else {
-                                            $cert_type = $db->escapeString($cert_types[$key]);
+                                            $cert_type = trim($cert_types[$key]);
                                         }
                                     }
                                     
-                                    $cert_issuer = $db->escapeString($cert_issuers[$key] ?? '');
-                                    $issue_date = $db->escapeString($issue_dates[$key] ?? '');
-                                    $expiry_date = $db->escapeString($expiry_dates[$key] ?? '');
-                                    $reason = $db->escapeString($expiry_reasons[$key] ?? '');
+                                    $cert_issuer = trim($cert_issuers[$key] ?? '');
+                                    $issue_date = trim($issue_dates[$key] ?? '');
+                                    $expiry_date = trim($expiry_dates[$key] ?? '');
+                                    $reason = trim($expiry_reasons[$key] ?? '');
                                     
                                     // Check if expired
                                     $today = date('Y-m-d');

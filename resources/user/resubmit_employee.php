@@ -55,7 +55,7 @@ $employee = $db->query("
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
     LEFT JOIN users admin_user ON a.admin_approved_by = admin_user.id
     WHERE e.id = $employee_id 
-    AND e.contractor_company = '" . $db->escapeString($company_name) . "'
+    AND e.contractor_company = '" . trim($company_name) . "'
     GROUP BY e.id
 ")->fetch_assoc();
 
@@ -160,17 +160,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } else {
         
         // --- KODE ASLI ANDA DIJALANKAN JIKA CSRF VALID ---
-        $full_name = $db->escapeString(trim($_POST['full_name']));
-        $position = $db->escapeString(trim($_POST['position']));
-        $department = $db->escapeString(trim($_POST['department']));
-        $competency_type = $db->escapeString(trim($_POST['competency_type']));
-        $competency_name = !empty($_POST['competency_name']) ? $db->escapeString(trim($_POST['competency_name'])) : ($employee['competency_name'] ?? '');
-        $supervision_area = !empty($_POST['supervision_area']) ? $db->escapeString(trim($_POST['supervision_area'])) : '';
-        $ruang_lingkup = $db->escapeString(trim($_POST['ruang_lingkup']));
-        $sub_competency = !empty($_POST['sub_competency']) ? $db->escapeString(trim($_POST['sub_competency'])) : ($employee['sub_competency'] ?? '');
+        $full_name = trim($_POST['full_name'] ?? '');
+        $position = trim($_POST['position'] ?? '');
+        $department = trim($_POST['department'] ?? '');
+        $competency_type = trim($_POST['competency_type'] ?? '');
+        $competency_name = !empty($_POST['competency_name']) ? trim($_POST['competency_name'] ?? '') : ($employee['competency_name'] ?? '');
+        $supervision_area = !empty($_POST['supervision_area']) ? trim($_POST['supervision_area'] ?? '') : '';
+        $ruang_lingkup = trim($_POST['ruang_lingkup'] ?? '');
+        $sub_competency = !empty($_POST['sub_competency']) ? trim($_POST['sub_competency'] ?? '') : ($employee['sub_competency'] ?? '');
         $allowed_sub_competencies = ['Juru Las', 'Juru Ledak'];
         $requires_sub_competency = ($competency_type === 'tenaga_teknis' && in_array($competency_name, $allowed_sub_competencies, true));
-        $contractor_company = $db->escapeString(trim($_POST['contractor_company']));
+        $contractor_company = trim($_POST['contractor_company'] ?? '');
 
         // Validate required fields
         if (empty($full_name) || empty($position) || empty($department) || empty($competency_type) || empty($ruang_lingkup) || empty($contractor_company)) {

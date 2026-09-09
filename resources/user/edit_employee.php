@@ -90,16 +90,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if (!$error) {
-        $employee_code = $db->escapeString(trim($_POST['employee_code']));
-    $full_name = $db->escapeString(trim($_POST['full_name']));
-    $position = $db->escapeString(trim($_POST['position']));
-    $department = $db->escapeString(trim($_POST['department']));
-    $competency_type = $db->escapeString(trim($_POST['competency_type']));
-    $competency_name = !empty($_POST['competency_name']) ? $db->escapeString(trim($_POST['competency_name'])) : '';
-    $supervision_area = !empty($_POST['supervision_area']) ? $db->escapeString(trim($_POST['supervision_area'])) : '';
-    $ruang_lingkup = !empty($_POST['ruang_lingkup']) ? $db->escapeString(trim($_POST['ruang_lingkup'])) : '';
-    $sub_competency = !empty($_POST['sub_competency']) ? $db->escapeString(trim($_POST['sub_competency'])) : '';
-    $contractor_company = $db->escapeString(trim($_POST['contractor_company']));
+        $employee_code = trim($_POST['employee_code'] ?? '');
+    $full_name = trim($_POST['full_name'] ?? '');
+    $position = trim($_POST['position'] ?? '');
+    $department = trim($_POST['department'] ?? '');
+    $competency_type = trim($_POST['competency_type'] ?? '');
+    $competency_name = !empty($_POST['competency_name']) ? trim($_POST['competency_name'] ?? '') : '';
+    $supervision_area = !empty($_POST['supervision_area']) ? trim($_POST['supervision_area'] ?? '') : '';
+    $ruang_lingkup = !empty($_POST['ruang_lingkup']) ? trim($_POST['ruang_lingkup'] ?? '') : '';
+    $sub_competency = !empty($_POST['sub_competency']) ? trim($_POST['sub_competency'] ?? '') : '';
+    $contractor_company = trim($_POST['contractor_company'] ?? '');
     $is_draft = isset($_POST['is_draft']) ? (int)$_POST['is_draft'] : 0;
     
     // Validate required fields
