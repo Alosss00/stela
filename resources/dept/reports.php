@@ -13,18 +13,6 @@ if (!hasPermission('dept.access') && !(hasPermission('user.access') && hasDepart
 $db = new Database();
 $department = $_SESSION['department'] ?? '';
 
-// Get report data: approved and rejected appointments grouped by department (filtered by user's department)
-$report_data = $db->query("
-    SELECT 
-        e.department,
-        SUM(CASE WHEN a.status = 'approved' THEN 1 ELSE 0 END) as approved_count,
-        SUM(CASE WHEN a.status = 'rejected' THEN 1 ELSE 0 END) as rejected_count,
-        COUNT(*) as total_count
-    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected') AND e.department = ?
-    GROUP BY e.department
-    ORDER BY e.department
-", [$department]);
-
 // Get detailed approved appointments for user's department (include KTT approvals)
 $approved_appointments = $db->query("
     SELECT a.*, e.full_name as employee_name, e.employee_code, e.department, e.ruang_lingkup, e.supervision_area, e.employee_status, e.resign_date,
@@ -75,33 +63,46 @@ $approved_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN 
 $rejected_total = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status = 'rejected' AND e.department = ?", [$department])->fetch_assoc()['count'];
 $total_processed = $approved_total + $rejected_total;
 
-// Get request data for user's department
-$dept_filter = "e.department = ?";
-$accepted_requests = $db->query("
-    SELECT ec.*, e.full_name, e.employee_code, e.employee_status, e.resign_date, cert.cert_name, DATEDIFF(CURDATE(), ec.expiry_date) as days_expired
-    FROM employee_certifications ec
-    JOIN employees e ON ec.employee_id = e.id
-    JOIN certifications cert ON ec.certification_id = cert.id
-    WHERE ec.expiry_date IS NOT NULL
-    AND ec.expiry_date < CURDATE()
-    AND e.is_active = 1
-    AND $dept_filter
-    AND NOT EXISTS (
-        SELECT 1 FROM employee_certifications ec2 
-        WHERE ec2.employee_id = ec.employee_id 
-        AND ec2.certification_id = ec.certification_id 
-        AND ec2.id > ec.id
-    )
-    ORDER BY ec.expiry_date ASC, e.full_name", [$department]);
+// Get request data for user's department - Combined query
+$all_requests = $db->query("
+    SELECT 
+        e.*, 
+        e.created_at as request_date, 
+        e.updated_at as verification_date, 
+        u.full_name as verified_by_name,
+        e.verification_status,
+        e.verification_notes
+    FROM employees e
+    LEFT JOIN users u ON e.verified_by = u.id
+    WHERE e.department = ?
+    AND e.verification_status IN ('verified', 'rejected', 'pending')
+    ORDER BY 
+        CASE WHEN e.verification_status = 'verified' THEN 0
+             WHEN e.verification_status = 'rejected' THEN 1
+             WHEN e.verification_status = 'pending' THEN 2
+        END,
+        e.updated_at DESC, e.created_at DESC
+", [$department]);
 
-$rejected_requests = $db->query("\n    SELECT e.*, e.created_at as request_date, e.updated_at as verification_date, u.full_name as verified_by_name\n    FROM employees e\n    LEFT JOIN users u ON e.verified_by = u.id\n    WHERE e.verification_status = 'rejected' AND e.department = ?\n    ORDER BY e.updated_at DESC\n", [$department]);
+$accepted_requests_count = 0;
+$rejected_requests_count = 0;
+$pending_requests_count = 0;
+$total_requests_processed = 0;
 
-$pending_requests = $db->query("\n    SELECT e.*, e.created_at as request_date\n    FROM employees e\n    WHERE e.verification_status = 'pending' AND e.department = ?\n    ORDER BY e.created_at DESC\n", [$department]);
-
-$accepted_requests_count = $accepted_requests ? $accepted_requests->num_rows : 0;
-$rejected_requests_count = $rejected_requests ? $rejected_requests->num_rows : 0;
-$pending_requests_count = $pending_requests ? $pending_requests->num_rows : 0;
-$total_requests_processed = $accepted_requests_count + $rejected_requests_count + $pending_requests_count;
+if ($all_requests) {
+    $total_requests_processed = $all_requests->num_rows;
+    $all_requests->data_seek(0);
+    while ($row = $all_requests->fetch_assoc()) {
+        if ($row['verification_status'] === 'verified') {
+            $accepted_requests_count++;
+        } elseif ($row['verification_status'] === 'rejected') {
+            $rejected_requests_count++;
+        } elseif ($row['verification_status'] === 'pending') {
+            $pending_requests_count++;
+        }
+    }
+    $all_requests->data_seek(0);
+}
 
 // Get expiring certificates for department (expiring within 60 days)
 $expiring_certs = $db->query("
@@ -148,6 +149,10 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
         </div>
     </div>
 
+    <!-- Overview Statistics -->
+    <div style="margin-bottom: 15px; margin-top: 5px; display: flex; align-items: center; gap: 8px;">
+        <h3 style="margin: 0; font-size: 1.15rem; color: #334155; font-weight: 600;"><i class="fas fa-file-signature" style="color: #64748b;"></i> <span data-lang="assign-letter-statistics">Assign Letter Statistics</span></h3>
+    </div>
     <div class="stats-grid-reports">
         <div class="stat-card-report stat-total">
             <div class="stat-icon-report"><i class="fas fa-file"></i></div>
@@ -174,6 +179,10 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
         </div>
     </div>
 
+    <!-- Request Overview Statistics -->
+    <div style="margin-bottom: 15px; margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+        <h3 style="margin: 0; font-size: 1.15rem; color: #334155; font-weight: 600;"><i class="fas fa-tasks" style="color: #64748b;"></i> <span data-lang="request-statistics">Request Statistics</span></h3>
+    </div>
     <div class="stats-grid-reports request-stats-grid">
         <div class="stat-card-report stat-total">
             <div class="stat-icon-report"><i class="fas fa-tasks"></i></div>
@@ -252,44 +261,42 @@ $work_scopes = $db->query("\n    SELECT DISTINCT e.ruang_lingkup\n    FROM appoi
                         </tr>
                     </thead>
                     <tbody>
-                        <?php if ($accepted_requests_count > 0): ?>
-                            <?php $accepted_requests->data_seek(0); while ($row = $accepted_requests->fetch_assoc()): ?>
-                            <tr data-status="verified">
-                                <td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($row['full_name']); ?></strong><?php if (isset($row['employee_status']) && $row['employee_status'] === 'resigned'): ?> <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span> <?php endif; ?><span class="emp-code-detail"><?php echo htmlspecialchars($row['department']); ?></span></div></td>
-                                <td class="col-code"><strong><?php echo htmlspecialchars($row['employee_code']); ?></strong></td>
-                                <td class="col-request-date"><?php echo !empty($row['request_date']) ? date('d/m/Y H:i', strtotime($row['request_date'])) : 'N/A'; ?></td>
-                                <td class="col-status"><span class="status-badge status-accepted"><i class="fas fa-check-circle"></i> <span data-lang="accepted">Accepted</span></span></td>
-                                <td class="col-verified-date"><?php echo !empty($row['verification_date']) ? date('d/m/Y H:i', strtotime($row['verification_date'])) : 'N/A'; ?></td>
-                                <td class="col-verified-by"><?php echo htmlspecialchars($row['verified_by_name'] ?: 'N/A'); ?></td>
-                            </tr>
-                            <?php endwhile; ?>
-                        <?php endif; ?>
-
-                        <?php if ($rejected_requests_count > 0): ?>
-                            <?php $rejected_requests->data_seek(0); while ($row = $rejected_requests->fetch_assoc()): ?>
-                            <tr data-status="rejected">
-                                <td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($row['full_name']); ?></strong><?php if (isset($row['employee_status']) && $row['employee_status'] === 'resigned'): ?> <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span> <?php endif; ?><span class="emp-code-detail"><?php echo htmlspecialchars($row['department']); ?></span></div></td>
-                                <td class="col-code"><strong><?php echo htmlspecialchars($row['employee_code']); ?></strong></td>
-                                <td class="col-request-date"><?php echo !empty($row['request_date']) ? date('d/m/Y H:i', strtotime($row['request_date'])) : 'N/A'; ?></td>
-                                <td class="col-status"><span class="status-badge status-rejected-badge"><i class="fas fa-times-circle"></i> <span data-lang="rejected">Rejected</span></span></td>
-                                <td class="col-verified-date"><?php echo !empty($row['verification_date']) ? date('d/m/Y H:i', strtotime($row['verification_date'])) : 'N/A'; ?></td>
-                                <td class="col-verified-by"><span class="rejector-badge"><?php echo htmlspecialchars($row['verified_by_name'] ?: 'N/A'); ?></span></td>
-                            </tr>
-                            <?php endwhile; ?>
-                        <?php endif; ?>
-
-                        <?php if ($pending_requests_count > 0): ?>
-                            <?php $pending_requests->data_seek(0); while ($row = $pending_requests->fetch_assoc()): ?>
-                            <tr data-status="pending">
-                                <td class="col-employee"><div class="employee-detail"><strong><?php echo htmlspecialchars($row['full_name']); ?></strong><?php if (isset($row['employee_status']) && $row['employee_status'] === 'resigned'): ?> <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span> <?php endif; ?><span class="emp-code-detail"><?php echo htmlspecialchars($row['department']); ?></span></div></td>
-                                <td class="col-code"><strong><?php echo htmlspecialchars($row['employee_code']); ?></strong></td>
-                                <td class="col-request-date"><?php echo !empty($row['request_date']) ? date('d/m/Y H:i', strtotime($row['request_date'])) : 'N/A'; ?></td>
-                                <td class="col-status"><span class="status-badge status-pending-badge"><i class="fas fa-hourglass-half"></i> <span data-lang="pending">Pending</span></span></td>
-                                <td class="col-verified-date">-</td>
-                                <td class="col-verified-by">-</td>
-                            </tr>
-                            <?php endwhile; ?>
-                        <?php endif; ?>
+                        <?php 
+                        if ($all_requests) {
+                            $all_requests->data_seek(0);
+                            while ($row = $all_requests->fetch_assoc()):
+                                $status = $row['verification_status'];
+                        ?>
+                        <tr class="" data-status="<?php echo htmlspecialchars($status); ?>">
+                            <td class="col-employee">
+                                <div class="employee-detail">
+                                    <strong><?php echo htmlspecialchars($row['full_name']); ?></strong>
+                                    <?php if (isset($row['employee_status']) && $row['employee_status'] === 'resigned'): ?>
+                                        <span class="badge badge-danger" style="font-size: 0.7em; margin-left: 5px;">Resigned (<?php echo !empty($row['resign_date']) ? date('d/m/Y', strtotime($row['resign_date'])) : '-'; ?>)</span>
+                                    <?php endif; ?>
+                                    <span class="emp-code-detail"><?php echo htmlspecialchars($row['department']); ?></span>
+                                </div>
+                            </td>
+                            <td class="col-code">
+                                <strong><?php echo htmlspecialchars($row['employee_code']); ?></strong>
+                            </td>
+                            <td class="col-request-date"><?php echo !empty($row['request_date']) ? date('d/m/Y H:i', strtotime($row['request_date'])) : 'N/A'; ?></td>
+                            <td class="col-status">
+                                <?php if ($status === 'verified'): ?>
+                                    <span class="status-badge status-accepted"><i class="fas fa-check-circle"></i> <span data-lang="accepted">Accepted</span></span>
+                                <?php elseif ($status === 'rejected'): ?>
+                                    <span class="status-badge status-rejected-badge"><i class="fas fa-times-circle"></i> <span data-lang="rejected">Rejected</span></span>
+                                <?php elseif ($status === 'pending'): ?>
+                                    <span class="status-badge status-pending-badge"><i class="fas fa-hourglass-half"></i> <span data-lang="pending">Pending</span></span>
+                                <?php endif; ?>
+                            </td>
+                            <td class="col-verified-date"><?php echo !empty($row['verification_date']) && $status !== 'pending' ? date('d/m/Y H:i', strtotime($row['verification_date'])) : '-'; ?></td>
+                            <td class="col-verified-by"><?php echo $status !== 'pending' ? htmlspecialchars($row['verified_by_name'] ?: 'N/A') : '-'; ?></td>
+                        </tr>
+                        <?php 
+                            endwhile;
+                        }
+                        ?>
                     </tbody>
                 </table>
             </div>

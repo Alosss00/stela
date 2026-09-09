@@ -10,18 +10,6 @@ checkPageAccess(['user']);
 $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 
-// Get report data: approved and rejected appointments grouped by company (filtered by user's company)
-$report_data = $db->query("
-    SELECT 
-        e.contractor_company,
-        SUM(CASE WHEN a.status = 'approved' THEN 1 ELSE 0 END) as approved_count,
-        SUM(CASE WHEN a.status = 'rejected' THEN 1 ELSE 0 END) as rejected_count,
-        COUNT(*) as total_count
-    FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.status IN ('approved', 'rejected') AND e.contractor_company = ?
-    GROUP BY e.contractor_company
-    ORDER BY e.contractor_company
-", [$company_name]);
-
 // Get detailed approved appointments for user's company
 $approved_appointments = $db->query("
     SELECT a.*, e.full_name as employee_name, e.employee_code, e.contractor_company, e.ruang_lingkup, e.supervision_area, e.employee_status, e.resign_date,
@@ -184,6 +172,9 @@ $work_scopes = $db->query("
     </div>
     
     <!-- Overview Statistics -->
+    <div style="margin-bottom: 15px; margin-top: 5px; display: flex; align-items: center; gap: 8px;">
+        <h3 style="margin: 0; font-size: 1.15rem; color: #334155; font-weight: 600;"><i class="fas fa-file-signature" style="color: #64748b;"></i> <span data-lang="assign-letter-statistics">Assign Letter Statistics</span></h3>
+    </div>
     <div class="stats-grid-reports">
         <div class="stat-card-report stat-total">
             <div class="stat-icon-report"><i class="fas fa-file"></i></div>
@@ -211,6 +202,9 @@ $work_scopes = $db->query("
     </div>
 
     <!-- Request Overview Statistics -->
+    <div style="margin-bottom: 15px; margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+        <h3 style="margin: 0; font-size: 1.15rem; color: #334155; font-weight: 600;"><i class="fas fa-tasks" style="color: #64748b;"></i> <span data-lang="request-statistics">Request Statistics</span></h3>
+    </div>
     <div class="stats-grid-reports request-stats-grid">
         <div class="stat-card-report stat-total">
             <div class="stat-icon-report"><i class="fas fa-tasks"></i></div>
@@ -250,7 +244,7 @@ $work_scopes = $db->query("
     <div class="card-report" id="section-all-requests">
         <div class="card-header-report">
             <div style="display: flex; align-items: center; gap: 10px; flex: 1;">
-                <h3 style="margin: 0;"><i class="fas fa-list"></i> <span data-lang="all-requests-section">All Request</span></h3>
+                <h3 style="margin: 0;"><i class="fas fa-list"></i> <span data-lang="all-requests-section">All Requests</span></h3>
                 <span class="badge-header"><?php echo $all_requests->num_rows; ?></span>
             </div>
             <button onclick="toggleSection('allRequestsSection')" class="btn-toggle-section" id="btnAllRequests">
