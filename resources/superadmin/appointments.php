@@ -310,9 +310,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $appointment_number = $appointment_data['appointment_number'];
             $company_scope = $appointment_data['company_scope'];
             
-            $sql = "INSERT INTO appointments (appointment_number, company_scope, employee_id, appointment_date, 
+            $sql = "INSERT INTO appointments (appointment_number, employee_id, appointment_date, 
                     effective_date, expiry_date, notes, created_by, status) 
-                    VALUES ('$appointment_number', '$company_scope', $employee_id, '$appointment_date', 
+                    VALUES ('$appointment_number', $employee_id, '$appointment_date', 
                     '$effective_date', '$expiry_date', '$notes', $created_by, 'draft')";
             
             if ($db->query($sql)) {

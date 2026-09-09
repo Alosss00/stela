@@ -19,7 +19,7 @@ if (isset($_SESSION['role'])) {
 $sql_comp = "
     SELECT 
         a.appointment_number as register_internal,
-        a.company_scope as area_code_db,
+        NULL as area_code_db,
         e.competency_name as kompetensi,
         c.cert_name as jenis_sertifikat,
         c.issuing_authority as issuer,
