@@ -73,15 +73,10 @@ class Firewall {
     }
 
     private static function getClientIp() {
-        $ip = '';
-        if (!empty($_SERVER['HTTP_CLIENT_IP'])) {
-            $ip = $_SERVER['HTTP_CLIENT_IP'];
-        } elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
-            $ip = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR'])[0];
-        } else {
-            $ip = $_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN';
-        }
-        return trim($ip);
+        // [SECURITY] Hanya gunakan REMOTE_ADDR untuk mencegah IP spoofing
+        // Header HTTP_CLIENT_IP dan HTTP_X_FORWARDED_FOR bisa dipalsukan oleh client
+        // Jika menggunakan reverse proxy, konfigurasikan trusted proxy di level web server
+        return trim($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN');
     }
 
     private static function checkRateLimit() {
@@ -114,7 +109,7 @@ class Firewall {
         $cacheDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'stela_waf_cache';
         
         if (!is_dir($cacheDir)) {
-            @mkdir($cacheDir, 0777, true);
+            @mkdir($cacheDir, 0750, true);
         }
 
         $ipHash = md5($ip);
@@ -137,7 +132,8 @@ class Firewall {
 
         // Check if currently blocked
         if ($data['blocked_until'] > $currentTime) {
-            self::abort(429, "Too Many Requests. Your IP ($ip) has been temporarily blocked for suspicious activity. Please try again later.");
+            // [SECURITY] Jangan tampilkan IP ke user
+            self::abort(429, "Too Many Requests. Your access has been temporarily blocked for suspicious activity. Please try again later.");
         }
 
         // Reset counter if minute changed
@@ -164,8 +160,9 @@ class Firewall {
 
     private static function checkWafRules() {
         // Bad Bots Block
+        // [SECURITY] Hapus curl/wget dari daftar karena bisa memblokir health checks & legitimate API consumers
         $userAgent = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
-        $badBots = ['sqlmap', 'nikto', 'dirb', 'nmap', 'curl', 'wget', 'python-requests'];
+        $badBots = ['sqlmap', 'nikto', 'dirb', 'nmap', 'python-requests'];
         foreach ($badBots as $bot) {
             if (strpos($userAgent, $bot) !== false) {
                 self::abort(403, "Access Denied: Suspicious User-Agent.");

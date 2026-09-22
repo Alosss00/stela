@@ -37,17 +37,24 @@ try {
               JOIN competencies c ON csc.competency_id = c.id
               WHERE csc.is_active = 1";
     
+    $params = [];
+    $types = '';
+    
     if (isset($input['competency_id'])) {
         $competency_id = intval($input['competency_id']);
-        $query .= " AND csc.competency_id = $competency_id";
+        $query .= " AND csc.competency_id = ?";
+        $params[] = $competency_id;
+        $types .= 'i';
     } else {
-        $competency_name = $db->escapeString($input['competency_name']);
-        $query .= " AND c.competency_name = '$competency_name'";
+        $competency_name = $input['competency_name'];
+        $query .= " AND c.competency_name = ?";
+        $params[] = $competency_name;
+        $types .= 's';
     }
     
     $query .= " ORDER BY csc.sub_competency_level ASC";
     
-    $result = $db->query($query);
+    $result = $db->query($query, $params, $types);
     
     if (!$result) {
         throw new Exception('Database query failed');

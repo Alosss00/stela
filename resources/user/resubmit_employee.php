@@ -249,54 +249,56 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $available_columns[] = $col['Field'];
                 }
                 
-                // Build UPDATE query
-                $update_fields = [
-                    "full_name = '$full_name'",
-                    "position = '$position'",
-                    "department = '$department'",
-                    "competency_type = '$competency_type'",
-                    "contractor_company = '$contractor_company'",
-                    "ruang_lingkup = '$ruang_lingkup'",
-                    "cv_file = '$cv_file'",
-                    "verification_status = 'pending'",
-                    "verified_by = NULL",
-                    "verified_date = NULL",
-                    "verification_notes = NULL"
+                // Build UPDATE query with prepared statements
+                $set_parts = [];
+                $params = [];
+                $types = "";
+
+                $fields_to_update = [
+                    'full_name' => $full_name,
+                    'position' => $position,
+                    'department' => $department,
+                    'competency_type' => $competency_type,
+                    'contractor_company' => $contractor_company,
+                    'ruang_lingkup' => $ruang_lingkup,
+                    'cv_file' => $cv_file,
+                    'verification_status' => 'pending',
+                    'verified_by' => null,
+                    'verified_date' => null,
+                    'verification_notes' => null
                 ];
+                
+                foreach ($fields_to_update as $col => $val) {
+                    $set_parts[] = "$col = ?";
+                    $params[] = $val;
+                    $types .= "s";
+                }
 
                 // Add optional fields
                 if (in_array('competency_name', $available_columns) && !empty($competency_name)) {
-                    $update_fields[] = "competency_name = '$competency_name'";
+                    $set_parts[] = "competency_name = ?"; $params[] = $competency_name; $types .= "s";
                 }
-
                 if (in_array('supervision_area', $available_columns) && !empty($supervision_area)) {
-                    $update_fields[] = "supervision_area = '$supervision_area'";
+                    $set_parts[] = "supervision_area = ?"; $params[] = $supervision_area; $types .= "s";
                 }
-
                 if (in_array('sub_competency', $available_columns) && !empty($sub_competency)) {
-                    $update_fields[] = "sub_competency = '$sub_competency'";
+                    $set_parts[] = "sub_competency = ?"; $params[] = $sub_competency; $types .= "s";
                 }
-
                 if (in_array('statement_file', $available_columns)) {
-                    $update_fields[] = "statement_file = '$statement_file'";
+                    $set_parts[] = "statement_file = ?"; $params[] = $statement_file; $types .= "s";
                 }
-
-                // Add resubmit_count increment with NULL handling
                 if (in_array('resubmit_count', $available_columns)) {
-                    $update_fields[] = "resubmit_count = COALESCE(resubmit_count, 0) + 1";
+                    $set_parts[] = "resubmit_count = COALESCE(resubmit_count, 0) + 1";
                 }
-
-                // Add resubmit_date
                 if (in_array('resubmit_date', $available_columns)) {
-                    $update_fields[] = "resubmit_date = NOW()";
+                    $set_parts[] = "resubmit_date = NOW()";
                 }
 
-                $sql = "UPDATE employees SET " . implode(', ', $update_fields) . " WHERE id = $employee_id";
+                $sql = "UPDATE employees SET " . implode(', ', $set_parts) . " WHERE id = ?";
+                $params[] = $employee_id;
+                $types .= "i";
 
-                // Debug logging for resubmit_count
-                error_log("User Resubmit - Employee ID: $employee_id, SQL: $sql");
-
-                if ($db->query($sql)) {
+                if ($db->query($sql, $params, $types)) {
                     // Update appointment status back to pending for admin re-review
                     if (!empty($employee['appointment_id'])) {
                         $appointment_id = intval($employee['appointment_id']);
@@ -353,37 +355,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         }
                         
                         if ($existing_id > 0) {
-                            $update_parts = [
-                                "certification_id = $cert_id",
-                                "cert_number = '$cert_number'",
-                                "cert_issuer = '$cert_issuer'",
-                                "issue_date = '$issue_date'",
-                                "expiry_date = '$expiry_date'",
-                                "status = '$status'",
-                                "verification_status = 'pending'",
-                                "verified_by = NULL",
-                                "verified_date = NULL",
-                                "expiry_reason = '$reason'"
+                            $updateData = [
+                                'certification_id' => $cert_id,
+                                'cert_number' => $cert_number,
+                                'cert_issuer' => $cert_issuer,
+                                'issue_date' => $issue_date,
+                                'expiry_date' => $expiry_date,
+                                'status' => $status,
+                                'verification_status' => 'pending',
+                                'verified_by' => null,
+                                'verified_date' => null,
+                                'expiry_reason' => $reason
                             ];
                             
                             if ($cert_path) {
-                                $update_parts[] = "document_file = '$cert_path'";
+                                $updateData['document_file'] = $cert_path;
                             }
                             
-                            $sql_cert = "UPDATE employee_certifications SET " . implode(', ', $update_parts) . 
-                                        " WHERE id = $existing_id AND employee_id = $employee_id";
+                            $updateWhere = ['id' => $existing_id, 'employee_id' => $employee_id];
+                            if (!$db->update('employee_certifications', $updateData, $updateWhere)) {
+                                error_log("Error updating certification: " . $db->getConnection()->error);
+                            }
                         } else {
                             if ($cert_path) {
-                                $sql_cert = "INSERT INTO employee_certifications 
-                                            (employee_id, certification_id, cert_number, cert_issuer, issue_date, expiry_date, 
-                                             document_file, status, verification_status, expiry_reason) 
-                                            VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
-                                                    '$cert_path', '$status', 'pending', '$reason')";
+                                $insertData = [
+                                    'employee_id' => $employee_id,
+                                    'certification_id' => $cert_id,
+                                    'cert_number' => $cert_number,
+                                    'cert_issuer' => $cert_issuer,
+                                    'issue_date' => $issue_date,
+                                    'expiry_date' => $expiry_date,
+                                    'document_file' => $cert_path,
+                                    'status' => $status,
+                                    'verification_status' => 'pending',
+                                    'expiry_reason' => $reason
+                                ];
+                                if (!$db->insert('employee_certifications', $insertData)) {
+                                    error_log("Error inserting certification: " . $db->getConnection()->error);
+                                }
                             }
-                        }
-                        
-                        if (isset($sql_cert) && !$db->query($sql_cert)) {
-                            error_log("Error updating/inserting certification: " . $db->getConnection()->error);
                         }
                     }
 
@@ -410,28 +420,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                         $expiry_date = $cert_expiry['earliest_expiry'] ?? null;
 
-                        $update_parts = [];
-                        if ($expiry_date) {
-                            $update_parts[] = "expiry_date = '$expiry_date'";
-                        } else {
-                            $update_parts[] = "expiry_date = NULL";
-                        }
-
-                        $update_parts[] = "status = 'draft'";
-                        $update_parts[] = "updated_at = NOW()";
+                        $updateData = [
+                            'expiry_date' => $expiry_date ? $expiry_date : null,
+                            'status' => 'draft',
+                            'updated_at' => date('Y-m-d H:i:s')
+                        ];
 
                         if ($is_ktt_resubmit) {
                             if ($existing_appointment['requires_ktt_msm_review'] == 1) {
-                                $update_parts[] = "ktt_msm_status = 'pending'";
+                                $updateData['ktt_msm_status'] = 'pending';
                             }
                             if ($existing_appointment['requires_ktt_ttn_review'] == 1) {
-                                $update_parts[] = "ktt_ttn_status = 'pending'";
+                                $updateData['ktt_ttn_status'] = 'pending';
                             }
                         }
 
-                        $update_sql = "UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $appointment_id";
-
-                        if ($db->query($update_sql)) {
+                        if ($db->update('appointments', $updateData, ['id' => $appointment_id])) {
                             $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ?", [$appointment_id]);
                         }
                         $message = 'Data correction successfully uploaded!';

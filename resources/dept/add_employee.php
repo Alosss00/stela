@@ -253,13 +253,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     $today = date('Y-m-d');
                                     $status = ($expiry_date && $expiry_date < $today) ? 'expired' : 'pending';
                                     
-                                    $sql_cert = "INSERT INTO employee_certifications 
-                                                (employee_id, certification_id, cert_number, cert_issuer, issue_date, expiry_date, 
-                                                 document_file, status, verification_status, expiry_reason) 
-                                                VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
-                                                        '$cert_path', '$status', 'pending', '$reason')";
+                                    $cert_data = [
+                                        'employee_id' => $employee_id,
+                                        'certification_id' => $cert_id,
+                                        'cert_number' => $cert_number,
+                                        'cert_issuer' => $cert_issuer,
+                                        'issue_date' => $issue_date,
+                                        'expiry_date' => $expiry_date ? $expiry_date : null,
+                                        'document_file' => $cert_path,
+                                        'status' => $status,
+                                        'verification_status' => 'pending',
+                                        'expiry_reason' => $reason
+                                    ];
                                     
-                                    if (!$db->query($sql_cert)) {
+                                    if (!$db->insert('employee_certifications', $cert_data)) {
                                         error_log("Error inserting certification: " . $db->getConnection()->error);
                                     }
                                 }

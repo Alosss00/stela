@@ -63,8 +63,8 @@ $appointment = $db->query("
     LEFT JOIN positions p ON a.position_id = p.id
     LEFT JOIN users ktt1 ON a.ktt1_approved_by = ktt1.id
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
-    WHERE a.id = $id
-")->fetch_assoc();
+    WHERE a.id = ?
+", [$id], "i")->fetch_assoc();
 
 // Debug logging - Log rejection data
 error_log("Previous KTT Rejection Notes: " . ($appointment['previous_ktt_rejection_notes'] ?? 'NULL'));
@@ -79,14 +79,32 @@ if (!$appointment) {
     exit;
 }
 
+// [SECURITY] IDOR Protection
+$user_role = $_SESSION['role'] ?? '';
+$user_company = $_SESSION['company_name'] ?? '';
+$user_dept = $_SESSION['department'] ?? '';
+
+if (!hasPermission('ktt.access') && $user_role !== 'admin' && $user_role !== 'superadmin') {
+    if ($user_role === 'user' && $appointment['contractor_company'] !== $user_company) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Forbidden: You do not have access to this appointment.']);
+        exit;
+    }
+    if ($user_role === 'dept' && $appointment['department'] !== $user_dept) {
+        http_response_code(403);
+        echo json_encode(['success' => false, 'message' => 'Forbidden: You do not have access to this appointment.']);
+        exit;
+    }
+}
+
 // Get certifications
 $certifications = $db->query("
     SELECT ec.*, c.cert_name
     FROM employee_certifications ec
     JOIN certifications c ON ec.certification_id = c.id
-    WHERE ec.employee_id = {$appointment['employee_id']}
+    WHERE ec.employee_id = ?
     ORDER BY ec.created_at DESC
-")->fetch_all(MYSQLI_ASSOC);
+", [$appointment['employee_id']], "i")->fetch_all(MYSQLI_ASSOC);
 
 // Build full URLs for file paths
 // Build public URLs using upload_url() helper

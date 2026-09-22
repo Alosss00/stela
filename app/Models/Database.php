@@ -14,30 +14,16 @@ class Database {
             $this->conn = @new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
             
             if (!$this->conn || $this->conn->connect_error) {
-                // Try fallback to local XAMPP root credentials
-                $this->conn = @new mysqli('127.0.0.1', 'root', '', 'mining_appointment');
-                if (!$this->conn || $this->conn->connect_error) {
-                    $this->conn = @new mysqli('127.0.0.1', 'root', '', 'u136581265_Toka_STELA');
-                }
-                if (!$this->conn || $this->conn->connect_error) {
-                    throw new Exception("Koneksi database gagal: " . ($this->conn ? $this->conn->connect_error : 'Unknown DB error'));
-                }
+                // [SECURITY] Tidak ada fallback credentials — fail fast
+                throw new Exception("Koneksi database gagal. Periksa konfigurasi .env.");
             }
             
             $this->conn->set_charset("utf8mb4");
             // Nonaktifkan ONLY_FULL_GROUP_BY agar query kompleks yang tidak menggunakan aggregate pada semua kolom non-grouped tetap berjalan (kompatibilitas dengan versi MySQL yang lama/hosting)
             $this->conn->query("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
         } catch (\Throwable $e) {
-            // Try emergency fallback to root
-            try {
-                $this->conn = @new mysqli('127.0.0.1', 'root', '', 'mining_appointment');
-                if (!$this->conn->connect_error) {
-                    $this->conn->set_charset("utf8mb4");
-                    $this->conn->query("SET SESSION sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''))");
-                    return;
-                }
-            } catch (\Throwable $ex) {}
-            throw new Exception("Database Connection Error: " . $e->getMessage());
+            // [SECURITY] Tidak mengekspos detail koneksi di error message
+            throw new Exception("Database Connection Error. Periksa konfigurasi database pada file .env.");
         }
     }
     
@@ -49,7 +35,9 @@ class Database {
         if (!empty($params)) {
             $stmt = $this->conn->prepare($sql);
             if (!$stmt) {
-                throw new Exception("Prepare failed: " . $this->conn->error . " | SQL: " . $sql);
+                // [SECURITY] Jangan ekspos SQL query di exception message
+                error_log("Prepare failed: " . $this->conn->error . " | SQL: " . $sql);
+                throw new Exception("Database query preparation failed.");
             }
             
             if (empty($types)) {
@@ -61,11 +49,13 @@ class Database {
                 $bindParams[] = &$params[$key];
             }
             if (!call_user_func_array([$stmt, 'bind_param'], $bindParams)) {
-                throw new Exception("Bind param failed: " . $stmt->error);
+                error_log("Bind param failed: " . $stmt->error);
+                throw new Exception("Database parameter binding failed.");
             }
             
             if (!$stmt->execute()) {
-                throw new Exception("Execute failed: " . $stmt->error . " | SQL: " . $sql);
+                error_log("Execute failed: " . $stmt->error . " | SQL: " . $sql);
+                throw new Exception("Database query execution failed.");
             }
             
             $result = $stmt->get_result();
@@ -73,13 +63,15 @@ class Database {
                 return true;
             }
             if ($result === false) {
-                 throw new Exception("Get result failed: " . $stmt->error);
+                error_log("Get result failed: " . $stmt->error);
+                throw new Exception("Database result retrieval failed.");
             }
             return $result;
         } else {
             $result = $this->conn->query($sql);
             if ($result === false) {
-                throw new Exception("Query failed: " . $this->conn->error . " | SQL: " . $sql);
+                error_log("Query failed: " . $this->conn->error . " | SQL: " . $sql);
+                throw new Exception("Database query failed.");
             }
             return $result;
         }
@@ -95,6 +87,13 @@ class Database {
     
     public function escapeString($string) {
         return $this->conn->real_escape_string($string);
+    }
+    
+    /**
+     * Alias for escapeString() — backwards compatibility
+     */
+    public function escape($string) {
+        return $this->escapeString($string);
     }
     
     public function lastInsertId() {
@@ -125,12 +124,16 @@ class Database {
 
     public function delete($table, $where, $whereParams = []) {
         if (in_array($table, $this->softDeleteTables)) {
-            $deleted_by = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : 'NULL';
-            $sql = "UPDATE $table SET deleted_at = CURRENT_TIMESTAMP, deleted_by = $deleted_by WHERE $where";
+            // [SECURITY] Gunakan parameterized query untuk deleted_by
+            $deleted_by = isset($_SESSION['user_id']) ? intval($_SESSION['user_id']) : null;
+            $sql = "UPDATE $table SET deleted_at = CURRENT_TIMESTAMP, deleted_by = ? WHERE $where";
+            $allParams = array_merge([$deleted_by], $whereParams);
+            $types = 'i' . str_repeat('s', count($whereParams));
+            return $this->query($sql, $allParams, $types);
         } else {
             $sql = "DELETE FROM $table WHERE $where";
+            return $this->query($sql, $whereParams);
         }
-        return $this->query($sql, $whereParams);
     }
     
     public function beginTransaction() {

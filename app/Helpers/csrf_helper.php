@@ -51,3 +51,16 @@ if (!function_exists('verify_csrf_token')) {
         return hash_equals($_SESSION['csrf_token'], $token);
     }
 }
+
+if (!function_exists('regenerate_csrf_token')) {
+    /**
+     * Regenerate the CSRF token.
+     * Useful to call after a successful state-changing operation.
+     *
+     * @return string
+     */
+    function regenerate_csrf_token() {
+        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        return $_SESSION['csrf_token'];
+    }
+}

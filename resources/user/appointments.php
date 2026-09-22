@@ -62,24 +62,28 @@ if (isset($_GET['action']) && $_GET['action'] == 'resubmit_to_ktt' && isset($_GE
             ", [$appointment_id])->fetch_assoc();
 
             // Prepare KTT status reset based on which KTT needs to review
-            $ktt_status_reset = "";
+            $updateData = [
+                'admin_approval_action' => null,
+                'admin_approval_notes' => null,
+                'admin_approved_by' => null,
+                'admin_approved_date' => null
+            ];
+            
             if ($appt_details['requires_ktt_msm_review'] == 1) {
-                $ktt_status_reset = ", ktt_msm_status = 'pending', ktt1_approved_by = NULL, ktt1_approved_date = NULL";
+                $updateData['ktt_msm_status'] = 'pending';
+                $updateData['ktt1_approved_by'] = null;
+                $updateData['ktt1_approved_date'] = null;
             }
             if ($appt_details['requires_ktt_ttn_review'] == 1) {
-                $ktt_status_reset .= ", ktt_ttn_status = 'pending', ktt2_approved_by = NULL, ktt2_approved_date = NULL";
+                $updateData['ktt_ttn_status'] = 'pending';
+                $updateData['ktt2_approved_by'] = null;
+                $updateData['ktt2_approved_date'] = null;
             }
 
             // Reset admin_approval_action to NULL so appointment becomes visible to KTT
-            $update_sql = "UPDATE appointments SET
-                          admin_approval_action = NULL,
-                          admin_approval_notes = NULL,
-                          admin_approved_by = NULL,
-                          admin_approved_date = NULL
-                          $ktt_status_reset
-                          WHERE id = $appointment_id";
+            $updateWhere = ['id' => $appointment_id];
 
-            if ($db->query($update_sql)) {
+            if ($db->update('appointments', $updateData, $updateWhere)) {
                 $success_message = "Appointment letter has been resubmitted to KTT for review.";
                 header("Location: appointments.php?success=resubmit");
                 exit();

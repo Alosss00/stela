@@ -2,15 +2,28 @@
 
 class MasterDataHelper {
     private $db;
+    
+    // [SECURITY] Whitelist tabel yang diizinkan untuk diakses via helper ini
+    private $allowedTables = [
+        'positions', 'supervision_areas', 'competencies', 'companies', 
+        'departments', 'competency_sub_competencies', 'certifications', 'position_requirements'
+    ];
 
     public function __construct($db) {
         $this->db = $db;
+    }
+    
+    private function validateTable($table) {
+        if (!in_array($table, $this->allowedTables)) {
+            throw new Exception("Security Error: Invalid table name '$table'.");
+        }
     }
 
     /**
      * Get paginated data from any master table
      */
     public function getPaginatedData($table, $page = 1, $limit = 10, $search = '', $filters = [], $searchFields = ['name']) {
+        $this->validateTable($table);
         $offset = ($page - 1) * $limit;
         $softDeleteTables = ['positions', 'supervision_areas', 'competencies', 'companies', 'departments', 'competency_sub_competencies', 'certifications'];
         $where = in_array($table, $softDeleteTables) ? ["$table.deleted_at IS NULL"] : ["1=1"];
@@ -97,6 +110,7 @@ class MasterDataHelper {
      * Create Record with Duplicate Check
      */
     public function createRecord($table, $data, $uniqueField = null, $uniqueValue = null) {
+        $this->validateTable($table);
         if ($uniqueField && $uniqueValue) {
             if ($this->checkExists($table, $uniqueField, $uniqueValue)) {
                 return ['status' => 'error', 'message' => "Record with this $uniqueField already exists."];
@@ -132,6 +146,7 @@ class MasterDataHelper {
      * Update Record with Duplicate Check
      */
     public function updateRecord($table, $id, $data, $uniqueField = null, $uniqueValue = null) {
+        $this->validateTable($table);
         if ($uniqueField && $uniqueValue) {
             if ($this->checkExists($table, $uniqueField, $uniqueValue, $id)) {
                 return ['status' => 'error', 'message' => "Record with this $uniqueField already exists."];
@@ -161,6 +176,7 @@ class MasterDataHelper {
      * Smart Delete / Safe Deactivate
      */
     public function deleteOrDeactivateRecord($table, $id) {
+        $this->validateTable($table);
         $id = (int)$id;
         $hasDependency = false;
         
@@ -263,6 +279,7 @@ class MasterDataHelper {
      * Get list for dropdowns
      */
     public function getList($table, $orderBy = 'id ASC', $columns = '*') {
+        $this->validateTable($table);
         $softDeleteTables = ['positions', 'supervision_areas', 'competencies', 'companies', 'departments', 'competency_sub_competencies', 'certifications'];
         $where = in_array($table, $softDeleteTables) ? "WHERE deleted_at IS NULL" : "";
         $q = "SELECT $columns FROM $table $where ORDER BY $orderBy";

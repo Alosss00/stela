@@ -277,34 +277,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     $today = date('Y-m-d');
                                     $status = ($expiry_date && $expiry_date < $today) ? 'expired' : 'pending';
                                     
+                                    // Prepare data array for insertion
+                                    $cert_data = [
+                                        'employee_id' => $employee_id,
+                                        'certification_id' => $cert_id,
+                                        'cert_number' => $cert_number,
+                                        'cert_issuer' => $cert_issuer,
+                                        'issue_date' => $issue_date,
+                                        'expiry_date' => $expiry_date,
+                                        'document_file' => $cert_path,
+                                        'status' => $status,
+                                        'verification_status' => 'pending',
+                                        'expiry_reason' => $reason
+                                    ];
+                                    
                                     // Check if cert_type column exists in employee_certifications table
                                     $columns_check = $db->query("SHOW COLUMNS FROM employee_certifications LIKE 'cert_type'");
-                                    
                                     if ($columns_check && $columns_check->num_rows > 0) {
-                                        // Column cert_type EXISTS - include in INSERT
-                                        $sql_cert = "INSERT INTO employee_certifications 
-                                                    (employee_id, certification_id, cert_type, cert_number, cert_issuer, issue_date, expiry_date, 
-                                                     document_file, status, verification_status, expiry_reason) 
-                                                    VALUES ($employee_id, $cert_id, '$cert_type', '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
-                                                            '$cert_path', '$status', 'pending', '$reason')";
-                                    } else {
-                                        // Column cert_type DOES NOT EXIST - skip cert_type (backward compatible)
-                                        $sql_cert = "INSERT INTO employee_certifications 
-                                                    (employee_id, certification_id, cert_number, cert_issuer, issue_date, expiry_date, 
-                                                     document_file, status, verification_status, expiry_reason) 
-                                                    VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
-                                                            '$cert_path', '$status', 'pending', '$reason')";
+                                        $cert_data['cert_type'] = $cert_type;
                                     }
                                 
-                                    if (!$db->query($sql_cert)) {
-
-    die(
-        "<h3>INSERT GAGAL</h3><pre>" .
-        $db->getConnection()->error .
-        "</pre>"
-    );
-
-}
+                                    if (!$db->insert('employee_certifications', $cert_data)) {
+                                        die(
+                                            "<h3>INSERT GAGAL</h3><pre>" .
+                                            $db->getConnection()->error .
+                                            "</pre>"
+                                        );
+                                    }
                                 }
                             }
                         }

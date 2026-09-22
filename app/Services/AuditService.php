@@ -57,20 +57,24 @@ class AuditService {
             }
         }
 
-        $emp_val = $employee_id ? intval($employee_id) : 'NULL';
-        $appt_val = $appointment_id ? intval($appointment_id) : 'NULL';
-        $action_val = $this->db->escapeString($action_type);
-        $before_val = $status_before ? "'" . $this->db->escapeString($status_before) . "'" : 'NULL';
-        $after_val = $status_after ? "'" . $this->db->escapeString($status_after) . "'" : 'NULL';
-        $notes_val = $notes ? "'" . $this->db->escapeString($notes) . "'" : 'NULL';
-        $role_val = $this->db->escapeString($actor_role);
-
         $sql = "INSERT INTO workflow_history 
                 (employee_id, appointment_id, action_type, status_before, status_after, actor_id, actor_role, notes, created_at)
                 VALUES 
-                ($emp_val, $appt_val, '$action_val', $before_val, $after_val, $actor_id, '$role_val', $notes_val, NOW())";
+                (?, ?, ?, ?, ?, ?, ?, ?, NOW())";
 
-        return $this->db->query($sql);
+        $params = [
+            $employee_id ? intval($employee_id) : null,
+            $appointment_id ? intval($appointment_id) : null,
+            $action_type,
+            $status_before,
+            $status_after,
+            $actor_id,
+            $actor_role,
+            $notes
+        ];
+        $types = 'iisssiss';
+
+        return $this->db->query($sql, $params, $types);
     }
     
     /**
@@ -81,10 +85,10 @@ class AuditService {
         $sql = "SELECT wh.*, u.full_name as actor_name 
                 FROM workflow_history wh
                 LEFT JOIN users u ON wh.actor_id = u.id
-                WHERE wh.employee_id = $employee_id 
+                WHERE wh.employee_id = ? 
                 ORDER BY wh.created_at ASC";
         
-        $result = $this->db->query($sql);
+        $result = $this->db->query($sql, [$employee_id], "i");
         $history = [];
         if ($result) {
             while ($row = $result->fetch_assoc()) {
@@ -104,26 +108,33 @@ class AuditService {
         
         // First get employee_id
         $emp_id = null;
-        $res = $this->db->query("SELECT employee_id FROM appointments WHERE id = $appointment_id");
+        $res = $this->db->query("SELECT employee_id FROM appointments WHERE id = ?", [$appointment_id], "i");
         if ($res && $row = $res->fetch_assoc()) {
             $emp_id = $row['employee_id'];
         }
+        
+        $params = [];
+        $types = "";
         
         if ($emp_id) {
             $sql = "SELECT wh.*, u.full_name as actor_name 
                     FROM workflow_history wh
                     LEFT JOIN users u ON wh.actor_id = u.id
-                    WHERE wh.appointment_id = $appointment_id OR (wh.employee_id = $emp_id AND wh.appointment_id IS NULL)
+                    WHERE wh.appointment_id = ? OR (wh.employee_id = ? AND wh.appointment_id IS NULL)
                     ORDER BY wh.created_at ASC";
+            $params = [$appointment_id, $emp_id];
+            $types = "ii";
         } else {
             $sql = "SELECT wh.*, u.full_name as actor_name 
                     FROM workflow_history wh
                     LEFT JOIN users u ON wh.actor_id = u.id
-                    WHERE wh.appointment_id = $appointment_id
+                    WHERE wh.appointment_id = ?
                     ORDER BY wh.created_at ASC";
+            $params = [$appointment_id];
+            $types = "i";
         }
         
-        $result = $this->db->query($sql);
+        $result = $this->db->query($sql, $params, $types);
         $history = [];
         if ($result) {
             while ($row = $result->fetch_assoc()) {

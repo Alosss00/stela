@@ -14,6 +14,14 @@ try {
     if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
         throw new Exception('Invalid request method');
     }
+    
+    // [SECURITY] Validate CSRF Token for state-changing API
+    if (!function_exists('verify_csrf_token')) {
+        require_once dirname(__DIR__) . '/app/Helpers/csrf_helper.php';
+    }
+    if (!verify_csrf_token()) {
+        throw new Exception('Invalid or missing CSRF token', 403);
+    }
 
     $db = new Database();
     
@@ -27,6 +35,8 @@ try {
 
     $updated_count = 0;
     $values_sql = [];
+    $params = [];
+    $types = '';
     
     // Process form data
     foreach ($_POST as $key => $value) {
@@ -41,10 +51,10 @@ try {
                 continue; // Don't update password if empty
             }
 
-            $key_esc = $db->escapeString($key);
-            $val_esc = $db->escapeString($value);
-            
-            $values_sql[] = "('$key_esc', '$val_esc')";
+            $values_sql[] = "(?, ?)";
+            $params[] = $key;
+            $params[] = $value;
+            $types .= 'ss';
             $updated_count++;
         }
     }
@@ -53,8 +63,10 @@ try {
     $checkboxes = ['maintenance_mode', 'password_policy_strict'];
     foreach ($checkboxes as $chk) {
         if (!isset($_POST[$chk])) {
-            $key_esc = $db->escapeString($chk);
-            $values_sql[] = "('$key_esc', '0')";
+            $values_sql[] = "(?, ?)";
+            $params[] = $chk;
+            $params[] = '0';
+            $types .= 'ss';
             $updated_count++;
         }
     }
@@ -62,7 +74,7 @@ try {
     if (!empty($values_sql)) {
         $query = "INSERT INTO settings (setting_key, setting_value) VALUES " . implode(', ', $values_sql) . " 
                   ON DUPLICATE KEY UPDATE setting_value = VALUES(setting_value)";
-        $db->query($query);
+        $db->query($query, $params, $types);
     }
 
     echo json_encode([

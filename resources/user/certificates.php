@@ -40,10 +40,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (empty($cert_name) || empty($cert_type) || empty($issuing_authority)) {
                 $error = 'All fields are required!';
             } else {
-                $sql = "INSERT INTO certifications (cert_name, cert_type, issuing_authority, is_active)
-                        VALUES ('$cert_name', '$cert_type', '$issuing_authority', $is_active)";
+                $insertData = [
+                    'cert_name' => $cert_name,
+                    'cert_type' => $cert_type,
+                    'issuing_authority' => $issuing_authority,
+                    'is_active' => $is_active
+                ];
                 
-                if ($db->query($sql)) {
+                if ($db->insert('certifications', $insertData)) {
                     $message = 'Certification successfully added!';
                     $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 ORDER BY cert_type, cert_name");
                 } else {
@@ -63,9 +67,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (empty($cert_name) || empty($cert_type) || empty($issuing_authority)) {
                 $error = 'All fields are required!';
             } else {
-                $sql = "UPDATE certifications SET cert_name='$cert_name', cert_type='$cert_type', issuing_authority='$issuing_authority', is_active=$is_active WHERE id=$cert_id";
+                $updateData = [
+                    'cert_name' => $cert_name,
+                    'cert_type' => $cert_type,
+                    'issuing_authority' => $issuing_authority,
+                    'is_active' => $is_active
+                ];
+                $updateWhere = ['id' => $cert_id];
 
-                if ($db->query($sql)) {
+                if ($db->update('certifications', $updateData, $updateWhere)) {
                     $message = 'Certification successfully updated!';
                     $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 ORDER BY cert_type, cert_name");
                 } else {
@@ -76,9 +86,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
         } elseif (isset($_POST['action']) && $_POST['action'] == 'delete_certification') {
             $cert_id = intval($_POST['cert_id']);
-            $sql = "DELETE FROM certifications WHERE id=$cert_id";
+            $deleteWhere = ['id' => $cert_id];
 
-            if ($db->query($sql)) {
+            if ($db->delete('certifications', 'id = ?', [$cert_id])) {
                 $message = 'Certification successfully deleted!';
                 $certifications = $db->query("SELECT * FROM certifications WHERE is_active = 1 ORDER BY cert_type, cert_name");
             } else {

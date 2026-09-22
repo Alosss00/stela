@@ -11,10 +11,11 @@ if (basename($_SERVER['PHP_SELF'] ?? '') === 'app.php') {
     die('Direct access not permitted');
 }
 
-// 0. Security Headers (Anti-Clickjacking, Anti-MIME Sniffing, HSTS)
+// 0. Security Headers (Anti-Clickjacking, Anti-MIME Sniffing, HSTS, CSP)
 header("X-Frame-Options: SAMEORIGIN");
 header("X-Content-Type-Options: nosniff");
 header("Strict-Transport-Security: max-age=31536000; includeSubDomains");
+header("Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://code.jquery.com https://cdn.jsdelivr.net https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net https://fonts.googleapis.com https://cdnjs.cloudflare.com; img-src 'self' data: https:; font-src 'self' data: https://fonts.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self';");
 
 // 0.5 Global Exception Handler
 set_exception_handler(function($e) {

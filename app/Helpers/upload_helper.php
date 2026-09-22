@@ -36,11 +36,23 @@ if (!function_exists('upload_physical_dir')) {
 if (!function_exists('handle_upload')) {
     function handle_upload(array $file_array, string $type, string $prefix): string|false {
         $ext      = strtolower(pathinfo($file_array['name'], PATHINFO_EXTENSION));
+        
+        // [SECURITY] Validasi ekstensi file terhadap whitelist
+        $allowed_extensions = array_merge(
+            defined('ALLOWED_IMAGE_TYPES') ? ALLOWED_IMAGE_TYPES : ['jpg', 'jpeg', 'png'],
+            defined('ALLOWED_DOC_TYPES') ? ALLOWED_DOC_TYPES : ['pdf', 'doc', 'docx', 'xls', 'xlsx']
+        );
+        if (!in_array($ext, $allowed_extensions)) {
+            error_log("Upload rejected: extension '$ext' not in allowed list.");
+            return false;
+        }
+        
         $filename = $prefix . '_' . $type . '_' . time() . '.' . $ext;
         $dir      = upload_physical_dir($type);
         $dest     = $dir . $filename;
 
-        if (!move_uploaded_file($file_array['tmp_name'], $dest)) {
+        // [SECURITY] Gunakan safe_move_uploaded_file untuk validasi MIME
+        if (!safe_move_uploaded_file($file_array['tmp_name'], $dest)) {
             return false;
         }
 
@@ -111,8 +123,13 @@ if (!function_exists('delete_upload')) {
  */
 if (!function_exists('safe_move_uploaded_file')) {
     function safe_move_uploaded_file(string $tmp_name, string $destination): bool {
-        $log_file = dirname(__DIR__, 2) . '/upload_debug.log';
-        file_put_contents($log_file, date('Y-m-d H:i:s') . " - Upload attempt: tmp=$tmp_name, dest=$destination\n", FILE_APPEND);
+        // [SECURITY] Log ke storage/logs/ bukan root project
+        $log_dir = dirname(__DIR__, 2) . '/storage/logs';
+        if (!is_dir($log_dir)) {
+            @mkdir($log_dir, 0750, true);
+        }
+        $log_file = $log_dir . '/upload_debug.log';
+        file_put_contents($log_file, date('Y-m-d H:i:s') . " - Upload attempt: dest=$destination\n", FILE_APPEND);
 
         if (!is_uploaded_file($tmp_name)) {
             file_put_contents($log_file, date('Y-m-d H:i:s') . " - Error: tmp file is not an uploaded file\n", FILE_APPEND);
@@ -126,7 +143,7 @@ if (!function_exists('safe_move_uploaded_file')) {
 
         file_put_contents($log_file, date('Y-m-d H:i:s') . " - MIME detected: $mime\n", FILE_APPEND);
 
-        // Define securely allowed MIME types
+        // [SECURITY] Daftar MIME yang diizinkan — TANPA application/octet-stream
         $allowed_mimes = [
             'application/pdf',
             'application/x-pdf',
@@ -134,7 +151,6 @@ if (!function_exists('safe_move_uploaded_file')) {
             'application/vnd.pdf',
             'text/pdf',
             'text/x-pdf',
-            'application/octet-stream', // Fallback for weirdly formatted PDFs on Windows
             'image/jpeg', 
             'image/jpg', 
             'image/png',
@@ -145,8 +161,8 @@ if (!function_exists('safe_move_uploaded_file')) {
         ];
 
         if (!in_array($mime, $allowed_mimes)) {
-            file_put_contents($log_file, date('Y-m-d H:i:s') . " - Error: MIME not in allowed list\n", FILE_APPEND);
-            error_log("Upload failed: MIME type '$mime' not allowed. File: $tmp_name");
+            file_put_contents($log_file, date('Y-m-d H:i:s') . " - Error: MIME '$mime' not in allowed list\n", FILE_APPEND);
+            error_log("Upload failed: MIME type '$mime' not allowed.");
             return false;
         }
 
@@ -156,7 +172,7 @@ if (!function_exists('safe_move_uploaded_file')) {
             return true;
         } else {
             file_put_contents($log_file, date('Y-m-d H:i:s') . " - Error: move_uploaded_file returned false\n", FILE_APPEND);
-            error_log("Upload failed: move_uploaded_file returned false for $tmp_name -> $destination");
+            error_log("Upload failed: move_uploaded_file returned false for destination $destination");
             return false;
         }
     }

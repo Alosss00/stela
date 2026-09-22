@@ -87,12 +87,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
                         $status = ($expiry_date < $today) ? 'expired' : 'active';
                     }
                     
-                    $sql = "INSERT INTO employee_certifications 
-                            (employee_id, certification_id, cert_number, issue_date, expiry_date, document_file, status, verification_status, notes) 
-                            VALUES ($employee_id, $certification_id, '$cert_number', '$issue_date', " . 
-                            ($expiry_date ? "'$expiry_date'" : "NULL") . ", '$document_file', '$status', 'pending', '$notes')";
+                    $insertData = [
+                        'employee_id' => $employee_id,
+                        'certification_id' => $certification_id,
+                        'cert_number' => $cert_number,
+                        'issue_date' => $issue_date,
+                        'expiry_date' => $expiry_date ? $expiry_date : null,
+                        'document_file' => $document_file,
+                        'status' => $status,
+                        'verification_status' => 'pending',
+                        'notes' => $notes
+                    ];
                     
-                    if ($db->query($sql)) {
+                    if ($db->insert('employee_certifications', $insertData)) {
                         $message = 'Certificate successfully added! Waiting for Admin verification.';
                     } else {
                         $error = 'Failed to add certificate.';

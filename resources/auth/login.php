@@ -1,6 +1,9 @@
 <?php
 /**
  * Auth Login View
+ * 
+ * [SECURITY] ensureSuperadminAccount() telah dihapus.
+ * Superadmin harus dibuat via migration/seed script terpisah.
  */
 require_once dirname(__DIR__, 2) . '/bootstrap/app.php';
 
@@ -10,48 +13,6 @@ if (session_status() === PHP_SESSION_NONE) {
 
 if (empty($_SESSION['csrf_token'])) {
     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
-
-if (!function_exists('ensureSuperadminAccount')) {
-    function ensureSuperadminAccount($db) {
-        $username = 'superadmin';
-        $passwordHash = '$2y$10$N0hLUzCUkXflg3wyDAuDJOYbRYY/1rwWYYw3U9i0lWy2L5OiXX5Oa'; // superadmin123
-        $fullName = 'Super Administrator';
-        $isActive = 1;
-        $email = 'superadmin@mining.local';
-        $role = 'superadmin';
-     
-        @$db->query("ALTER TABLE users MODIFY COLUMN role ENUM('admin','ktt','user','department_user','superadmin') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'user'");
-
-        $conn = $db->getConnection();
-        $columnCheckResult = $conn->query("SHOW COLUMNS FROM users LIKE 'is_active'");
-        if ($columnCheckResult && $columnCheckResult->num_rows === 0) {
-            @$conn->query("ALTER TABLE users ADD COLUMN is_active tinyint(1) DEFAULT 1");
-        }
-
-        $stmt = $db->prepare("SELECT id FROM users WHERE username = ?");
-        if (!$stmt) {
-            return;
-        }
-        
-        $stmt->bind_param("s", $username);
-        $stmt->execute();
-        $result = $stmt->get_result();
-
-        if ($result && $result->num_rows > 0) {
-            $stmt->close();
-            return;
-        }
-
-        $stmt->close();
-
-        $insert = $db->prepare("INSERT INTO users (username, password, full_name, company_name, email, phone, role, is_active, created_at, updated_at, department) VALUES (?, ?, ?, NULL, ?, NULL, ?, ?, NOW(), NOW(), NULL)");
-        if ($insert) {
-            $insert->bind_param("sssssi", $username, $passwordHash, $fullName, $email, $role, $isActive);
-            @$insert->execute();
-            $insert->close();
-        }
-    }
 }
 
 // Redirect to dashboard if logged in
@@ -77,10 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (!empty($username) && !empty($password)) {
             $db = new Database();
 
-            if ($username === 'superadmin') {
-                ensureSuperadminAccount($db);
-            }
-
             $stmt = $db->prepare("SELECT id, username, password, full_name, role, company_name, department, is_active, failed_login_attempts, locked_until FROM users WHERE username = ? AND is_active = 1");
             if (!$stmt) {
                 // Fallback jika kolom failed_login_attempts tidak ada di localhost
@@ -90,102 +47,102 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($stmt) {
                 $stmt->bind_param("s", $username);
                 $stmt->execute();
-            $result = $stmt->get_result();
-            
-            if ($result && $result->num_rows == 1) {
-                $user = $result->fetch_assoc();
+                $result = $stmt->get_result();
                 
-                // Cek apakah akun sedang terkunci
-                if (!empty($user['locked_until']) && strtotime($user['locked_until']) > time()) {
-                    $error = 'Akun terkunci karena terlalu banyak percobaan gagal. Silakan coba lagi nanti.';
-                } else {
-                    if (password_verify($password, $user['password'])) {
-                        // Reset failed attempts
-                        $reset_stmt = $db->prepare("UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = ?");
-                        if ($reset_stmt) {
-                            $reset_stmt->bind_param("i", $user['id']);
-                            $reset_stmt->execute();
-                            $reset_stmt->close();
-                        }
-
-                        session_regenerate_id(true);
-                        
-                        $_SESSION['user_id'] = $user['id'];
-                        $_SESSION['username'] = $user['username'];
-                        $_SESSION['full_name'] = $user['full_name'];
-                        $_SESSION['role'] = $user['role'];
-                        $_SESSION['company_name'] = $user['company_name'];
-                        $_SESSION['department'] = $user['department'];
-                        $_SESSION['last_activity'] = time();
-                        
-                        // Fitur Remember Me
-                        if (isset($_POST['remember'])) {
-                            $selector = bin2hex(random_bytes(16));
-                            $validator = bin2hex(random_bytes(32));
-                            $hashed_validator = hash('sha256', $validator);
-                            $expires = date('Y-m-d H:i:s', time() + (86400 * 30)); // 30 days
-                            
-                            $token_stmt = $db->prepare("INSERT INTO user_tokens (user_id, selector, hashed_validator, expires_at) VALUES (?, ?, ?, ?)");
-                            if ($token_stmt) {
-                                $token_stmt->bind_param("isss", $user['id'], $selector, $hashed_validator, $expires);
-                                $token_stmt->execute();
-                                $token_stmt->close();
-                                
-                                setcookie(
-                                    'remember_me',
-                                    $selector . ':' . $validator,
-                                    time() + (86400 * 30),
-                                    '/',
-                                    '',
-                                    isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', // Secure
-                                    true // HttpOnly
-                                );
+                if ($result && $result->num_rows == 1) {
+                    $user = $result->fetch_assoc();
+                    
+                    // Cek apakah akun sedang terkunci
+                    if (!empty($user['locked_until']) && strtotime($user['locked_until']) > time()) {
+                        $error = 'Akun terkunci karena terlalu banyak percobaan gagal. Silakan coba lagi nanti.';
+                    } else {
+                        if (password_verify($password, $user['password'])) {
+                            // Reset failed attempts
+                            $reset_stmt = $db->prepare("UPDATE users SET failed_login_attempts = 0, locked_until = NULL WHERE id = ?");
+                            if ($reset_stmt) {
+                                $reset_stmt->bind_param("i", $user['id']);
+                                $reset_stmt->execute();
+                                $reset_stmt->close();
                             }
-                        }
-                        
-                        // Fetch permissions based on role
-                        $perm_stmt = $db->prepare("SELECT p.name FROM permissions p JOIN role_permissions rp ON p.id = rp.permission_id JOIN roles r ON rp.role_id = r.id WHERE r.name = ?");
-                        if ($perm_stmt) {
-                            $perm_stmt->bind_param("s", $user['role']);
-                            $perm_stmt->execute();
-                            $perm_result = $perm_stmt->get_result();
-                            $permissions = [];
-                            if ($perm_result) {
-                                while ($p_row = $perm_result->fetch_assoc()) {
-                                    $permissions[] = $p_row['name'];
+
+                            session_regenerate_id(true);
+                            
+                            $_SESSION['user_id'] = $user['id'];
+                            $_SESSION['username'] = $user['username'];
+                            $_SESSION['full_name'] = $user['full_name'];
+                            $_SESSION['role'] = $user['role'];
+                            $_SESSION['company_name'] = $user['company_name'];
+                            $_SESSION['department'] = $user['department'];
+                            $_SESSION['last_activity'] = time();
+                            
+                            // Fitur Remember Me
+                            if (isset($_POST['remember'])) {
+                                $selector = bin2hex(random_bytes(16));
+                                $validator = bin2hex(random_bytes(32));
+                                $hashed_validator = hash('sha256', $validator);
+                                $expires = date('Y-m-d H:i:s', time() + (86400 * 30)); // 30 days
+                                
+                                $token_stmt = $db->prepare("INSERT INTO user_tokens (user_id, selector, hashed_validator, expires_at) VALUES (?, ?, ?, ?)");
+                                if ($token_stmt) {
+                                    $token_stmt->bind_param("isss", $user['id'], $selector, $hashed_validator, $expires);
+                                    $token_stmt->execute();
+                                    $token_stmt->close();
+                                    
+                                    setcookie(
+                                        'remember_me',
+                                        $selector . ':' . $validator,
+                                        time() + (86400 * 30),
+                                        '/',
+                                        '',
+                                        isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on', // Secure
+                                        true // HttpOnly
+                                    );
                                 }
                             }
-                            $_SESSION['permissions'] = $permissions;
-                            $perm_stmt->close();
+                            
+                            // Fetch permissions based on role
+                            $perm_stmt = $db->prepare("SELECT p.name FROM permissions p JOIN role_permissions rp ON p.id = rp.permission_id JOIN roles r ON rp.role_id = r.id WHERE r.name = ?");
+                            if ($perm_stmt) {
+                                $perm_stmt->bind_param("s", $user['role']);
+                                $perm_stmt->execute();
+                                $perm_result = $perm_stmt->get_result();
+                                $permissions = [];
+                                if ($perm_result) {
+                                    while ($p_row = $perm_result->fetch_assoc()) {
+                                        $permissions[] = $p_row['name'];
+                                    }
+                                }
+                                $_SESSION['permissions'] = $permissions;
+                                $perm_stmt->close();
+                            } else {
+                                $_SESSION['permissions'] = []; // Fallback if tables don't exist yet
+                            }
+                            
+                            unset($_SESSION['csrf_token']);
+                            
+                            redirect_to_dashboard();
                         } else {
-                            $_SESSION['permissions'] = []; // Fallback if tables don't exist yet
-                        }
-                        
-                        unset($_SESSION['csrf_token']);
-                        
-                        redirect_to_dashboard();
-                    } else {
-                        // Increment failed attempts
-                        $attempts = (int)($user['failed_login_attempts'] ?? 0) + 1;
-                        $locked_until = null;
-                        if ($attempts >= 5) {
-                            $locked_until = date('Y-m-d H:i:s', time() + 900); // 15 minutes lockout
-                            $error = 'Akun Anda telah dikunci karena 5 kali gagal login. Silakan tunggu 15 menit.';
-                        } else {
-                            $error = 'Incorrect username or password!';
-                        }
-                        
-                        $fail_stmt = $db->prepare("UPDATE users SET failed_login_attempts = ?, locked_until = ? WHERE id = ?");
-                        if ($fail_stmt) {
-                            $fail_stmt->bind_param("isi", $attempts, $locked_until, $user['id']);
-                            $fail_stmt->execute();
-                            $fail_stmt->close();
+                            // Increment failed attempts
+                            $attempts = (int)($user['failed_login_attempts'] ?? 0) + 1;
+                            $locked_until = null;
+                            if ($attempts >= 5) {
+                                $locked_until = date('Y-m-d H:i:s', time() + 900); // 15 minutes lockout
+                                $error = 'Akun Anda telah dikunci karena 5 kali gagal login. Silakan tunggu 15 menit.';
+                            } else {
+                                $error = 'Incorrect username or password!';
+                            }
+                            
+                            $fail_stmt = $db->prepare("UPDATE users SET failed_login_attempts = ?, locked_until = ? WHERE id = ?");
+                            if ($fail_stmt) {
+                                $fail_stmt->bind_param("isi", $attempts, $locked_until, $user['id']);
+                                $fail_stmt->execute();
+                                $fail_stmt->close();
+                            }
                         }
                     }
+                } else {
+                    $error = 'Incorrect username or password!';
                 }
-            } else {
-                $error = 'Incorrect username or password!';
-            }
             } else {
                 $error = 'Database error! Could not prepare login query.';
             }
@@ -570,7 +527,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endif; ?>
                 
                 <form method="POST" action="">
-    <?= csrf_field() ?>
+                    <?= csrf_field() ?>
                     <input type="hidden" name="csrf_token" value="<?php echo $_SESSION['csrf_token'] ?? ''; ?>">
 
                     <div class="form-group">
