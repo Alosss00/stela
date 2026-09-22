@@ -19,9 +19,9 @@ $query = "
     LEFT JOIN employees e ON a.employee_id = e.id
     LEFT JOIN positions p ON a.position_id = p.id
     LEFT JOIN users u_admin ON a.created_by = u_admin.id
-    WHERE a.id = $id
+    WHERE a.id = ?
 ";
-$result = $db->query($query);
+$result = $db->query($query, [$id]);
 
 if (!$result || $result->num_rows === 0) {
     ?>
@@ -46,19 +46,19 @@ $certs_query = "
     SELECT ec.*, c.cert_name 
     FROM employee_certifications ec
     LEFT JOIN certifications c ON ec.certification_id = c.id
-    WHERE ec.employee_id = " . intval($appt['employee_id']) . "
+    WHERE ec.employee_id = ?
 ";
-$certs = $db->query($certs_query);
+$certs = $db->query($certs_query, [$appt['employee_id']]);
 
 // Get KTT Approvals
 $approvals_query = "
     SELECT ka.*, u.full_name as ktt_name, u.username
     FROM ktt_approvals ka
     LEFT JOIN users u ON ka.ktt_user_id = u.id
-    WHERE ka.appointment_id = $id
+    WHERE ka.appointment_id = ?
     ORDER BY ka.approval_date ASC
 ";
-$approvals = $db->query($approvals_query);
+$approvals = $db->query($approvals_query, [$id]);
 
 // Format Helpers
 $statusBadge = '';

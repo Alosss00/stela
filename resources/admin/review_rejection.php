@@ -74,24 +74,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Send back to user to fix data
                 $update_sql = "UPDATE appointments SET
                               status = 'rejected',
-                              admin_approved_by = $current_admin_id,
+                              admin_approved_by = ?,
                               admin_approved_date = NOW(),
                               admin_approval_action = 'send_to_user',
-                              admin_approval_notes = '$admin_notes',
-                              requires_ktt_msm_review = $requires_ktt_msm,
-                              requires_ktt_ttn_review = $requires_ktt_ttn,
-                              resubmit_reason = '{$db->escapeString($combined_notes)}',
+                              admin_approval_notes = ?,
+                              requires_ktt_msm_review = ?,
+                              requires_ktt_ttn_review = ?,
+                              resubmit_reason = ?,
                               resubmit_count = COALESCE(resubmit_count, 0) + 1
-                              WHERE id = $id AND status = 'rejected_by_ktt'";
+                              WHERE id = ? AND status = 'rejected_by_ktt'";
 
-                if ($db->query($update_sql)) {
+                if ($db->query($update_sql, [$current_admin_id, $admin_notes, $requires_ktt_msm, $requires_ktt_ttn, $combined_notes, $id])) {
                     if ($appointment) {
                         $db->query("UPDATE employees SET
                                    verification_status = 'rejected',
-                                   verification_notes = '{$db->escapeString($combined_notes)}',
+                                   verification_notes = ?,
                                    verified_by = NULL,
                                    verified_date = NULL
-                                   WHERE id = {$appointment['employee_id']}");
+                                   WHERE id = ?", [$combined_notes, $appointment['employee_id']]);
                     }
 
                     $message = stela_t('letter-returned-user-correction');
@@ -154,17 +154,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Send back to KTT for re-review (only rejected KTT(s))
                 $update_sql = "UPDATE appointments SET
                               status = 'pending',
-                              admin_approved_by = $current_admin_id,
+                              admin_approved_by = ?,
                               admin_approved_date = NOW(),
                               admin_approval_action = 'send_to_ktt',
-                              admin_approval_notes = '$admin_notes',
-                              requires_ktt_msm_review = $requires_ktt_msm,
-                              requires_ktt_ttn_review = $requires_ktt_ttn,
+                              admin_approval_notes = ?,
+                              requires_ktt_msm_review = ?,
+                              requires_ktt_ttn_review = ?,
                               last_rejected_by_ktt = NULL,
                               rejected_by_ktt_user_id = NULL
-                              WHERE id = $id AND status = 'rejected_by_ktt'";
+                              WHERE id = ? AND status = 'rejected_by_ktt'";
 
-                if ($db->query($update_sql)) {
+                if ($db->query($update_sql, [$current_admin_id, $admin_notes, $requires_ktt_msm, $requires_ktt_ttn, $id])) {
                     // Delete only the rejected KTT's approval records
                     if ($requires_ktt_msm) {
                         $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 7", [$id]);

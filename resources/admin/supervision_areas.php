@@ -49,14 +49,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (empty($area_name)) {
                 $error = 'area-name-required';
             } else {
-                $check = $db->query("SELECT id FROM supervision_areas WHERE deleted_at IS NULL AND area_name = '$area_name'");
+                $check = $db->query("SELECT id FROM supervision_areas WHERE deleted_at IS NULL AND area_name = ?", [$area_name]);
                 if (false /* $check && $check->num_rows > 0 */) {
                     $error = 'area-name-already-exists';
                 } else {
-                    $sql = "INSERT INTO supervision_areas (area_name, area_code, description, is_active) 
-                            VALUES ('$area_name', " . ($area_code ? "'$area_code'" : "NULL") . ", " . ($description ? "'$description'" : "NULL") . ", 1)";
+                    $insertData = [
+                        'area_name' => $area_name,
+                        'area_code' => $area_code,
+                        'description' => $description,
+                        'is_active' => 1
+                    ];
                     
-                    if ($db->query($sql)) {
+                    if ($db->insert('supervision_areas', $insertData)) {
                         $message = 'Supervision Area Added';
                     } else {
                         $error = 'Failed to add supervision area';
@@ -75,17 +79,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (empty($area_name)) {
                 $error = 'Area Name Required';
             } else {
-                $check = $db->query("SELECT id FROM supervision_areas WHERE deleted_at IS NULL AND area_name = '$area_name' AND id != $id");
+                $check = $db->query("SELECT id FROM supervision_areas WHERE deleted_at IS NULL AND area_name = ? AND id != ?", [$area_name, $id]);
                 if (false /* $check && $check->num_rows > 0 */) {
                     $error = 'Area Name Already Exists';
                 } else {
-                    $sql = "UPDATE supervision_areas 
-                            SET area_name = '$area_name', 
-                                area_code = " . ($area_code ? "'$area_code'" : "NULL") . ", 
-                                description = " . ($description ? "'$description'" : "NULL") . "
-                            WHERE id = $id";
+                    $updateData = [
+                        'area_name' => $area_name,
+                        'area_code' => $area_code,
+                        'description' => $description
+                    ];
                     
-                    if ($db->query($sql)) {
+                    if ($db->update('supervision_areas', $updateData, ['id' => $id])) {
                         $message = 'Supervision Area Updated';
                     } else {
                         $error = 'Failed to update supervision area';
@@ -100,9 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $current_status = intval($_POST['current_status']);
             $new_status = $current_status == 1 ? 0 : 1;
             
-            $sql = "UPDATE supervision_areas SET is_active = $new_status WHERE id = $id";
-            
-            if ($db->query($sql)) {
+            if ($db->update('supervision_areas', ['is_active' => $new_status], ['id' => $id])) {
                 $message = 'Status Updated';
             } else {
                 $error = 'Failed to update status';
@@ -126,9 +128,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if ($usage['count'] > 0) {
                     $error = "Cannot delete! This area is being used by {$usage['count']} active employee(s).";
                 } else {
-                    $sql = "DELETE FROM supervision_areas WHERE deleted_at IS NULL AND id = $id";
-                    
-                    if ($db->query($sql)) {
+                    if ($db->delete('supervision_areas', "deleted_at IS NULL AND id = ?", [$id])) {
                         $message = 'Supervision Area Deleted';
                     } else {
                         $error = 'Failed to delete supervision area';

@@ -151,9 +151,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                               requires_ktt_msm_review = $requires_ktt_msm,
                               requires_ktt_ttn_review = $requires_ktt_ttn,
                               resubmit_count = COALESCE(resubmit_count, 0) + 1
-                              WHERE id = $id AND status = 'rejected_by_ktt'";
+                              WHERE id = ? AND status = 'rejected_by_ktt'";
 
-                if ($db->query($update_sql)) {
+                if ($db->query($update_sql, [$current_admin_id, $admin_notes, $requires_ktt_msm, $requires_ktt_ttn, $id])) {
                     // Log to Workflow History
                     try {
                         require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
@@ -259,9 +259,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                   requires_ktt_ttn_review = $requires_ktt_ttn,
                                   last_rejected_by_ktt = NULL,
                                   rejected_by_ktt_user_id = NULL
-                                  WHERE id = $id";
+                                  WHERE id = ?";
 
-                    if ($db->query($update_sql)) {
+                    if ($db->query($update_sql, [$current_admin_id, $admin_notes, $requires_ktt_msm, $requires_ktt_ttn, $id])) {
                         // Log to Workflow History
                         try {
                             require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
@@ -310,12 +310,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $appointment_number = $appointment_data['appointment_number'];
             $company_scope = $appointment_data['company_scope'];
             
-            $sql = "INSERT INTO appointments (appointment_number, employee_id, appointment_date, 
-                    effective_date, expiry_date, notes, created_by, status) 
-                    VALUES ('$appointment_number', $employee_id, '$appointment_date', 
-                    '$effective_date', '$expiry_date', '$notes', $created_by, 'draft')";
+            $insertData = [
+                'appointment_number' => $appointment_number,
+                'employee_id' => $employee_id,
+                'appointment_date' => $appointment_date,
+                'effective_date' => $effective_date,
+                'expiry_date' => $expiry_date,
+                'notes' => $notes,
+                'created_by' => $created_by,
+                'status' => 'draft'
+            ];
             
-            if ($db->query($sql)) {
+            if ($db->insert('appointments', $insertData)) {
                 $message = stela_t('appointment-created-with-number', ['appointment_number' => $appointment_number]);
             } else {
                 $error = stela_t('failed-create-appointment');
@@ -349,34 +355,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if ($is_resubmit) {
                 // For resubmit: Only reset KTT statuses that need re-review
-                $update_parts = ["status = 'pending'"];
+                $updateData = ['status' => 'pending'];
 
                 if ($appt['requires_ktt_msm_review'] == 1) {
-                    $update_parts[] = "ktt_msm_status = 'pending'";
-                    $update_parts[] = "ktt1_approved_by = NULL";
-                    $update_parts[] = "ktt1_approved_date = NULL";
+                    $updateData['ktt_msm_status'] = 'pending';
+                    $updateData['ktt1_approved_by'] = null;
+                    $updateData['ktt1_approved_date'] = null;
                 }
                 if ($appt['requires_ktt_ttn_review'] == 1) {
-                    $update_parts[] = "ktt_ttn_status = 'pending'";
-                    $update_parts[] = "ktt2_approved_by = NULL";
-                    $update_parts[] = "ktt2_approved_date = NULL";
+                    $updateData['ktt_ttn_status'] = 'pending';
+                    $updateData['ktt2_approved_by'] = null;
+                    $updateData['ktt2_approved_date'] = null;
                 }
 
-                $sql = "UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $id";
-                error_log("SUBMIT DEBUG - Resubmit SQL: $sql");
+                error_log("SUBMIT DEBUG - Resubmit Appointment ID: $id");
+                $success = $db->update('appointments', $updateData, ['id' => $id]);
             } else {
                 // For new appointment: Set status to pending and enable both KTTs
-                $sql = "UPDATE appointments SET
-                        status = 'pending',
-                        requires_ktt_msm_review = 1,
-                        requires_ktt_ttn_review = 1,
-                        ktt_msm_status = 'pending',
-                        ktt_ttn_status = 'pending'
-                        WHERE id = $id";
-                error_log("SUBMIT DEBUG - New Appointment SQL: $sql");
+                $updateData = [
+                    'status' => 'pending',
+                    'requires_ktt_msm_review' => 1,
+                    'requires_ktt_ttn_review' => 1,
+                    'ktt_msm_status' => 'pending',
+                    'ktt_ttn_status' => 'pending'
+                ];
+                error_log("SUBMIT DEBUG - New Appointment ID: $id");
+                $success = $db->update('appointments', $updateData, ['id' => $id]);
             }
 
-            if ($db->query($sql)) {
+            if ($success) {
                 // Delete old KTT approval records only for KTTs that need to re-review
                 if ($is_resubmit) {
                     if ($appt['requires_ktt_msm_review'] == 1) {
@@ -450,14 +457,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $is_reset_template = isset($_POST['reset_to_template']) && $_POST['reset_to_template'] == '1';
             $raw_letter_content = $_POST['letter_content'] ?? '';
 
+            $updateData = [];
             if ($is_reset_template || trim($raw_letter_content) === '') {
-                $sql = "UPDATE appointments SET letter_content = NULL WHERE id = $id AND status = 'draft'";
+                $updateData['letter_content'] = null;
             } else {
-                $letter_content = $db->escapeString($raw_letter_content);
-                $sql = "UPDATE appointments SET letter_content = '$letter_content' WHERE id = $id AND status = 'draft'";
+                $updateData['letter_content'] = $raw_letter_content;
             }
             
-            if ($db->query($sql)) {
+            if ($db->update('appointments', $updateData, ['id' => $id, 'status' => 'draft'])) {
                 $message = stela_t('appointment-content-updated');
             } else {
                 $error = stela_t('failed-update-appointment-content');

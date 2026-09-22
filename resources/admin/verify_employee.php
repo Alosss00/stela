@@ -48,12 +48,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
             
             if (!$error) {
                 $sql = "UPDATE employee_certifications SET 
-                        verification_status = '$status',
-                        verified_by = $verified_by,
+                        verification_status = ?,
+                        verified_by = ?,
                         verified_date = NOW()
-                        WHERE id = $cert_id";
+                        WHERE id = ?";
                 
-                if ($db->query($sql)) {
+                if ($db->query($sql, [$status, $verified_by, $cert_id])) {
                     $message = stela_t('certification-verified');
                 }
             }
@@ -72,21 +72,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                 // Verify all pending certifications automatically
                 $db->query("UPDATE employee_certifications SET
                     verification_status = 'verified',
-                    verified_by = $verified_by,
+                    verified_by = ?,
                     verified_date = NOW()
                 WHERE employee_id = ?
-                AND verification_status = 'pending'", [$employee_id]);
+                AND verification_status = 'pending'", [$verified_by, $employee_id]);
             }
             
             if (!$error) {
                 $sql = "UPDATE employees SET 
-                        verification_status = '$status',
-                        verified_by = $verified_by,
+                        verification_status = ?,
+                        verified_by = ?,
                         verified_date = NOW(),
-                        verification_notes = '$notes'
-                        WHERE id = $employee_id";
+                        verification_notes = ?
+                        WHERE id = ?";
                 
-                if ($db->query($sql)) {
+                if ($db->query($sql, [$status, $verified_by, $notes, $employee_id])) {
                     // Log to Workflow History
                     try {
                         require_once dirname(__DIR__, 2) . '/app/Services/AuditService.php';
@@ -195,25 +195,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                     AND status IN ('draft','approved')
                                 ", [$employee_id]);
 
-                                if ($expiry_date) {
+                            if ($expiry_date) {
                                 $sql_appointment = "INSERT INTO appointments 
                                                   (appointment_number, company_scope, employee_id, position_id, appointment_date, 
                                                    effective_date, expiry_date, status, auto_generated, created_by, notes) 
-                                                  VALUES ('$appointment_number', '$scope_code', $employee_id, $position_id, '$today', 
-                                                          '$today', '$expiry_date', 'draft', 1, $verified_by, 'Auto-generated setelah verifikasi data tenaga kerja')";
+                                                  VALUES (?, ?, ?, ?, ?, ?, ?, 'draft', 1, ?, 'Auto-generated setelah verifikasi data tenaga kerja')";
+                                $app_values = [$appointment_number, $scope_code, $employee_id, $position_id, $today, $today, $expiry_date, $verified_by];
                             } else {
                                 $sql_appointment = "INSERT INTO appointments 
                                                   (appointment_number, company_scope, employee_id, position_id, appointment_date, 
                                                    effective_date, status, auto_generated, created_by, notes) 
-                                                  VALUES ('$appointment_number', '$scope_code', $employee_id, $position_id, '$today', 
-                                                          '$today', 'draft', 1, $verified_by, 'Auto-generated setelah verifikasi data tenaga kerja')";
+                                                  VALUES (?, ?, ?, ?, ?, ?, 'draft', 1, ?, 'Auto-generated setelah verifikasi data tenaga kerja')";
+                                $app_values = [$appointment_number, $scope_code, $employee_id, $position_id, $today, $today, $verified_by];
                             }
                             
-                            if ($db->query($sql_appointment)) {
+                            if ($db->query($sql_appointment, $app_values)) {
                                 $appointment_id = $db->lastInsertId();
                                 
                                 // Update appointment_number in employees table for tracking
-                                $db->query("UPDATE employees SET appointment_number = '$appointment_number' WHERE id = ?", [$employee_id]);
+                                $db->query("UPDATE employees SET appointment_number = ? WHERE id = ?", [$appointment_number, $employee_id]);
                                 $_SESSION['success_message'] = stela_t('verified-draft-created', ['appointment_number' => $appointment_number]);
                             } else {
                                 $_SESSION['error_message'] = stela_t('verified-create-appointment-failed');
@@ -314,77 +314,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                             $new_certificate_id = (int)$new_certificate['id'];
 
                             if ($expiry_date) {
-
                                 $sql = "
                                 INSERT INTO appointments
                                 (
-                                    appointment_number,
-                                    employee_id,
-                                    position_id,
-                                    appointment_date,
-                                    effective_date,
-                                    expiry_date,
-                                    status,
-                                    auto_generated,
-                                    created_by,
-                                    notes
+                                    appointment_number, employee_id, position_id, appointment_date, 
+                                    effective_date, expiry_date, status, auto_generated, created_by, notes
                                 )
-                                VALUES
-                                (
-                                    '$appointment_number',
-                                    $employee_id,
-                                    $position_id,
-                                    '$today',
-                                    '$today',
-                                    '$expiry_date',
-                                    'draft',
-                                    1,
-                                    $verified_by,
-                                    'Certificate Resubmission'
-                                )";
-
+                                VALUES (?, ?, ?, ?, ?, ?, 'draft', 1, ?, 'Certificate Resubmission')";
+                                $app_values = [$appointment_number, $employee_id, $position_id, $today, $today, $expiry_date, $verified_by];
                             } else {
-
                                 $sql = "
                                 INSERT INTO appointments
                                 (
-                                    appointment_number,
-                                    employee_id,
-                                    position_id,
-                                    appointment_date,
-                                    effective_date,
-                                    status,
-                                    auto_generated,
-                                    created_by,
-                                    notes
+                                    appointment_number, employee_id, position_id, appointment_date, 
+                                    effective_date, status, auto_generated, created_by, notes
                                 )
-                                VALUES
-                                (
-                                    '$appointment_number',
-                                    $employee_id,
-                                    $position_id,
-                                    '$today',
-                                    '$today',
-                                    'draft',
-                                    1,
-                                    $verified_by,
-                                    'Certificate Resubmission'
-                                )";
-
+                                VALUES (?, ?, ?, ?, ?, 'draft', 1, ?, 'Certificate Resubmission')";
+                                $app_values = [$appointment_number, $employee_id, $position_id, $today, $today, $verified_by];
                             }
 
-                            if ($db->query($sql)) {
+                            if ($db->query($sql, $app_values)) {
 
                                 $appointment_id = $db->lastInsertId();
 
                                 $db->query("
                                     UPDATE employees
                                     SET
-                                        appointment_number='$appointment_number',
+                                        appointment_number=?,
                                         verification_status='verified',
                                         resubmit_type=NULL
                                     WHERE id=?
-                                ", [$employee_id]);
+                                ", [$appointment_number, $employee_id]);
 
                                 $_SESSION['success_message'] =
                                     "Certificate verified successfully. New Appointment Number : "
@@ -446,7 +406,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                     $update_parts[] = "ktt2_approved_date = NULL";
                                 }
 
-                                $db->query("UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $appointment_id");
+                                $db->query("UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = ?", [$appointment_id]);
 
                                 // Delete old KTT approval records only for KTT(s) that need re-review
                                 if ($existing_appointment['requires_ktt_msm_review'] == 1) {
@@ -462,7 +422,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                 // Ini new appointment atau resubmit biasa (bukan dari KTT rejection)
                                 if ($expiry_date) {
                                     $db->query("UPDATE appointments SET 
-                                               expiry_date = '$expiry_date',
+                                               expiry_date = ?,
                                                status = 'draft',
                                                ktt1_approved_by = NULL,
                                                ktt1_approved_date = NULL,
@@ -472,9 +432,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                                                approved_date = NULL,
                                                approval_notes = NULL,
                                                updated_at = NOW()
-                                               WHERE id = ?", [$appointment_id]);
+                                               WHERE id = ?", [$expiry_date, $appointment_id]);
                                 } else {
                                     $db->query("UPDATE appointments SET 
+                                               expiry_date = NULL,
                                                status = 'draft',
                                                ktt1_approved_by = NULL,
                                                ktt1_approved_date = NULL,
@@ -494,7 +455,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action'])) {
                             }
                             
                             // Update appointment_number in employees table for tracking
-                            $db->query("UPDATE employees SET appointment_number = '$existing_number' WHERE id = ?", [$employee_id]);
+                            $db->query("UPDATE employees SET appointment_number = ? WHERE id = ?", [$existing_number, $employee_id]);
                         }
                         
                         // Sync appointment to Elasticsearch

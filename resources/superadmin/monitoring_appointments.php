@@ -25,23 +25,30 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
     $is_resubmit = ($appt['requires_ktt_msm_review'] == 1 || $appt['requires_ktt_ttn_review'] == 1);
 
     if ($is_resubmit) {
-        $update_parts = ["status = 'pending'"];
+        $updateData = ['status' => 'pending'];
         if ($appt['requires_ktt_msm_review'] == 1) {
-            $update_parts[] = "ktt_msm_status = 'pending'";
-            $update_parts[] = "ktt1_approved_by = NULL";
-            $update_parts[] = "ktt1_approved_date = NULL";
+            $updateData['ktt_msm_status'] = 'pending';
+            $updateData['ktt1_approved_by'] = null;
+            $updateData['ktt1_approved_date'] = null;
         }
         if ($appt['requires_ktt_ttn_review'] == 1) {
-            $update_parts[] = "ktt_ttn_status = 'pending'";
-            $update_parts[] = "ktt2_approved_by = NULL";
-            $update_parts[] = "ktt2_approved_date = NULL";
+            $updateData['ktt_ttn_status'] = 'pending';
+            $updateData['ktt2_approved_by'] = null;
+            $updateData['ktt2_approved_date'] = null;
         }
-        $sql = "UPDATE appointments SET " . implode(', ', $update_parts) . " WHERE id = $id";
+        $success = $db->update('appointments', $updateData, ['id' => $id]);
     } else {
-        $sql = "UPDATE appointments SET status = 'pending', requires_ktt_msm_review = 1, requires_ktt_ttn_review = 1, ktt_msm_status = 'pending', ktt_ttn_status = 'pending' WHERE id = $id";
+        $updateData = [
+            'status' => 'pending',
+            'requires_ktt_msm_review' => 1,
+            'requires_ktt_ttn_review' => 1,
+            'ktt_msm_status' => 'pending',
+            'ktt_ttn_status' => 'pending'
+        ];
+        $success = $db->update('appointments', $updateData, ['id' => $id]);
     }
 
-    if ($db->query($sql)) {
+    if ($success) {
         if ($is_resubmit) {
             if ($appt['requires_ktt_msm_review'] == 1) $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 7", [$id]);
             if ($appt['requires_ktt_ttn_review'] == 1) $db->query("DELETE FROM ktt_approvals WHERE appointment_id = ? AND ktt_user_id = 8", [$id]);

@@ -49,11 +49,14 @@ switch ($type) {
         
     case 'logs':
         $sql = "SELECT * FROM notification_logs ";
+        $params = [];
         if (!empty($search)) {
-            $sql .= " WHERE company_name LIKE '%" . $db->escapeString($search) . "%' OR message LIKE '%" . $db->escapeString($search) . "%' ";
+            $sql .= " WHERE company_name LIKE ? OR message LIKE ?";
+            $search_param = '%' . $search . '%';
+            $params = [$search_param, $search_param];
         }
         $sql .= " ORDER BY sent_at DESC LIMIT 10000";
-        $res = $db->query($sql);
+        $res = $db->query($sql, $params);
         $data = [];
         if ($res) {
             while ($row = $res->fetch_assoc()) {

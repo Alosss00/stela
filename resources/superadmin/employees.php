@@ -149,46 +149,43 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $available_columns[] = $col['Field'];
             }
             
-            // Buat query INSERT dinamis berdasarkan kolom yang tersedia
-            $insert_fields = ['employee_code', 'full_name', 'position', 'department', 'competency_type', 'contractor_company', 'cv_file', 'verification_status', 'is_active'];
-            $insert_values = ["'$employee_code'", "'$full_name'", "'$position'", "'$department'", "'$competency_type'", "'$contractor_company'", "'$cv_file'", "'pending'", "1"];
+            $insertData = [
+                'employee_code' => $employee_code,
+                'full_name' => $full_name,
+                'position' => $position,
+                'department' => $department,
+                'competency_type' => $competency_type,
+                'contractor_company' => $contractor_company,
+                'cv_file' => $cv_file,
+                'verification_status' => 'pending',
+                'is_active' => 1
+            ];
             
-            // Add optional fields if they exist in the table
             if (in_array('ruang_lingkup', $available_columns) && !empty($ruang_lingkup)) {
-                $insert_fields[] = 'ruang_lingkup';
-                $insert_values[] = "'$ruang_lingkup'";
+                $insertData['ruang_lingkup'] = $ruang_lingkup;
             }
             
             if (in_array('competency_name', $available_columns) && !empty($competency_name)) {
-                $insert_fields[] = 'competency_name';
-                $insert_values[] = "'$competency_name'";
+                $insertData['competency_name'] = $competency_name;
             }
 
             if (in_array('sub_competency', $available_columns) && !empty($sub_competency)) {
-                $insert_fields[] = 'sub_competency';
-                $insert_values[] = "'$sub_competency'";
+                $insertData['sub_competency'] = $sub_competency;
             }
 
             if (in_array('supervision_area', $available_columns) && !empty($supervision_area)) {
-                $insert_fields[] = 'supervision_area';
-                $insert_values[] = "'$supervision_area'";
+                $insertData['supervision_area'] = $supervision_area;
             }
             
             if (in_array('statement_file', $available_columns) && !empty($statement_file)) {
-                $insert_fields[] = 'statement_file';
-                $insert_values[] = "'$statement_file'";
+                $insertData['statement_file'] = $statement_file;
             }
             
-            // Track who created this employee record
             if (in_array('created_by', $available_columns)) {
-                $insert_fields[] = 'created_by';
-                $insert_values[] = "'" . intval($_SESSION['user_id']) . "'";
+                $insertData['created_by'] = intval($_SESSION['user_id']);
             }
             
-            $sql = "INSERT INTO employees (" . implode(', ', $insert_fields) . ") 
-                    VALUES (" . implode(', ', $insert_values) . ")";
-            
-            if ($db->query($sql)) {
+            if ($db->insert('employees', $insertData)) {
                 $employee_id = $db->lastInsertId();
                 
                 // Sync to Elasticsearch
@@ -240,13 +237,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 $today = date('Y-m-d');
                                 $status = ($expiry_date && $expiry_date < $today) ? 'expired' : 'pending';
                                 
-                                $sql_cert = "INSERT INTO employee_certifications 
-                                            (employee_id, certification_id, cert_number, cert_issuer, issue_date, expiry_date, 
-                                             document_file, status, verification_status, expiry_reason) 
-                                            VALUES ($employee_id, $cert_id, '$cert_number', '$cert_issuer', '$issue_date', '$expiry_date', 
-                                                    '$cert_path', '$status', 'pending', '$reason')";
+                                $cert_data = [
+                                    'employee_id' => $employee_id,
+                                    'certification_id' => $cert_id,
+                                    'cert_number' => $cert_number,
+                                    'cert_issuer' => $cert_issuer,
+                                    'issue_date' => $issue_date,
+                                    'expiry_date' => $expiry_date ? $expiry_date : null,
+                                    'document_file' => $cert_path,
+                                    'status' => $status,
+                                    'verification_status' => 'pending',
+                                    'expiry_reason' => $reason
+                                ];
                                 
-                                if (!$db->query($sql_cert)) {
+                                if (!$db->insert('employee_certifications', $cert_data)) {
                                     error_log("Error inserting certification: " . $db->getConnection()->error);
                                 }
                             }
