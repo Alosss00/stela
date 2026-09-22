@@ -32,25 +32,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     if (isset($_POST['action'])) {
         if ($_POST['action'] == 'add') {
-            $cert_name = $db->escapeString($_POST['cert_name']);
+            $cert_name = trim($_POST['cert_name'] ?? '');
 
-            $sql = "INSERT INTO certifications (cert_name)
-                    VALUES ('$cert_name')";
-
-            if ($db->query($sql)) {
+            if ($db->insert('certifications', ['cert_name' => $cert_name])) {
                 $message = 'Certification Added';
             } else {
                 $error = 'Failed to Add Certification';
             }
         } elseif ($_POST['action'] == 'edit') {
             $id = intval($_POST['id']);
-            $cert_name = $db->escapeString($_POST['cert_name']);
+            $cert_name = trim($_POST['cert_name'] ?? '');
 
-            $sql = "UPDATE certifications SET
-                    cert_name = '$cert_name'
-                    WHERE id = $id";
-
-            if ($db->query($sql)) {
+            if ($db->update('certifications', ['cert_name' => $cert_name], ['id' => $id])) {
                 $message = 'Certification Updated';
             } else {
                 $error = 'Failed to Update Certification';

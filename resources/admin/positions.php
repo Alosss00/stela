@@ -43,14 +43,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $competency_name = $db->escapeString($_POST['competency_name']);
             
             // Check if competency already exists
-            $check_comp = $db->query("SELECT id FROM competencies WHERE deleted_at IS NULL AND competency_name = '$competency_name' AND position_type = '$position_type'");
+            $check_comp = $db->query("SELECT id FROM competencies WHERE deleted_at IS NULL AND competency_name = ? AND position_type = ?", [$competency_name, $position_type]);
             if ($check_comp && $check_comp->num_rows > 0) {
                 $error = stela_t('competency-name-already-exists');
             } else {
-                $sql = "INSERT INTO competencies (competency_name, position_type) 
-                        VALUES ('$competency_name', '$position_type')";
+                $insertData = [
+                    'competency_name' => $competency_name,
+                    'position_type' => $position_type
+                ];
                 
-                if ($db->query($sql)) {
+                if ($db->insert('competencies', $insertData)) {
                     $competency_id = $db->lastInsertId();
                     
                     // Add sub competencies if it's tenaga_teknis type AND table exists
@@ -59,12 +61,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         foreach ($_POST['sub_competency_names'] as $index => $sub_name) {
                             $sub_name = trim($sub_name);
                             if (!empty($sub_name)) {
-                                $sub_name_escaped = $db->escapeString($sub_name);
-                                $sub_sql = "INSERT INTO competency_sub_competencies 
-                                           (competency_id, sub_competency_name, is_active) 
-                                           VALUES ($competency_id, '$sub_name_escaped', 1)";
+                                $subData = [
+                                    'competency_id' => $competency_id,
+                                    'sub_competency_name' => $sub_name,
+                                    'is_active' => 1
+                                ];
                                 
-                                if (!$db->query($sub_sql)) {
+                                if (!$db->insert('competency_sub_competencies', $subData)) {
                                     $all_subs_added = false;
                                     break;
                                 }
@@ -89,16 +92,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $competency_name = $db->escapeString($_POST['competency_name']);
             
             // Check if competency name already exists (except current record)
-            $check_comp = $db->query("SELECT id FROM competencies WHERE deleted_at IS NULL AND competency_name = '$competency_name' AND position_type = '$position_type' AND id != $id");
+            $check_comp = $db->query("SELECT id FROM competencies WHERE deleted_at IS NULL AND competency_name = ? AND position_type = ? AND id != ?", [$competency_name, $position_type, $id]);
             if ($check_comp && $check_comp->num_rows > 0) {
                 $error = stela_t('competency-name-already-exists');
             } else {
-                $sql = "UPDATE competencies SET 
-                        competency_name = '$competency_name',
-                        position_type = '$position_type'
-                        WHERE id = $id";
+                $updateData = [
+                    'competency_name' => $competency_name,
+                    'position_type' => $position_type
+                ];
                 
-                if ($db->query($sql)) {
+                if ($db->update('competencies', $updateData, ['id' => $id])) {
                     // Handle sub competencies update for tenaga_teknis AND table exists
                     if ($_POST['action'] == 'edit' && $sub_competencies_table_exists && $position_type === 'tenaga_teknis') {
                         $new_sub_competencies = [];
@@ -113,15 +116,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                         // Only replace existing rows when the user submitted at least one sub competency
                         if (!empty($new_sub_competencies)) {
-                            $db->query("DELETE FROM competency_sub_competencies WHERE competency_id = $id");
+                            $db->query("DELETE FROM competency_sub_competencies WHERE competency_id = ?", [$id]);
 
                             foreach ($new_sub_competencies as $sub_name) {
-                                $sub_name_escaped = $db->escapeString($sub_name);
-                                $sub_sql = "INSERT INTO competency_sub_competencies 
-                                           (competency_id, sub_competency_name, is_active) 
-                                           VALUES ($id, '$sub_name_escaped', 1)";
-
-                                $db->query($sub_sql);
+                                $subData = [
+                                    'competency_id' => $id,
+                                    'sub_competency_name' => $sub_name,
+                                    'is_active' => 1
+                                ];
+                                $db->insert('competency_sub_competencies', $subData);
                             }
                         }
                     }
@@ -139,8 +142,8 @@ if (isset($_GET['delete'])) {
     $id = intval($_GET['delete']);
     $db->query("START TRANSACTION");
 
-    $positions_unlinked = $db->query("UPDATE positions SET competency_id = NULL WHERE competency_id = $id");
-    $sub_competencies_deleted = $db->query("DELETE FROM competency_sub_competencies WHERE competency_id = $id");
+    $positions_unlinked = $db->query("UPDATE positions SET competency_id = NULL WHERE competency_id = ?", [$id]);
+    $sub_competencies_deleted = $db->query("DELETE FROM competency_sub_competencies WHERE competency_id = ?", [$id]);
     $competency_deleted = $db->query("DELETE FROM competencies WHERE deleted_at IS NULL AND id = ?", [$id]);
 
     if ($positions_unlinked && $sub_competencies_deleted && $competency_deleted) {
@@ -161,7 +164,7 @@ if ($competencies_table_exists && $sub_competencies_table_exists) {
     $competencies->data_seek(0);
     while ($comp = $competencies->fetch_assoc()) {
         $comp_id = $comp['id'];
-        $subs = $db->query("SELECT id, sub_competency_name FROM competency_sub_competencies WHERE competency_id = $comp_id AND is_active = 1 ORDER BY id");
+        $subs = $db->query("SELECT id, sub_competency_name FROM competency_sub_competencies WHERE competency_id = ? AND is_active = 1 ORDER BY id", [$comp_id]);
         if ($subs && $subs->num_rows > 0) {
             $sub_competencies_by_competency[$comp_id] = [];
             while ($sub = $subs->fetch_assoc()) {

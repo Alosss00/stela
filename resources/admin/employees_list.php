@@ -66,10 +66,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
             }
             
-            $sql = "INSERT INTO employees (employee_code, full_name, position, department, contractor_company, competency_type, competency_name, cv_file, verification_status) 
-                    VALUES ('$employee_code', '$full_name', '$position', '$department', '$contractor_company', '$competency_type', '$competency_name', '$cv_file', 'pending')";
+            $insertData = [
+                'employee_code' => $employee_code,
+                'full_name' => $full_name,
+                'position' => $position,
+                'department' => $department,
+                'contractor_company' => $contractor_company,
+                'competency_type' => $competency_type,
+                'competency_name' => $competency_name,
+                'cv_file' => $cv_file,
+                'verification_status' => 'pending'
+            ];
             
-            if ($db->query($sql)) {
+            if ($db->insert('employees', $insertData)) {
                 $employee_id = $db->lastInsertId();
                 
                 // Handle multiple certification uploads
@@ -100,12 +109,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 $today = date('Y-m-d');
                                 $status = ($expiry_date && $expiry_date < $today) ? 'expired' : 'pending';
                                 
-                                $sql_cert = "INSERT INTO employee_certifications 
-                                            (employee_id, certification_id, cert_number, issue_date, expiry_date, 
-                                             document_file, status, verification_status) 
-                                            VALUES ($employee_id, $cert_id, '$cert_number', '$issue_date', '$expiry_date', 
-                                                    '$cert_path', '$status', 'pending')";
-                                $db->query($sql_cert);
+                                $certData = [
+                                    'employee_id' => $employee_id,
+                                    'certification_id' => $cert_id,
+                                    'cert_number' => $cert_number,
+                                    'issue_date' => $issue_date,
+                                    'expiry_date' => $expiry_date ? $expiry_date : null,
+                                    'document_file' => $cert_path,
+                                    'status' => $status,
+                                    'verification_status' => 'pending'
+                                ];
+                                $db->insert('employee_certifications', $certData);
                             }
                         }
                     }

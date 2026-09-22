@@ -22,8 +22,8 @@ $approved_appointments = $db->query("SELECT COUNT(*) as count FROM appointments 
 $pending_verification = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'pending' AND is_active = 1")->fetch_assoc()['count'];
 // Count only verified/rejected by current logged-in admin
 $current_user_id = $_SESSION['user_id'];
-$verified_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'verified' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
-$rejected_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'rejected' AND is_active = 1 AND verified_by = '$current_user_id'")->fetch_assoc()['count'];
+$verified_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'verified' AND is_active = 1 AND verified_by = ?", [$current_user_id])->fetch_assoc()['count'];
+$rejected_employees = $db->query("SELECT COUNT(*) as count FROM employees WHERE deleted_at IS NULL AND verification_status = 'rejected' AND is_active = 1 AND verified_by = ?", [$current_user_id])->fetch_assoc()['count'];
 
 // Get certificate expiration statistics (certificates expiring within <= 2 months OR already expired)
 // Uses latest record per certification per employee to avoid double-counting
@@ -333,7 +333,7 @@ if ($check_email_logs_table && $check_email_logs_table->num_rows > 0) {
         // Fetch Admin Users for Verification
         $admin_users_map = [];
         if (!empty($admin_ids)) {
-            $a_ids_str = implode(',', array_unique($admin_ids));
+            $a_ids_str = implode(',', array_map('intval', array_unique($admin_ids)));
             $admin_result = $db->query("SELECT id, full_name FROM users WHERE id IN ($a_ids_str)");
             if ($admin_result) {
                 while ($adm = $admin_result->fetch_assoc()) {
