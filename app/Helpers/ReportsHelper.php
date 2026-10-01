@@ -330,6 +330,7 @@ class ReportsHelper {
         $total = $totalResult['total'] ?? 0;
         
         $allowedSorts = ['appointment_number', 'employee_name', 'company', 'approved_date', 'last_rejection_date'];
+        if (!in_array($sort, $allowedSorts)) $sort = 'appointment_number';
         if ($sort == 'employee_name') $sortCol = 'e.full_name';
         else if ($sort == 'company') $sortCol = 'e.contractor_company';
         else $sortCol = "a.{$sort}";
@@ -414,6 +415,7 @@ class ReportsHelper {
         $total = $totalResult['total'] ?? 0;
         
         $allowedSorts = ['expiry_date', 'employee_name', 'company', 'master_cert_name'];
+        if (!in_array($sort, $allowedSorts)) $sort = 'expiry_date';
         if ($sort == 'employee_name') $sortCol = 'e.full_name';
         else if ($sort == 'company') $sortCol = 'e.contractor_company';
         else if ($sort == 'master_cert_name') $sortCol = 'c.name';
