@@ -22,14 +22,23 @@ class Firewall {
         $allowedOrigins = [
             'http://localhost',
             'http://localhost:8000',
+            'http://localhost:8080',
             'http://127.0.0.1',
-            'http://127.0.0.1:8000'
+            'http://127.0.0.1:8000',
+            'http://127.0.0.1:8080'
         ];
 
-        // Automatically allow the current server's host
+        // Additional allowed origins from environment/config
+        if (defined('ALLOWED_CORS_ORIGINS') && is_array(ALLOWED_CORS_ORIGINS)) {
+            $allowedOrigins = array_merge($allowedOrigins, ALLOWED_CORS_ORIGINS);
+        } elseif (getenv('ALLOWED_CORS_ORIGINS')) {
+            $allowedOrigins = array_merge($allowedOrigins, array_map('trim', explode(',', getenv('ALLOWED_CORS_ORIGINS'))));
+        }
+
+        // Validate and allow the current server's own host if standard format
         $protocol = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off') ? 'https' : 'http';
         $currentHost = $_SERVER['HTTP_HOST'] ?? '';
-        if ($currentHost) {
+        if ($currentHost && preg_match('/^[a-zA-Z0-9.:_-]+$/', $currentHost)) {
             $allowedOrigins[] = $protocol . '://' . $currentHost;
         }
 
@@ -37,7 +46,7 @@ class Firewall {
 
         // If Origin header is present, check against whitelist
         if ($origin) {
-            if (in_array($origin, $allowedOrigins)) {
+            if (in_array($origin, $allowedOrigins, true)) {
                 header("Access-Control-Allow-Origin: $origin");
                 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS");
                 header("Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, Cache-Control");
@@ -73,10 +82,27 @@ class Firewall {
     }
 
     private static function getClientIp() {
-        // [SECURITY] Hanya gunakan REMOTE_ADDR untuk mencegah IP spoofing
-        // Header HTTP_CLIENT_IP dan HTTP_X_FORWARDED_FOR bisa dipalsukan oleh client
-        // Jika menggunakan reverse proxy, konfigurasikan trusted proxy di level web server
-        return trim($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN');
+        $remoteAddr = trim($_SERVER['REMOTE_ADDR'] ?? 'UNKNOWN');
+        
+        // Trusted proxy support (prevents IP spoofing while allowing reverse proxies/load balancers)
+        $trustedProxies = defined('TRUSTED_PROXIES') ? TRUSTED_PROXIES : (getenv('TRUSTED_PROXIES') ? explode(',', getenv('TRUSTED_PROXIES')) : []);
+        if (!empty($trustedProxies)) {
+            $isTrusted = in_array('*', $trustedProxies, true) || in_array($remoteAddr, $trustedProxies, true);
+            if ($isTrusted) {
+                if (!empty($_SERVER['HTTP_CF_CONNECTING_IP'])) {
+                    return trim($_SERVER['HTTP_CF_CONNECTING_IP']);
+                }
+                if (!empty($_SERVER['HTTP_X_REAL_IP'])) {
+                    return trim($_SERVER['HTTP_X_REAL_IP']);
+                }
+                if (!empty($_SERVER['HTTP_X_FORWARDED_FOR'])) {
+                    $forwardedIps = explode(',', $_SERVER['HTTP_X_FORWARDED_FOR']);
+                    return trim($forwardedIps[0]);
+                }
+            }
+        }
+        
+        return $remoteAddr;
     }
 
     private static function checkRateLimit() {
@@ -105,9 +131,8 @@ class Firewall {
             }
         }
 
-        // Use system temp directory for high-speed, volatile storage (RAM disk on many systems)
+        // Use system temp directory for high-speed, volatile storage
         $cacheDir = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'stela_waf_cache';
-        
         if (!is_dir($cacheDir)) {
             @mkdir($cacheDir, 0750, true);
         }
@@ -118,21 +143,34 @@ class Firewall {
         $currentTime = time();
         $currentMinute = floor($currentTime / 60);
 
-        $data = ['minute' => $currentMinute, 'count' => 0, 'blocked_until' => 0];
+        // Atomic file read and write using flock to prevent race conditions
+        $fp = @fopen($file, 'c+');
+        if (!$fp) {
+            return; // If temp file cannot be opened, fail-open to not block users
+        }
 
-        if (file_exists($file)) {
-            $content = @file_get_contents($file);
-            if ($content) {
-                $decoded = json_decode($content, true);
-                if (is_array($decoded)) {
-                    $data = $decoded;
-                }
+        if (!@flock($fp, LOCK_EX)) {
+            @fclose($fp);
+            return;
+        }
+
+        $content = '';
+        while (!feof($fp)) {
+            $content .= fread($fp, 8192);
+        }
+
+        $data = ['minute' => $currentMinute, 'count' => 0, 'blocked_until' => 0];
+        if (!empty($content)) {
+            $decoded = json_decode($content, true);
+            if (is_array($decoded)) {
+                $data = $decoded;
             }
         }
 
         // Check if currently blocked
         if ($data['blocked_until'] > $currentTime) {
-            // [SECURITY] Jangan tampilkan IP ke user
+            @flock($fp, LOCK_UN);
+            @fclose($fp);
             self::abort(429, "Too Many Requests. Your access has been temporarily blocked for suspicious activity. Please try again later.");
         }
 
@@ -144,23 +182,29 @@ class Firewall {
 
         $data['count']++;
 
-        // Block if limit exceeded
-        if ($data['count'] > $maxLimit) {
+        $shouldBlock = ($data['count'] > $maxLimit);
+        if ($shouldBlock) {
             $data['blocked_until'] = $currentTime + self::$blockDuration;
-            @file_put_contents($file, json_encode($data), LOCK_EX);
+        }
+
+        // Write updated data atomically
+        ftruncate($fp, 0);
+        rewind($fp);
+        fwrite($fp, json_encode($data));
+        fflush($fp);
+        @flock($fp, LOCK_UN);
+        @fclose($fp);
+
+        if ($shouldBlock) {
             $message = $isSensitive 
                 ? "Too Many Requests. Security rate limit exceeded for sensitive operation. IP blocked for 10 minutes."
                 : "Too Many Requests. Global rate limit exceeded. IP blocked for 10 minutes.";
             self::abort(429, $message);
         }
-
-        // Save state
-        @file_put_contents($file, json_encode($data), LOCK_EX);
     }
 
     private static function checkWafRules() {
         // Bad Bots Block
-        // [SECURITY] Hapus curl/wget dari daftar karena bisa memblokir health checks & legitimate API consumers
         $userAgent = strtolower($_SERVER['HTTP_USER_AGENT'] ?? '');
         $badBots = ['sqlmap', 'nikto', 'dirb', 'nmap', 'python-requests'];
         foreach ($badBots as $bot) {
@@ -169,55 +213,55 @@ class Firewall {
             }
         }
 
-        // Inspect all incoming data
-        $payload = $_GET + $_POST + $_COOKIE;
-        array_walk_recursive($payload, function($value) {
-            if (is_string($value)) {
-                $valueLower = strtolower($value);
-                
-                // 1. Basic SQL Injection patterns
-                $sqlPatterns = [
-                    '/union\s+select/i',
-                    '/select\s+.*\s+from/i',
-                    '/insert\s+into/i',
-                    '/update\s+.*\s+set/i',
-                    '/delete\s+from/i',
-                    '/drop\s+table/i',
-                    '/truncate\s+table/i',
-                    '/exec\s*\(/i',
-                    '/benchmark\s*\(/i',
-                    '/sleep\s*\(/i',
-                    '/load_file\s*\(/i'
-                ];
+        // Inspect all incoming data without union collision (check GET, POST, and COOKIE independently)
+        $inputs = [$_GET, $_POST, $_COOKIE];
+        foreach ($inputs as $payload) {
+            array_walk_recursive($payload, function($value) {
+                if (is_string($value)) {
+                    // 1. Basic SQL Injection patterns
+                    $sqlPatterns = [
+                        '/union\s+select/i',
+                        '/select\s+.*\s+from/i',
+                        '/insert\s+into/i',
+                        '/update\s+.*\s+set/i',
+                        '/delete\s+from/i',
+                        '/drop\s+table/i',
+                        '/truncate\s+table/i',
+                        '/exec\s*\(/i',
+                        '/benchmark\s*\(/i',
+                        '/sleep\s*\(/i',
+                        '/load_file\s*\(/i'
+                    ];
 
-                foreach ($sqlPatterns as $pattern) {
-                    if (preg_match($pattern, $value)) {
-                        self::abort(403, "Access Denied: Malicious SQL payload detected.");
+                    foreach ($sqlPatterns as $pattern) {
+                        if (preg_match($pattern, $value)) {
+                            self::abort(403, "Access Denied: Malicious SQL payload detected.");
+                        }
+                    }
+
+                    // 2. Cross-Site Scripting (XSS)
+                    $xssPatterns = [
+                        '/<script.*?>/i',
+                        '/javascript:/i',
+                        '/vbscript:/i',
+                        '/onload=/i',
+                        '/onerror=/i',
+                        '/onmouseover=/i'
+                    ];
+
+                    foreach ($xssPatterns as $pattern) {
+                        if (preg_match($pattern, $value)) {
+                            self::abort(403, "Access Denied: Malicious XSS payload detected.");
+                        }
+                    }
+
+                    // 3. Path Traversal
+                    if (strpos($value, '../') !== false || strpos($value, '..\\') !== false) {
+                        self::abort(403, "Access Denied: Path Traversal detected.");
                     }
                 }
-
-                // 2. Cross-Site Scripting (XSS)
-                $xssPatterns = [
-                    '/<script.*?>/i',
-                    '/javascript:/i',
-                    '/vbscript:/i',
-                    '/onload=/i',
-                    '/onerror=/i',
-                    '/onmouseover=/i'
-                ];
-
-                foreach ($xssPatterns as $pattern) {
-                    if (preg_match($pattern, $value)) {
-                        self::abort(403, "Access Denied: Malicious XSS payload detected.");
-                    }
-                }
-
-                // 3. Path Traversal
-                if (strpos($value, '../') !== false || strpos($value, '..\\') !== false) {
-                    self::abort(403, "Access Denied: Path Traversal detected.");
-                }
-            }
-        });
+            });
+        }
     }
 
     private static function abort($code, $message) {

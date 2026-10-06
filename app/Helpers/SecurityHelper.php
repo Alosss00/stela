@@ -19,3 +19,14 @@ if (!function_exists('e')) {
         return htmlspecialchars((string) $value, ENT_QUOTES | ENT_HTML5, 'UTF-8');
     }
 }
+
+/**
+ * Get current CSP nonce for inline script tags
+ * 
+ * @return string
+ */
+if (!function_exists('csp_nonce')) {
+    function csp_nonce() {
+        return defined('CSP_NONCE') ? CSP_NONCE : '';
+    }
+}

@@ -16,22 +16,10 @@ $db = new Database();
 $department = $_SESSION['department'] ?? '';
 $company_name = $_SESSION['company_name'] ?? '';
 
-$safeCompany = $db->escapeString($company_name);
-$safeDept = $db->escapeString($department);
-
-$filter_parts = [];
-if (!empty($safeDept)) {
-    $filter_parts[] = "e.department = '$safeDept'";
-    $filter_parts[] = "e.contractor_company = '$safeDept'";
-}
-if (!empty($safeCompany) && $safeCompany !== $safeDept) {
-    $filter_parts[] = "e.contractor_company = '$safeCompany'";
-    $filter_parts[] = "e.department = '$safeCompany'";
-}
-$dept_filter = !empty($filter_parts) ? "(" . implode(" OR ", array_unique($filter_parts)) . ")" : "1=1";
-
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
-$whereClauseDetail = "e.id = $id AND $dept_filter";
+$whereClauseDetail = "e.id = ? AND (e.department = ? OR e.contractor_company = ?)";
+$detailParams = [$id, $department, $department];
+$detailTypes  = "iss";
 
 // Get employee and appointment details
 $employee_result = $db->query("
@@ -46,7 +34,7 @@ $employee_result = $db->query("
     LEFT JOIN users u_admin ON e.verified_by = u_admin.id
     LEFT JOIN users u2 ON a.approved_by = u2.id
     WHERE $whereClauseDetail
-");
+", $detailParams, $detailTypes);
 
 if (!$employee_result) {
     die('Database error: ' . $db->escapeString('Query failed'));

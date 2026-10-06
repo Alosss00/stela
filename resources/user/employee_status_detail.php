@@ -9,9 +9,13 @@ $company_name = $_SESSION['company_name'] ?? '';
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-$whereClauseDetail = "e.id = $id";
+$whereClauseDetail = "e.id = ?";
+$detailParams = [$id];
+$detailTypes  = "i";
 if (!isSuperadmin() && !hasPermission('admin.access') && !empty($company_name)) {
-    $whereClauseDetail .= " AND e.contractor_company = '" . $db->escapeString($company_name) . "'";
+    $whereClauseDetail .= " AND e.contractor_company = ?";
+    $detailParams[] = $company_name;
+    $detailTypes  .= "s";
 }
 
 // Get employee and appointment details
@@ -27,7 +31,7 @@ $employee_result = $db->query("
     LEFT JOIN users u_admin ON e.verified_by = u_admin.id
     LEFT JOIN users u2 ON a.approved_by = u2.id
     WHERE $whereClauseDetail
-");
+", $detailParams, $detailTypes);
 
 if (!$employee_result) {
     die('Database error: ' . $db->escapeString('Query failed'));

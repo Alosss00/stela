@@ -52,11 +52,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['change_password'])) {
             if (!$user || !password_verify($current_password, $user['password'])) {
                 $error = stela_t('current-password-incorrect');
             } else {
-                // Update password
+                // Update password securely using parameterized query
                 $new_password_hash = password_hash($new_password, PASSWORD_DEFAULT);
-                $update_sql = "UPDATE users SET password = '$new_password_hash' WHERE id = $user_id";
-
-                if ($db->query($update_sql)) {
+                if ($db->query("UPDATE users SET password = ? WHERE id = ?", [$new_password_hash, $user_id], "si")) {
                     $message = stela_t('password-changed');
                     // Clear form
                     $_POST = array();

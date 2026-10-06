@@ -20,10 +20,15 @@ if (session_status() === PHP_SESSION_NONE) {
 // Filter
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
-// Build query with filter
-$where_clause = "a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = '" . $db->escapeString($company_name) . "'";
+// Build query with parameterized filter
+$where_clause = "a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = ?";
+$where_params = [$company_name];
+$where_types  = "s";
+
 if ($status_filter != 'all') {
-    $where_clause .= " AND a.status = '" . $db->escapeString($status_filter) . "'";
+    $where_clause .= " AND a.status = ?";
+    $where_params[] = $status_filter;
+    $where_types  .= "s";
 }
 
 // Handle resubmit to KTT action
@@ -45,13 +50,13 @@ if (isset($_GET['action']) && $_GET['action'] == 'resubmit_to_ktt' && isset($_GE
         // Verify this appointment belongs to user's company and is resubmittable
         $verify_result = $db->query("
             SELECT a.id, e.verification_status, a.resubmit_count
-            FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.id = $appointment_id
+            FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND a.id = ?
             AND a.status = 'rejected'
             AND a.requires_ktt_msm_review + a.requires_ktt_ttn_review > 0
             AND e.verification_status = 'verified'
             AND a.resubmit_count > 0
-            AND e.contractor_company = '" . $db->escapeString($company_name) . "'
-        ");
+            AND e.contractor_company = ?
+        ", [$appointment_id, $company_name], "is");
 
         if ($verify_result && $verify_result->num_rows > 0) {
             // Get which KTT needs to review (from requires flags)
@@ -118,13 +123,13 @@ $appointments = $db->query("
     LEFT JOIN positions p ON a.position_id = p.id
     WHERE $where_clause
     ORDER BY a.created_at DESC, a.id DESC
-");
+", $where_params, $where_types);
 
-// Get statistics
-$all_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = '" . $db->escapeString($company_name) . "'")->fetch_assoc()['count'];
-$pending_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = '" . $db->escapeString($company_name) . "' AND a.status = 'pending'")->fetch_assoc()['count'];
-$approved_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = '" . $db->escapeString($company_name) . "' AND a.status = 'approved'")->fetch_assoc()['count'];
-$rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = '" . $db->escapeString($company_name) . "' AND a.status = 'rejected'")->fetch_assoc()['count'];
+// Get statistics using parameterized queries
+$all_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = ?", [$company_name], "s")->fetch_assoc()['count'];
+$pending_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = ? AND a.status = 'pending'", [$company_name], "s")->fetch_assoc()['count'];
+$approved_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = ? AND a.status = 'approved'", [$company_name], "s")->fetch_assoc()['count'];
+$rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.contractor_company = ? AND a.status = 'rejected'", [$company_name], "s")->fetch_assoc()['count'];
 ?>
 
 <div class="appointments-container">

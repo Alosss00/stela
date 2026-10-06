@@ -1,0 +1,31 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: stela_mysql
+    restart: unless-stopped
+    command: --default-authentication-plugin=mysql_native_password
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: toka_stela
+    ports:
+      - "3306:3306"
+    volumes:
+      - stela_mysql_data:/var/lib/mysql
+      # Otomatis import dump database terbaru saat pertama kali container di-create
+      - "./database/dumps/mining_appointment 9-6-2026 terbaru.sql:/docker-entrypoint-initdb.d/01-init.sql:ro"
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: stela_phpmyadmin
+    restart: unless-stopped
+    environment:
+      PMA_HOST: db
+      PMA_PORT: 3306
+      UPLOAD_LIMIT: 64M
+    ports:
+      - "8080:8080"
+    depends_on:
+      - db
+
+volumes:
+  stela_mysql_data:

@@ -35,6 +35,19 @@ if (!function_exists('upload_physical_dir')) {
  */
 if (!function_exists('handle_upload')) {
     function handle_upload(array $file_array, string $type, string $prefix): string|false {
+        // [SECURITY] Validasi error code file upload
+        if (!isset($file_array['error']) || $file_array['error'] !== UPLOAD_ERR_OK) {
+            error_log("Upload rejected: file error code " . ($file_array['error'] ?? 'missing'));
+            return false;
+        }
+
+        // [SECURITY] Validasi ukuran file terhadap batas maksimum (MAX_UPLOAD_SIZE)
+        $max_size = defined('MAX_UPLOAD_SIZE') ? MAX_UPLOAD_SIZE : (10 * 1024 * 1024);
+        if (!isset($file_array['size']) || $file_array['size'] <= 0 || $file_array['size'] > $max_size) {
+            error_log("Upload rejected: file size " . ($file_array['size'] ?? 0) . " bytes exceeds limit ($max_size bytes).");
+            return false;
+        }
+
         $ext      = strtolower(pathinfo($file_array['name'], PATHINFO_EXTENSION));
         
         // [SECURITY] Validasi ekstensi file terhadap whitelist

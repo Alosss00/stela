@@ -20,10 +20,15 @@ $department = $_SESSION['department'] ?? '';
 // Filter
 $status_filter = isset($_GET['status']) ? $_GET['status'] : 'all';
 
-// Build query with filter
-$where_clause = "e.department = '" . $db->escapeString($department) . "'";
+// Build query with parameterized filter
+$where_clause = "e.department = ?";
+$where_params = [$department];
+$where_types  = "s";
+
 if ($status_filter != 'all') {
-    $where_clause .= " AND a.status = '" . $db->escapeString($status_filter) . "'";
+    $where_clause .= " AND a.status = ?";
+    $where_params[] = $status_filter;
+    $where_types  .= "s";
 }
 
 // Get appointments for employees in current department
@@ -44,14 +49,13 @@ $appointments = $db->query("
     LEFT JOIN positions p ON a.position_id = p.id
     WHERE $where_clause
     ORDER BY a.created_at DESC, a.id DESC
-");
+", $where_params, $where_types);
 
-// Get statistics
-
-$all_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = '" . $db->escapeString($department) . "'")->fetch_assoc()['count'];
-$pending_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = '" . $db->escapeString($department) . "' AND a.status = 'pending'")->fetch_assoc()['count'];
-$approved_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = '" . $db->escapeString($department) . "' AND a.status = 'approved'")->fetch_assoc()['count'];
-$rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = '" . $db->escapeString($department) . "' AND a.status = 'rejected'")->fetch_assoc()['count'];
+// Get statistics using parameterized queries
+$all_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = ?", [$department], "s")->fetch_assoc()['count'];
+$pending_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = ? AND a.status = 'pending'", [$department], "s")->fetch_assoc()['count'];
+$approved_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = ? AND a.status = 'approved'", [$department], "s")->fetch_assoc()['count'];
+$rejected_count = $db->query("SELECT COUNT(*) as count FROM appointments a JOIN employees e ON a.employee_id = e.id WHERE a.deleted_at IS NULL AND e.deleted_at IS NULL AND e.department = ? AND a.status = 'rejected'", [$department], "s")->fetch_assoc()['count'];
 ?>
 
 <div class="appointments-container">

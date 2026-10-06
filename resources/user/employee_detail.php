@@ -112,9 +112,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['a
 
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-$whereClauseDetail = "e.id = $id";
+$whereClauseDetail = "e.id = ?";
+$detailParams = [$id];
+$detailTypes  = "i";
 if (!$isAdmin && !empty($company_name)) {
-    $whereClauseDetail .= " AND e.contractor_company = '" . $db->escapeString($company_name) . "'";
+    $whereClauseDetail .= " AND e.contractor_company = ?";
+    $detailParams[] = $company_name;
+    $detailTypes  .= "s";
 }
 
 // Get employee details
@@ -125,7 +129,7 @@ $employee_result = $db->query("
     FROM employees e
     LEFT JOIN users u ON e.verified_by = u.id
     WHERE $whereClauseDetail
-");
+", $detailParams, $detailTypes);
 
 if (!$employee_result) {
     die('Database error: ' . $db->escapeString('Query failed'));

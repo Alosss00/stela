@@ -19,8 +19,9 @@ $db = new Database();
 $company_name = $_SESSION['company_name'] ?? '';
 $id = isset($_GET['id']) ? intval($_GET['id']) : 0;
 
-// Get appointment details - ensure it belongs to this company
-$appointment = $db->query("
+// Get appointment details - ensure it belongs to this company (prevent IDOR)
+$isSuperadmin = isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin';
+$apptQuery = "
     SELECT a.*, e.full_name as employee_name, e.employee_code, e.position, e.contractor_company,
            e.verified_by as admin_verified_by, e.competency_name,
            p.position_name, p.position_type,
@@ -28,7 +29,7 @@ $appointment = $db->query("
            u2.full_name as approved_by_name,
            u_admin.full_name as admin_name,
            u_admin.username as admin_username,
-             e.verified_date as admin_verified_date,
+           e.verified_date as admin_verified_date,
            ktt1.full_name as ktt1_name,
            ktt2.full_name as ktt2_name
     FROM appointments a
@@ -39,8 +40,11 @@ $appointment = $db->query("
     LEFT JOIN users u_admin ON e.verified_by = u_admin.id
     LEFT JOIN users ktt1 ON a.ktt1_approved_by = ktt1.id
     LEFT JOIN users ktt2 ON a.ktt2_approved_by = ktt2.id
-    WHERE a.id = $id " . ((isset($_SESSION['role']) && $_SESSION['role'] === 'superadmin') ? "" : "AND e.contractor_company = '" . $db->escapeString($company_name) . "'") . "
-")->fetch_assoc();
+    WHERE a.id = ? " . ($isSuperadmin ? "" : "AND e.contractor_company = ?");
+
+$apptParams = $isSuperadmin ? [$id] : [$id, $company_name];
+$apptTypes = $isSuperadmin ? "i" : "is";
+$appointment = $db->query($apptQuery, $apptParams, $apptTypes)->fetch_assoc();
 // Ambil tanggal verifikasi admin dari field yang benar
 $admin_verified_date = $appointment['verified_date'] ?? $appointment['admin_verified_date'] ?? $appointment['admin_verified_at'] ?? null;
 
